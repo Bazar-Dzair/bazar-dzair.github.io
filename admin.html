@@ -546,8 +546,10 @@ async function saveSetting(){
   }
 }
 
+if (typeof products === "undefined") { var products = []; }
+
 function updateStats(){
-  const count=products?.length||0;
+  const count = Array.isArray(products) ? products.length : 0;
   const avg=count?(products.reduce((s,p)=>s+Number(p.price||0),0)/count):0;
   const a=document.getElementById("statProducts"),c=document.getElementById("statAvg");
   if(a)a.textContent=count.toLocaleString("ar-DZ");
@@ -820,7 +822,7 @@ window.deleteOrder=async id=>{if(!confirm("حذف هذه الطلبية؟"))retu
 
 window.render=()=>{let q=searchInput.value.toLowerCase();let a=products.filter(p=>String(p.name||"").toLowerCase().includes(q));listBox.innerHTML=a.length?a.map(p=>`<div class="product"><img src="${esc((Array.isArray(p.images)&&p.images.length?p.images[0]:p.image)||"")}" onerror="this.style.display='none'"><div class="info"><b>${esc(p.name||"بدون اسم")}</b><div>💰 ${Number(p.price||0).toLocaleString("ar-DZ")} دج</div><div>📦 المخزون: ${p.stock||0}</div></div><div class="actions"><button style="background:#e0f2fe;color:#0369a1" onclick="editProduct('${p.id}')">✏️ تعديل</button><button class="red" onclick="removeProduct('${p.id}')">🗑️ حذف</button></div></div>`).join(""):"<div>لا توجد منتجات.</div>"};
 
-async function compressImageToDataURL(file,maxSide=850,quality=0.55){
+async function compressImageToDataURL(file,maxSide=900,quality=0.62){
   if(!file || !file.type.startsWith("image/")) throw new Error("ملف صورة غير صالح");
   if(file.type==="image/gif"){
     // GIFs are converted to a normal JPEG frame to keep Firestore usage small.
@@ -844,37 +846,28 @@ async function compressImageToDataURL(file,maxSide=850,quality=0.55){
 }
 
 window.save=async()=>{
+ let specifications=String(specificationsText?.value||"").split("\n").map(s=>s.trim()).filter(Boolean).map(line=>{
+   const i=line.indexOf(":");
+   return i>0 ? {key:line.slice(0,i).trim(),value:line.slice(i+1).trim()} : {key:line,value:""};
+ });
+
+ let data={
+   name:nameInput.value.trim(),
+   price:Number(priceInput.value),
+   category:categoryInput.value,
+   stock:Number(stockInput.value),
+   description:descriptionInput.value.trim(),
+   specifications,
+   image:"",
+   images:[],
+   updatedAt:serverTimestamp()
+ };
+
+ if(!data.name||data.price<0||data.stock<0||!selectedImages.length){
+   show("أكمل بيانات المنتج المطلوبة وأضف صورة واحدة على الأقل.","err");return;
+ }
+
  try{
-   let specifications=String(specificationsText?.value||"").split("\n").map(s=>s.trim()).filter(Boolean).map(line=>{
-     const i=line.indexOf(":");
-     return i>0 ? {key:line.slice(0,i).trim(),value:line.slice(i+1).trim()} : {key:line,value:""};
-   });
-
-   let data={
-     name:nameInput.value.trim(),
-     price:Number(priceInput.value),
-     category:categoryInput.value,
-     stock:Number(stockInput.value),
-     description:descriptionInput.value.trim(),
-     specifications,
-     image:"",
-     images:[],
-     updatedAt:serverTimestamp()
-   };
-
-   if(!data.name){
-     show("اسم المنتج مطلوب *","err");return;
-   }
-   if(!Number.isFinite(data.price)||data.price<0){
-     show("أدخل سعرًا صحيحًا (رقم موجب).","err");return;
-   }
-   if(!Number.isFinite(data.stock)||data.stock<0){
-     show("أدخل كمية المخزون بشكل صحيح (رقم موجب).","err");return;
-   }
-   if(!selectedImages.length){
-     show("أضف صورة واحدة على الأقل للمنتج.","err");return;
-   }
-
    show("⏳ جاري تجهيز الصور مجانًا...","ok");
    const uploaded=[];
    let totalBytes=0;
@@ -887,12 +880,14 @@ window.save=async()=>{
        continue;
      }
 
-     const dataUrl=await compressImageToDataURL(item.file,850,0.55);
+     const dataUrl=await compressImageToDataURL(item.file,900,0.62);
      const bytes=Math.ceil((dataUrl.length*3)/4);
      totalBytes+=bytes;
 
-     if(totalBytes>600000){
-       show("الصور كبيرة جدًا. اختر صورًا أقل حجمًا أو عددًا أقل (الحد الآمن حوالي 600KB للصور بحيث لا يتجاوز حد مستند Firestore البالغ 1MB).","err");
+     // Firestore documents are limited to about 1 MiB.
+     // Keep a safety margin so the product document remains saveable.
+     if(totalBytes>780000){
+       show("الصور كبيرة جدًا. اختر صورًا أقل حجمًا أو عددًا أقل (الحد المجاني آمن حتى حوالي 780KB للصور).","err");
        return;
      }
 
@@ -902,20 +897,24 @@ window.save=async()=>{
    data.images=uploaded.slice(0,10);
    data.image=data.images[0]||"";
 
-   if(editing){
+   if(!data.images.length){
+     show("أضف صورة واحدة على الأقل للمنتج.","err");return;
+   }
+
+   if(editing) {
      await updateDoc(doc(db,"products",editing),data);
      const idx=products.findIndex(x=>x.id===editing);
      if(idx>=0) products[idx]={...products[idx],...data};
-     show("تم تحديث المنتج بنجاح ✅","ok");
-   }else{
+   } else {
      data.createdAt=serverTimestamp();
      const newRef=await addDoc(collection(db,"products"),data);
+     // تحديث عدد المنتجات فور نجاح الإضافة.
      products.push({id:newRef.id,...data});
-     show("تم حفظ المنتج في Firestore بنجاح ✅ (ID: "+newRef.id+")","ok");
    }
 
    render();
    updateStats();
+   show("تم الحفظ بنجاح ✅ الصور محفوظة بدون Firebase Storage.","ok");
    resetForm();
  }catch(e){
    console.error(e);
