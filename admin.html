@@ -820,7 +820,7 @@ window.deleteOrder=async id=>{if(!confirm("حذف هذه الطلبية؟"))retu
 
 window.render=()=>{let q=searchInput.value.toLowerCase();let a=products.filter(p=>String(p.name||"").toLowerCase().includes(q));listBox.innerHTML=a.length?a.map(p=>`<div class="product"><img src="${esc((Array.isArray(p.images)&&p.images.length?p.images[0]:p.image)||"")}" onerror="this.style.display='none'"><div class="info"><b>${esc(p.name||"بدون اسم")}</b><div>💰 ${Number(p.price||0).toLocaleString("ar-DZ")} دج</div><div>📦 المخزون: ${p.stock||0}</div></div><div class="actions"><button style="background:#e0f2fe;color:#0369a1" onclick="editProduct('${p.id}')">✏️ تعديل</button><button class="red" onclick="removeProduct('${p.id}')">🗑️ حذف</button></div></div>`).join(""):"<div>لا توجد منتجات.</div>"};
 
-async function compressImageToDataURL(file,maxSide=900,quality=0.62){
+async function compressImageToDataURL(file,maxSide=850,quality=0.55){
   if(!file || !file.type.startsWith("image/")) throw new Error("ملف صورة غير صالح");
   if(file.type==="image/gif"){
     // GIFs are converted to a normal JPEG frame to keep Firestore usage small.
@@ -887,12 +887,12 @@ window.save=async()=>{
        continue;
      }
 
-     const dataUrl=await compressImageToDataURL(item.file,900,0.62);
+     const dataUrl=await compressImageToDataURL(item.file,850,0.55);
      const bytes=Math.ceil((dataUrl.length*3)/4);
      totalBytes+=bytes;
 
-     if(totalBytes>780000){
-       show("الصور كبيرة جدًا. اختر صورًا أقل حجمًا أو عددًا أقل (الحد المجاني آمن حتى حوالي 780KB للصور).","err");
+     if(totalBytes>600000){
+       show("الصور كبيرة جدًا. اختر صورًا أقل حجمًا أو عددًا أقل (الحد الآمن حوالي 600KB للصور بحيث لا يتجاوز حد مستند Firestore البالغ 1MB).","err");
        return;
      }
 
@@ -911,7 +911,7 @@ window.save=async()=>{
      data.createdAt=serverTimestamp();
      const newRef=await addDoc(collection(db,"products"),data);
      products.push({id:newRef.id,...data});
-     show("تمت إضافة المنتج بنجاح ✅","ok");
+     show("تم حفظ المنتج في Firestore بنجاح ✅ (ID: "+newRef.id+")","ok");
    }
 
    render();
