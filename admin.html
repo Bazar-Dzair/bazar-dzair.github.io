@@ -844,28 +844,37 @@ async function compressImageToDataURL(file,maxSide=900,quality=0.62){
 }
 
 window.save=async()=>{
- let specifications=String(specificationsText?.value||"").split("\n").map(s=>s.trim()).filter(Boolean).map(line=>{
-   const i=line.indexOf(":");
-   return i>0 ? {key:line.slice(0,i).trim(),value:line.slice(i+1).trim()} : {key:line,value:""};
- });
-
- let data={
-   name:nameInput.value.trim(),
-   price:Number(priceInput.value),
-   category:categoryInput.value,
-   stock:Number(stockInput.value),
-   description:descriptionInput.value.trim(),
-   specifications,
-   image:"",
-   images:[],
-   updatedAt:serverTimestamp()
- };
-
- if(!data.name||data.price<0||data.stock<0||!selectedImages.length){
-   show("أكمل بيانات المنتج المطلوبة وأضف صورة واحدة على الأقل.","err");return;
- }
-
  try{
+   let specifications=String(specificationsText?.value||"").split("\n").map(s=>s.trim()).filter(Boolean).map(line=>{
+     const i=line.indexOf(":");
+     return i>0 ? {key:line.slice(0,i).trim(),value:line.slice(i+1).trim()} : {key:line,value:""};
+   });
+
+   let data={
+     name:nameInput.value.trim(),
+     price:Number(priceInput.value),
+     category:categoryInput.value,
+     stock:Number(stockInput.value),
+     description:descriptionInput.value.trim(),
+     specifications,
+     image:"",
+     images:[],
+     updatedAt:serverTimestamp()
+   };
+
+   if(!data.name){
+     show("اسم المنتج مطلوب *","err");return;
+   }
+   if(!Number.isFinite(data.price)||data.price<0){
+     show("أدخل سعرًا صحيحًا (رقم موجب).","err");return;
+   }
+   if(!Number.isFinite(data.stock)||data.stock<0){
+     show("أدخل كمية المخزون بشكل صحيح (رقم موجب).","err");return;
+   }
+   if(!selectedImages.length){
+     show("أضف صورة واحدة على الأقل للمنتج.","err");return;
+   }
+
    show("⏳ جاري تجهيز الصور مجانًا...","ok");
    const uploaded=[];
    let totalBytes=0;
@@ -882,8 +891,6 @@ window.save=async()=>{
      const bytes=Math.ceil((dataUrl.length*3)/4);
      totalBytes+=bytes;
 
-     // Firestore documents are limited to about 1 MiB.
-     // Keep a safety margin so the product document remains saveable.
      if(totalBytes>780000){
        show("الصور كبيرة جدًا. اختر صورًا أقل حجمًا أو عددًا أقل (الحد المجاني آمن حتى حوالي 780KB للصور).","err");
        return;
@@ -895,24 +902,20 @@ window.save=async()=>{
    data.images=uploaded.slice(0,10);
    data.image=data.images[0]||"";
 
-   if(!data.images.length){
-     show("أضف صورة واحدة على الأقل للمنتج.","err");return;
-   }
-
-   if(editing) {
+   if(editing){
      await updateDoc(doc(db,"products",editing),data);
      const idx=products.findIndex(x=>x.id===editing);
      if(idx>=0) products[idx]={...products[idx],...data};
-   } else {
+     show("تم تحديث المنتج بنجاح ✅","ok");
+   }else{
      data.createdAt=serverTimestamp();
      const newRef=await addDoc(collection(db,"products"),data);
-     // تحديث عدد المنتجات فور نجاح الإضافة.
      products.push({id:newRef.id,...data});
+     show("تمت إضافة المنتج بنجاح ✅","ok");
    }
 
    render();
    updateStats();
-   show("تم الحفظ بنجاح ✅ الصور محفوظة بدون Firebase Storage.","ok");
    resetForm();
  }catch(e){
    console.error(e);
