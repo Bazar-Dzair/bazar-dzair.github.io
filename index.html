@@ -225,8 +225,19 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
 .footer-toggle{display:block;border:0;background:none;color:inherit;padding:0;margin:0;text-align:right;font:inherit;cursor:pointer;width:100%;line-height:1.8}.footer-toggle:hover{text-decoration:underline}.footer-link-text{display:none;font-size:12px;line-height:1.8;color:rgba(255,255,255,.78);margin:5px 0 10px;padding:8px 10px;border-right:2px solid rgba(255,255,255,.28);white-space:pre-line}.footer-link-text.open{display:block} 
 </style><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 
+<!-- Google Tag Manager -->
+<script>window.dataLayer = window.dataLayer || [];
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-N7FSBBHH');</script>
+<!-- End Google Tag Manager -->
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N7FSBBHH" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 <header>
   <div class="topbar"><div class="item">🎧 <span id="topText1">خدمة عملاء مميزة</span></div><div class="item"><span class="truck">🚚</span><span id="topText2">توصيل إلى جميع الولايات</span></div><div class="item">🛡️ <span id="topText3">الدفع عند الاستلام</span></div></div>
   <div class="header">
@@ -521,12 +532,58 @@ function productSlug(name){
     .replace(/^-+|-+$/g, "") || "product";
 }
 
+/* =========================
+   GTM / GA4 E-commerce
+   ========================= */
+window.dataLayer = window.dataLayer || [];
+
+function gtmItem(product, quantity=1){
+  return {
+    item_id: String(product?.firestoreId || product?.id || ""),
+    item_name: String(product?.name || ""),
+    price: Number(product?.price || 0),
+    quantity: Number(quantity || 1)
+  };
+}
+
+function pushEcommerceEvent(eventName, items, valueOverride=null){
+  if(!window.dataLayer) return false;
+
+  const list = Array.isArray(items) ? items : [items];
+  const validItems = list.filter(Boolean).map(x => {
+    if(x && x.name !== undefined && x.price !== undefined && x.quantity !== undefined){
+      return gtmItem(x, x.quantity);
+    }
+    return x;
+  });
+
+  if(!validItems.length) return false;
+
+  const value = valueOverride !== null
+    ? Number(valueOverride || 0)
+    : validItems.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
+
+  window.dataLayer.push({
+    event: eventName,
+    ecommerce: {
+      currency: "DZD",
+      value: value,
+      items: validItems
+    }
+  });
+
+  return true;
+}
+
 function goToProduct(id){
   const product = products.find(p => String(p.id) === String(id));
   if(!product){
     showToast("المنتج غير موجود");
     return;
   }
+
+  // view_item: يرسل الحدث قبل الانتقال لصفحة المنتج.
+  pushEcommerceEvent("view_item", product, 1);
 
   const slug = productSlug(product.name);
   try{ localStorage.setItem("bazar_selected_product", JSON.stringify(product)); }catch(_e){}
@@ -536,11 +593,16 @@ function goToProduct(id){
   // ونضع اسم المنتج مباشرة في مسار الرابط.
   const productUrl = new URL("product.html", window.location.href);
   productUrl.searchParams.set("id", slug);
-  window.location.href = productUrl.href;
+
+  // نعطي GTM وقتاً لمعالجة view_item قبل الانتقال لصفحة المنتج.
+  setTimeout(() => {
+    window.location.href = productUrl.href;
+  }, 1200);
 }
 
 function openProduct(id){
  selected=products.find(p=>p.id===id);if(!selected)return;dQty=1;
+ pushEcommerceEvent("view_item", selected, 1);
  document.getElementById("detailImage").src=selected.image;document.getElementById("detailName").textContent=selected.name;document.getElementById("detailPrice").textContent=money(selected.price);document.getElementById("detailDesc").textContent=selected.description;document.getElementById("detailQty").textContent=1;
  document.getElementById("productOverlay").style.display="block";document.body.style.overflow="hidden";
 }
@@ -548,14 +610,31 @@ function detailQtyChange(x){dQty=Math.max(1,dQty+x);document.getElementById("det
 function cartDetail(){addCart(selected.id,dQty);closeModal("productOverlay")}
 function buyDetail(){addCart(selected.id,dQty);closeModal("productOverlay");openCart()}
 function addCart(id,q=1){
- const p=products.find(x=>x.id===id);if(!p)return;const e=cart.find(x=>x.id===id);
- e?e.quantity+=q:cart.push({...p,quantity:q});updateCount();renderCart();toast("تمت إضافة المنتج إلى السلة ✅");
+ const p=products.find(x=>x.id===id);if(!p)return;
+ const e=cart.find(x=>x.id===id);
+ e?e.quantity+=q:cart.push({...p,quantity:q});
+
+ // add_to_cart
+ pushEcommerceEvent("add_to_cart", p, Number(p.price || 0) * Number(q || 1));
+
+ updateCount();renderCart();toast("تمت إضافة المنتج إلى السلة ✅");
 }
 function buyNow(id){
   goToProduct(id);
 }
 function updateCount(){document.getElementById("cartCount").textContent=cart.reduce((s,x)=>s+x.quantity,0)}
-function openCart(){renderCart();document.getElementById("cartOverlay").style.display="block";document.body.style.overflow="hidden"}
+function openCart(){
+ renderCart();
+ document.getElementById("cartOverlay").style.display="block";
+ document.body.style.overflow="hidden";
+
+ // begin_checkout: يرسل مرة واحدة عند بدء عملية الطلب.
+ if(cart.length && !window.__bazarBeginCheckoutSent){
+   const checkoutValue = cart.reduce((sum,x)=>sum + (Number(x.price||0) * Number(x.quantity||1)),0);
+   pushEcommerceEvent("begin_checkout", cart, checkoutValue);
+   window.__bazarBeginCheckoutSent = true;
+ }
+}
 function closeModal(id){document.getElementById(id).style.display="none";document.body.style.overflow=""}
 function overlayClose(e,id){if(e.target.id===id)closeModal(id)}
 function changeQty(id,x){const e=cart.find(p=>p.id===id);if(!e)return;e.quantity+=x;if(e.quantity<1)cart=cart.filter(p=>p.id!==id);updateCount();renderCart()}
@@ -642,10 +721,27 @@ function submitOrder(){
  const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),wn=document.getElementById("wilaya").options[document.getElementById("wilaya").selectedIndex]?.text||"";
  if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
  const s=shippingPrices[w];if(s===null||s===undefined){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
+
+ const orderId = "BD-" + Date.now();
+ const orderTotal = productTotal() + Number(s || 0);
+
+ // purchase هنا يعني: تم تأكيد طلب الدفع عند الاستلام وإرساله للمتجر عبر واتساب.
+ // transaction_id يمنع GA4 من اعتبار نفس الطلب عملية شراء مكررة.
+ window.dataLayer.push({
+   event: "purchase",
+   ecommerce: {
+     transaction_id: orderId,
+     currency: "DZD",
+     value: Number(orderTotal || 0),
+     shipping: Number(s || 0),
+     items: cart.map(x => gtmItem(x, x.quantity))
+   }
+ });
+
  let m="🛍️ طلب جديد - Bazar Dzair%0A%0A";
- m+="👤 الاسم: "+encodeURIComponent(n)+"%0A📞 الهاتف: "+encodeURIComponent(ph)+"%0A📍 الولاية: "+encodeURIComponent(wn)+"%0A🏠 العنوان: "+encodeURIComponent(a)+"%0A%0A📦 المنتجات:%0A";
+ m+="🆔 رقم الطلب: "+encodeURIComponent(orderId)+"%0A👤 الاسم: "+encodeURIComponent(n)+"%0A📞 الهاتف: "+encodeURIComponent(ph)+"%0A📍 الولاية: "+encodeURIComponent(wn)+"%0A🏠 العنوان: "+encodeURIComponent(a)+"%0A%0A📦 المنتجات:%0A";
  cart.forEach(x=>m+="• "+encodeURIComponent(x.name)+" × "+x.quantity+" = "+encodeURIComponent(money(x.price*x.quantity))+"%0A");
- m+="%0A💰 المنتجات: "+encodeURIComponent(money(productTotal()))+"%0A🚚 التوصيل: "+encodeURIComponent(money(s))+"%0A💵 النهائي: "+encodeURIComponent(money(productTotal()+s))+"%0A💳 الدفع عند الاستلام";
+ m+="%0A💰 المنتجات: "+encodeURIComponent(money(productTotal()))+"%0A🚚 التوصيل: "+encodeURIComponent(money(s))+"%0A💵 النهائي: "+encodeURIComponent(money(orderTotal))+"%0A💳 الدفع عند الاستلام";
  const whatsappNumber="213500000000"; // بدّل هذا الرقم برقم واتساب المتجر
  window.open("https://wa.me/"+whatsappNumber+"?text="+m,"_blank");
 }
