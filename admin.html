@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Bazar Dzair | لوحة التحكم</title>
 <style>
@@ -546,19 +547,6 @@ async function saveSetting(){
   }
 }
 
-if (typeof products === "undefined") { var products = []; }
-
-function updateStats(){
-  const count = Array.isArray(products) ? products.length : 0;
-  const avg=count?(products.reduce((s,p)=>s+Number(p.price||0),0)/count):0;
-  const a=document.getElementById("statProducts"),c=document.getElementById("statAvg");
-  if(a)a.textContent=count.toLocaleString("ar-DZ");
-  if(c)c.textContent=Math.round(avg).toLocaleString("ar-DZ")+" دج";
-}
-function updateOrderStats(count){
-  const el=document.getElementById("statOrders");
-  if(el)el.textContent=Number(count||0).toLocaleString("ar-DZ");
-}
 renderSettings();
 </script>
 
@@ -598,6 +586,21 @@ const imageFilesInput=document.getElementById("imageFiles");
 const imageCountBox=document.getElementById("imageCount");
 let products=[],editing=null;
 let selectedImages=[]; // {file,url,existing}
+
+// ===== مصدر واحد للمنتجات =====
+// `products` (هذه الـ module scope) هو المرجع الوحيد. كل العمليات
+// (إضافة/تعديل/حذف/عرض/إحصائيات) تقرأ منه، فلا يحدث تعارض أو undefined.
+function updateStats(){
+  const count = Array.isArray(products) ? products.length : 0;
+  const avg = count ? (products.reduce((s,p)=>s+Number(p.price||0),0)/count) : 0;
+  const a=document.getElementById("statProducts"),c=document.getElementById("statAvg");
+  if(a)a.textContent=count.toLocaleString("ar-DZ");
+  if(c)c.textContent=Math.round(avg).toLocaleString("ar-DZ")+" دج";
+}
+function updateOrderStats(count){
+  const el=document.getElementById("statOrders");
+  if(el)el.textContent=Number(count||0).toLocaleString("ar-DZ");
+}
 
 const defaultCategories=[
   {key:"tools",name:"أدوات",icon:"🔧"},

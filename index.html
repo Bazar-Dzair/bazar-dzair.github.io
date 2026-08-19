@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Bazar Dzair - متجر إلكتروني جزائري">
 <title>Bazar Dzair | متجر إلكتروني</title>
@@ -340,7 +341,7 @@ function firestoreDocData(docSnap){
 function mapRestProduct(docSnap,index){
   const data=firestoreDocData(docSnap);
   const imgs=Array.isArray(data.images)?data.images.filter(Boolean):[];
-  const image=data.image||data.imageUrl||data.photo||imgs[0]||"./logo.jpg";
+  const image=data.image||data.imageUrl||data.photo||imgs[0]||"./logo.svg";
   return {
     id:index+1,
     firestoreId:(docSnap.name||"").split("/").pop(),
@@ -468,7 +469,7 @@ async function loadProductsFromFirestore(){
   function mapSnap(d,i){
     const data=d.data()||{};
     const imgs=Array.isArray(data.images)?data.images.filter(Boolean):[];
-    const image=data.image||data.imageUrl||data.photo||imgs[0]||"./logo.jpg";
+    const image=data.image||data.imageUrl||data.photo||imgs[0]||"./logo.svg";
     return {
       id:i+1,
       firestoreId:d.id,
