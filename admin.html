@@ -138,6 +138,7 @@ body{background:#f7f7f8;color:#202124}
       <div class="nav-title">النظام</div>
       <nav class="nav">
         <button class="nav-item" onclick="showView('settings',this)">⚙ <span>الإعدادات</span></button>
+        <button class="nav-item" onclick="showAddons()">🧩 <span>الإضافات</span></button>
       </nav>
 
       <div class="sidebar-bottom">
@@ -210,6 +211,15 @@ body{background:#f7f7f8;color:#202124}
       <section id="view-settings" class="view hidden">
         <div class="page-head"><div><h1>الإعدادات</h1><p>تحكم في إعدادات المتجر والمحتوى والطلبات والمستخدمين.</p></div></div>
         <div class="settings-grid" id="settingsGrid"></div>
+      </section>
+
+      <section id="view-addons" class="view hidden">
+        <div class="page-head">
+          <div><h1>🧩 الإضافات</h1><p>مركز إدارة وربط خدمات المتجر الخارجية (تحليلات، بكسلات، تصدير البيانات).</p></div>
+          <button class="gray" onclick="loadAddons()">↻ تحديث</button>
+        </div>
+        <div id="addonStatus" class="status hidden"></div>
+        <div class="addons-grid" id="addonsGrid"><div class="empty-card">⏳ جاري تحميل الإضافات...</div></div>
       </section>
 
       <section id="view-orders" class="view hidden"><div class="page-head"><div><h1>الطلبات</h1><p>طلبات العملاء الواردة من المتجر.</p></div></div><div id="orders" class="products"><div class="empty-card">⏳ جاري تحميل الطلبات...</div></div></section>
@@ -546,6 +556,188 @@ async function saveSetting(){
 }
 
 renderSettings();
+
+// ================= مركز الإضافات (Addons) =================
+const addonsDefs=[
+ {key:"googleAnalytics",icon:"📈",name:"Google Analytics",desc:"قياس الزيارات والسلوك عبر Measurement ID (GA4).",label:"Measurement ID",ph:"G-XXXXXXXXXX",pattern:/^G(-)?[A-Z0-9]{6,}$/},
+ {key:"googleTagManager",icon:"🎛",name:"Google Tag Manager",desc:"إدارة وسوم وأكواد التتبع مركزيًا.",label:"Container ID",ph:"GTM-XXXXXXX",pattern:/^GTM-[A-Z0-9]{4,}$/},
+ {key:"metaPixel",icon:"📘",name:"Meta Pixel",desc:"بكسل ميتا (فيسبوك) لتتبع زوار ومشتريات المتجر.",label:"Pixel ID",ph:"e.g. 1234567890",pattern:/^[0-9]{8,20}$/},
+ {key:"tiktokPixel",icon:"🎵",name:"TikTok Pixel",desc:"بكسل تيك توك لتتبع الزوار والتحويلات.",label:"Pixel ID",ph:"e.g. 123456789012345",pattern:/^[0-9]{10,25}$/},
+ {key:"snapchatPixel",icon:"👻",name:"Snapchat Pixel",desc:"بكسل سناب شات لقياس الحملات والتحويلات.",label:"Pixel ID",ph:"e.g. 1234567890",pattern:/^[0-9]{8,25}$/},
+ {key:"pinterestTag",icon:"📌",name:"Pinterest Tag",desc:"تاج بينترست لقياس سلوك الزوار.",label:"Tag ID",ph:"e.g. 123456",pattern:/^[0-9]{5,20}$/},
+ {key:"googleSheets",icon:"📊",name:"Google Sheets",desc:"تصدير بيانات الطلبات إلى جدول إلكتروني عبر رابط Webhook آمن (Apps Script).",label:"Webhook URL",ph:"https://script.google.com/macros/s/.../exec",pattern:null},
+ {key:"searchConsole",icon:"🔍",name:"Google Search Console",desc:"التحقق من ملكية الموقع عبر رمز التوثيق.",label:"Verification Code",ph:"google-site-verification",pattern:null},
+ {key:"sitemap",icon:"🗺",name:"Google Sitemap",desc:"إدارة ملف الموقع sitemap.xml وrobots.txt للفهرسة.",label:"URL",ph:"https://bazar-dzair.github.io/",pattern:null}
+];
+const ADDON_FIELD_LABELS={"customerName":"الاسم","customerPhone":"الهاتف","wilaya":"الولاية","address":"العنوان","product":"المنتج","quantity":"الكمية","price":"السعر","shipping":"التوصيل","total":"الإجمالي","status":"الحالة","createdAt":"التاريخ","order":"رقم الطلب"};
+const FIELD_OPTIONS=Object.keys(ADDON_FIELD_LABELS);
+let localAddons={},activeAddonKey=null;
+function escSoft(v){return String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function showAddons(){showView("addons",null,false);loadAddons();}
+function addonStateOf(c){
+  if(!c||c.enabled!==true)return{key:"off",txt:"غير متصل"};
+  const has=(c.id&&String(c.id).trim())||(c.key==="googleSheets"&&c.endpoint&&String(c.endpoint).trim());
+  if(!has)return{key:"setup",txt:"يحتاج إلى إعداد"};
+  return{key:"on",txt:"مفعّل"};
+}
+async function loadAddons(){
+  const grid=document.getElementById("addonsGrid");
+  if(!grid)return;
+  grid.innerHTML='<div class="empty-card">⏳ جاري تحميل الإضافات...</div>';
+  let remote={};
+  try{if(window.bazarGetDoc&&window.bazarDoc&&window.bazarDb){const snap=await window.bazarGetDoc(window.bazarDoc(window.bazarDb,"settings","addons"));if(snap.exists())remote=snap.data();}}catch(e){console.warn("addons load",e)}
+  let local={};try{local=JSON.parse(localStorage.getItem("bazarAddons")||"{}");}catch(e){}
+  const saved=Object.assign({},local,remote);
+  addonsDefs.forEach(d=>{if(saved[d.key]===undefined)saved[d.key]={};});
+  localAddons=saved;
+  grid.innerHTML=addonDefs.map(d=>{
+    const c=Object.assign({key:d.key},saved[d.key]||{});
+    const st=addonStateOf(c);
+    const stateClass=st.key==="on"?"state-on":st.key==="off"?"state-off":"state-setup";
+    const idval=(c.id?String(c.id):c.endpoint?String(c.endpoint):"").trim();
+    return `<div class="addon-card">
+      <div class="addon-top"><span class="addon-icon">${d.icon}</span><h3>${d.name}</h3></div>
+      <p class="addon-desc">${d.desc}</p>
+      <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+        <span class="addon-state ${stateClass}">${st.key==="on"?"🟢":"⚪"} ${st.txt}</span>
+        ${idval?`<span class="addon-idline">${escSoft(idval)}</span>`:""}
+      </div>
+      <div class="addon-actions">
+        <button class="btn addon-setup" onclick="openAddon('${d.key}')">⚙ إعداد</button>
+        ${c.enabled===true
+          ?`<button class="btn addon-disable" onclick="toggleAddon('${d.key}',false)">⏸ تعطيل</button>`
+          :`<button class="btn addon-enable" onclick="toggleAddon('${d.key}',true)">▶ تفعيل</button>`}
+        <button class="btn addon-test" onclick="testAddon('${d.key}')">🔬 اختبار</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function setAddonStatus(msg,ok){
+  const st=document.getElementById("addonStatus");
+  if(!st)return;st.className=ok?"status ok":"status err";st.classList.remove("hidden");st.textContent=String(msg||"");setTimeout(()=>st.classList.add("hidden"),5000);
+}
+async function saveAddons(msg){
+  try{localStorage.setItem("bazarAddons",JSON.stringify(localAddons));}catch(e){}
+  let saved=false;
+  try{if(window.bazarDb&&window.bazarSetDoc&&window.bazarDoc){await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","addons"),localAddons,{merge:true});saved=true;}}catch(e){console.warn("addons remote save",e)}
+  if(msg)setAddonStatus(msg+(saved?" ✅":" (لا توجد قاعدة بيانات — محفوظ محليًا)"),saved);
+  loadAddons();
+  return saved;
+}
+function toggleAddon(key,on){
+  if(!localAddons[key])localAddons[key]={};
+  localAddons[key].enabled=on;
+  saveAddons("تم "+(on?"تفعيل":"تعطيل")+" الإضافة");
+}
+async function openAddon(key){
+  activeAddonKey=key;
+  const d=addonDefs.find(x=>x.key===key);
+  const modal=document.getElementById("settingsModal");
+  modal.classList.remove("hidden");
+  document.getElementById("settingModalIcon").textContent=d?d.icon:"🧩";
+  document.getElementById("settingModalTitle").textContent=d?d.name:"الإضافة";
+  document.getElementById("settingModalDesc").textContent=(d?d.desc:"")+(key==="sitemap"?" يُنشأ sitemap.xml وrobots.txt كملفين حقيقيين في جذر المشروع.":"");
+  const c=localAddons[key]||{};
+  let body="";
+  if(key==="googleSheets"){
+    const selected=Array.isArray(c.fields)?c.fields:[];
+    body=`<div class="setting-form">
+      <label>${d.label}<input id="addon_endpoint" type="url" value="${c.endpoint?escSoft(c.endpoint):""}" placeholder="${d.ph}"></label>
+      <small class="hint">أنشئ مشروع Google Apps Script (Web App، تنفيذ "Anyone") والصق رابط exec. الرابط يُحفظ في Firestore ولا يُكشف أي مفتاح في الواجهة.</small>
+      <div style="margin:10px 0"><b>الحقول المرسلة مع كل طلب:</b>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${FIELD_OPTIONS.map(f=>`<label style="display:flex;align-items:center;gap:7px;font-size:12px"><input type="checkbox" id="sf_${f}" class="sheets-field" value="${f}" ${selected.includes(f)?"checked":""} style="width:auto">${ADDON_FIELD_LABELS[f]}</label>`).join("")}</div>
+      </div>
+      <div class="toggle-row" style="border:1px solid #eee;border-radius:10px;padding:12px"><div>مفعّل</div><input id="addon_enabled" type="checkbox" ${c.enabled===true?"checked":""} style="width:20px;height:20px"></div>
+    </div>`;
+  }else if(key==="sitemap"){
+    body=`<div class="setting-form">
+      <p style="color:#5b49a7;font-weight:700;margin:0 0 6px">🗺 sitemap.xml — ملف حقيقي</p>
+      <p style="color:#666;font-size:13px;line-height:1.7">GitHub Pages استضافة static، لذا ملف sitemap.xml وrobots.txt موجودان كملفات حقيقية في جذر المشروع ولا يمكن توليدهما ديناميكيًا من المتصفح. عند إضافة/حذف/تعديل منتج، استخدم الزر <b>توليد</b> أدناه ثم انسخ الناتج وصق مكان الملف وقت النشر.</p>
+      <div style="display:flex;gap:8px;margin:8px 0"><button class="btn addon-enable" onclick="genSitemapXML()">⚡ توليد Sitemap من المنتجات الحالية</button></div>
+      <textarea id="sitemap_out" style="direction:ltr;text-align:left;font-family:monospace;min-height:220px;width:100%;font-size:11px" placeholder="اضغط توليد لملء مايحت بناءً على منتجات المتجر الحقيقية"></textarea>
+      <button class="btn addon-setup" style="margin-top:8px" onclick="copySitemapXML()">📋 نسخ XML</button>
+    </div>`;
+  }else{
+    body=`<div class="setting-form">
+      <label>${d.label}<input id="addon_id" type="text" value="${c.id?escSoft(c.id):""}" placeholder="${d.ph}"></label>
+      <small class="hint">${d.key==="searchConsole"?"يُدرج رمز التوثيق في &lt;head&gt; للموقع الفعلي عند التفعيل.":"عند التفعيل يُحمَّل الكود في صفحات المتجر مرة واحدة فقط."}</small>
+      <div class="toggle-row" style="border:1px solid #eee;border-radius:10px;padding:12px"><div>مفعّلة</div><input id="addon_enabled" type="checkbox" ${c.enabled===true?"checked":""} style="width:20px;height:20px"></div>
+    </div>`;
+  }
+  document.getElementById("settingModalBody").innerHTML=body;
+  document.querySelector("#settingsModal .modal-actions").innerHTML=`<button class="green" onclick="saveAddon()">💾 حفظ الإعدادات</button><button class="gray" onclick="closeAddon()">إلغاء</button>`;
+}
+function closeAddon(){document.getElementById("settingsModal").classList.add("hidden");activeAddonKey=null;}
+async function saveAddon(){
+  if(!activeAddonKey){closeSetting();return}
+  const key=activeAddonKey;
+  const c=localAddons[key]||{};
+  if(key==="googleSheets"){
+    c.endpoint=document.getElementById("addon_endpoint")?.value.trim()||"";
+    c.fields=Array.from(document.querySelectorAll("#settingModalBody .sheets-field")).filter(x=>x.checked).map(x=>x.value);
+  }else{
+    const inp=document.getElementById("addon_id");
+    c.id=inp?inp.value.trim():"";
+  }
+  const chk=document.getElementById("addon_enabled");
+  if(chk)c.enabled=chk.checked;
+  localAddons[key]=c;
+  closeAddon();
+  await saveAddons("تم حفظ إعداد الإضافة");
+}
+function testAddon(key){
+  const c=localAddons[key]||{};
+  let msg="";
+  if(key==="sitemap"){
+    msg="sitemap.xml وrobots.txt ملفان حقيقيان في جذر المشروع. تحقّق من الرابطين.";
+  }else if(key==="searchConsole"){
+    msg=(c.enabled===true&&c.id)?" رمز التوثيق مفعّل ويُدرج في <head> الموقع الفعلي عند النشر.":"الإضافة غير مفعَّلة أو بلا رمز توثيق.";
+  }else if(key==="googleSheets"){
+    msg=(c.enabled===true&&c.endpoint)?"عند إرسال طلب جديد تُرسل بياناته إلى الرابط. أرسل طلبًا من المتجر وتأكد من ظهوره في الجدول.":"فعِّل الإضافة وأدخل رابط Webhook.";
+  }else{
+    msg=(c.enabled===true&&c.id)?"الكود يُحقن في صفحات المتجر فور فتحها عندما تكون مفعّلة (تحقّق من View-Source).":(c.id?"الإضافة محفوظة لكنها غير مفعّلة — فعّلها.":"أدخل المعرّف وفعّل الإضافة.");
+  }
+  setAddonStatus(msg,true);
+}
+function slugifySitemap(name){
+  let s=String(name||"").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+  s=s.replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-+|-+$/g,"")||"product";
+  return s;
+}
+async function genSitemapXML(){
+  const ta=document.getElementById("sitemap_out");
+  if(!ta)return;
+  let productList=[];
+  try{
+    // اقرأ المنتجات الحقيقية من Firestore (REST)
+    const res=await fetch("https://firestore.googleapis.com/v1/projects/bazar-dzair-33816/databases/(default)/documents/products?pageSize=1000",{headers:{"Accept":"application/json"}});
+    if(res.ok){
+      const j=await res.json();
+      (j.documents||[]).forEach(d=>{
+        const f=d.fields||{};
+        const gv=k=>{const v=f[k];if(!v)return null;return Object.values(v)[0];};
+        productList.push({name:gv("name")||gv("product"),category:gv("category")});
+      });
+    }
+  }catch(e){console.warn(e);}
+  const today=new Date().toISOString().slice(0,10);
+  const lines=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    `  <url><loc>https://bazar-dzair.github.io/</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>`];
+  productList.forEach(p=>{
+    if(!p.name)return;
+    const loc="https://bazar-dzair.github.io/product.html?id="+slugifySitemap(p.name);
+    lines.push(`  <url><loc>${loc}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>`);
+  });
+  lines.push('</urlset>');
+  ta.value=lines.join("\n");
+  setAddonStatus("تم توليد sitemap.xml من "+productList.length+" منتج حقيقي. انسخه إلى جذر المشروع وقت النشر.");
+}
+function copySitemapXML(){
+  const ta=document.getElementById("sitemap_out");
+  if(!ta||!ta.value){setAddonStatus("اضغط توليد أولًا.");return;}
+  if(navigator.clipboard){navigator.clipboard.writeText(ta.value).then(()=>setAddonStatus("تم نسخ sitemap.xml ✅")).catch(()=>{});
+  }else{ta.select();document.execCommand("copy");setAddonStatus("تم النسخ ✅");}
+}
 </script>
 
 <script type="module">
@@ -778,10 +970,10 @@ function appPage(){
   appBox.classList.remove("hidden");
   let view="dashboard";
   try{view=sessionStorage.getItem("bazarAdminView")||"dashboard";}catch(e){}
-  const valid=["dashboard","orders","product","products","categories","sections","users","settings"];
+  const valid=["dashboard","orders","product","products","categories","sections","users","settings","addons"];
   if(!valid.includes(view)) view="dashboard";
   const nav=[...document.querySelectorAll(".nav-item")];
-  const idx={dashboard:0,orders:1,product:2,products:3,categories:4,sections:5,users:6,settings:7}[view];
+  const idx={dashboard:0,orders:1,product:2,products:3,categories:4,sections:5,users:6,settings:7,addons:8}[view];
   showView(view,nav[idx]||nav[0],false);
 }
 function listen(){onSnapshot(collection(db,"products"),s=>{
@@ -1163,4 +1355,18 @@ body{background:#f7f8fa;color:#20242b}
 .brand-preview{display:block;width:100%;height:130px;object-fit:contain;background:#fff;border:1px dashed #ddd;border-radius:10px;margin-top:10px}
 .banner-preview{height:150px;object-fit:cover}
 @media(max-width:650px){.settings-grid{grid-template-columns:1fr}.shipping-grid{grid-template-columns:1fr}.shipping-item input{width:95px}}
+
+/* ===== مركز الإضافات (Addons) ===== */
+.addons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.addon-card{background:#fff;border:1px solid #e9e9e9;border-radius:16px;padding:18px;box-shadow:0 2px 8px #00000005;display:flex;flex-direction:column;gap:10px}
+.addon-top{display:flex;align-items:center;gap:12px}
+.addon-icon{width:46px;height:46px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:22px;background:#f1effb}
+.addon-top h3{margin:0;font-size:16px;color:#222}.addon-desc{margin:0;color:#8a8a8a;font-size:12px;line-height:1.6}
+.addon-state{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:20px}
+.state-on{background:#e5f8ec;color:#16a34a}.state-off{background:#f1f1f1;color:#8a8a8a}.state-partial{background:#fff4e0;color:#b26a00}.state-setup{background:#e8f0ff;color:#1769aa}
+.addon-idline{font-family:monospace;direction:ltr;color:#5b49a7;font-size:12px;background:#f6f6f8;padding:4px 8px;border-radius:6px}
+.addon-actions{display:flex;flex-wrap:wrap;gap:8px}
+.addon-actions .btn{border:0;border-radius:9px;padding:9px 13px;cursor:pointer;font-weight:700}
+.addon-setup{background:#e8f0ff;color:#1769aa}.addon-enable{background:#e5f8ec;color:#15803d}.addon-disable{background:#fff0f0;color:#c62828}.addon-test{background:#eef6ff;color:#0369a1}
+@media(max-width:650px){.addons-grid{grid-template-columns:1fr}}
 </style>
