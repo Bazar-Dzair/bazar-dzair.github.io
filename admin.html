@@ -558,15 +558,33 @@ async function saveSetting(){
 renderSettings();
 
 // ================= مركز الإضافات (Addons) =================
+// شعارات SVG رسمية للخدمات الخمس المطلوبة (لا تُحمل من أي مصدر خارجي)
+const BRAND_SVG={
+ metaPixel:'<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1877F2"/><path d="M15.68 15.36l.5-3.02h-3.02V10.2c0-.83.4-1.64 1.71-1.64h1.32V6.06s-1.2-.2-2.35-.2c-2.4 0-3.97 1.45-3.97 4.08v2.4H6.88v3.02h2.99V22a10.6 10.6 0 0 0 2.9.2v-6.84z" fill="#fff"/></svg>',
+ tiktokPixel:'<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="#000"><path d="M12.53.02C13.84.01 15.14 0 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>',
+ googleAnalytics:'<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="#F9AB00" d="M4.5 17.25a2.75 2.75 0 1 0 0 5.5 2.75 2.75 0 0 0 0-5.5z"/><path fill="#E37400" d="M19.5 14.25a2.75 2.75 0 0 0-2.75 2.75v2.5a2.75 2.75 0 1 0 5.5 0V17a2.75 2.75 0 0 0-2.75-2.75z"/><path fill="#188038" d="M12 5.5a3.75 3.75 0 0 0-3.75 3.75v10a3.75 3.75 0 0 0 7.5 0V9.25A3.75 3.75 0 0 0 12 5.5z"/></svg>',
+ googleTagManager:'<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#4285F4"/><path d="M12 4.5 19.5 12 12 19.5 4.5 12z" fill="#fff"/><path d="M10 12l2-2 2 2-2 2z" fill="#FBBC05"/><path d="M10 15.5l2-2 2 2-2 2z" fill="#EA4335"/></svg>',
+ searchConsole:'<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#4285F4"/><path d="M9.5 11.5l2.5-2.5 2.5 2.5-2.5 2.5z" fill="#fff"/><path d="M12 9l2.5 2.5-1.25 1.25L12 11.5l-1.25 1.25L9.5 11.5z" fill="#F4B400"/><path d="M9.5 15l2.5-2.5L14.5 15 12 17.5z" fill="#34A853"/></svg>'
+};
 const addonsDefs=[
- {key:"googleAnalytics",icon:"📈",name:"Google Analytics",desc:"قياس الزيارات والسلوك عبر Measurement ID (GA4).",label:"Measurement ID",ph:"G-XXXXXXXXXX",pattern:/^G(-)?[A-Z0-9]{6,}$/},
- {key:"googleTagManager",icon:"🎛",name:"Google Tag Manager",desc:"إدارة وسوم وأكواد التتبع مركزيًا.",label:"Container ID",ph:"GTM-XXXXXXX",pattern:/^GTM-[A-Z0-9]{4,}$/},
- {key:"metaPixel",icon:"📘",name:"Meta Pixel",desc:"بكسل ميتا (فيسبوك) لتتبع زوار ومشتريات المتجر.",label:"Pixel ID",ph:"e.g. 1234567890",pattern:/^[0-9]{8,20}$/},
- {key:"tiktokPixel",icon:"🎵",name:"TikTok Pixel",desc:"بكسل تيك توك لتتبع الزوار والتحويلات.",label:"Pixel ID",ph:"e.g. 123456789012345",pattern:/^[0-9]{10,25}$/},
+ {key:"metaPixel",name:"Meta Pixel",logo:BRAND_SVG.metaPixel,accent:"#1877F2",desc:"بكسل ميتا (فيسبوك) لتتبع زوار ومشتريات المتجر وتحويلاته.",
+  fields:[{key:"id",label:"Pixel ID",type:"text",ph:"e.g. 1234567890"}],
+  note:"عند التفعيل يُحمَّل كود Meta Pixel (base code) في صفحات المتجر مرة واحدة ويرسل حدث PageView تلقائيًا. أحداث المتجر (مشاهدة المنتج، إضافة للسلة، بدء الدفع، الشراء) تُرسل عبر التكامل الفعلي مع أزرار المتجر (انظر integration.js)."},
+ {key:"tiktokPixel",name:"TikTok Pixel",logo:BRAND_SVG.tiktokPixel,accent:"#000000",desc:"بكسل تيك توك لتتبع الزوار والتحويلات.",
+  fields:[{key:"id",label:"Pixel ID",type:"text",ph:"e.g. 123456789012345"}],
+  note:"يُحمَّل TikTok Pixel (Web events) في صفحات المتجر ويُرسل حدث page تلقائيًا، مع دعم أحداث Web القياسية: ViewContent، Search، AddToCart، InitiateCheckout، CompletePayment."},
+ {key:"googleAnalytics",name:"Google Analytics",logo:BRAND_SVG.googleAnalytics,accent:"#188038",desc:"قياس الزيارات والسلوك عبر Measurement ID (GA4).",
+  fields:[{key:"id",label:"Measurement ID (GA4)",type:"text",ph:"G-XXXXXXXXXX"}],
+  note:"يُحمَّل Google tag (gtag.js) مباشرة في صفحات المتجر. ملاحظة: إذا كان Google Tag Manager مفعّلًا فيتخطى التحميل المباشر لمنع إرسال البيانات مرتين — اضبط تتبع GA4 داخل GTM حينها."},
+ {key:"googleTagManager",name:"Google Tag Manager",logo:BRAND_SVG.googleTagManager,accent:"#4285F4",desc:"إدارة وسوم وأكواد التتبع مركزيًا.",
+  fields:[{key:"id",label:"Container ID",type:"text",ph:"GTM-XXXXXXX"}],
+  note:"يُحمَّل Container GTM في صفحات المتجر بالطريقة الصحيحة (script + iframe للمتصفحات المعطّلة). عند تفعيله، لا يتم تحميل GA4 مباشرة تلقائيًا لتفادي التتبع المزدوج."},
+ {key:"searchConsole",name:"Google Search Console",logo:BRAND_SVG.searchConsole,accent:"#4285F4",desc:"التحقق من ملكية الموقع عبر رمز التوثيق.",
+  fields:[{key:"id",label:"رمز توثيق التحقق (content)",type:"text",ph:"google-site-verification"}],
+  note:"يُدرج وسم التحقق <meta name=\"google-site-verification\"> داخل <head> في صفحات الموقع عند التفعيل. هذه الخدمة للتحقق من الملكية ولا تُستخدم لتتبع التحليلات."},
  {key:"snapchatPixel",icon:"👻",name:"Snapchat Pixel",desc:"بكسل سناب شات لقياس الحملات والتحويلات.",label:"Pixel ID",ph:"e.g. 1234567890",pattern:/^[0-9]{8,25}$/},
  {key:"pinterestTag",icon:"📌",name:"Pinterest Tag",desc:"تاج بينترست لقياس سلوك الزوار.",label:"Tag ID",ph:"e.g. 123456",pattern:/^[0-9]{5,20}$/},
  {key:"googleSheets",icon:"📊",name:"Google Sheets",desc:"تصدير بيانات الطلبات إلى جدول إلكتروني عبر رابط Webhook آمن (Apps Script).",label:"Webhook URL",ph:"https://script.google.com/macros/s/.../exec",pattern:null},
- {key:"searchConsole",icon:"🔍",name:"Google Search Console",desc:"التحقق من ملكية الموقع عبر رمز التوثيق.",label:"Verification Code",ph:"google-site-verification",pattern:null},
  {key:"sitemap",icon:"🗺",name:"Google Sitemap",desc:"إدارة ملف الموقع sitemap.xml وrobots.txt للفهرسة.",label:"URL",ph:"https://bazar-dzair.github.io/",pattern:null}
 ];
 const ADDON_FIELD_LABELS={"customerName":"الاسم","customerPhone":"الهاتف","wilaya":"الولاية","address":"العنوان","product":"المنتج","quantity":"الكمية","price":"السعر","shipping":"التوصيل","total":"الإجمالي","status":"الحالة","createdAt":"التاريخ","order":"رقم الطلب"};
@@ -595,8 +613,9 @@ async function loadAddons(){
     const st=addonStateOf(c);
     const stateClass=st.key==="on"?"state-on":st.key==="off"?"state-off":"state-setup";
     const idval=(c.id?String(c.id):c.endpoint?String(c.endpoint):"").trim();
+    const iconHtml=d.logo?`<span class="addon-icon addon-logo" style="color:${d.accent||"#5b49a7"}">${d.logo}</span>`:`<span class="addon-icon">${d.icon}</span>`;
     return `<div class="addon-card">
-      <div class="addon-top"><span class="addon-icon">${d.icon}</span><h3>${d.name}</h3></div>
+      <div class="addon-top">${iconHtml}<h3>${d.name}</h3></div>
       <p class="addon-desc">${d.desc}</p>
       <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
         <span class="addon-state ${stateClass}">${st.key==="on"?"🟢":"⚪"} ${st.txt}</span>
@@ -611,6 +630,7 @@ async function loadAddons(){
       </div>
     </div>`;
   }).join("");
+  applyIntegrations();
 }
 function setAddonStatus(msg,ok){
   const st=document.getElementById("addonStatus");
@@ -622,6 +642,7 @@ async function saveAddons(msg){
   try{if(window.bazarDb&&window.bazarSetDoc&&window.bazarDoc){await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","addons"),localAddons,{merge:true});saved=true;}}catch(e){console.warn("addons remote save",e)}
   if(msg)setAddonStatus(msg+(saved?" ✅":" (لا توجد قاعدة بيانات — محفوظ محليًا)"),saved);
   loadAddons();
+  applyIntegrations();
   return saved;
 }
 function toggleAddon(key,on){
@@ -629,12 +650,80 @@ function toggleAddon(key,on){
   localAddons[key].enabled=on;
   saveAddons("تم "+(on?"تفعيل":"تعطيل")+" الإضافة");
 }
+
+// ============ تركيب أكواد التتبع فعليًا في صفحات الموقع ============
+// تُقرأ الإعدادات المحفوظة من لوحة التحكم وتُحقن أكواد الخدمات الخمس
+// في <head> للصفحة. نفس المنطق موجود في integration.js ليُحمَّل على صفحات
+// المتجر العامة (index.html, product.html, السلة, إتمام الطلب).
+function _injectScript(src,id){
+  if(!src||document.getElementById(id))return;
+  const s=document.createElement("script");s.id=id;s.async=true;s.src=src;
+  document.head.appendChild(s);
+}
+function _injectRaw(html,id){
+  if(!html||document.getElementById(id))return;
+  const s=document.createElement("script");s.id=id;s.text=html;
+  document.head.appendChild(s);
+}
+function _injectVerifyMeta(content){
+  if(!content)return;
+  let m=document.getElementById("bazar-gsc-verify");
+  if(m){m.setAttribute("content",content);return;}
+  m=document.createElement("meta");
+  m.name="google-site-verification";m.content=content;m.id="bazar-gsc-verify";
+  document.head.appendChild(m);
+}
+function _val(key){
+  const c=localAddons[key]||{};
+  return (c.enabled===true && c.id && String(c.id).trim())?String(c.id).trim():"";
+}
+function applyIntegrations(){
+  if(typeof localAddons==="undefined")return;
+  const gtm=_val("googleTagManager");
+  const ga=_val("googleAnalytics");
+  const meta=_val("metaPixel");
+  const ttq=_val("tiktokPixel");
+  const gsc=_val("searchConsole");
+
+  // 5) Google Search Console — وسم التحقق من الملكية
+  if(gsc)_injectVerifyMeta(gsc);
+
+  // 4) Google Tag Manager — Container كامل (script + iframe للمتصفحات المعطّلة)
+  if(gtm){
+    _injectRaw('(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({"gtm.start":new Date().getTime(),event:"gtm.js"});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!="dataLayer"?"&l="+l:"";j.async=true;j.src="https://www.googletagmanager.com/gtm.js?id="+i+dl;f.parentNode.insertBefore(j,f);})(window,document,"script","dataLayer","'+gtm+'");','bazar-gtm');
+    _injectRaw('(function(i,s,o,g,r,a,m){a=s.getElementsByTagName(o)[0];m=s.createElement(o);m.async=1;m.src=g;m.id="bazar-gtm-ns";a.parentNode.insertBefore(m,a);})(window,document,"script","https://www.googletagmanager.com/ns.html?id='+gtm+'");','bazar-gtm-ns');
+  }
+
+  // 3) Google Analytics (GA4) — مباشر، ويُتخطى عند تفعيل GTM لمنع التتبع المزدوج
+  if(ga && !gtm){
+    _injectScript("https://www.googletagmanager.com/gtag/js?id="+encodeURIComponent(ga),"bazar-ga-js");
+    _injectRaw('window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","'+ga+'");','bazar-ga');
+  }
+
+  // 1) Meta Pixel — base code + PageView
+  if(meta){
+    _injectRaw('!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init","'+meta+'");fbq("track","PageView");','bazar-meta');
+  }
+
+  // 2) TikTok Pixel — Web events + page
+  if(ttq){
+    _injectRaw('!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=r;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]=n||{};n=document.createElement("script");n.type="text/javascript";n.async=!0;n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};ttq.load("'+ttq+'");ttq.page();}(window,document,"ttq");','bazar-ttq');
+  }
+}
+// مساعد موحّد لإرسال أحداث المتجر إلى كل الخدمات المفعّلة في آنٍ واحد.
+// تستدعيه صفحات المتجر عبر: window.BazarTrack("Purchase",{value:...,currency:"DZD"})
+window.BazarTrack=function(event,params){
+  params=params||{};
+  try{if(window.fbq)fbq("track",event,params);}catch(e){}
+  try{if(window.gtag)gtag("event",event,params);}catch(e){}
+  try{if(window.ttq&&window.ttq.track)window.ttq.track(event,params);}catch(e){}
+};
 async function openAddon(key){
   activeAddonKey=key;
   const d=addonDefs.find(x=>x.key===key);
   const modal=document.getElementById("settingsModal");
   modal.classList.remove("hidden");
-  document.getElementById("settingModalIcon").textContent=d?d.icon:"🧩";
+  document.getElementById("settingModalIcon").innerHTML=d?(d.logo||d.icon):"🧩";
   document.getElementById("settingModalTitle").textContent=d?d.name:"الإضافة";
   document.getElementById("settingModalDesc").textContent=(d?d.desc:"")+(key==="sitemap"?" يُنشأ sitemap.xml وrobots.txt كملفين حقيقيين في جذر المشروع.":"");
   const c=localAddons[key]||{};
@@ -657,6 +746,12 @@ async function openAddon(key){
       <textarea id="sitemap_out" style="direction:ltr;text-align:left;font-family:monospace;min-height:220px;width:100%;font-size:11px" placeholder="اضغط توليد لملء مايحت بناءً على منتجات المتجر الحقيقية"></textarea>
       <button class="btn addon-setup" style="margin-top:8px" onclick="copySitemapXML()">📋 نسخ XML</button>
     </div>`;
+  }else if(d.fields && d.fields.length){
+    body=`<div class="setting-form">
+      ${d.fields.map(f=>`<label>${f.label}<input id="addon_${f.key}" type="${f.type||"text"}" value="${c[f.key]?escSoft(c[f.key]):""}" placeholder="${f.ph||""}" dir="ltr" style="text-align:left"></label>`).join("")}
+      ${d.note?`<small class="hint">${d.note}</small>`:""}
+      <div class="toggle-row" style="border:1px solid #eee;border-radius:10px;padding:12px"><div>مفعّلة</div><input id="addon_enabled" type="checkbox" ${c.enabled===true?"checked":""} style="width:20px;height:20px"></div>
+    </div>`;
   }else{
     body=`<div class="setting-form">
       <label>${d.label}<input id="addon_id" type="text" value="${c.id?escSoft(c.id):""}" placeholder="${d.ph}"></label>
@@ -671,10 +766,13 @@ function closeAddon(){document.getElementById("settingsModal").classList.add("hi
 async function saveAddon(){
   if(!activeAddonKey){closeSetting();return}
   const key=activeAddonKey;
+  const d=addonDefs.find(x=>x.key===key);
   const c=localAddons[key]||{};
   if(key==="googleSheets"){
     c.endpoint=document.getElementById("addon_endpoint")?.value.trim()||"";
     c.fields=Array.from(document.querySelectorAll("#settingModalBody .sheets-field")).filter(x=>x.checked).map(x=>x.value);
+  }else if(d && d.fields && d.fields.length){
+    d.fields.forEach(f=>{const el=document.getElementById("addon_"+f.key);c[f.key]=el?el.value.trim():c[f.key];});
   }else{
     const inp=document.getElementById("addon_id");
     c.id=inp?inp.value.trim():"";
@@ -847,6 +945,7 @@ onAuthStateChanged(auth,u=>{
     renderCategorySelect();
     renderCategories();
     loadCategories();
+    loadAddons();
   }else{
     appBox.classList.add("hidden");
     loginBox.classList.remove("hidden");
@@ -1361,6 +1460,10 @@ body{background:#f7f8fa;color:#20242b}
 .addon-card{background:#fff;border:1px solid #e9e9e9;border-radius:16px;padding:18px;box-shadow:0 2px 8px #00000005;display:flex;flex-direction:column;gap:10px}
 .addon-top{display:flex;align-items:center;gap:12px}
 .addon-icon{width:46px;height:46px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:22px;background:#f1effb}
+.addon-logo{background:#fff;border:1px solid #eee;box-shadow:inset 0 0 0 1px #fff}
+.addon-logo svg{width:28px;height:28px;display:block}
+#settingModalIcon.addon-logo-wrap{background:#fff;border:1px solid #eee}
+#settingModalIcon.addon-logo-wrap svg{width:28px;height:28px;display:block}
 .addon-top h3{margin:0;font-size:16px;color:#222}.addon-desc{margin:0;color:#8a8a8a;font-size:12px;line-height:1.6}
 .addon-state{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:20px}
 .state-on{background:#e5f8ec;color:#16a34a}.state-off{background:#f1f1f1;color:#8a8a8a}.state-partial{background:#fff4e0;color:#b26a00}.state-setup{background:#e8f0ff;color:#1769aa}
