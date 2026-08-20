@@ -1,6 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /admin.html
-Disallow: /*?*
-
-Sitemap: https://bazar-dzair.github.io/sitemap.xml
