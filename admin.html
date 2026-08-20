@@ -214,12 +214,20 @@ body{background:#f7f7f8;color:#202124}
       </section>
 
       <section id="view-addons" class="view hidden">
-        <div class="page-head">
-          <div><h1>🧩 الإضافات</h1><p>مركز إدارة وربط خدمات المتجر الخارجية (تحليلات، بكسلات، تصدير البيانات).</p></div>
-          <button class="gray" onclick="loadAddons()">↻ تحديث</button>
+        <div class="addons-page">
+          <div class="addons-intro">
+            <h1>الإضافات 🧩</h1>
+            <p>مركز إدارة وربط خدمات المتجر الخارجية (تحليلات، بكسلات، تصدير البيانات).</p>
+          </div>
+          <div class="addons-services">
+            <div class="addons-services-head">
+              <span class="addons-services-dot"></span>
+              <div><h2>خدمات متاحة،</h2><p>قم بربط الخدمات التي تحتاجها مع متجرك بسهولة.</p></div>
+            </div>
+            <div id="addonStatus" class="status hidden"></div>
+            <div class="addons-grid" id="addonsGrid"><div class="empty-card">⏳ جاري تحميل الإضافات...</div></div>
+          </div>
         </div>
-        <div id="addonStatus" class="status hidden"></div>
-        <div class="addons-grid" id="addonsGrid"><div class="empty-card">⏳ جاري تحميل الإضافات...</div></div>
       </section>
 
       <section id="view-orders" class="view hidden"><div class="page-head"><div><h1>الطلبات</h1><p>طلبات العملاء الواردة من المتجر.</p></div></div><div id="orders" class="products"><div class="empty-card">⏳ جاري تحميل الطلبات...</div></div></section>
@@ -559,15 +567,11 @@ renderSettings();
 
 // ================= مركز الإضافات (Addons) =================
 const addonsDefs=[
- {key:"googleAnalytics",icon:"📈",name:"Google Analytics",desc:"قياس الزيارات والسلوك عبر Measurement ID (GA4).",label:"Measurement ID",ph:"G-XXXXXXXXXX",pattern:/^G(-)?[A-Z0-9]{6,}$/},
- {key:"googleTagManager",icon:"🎛",name:"Google Tag Manager",desc:"إدارة وسوم وأكواد التتبع مركزيًا.",label:"Container ID",ph:"GTM-XXXXXXX",pattern:/^GTM-[A-Z0-9]{4,}$/},
- {key:"metaPixel",icon:"📘",name:"Meta Pixel",desc:"بكسل ميتا (فيسبوك) لتتبع زوار ومشتريات المتجر.",label:"Pixel ID",ph:"e.g. 1234567890",pattern:/^[0-9]{8,20}$/},
- {key:"tiktokPixel",icon:"🎵",name:"TikTok Pixel",desc:"بكسل تيك توك لتتبع الزوار والتحويلات.",label:"Pixel ID",ph:"e.g. 123456789012345",pattern:/^[0-9]{10,25}$/},
- {key:"snapchatPixel",icon:"👻",name:"Snapchat Pixel",desc:"بكسل سناب شات لقياس الحملات والتحويلات.",label:"Pixel ID",ph:"e.g. 1234567890",pattern:/^[0-9]{8,25}$/},
- {key:"pinterestTag",icon:"📌",name:"Pinterest Tag",desc:"تاج بينترست لقياس سلوك الزوار.",label:"Tag ID",ph:"e.g. 123456",pattern:/^[0-9]{5,20}$/},
- {key:"googleSheets",icon:"📊",name:"Google Sheets",desc:"تصدير بيانات الطلبات إلى جدول إلكتروني عبر رابط Webhook آمن (Apps Script).",label:"Webhook URL",ph:"https://script.google.com/macros/s/.../exec",pattern:null},
- {key:"searchConsole",icon:"🔍",name:"Google Search Console",desc:"التحقق من ملكية الموقع عبر رمز التوثيق.",label:"Verification Code",ph:"google-site-verification",pattern:null},
- {key:"sitemap",icon:"🗺",name:"Google Sitemap",desc:"إدارة ملف الموقع sitemap.xml وrobots.txt للفهرسة.",label:"URL",ph:"https://bazar-dzair.github.io/",pattern:null}
+ {key:"googleAnalytics",icon:"📊",iconClass:"ga",name:"Google Analytics",desc:"تحليلات متقدمة لفهم زوار متجرك وسلوكهم.",label:"Measurement ID",ph:"G-XXXXXXXXXX",pattern:/^G(-)?[A-Z0-9]{6,}$/},
+ {key:"tiktokPixel",icon:"♪",iconClass:"tiktok",name:"TikTok Pixel",desc:"تتبع وتحليل أداء الإعلانات عبر TikTok Pixel.",label:"Pixel ID",ph:"e.g. 123456789012345",pattern:/^[0-9]{10,25}$/},
+ {key:"metaPixel",icon:"∞",iconClass:"meta",name:"Meta Pixel",desc:"ربط وتتبع أحداث متجرك عبر Meta Pixel.",label:"Pixel ID",ph:"e.g. 1234567890",pattern:/^[0-9]{8,20}$/},
+ {key:"googleTagManager",icon:"◆",iconClass:"gtm",name:"Google Tag Manager",desc:"إدارة العلامات والتتبع بسهولة عبر Google Tag Manager.",label:"Container ID",ph:"GTM-XXXXXXX",pattern:/^GTM-[A-Z0-9]{4,}$/},
+ {key:"searchConsole",icon:"▣",iconClass:"search",name:"Google Search Console",desc:"راقب أداء متجرك في نتائج البحث وتحسين ظهوره.",label:"Verification Code",ph:"google-site-verification",pattern:null}
 ];
 const ADDON_FIELD_LABELS={"customerName":"الاسم","customerPhone":"الهاتف","wilaya":"الولاية","address":"العنوان","product":"المنتج","quantity":"الكمية","price":"السعر","shipping":"التوصيل","total":"الإجمالي","status":"الحالة","createdAt":"التاريخ","order":"رقم الطلب"};
 const FIELD_OPTIONS=Object.keys(ADDON_FIELD_LABELS);
@@ -590,25 +594,12 @@ async function loadAddons(){
   const saved=Object.assign({},local,remote);
   addonsDefs.forEach(d=>{if(saved[d.key]===undefined)saved[d.key]={};});
   localAddons=saved;
-  grid.innerHTML=addonDefs.map(d=>{
+  grid.innerHTML=addonsDefs.map(d=>{
     const c=Object.assign({key:d.key},saved[d.key]||{});
-    const st=addonStateOf(c);
-    const stateClass=st.key==="on"?"state-on":st.key==="off"?"state-off":"state-setup";
-    const idval=(c.id?String(c.id):c.endpoint?String(c.endpoint):"").trim();
     return `<div class="addon-card">
-      <div class="addon-top"><span class="addon-icon">${d.icon}</span><h3>${d.name}</h3></div>
+      <div class="addon-top"><span class="addon-icon ${d.iconClass||""}">${d.icon}</span><h3>${d.name}</h3></div>
       <p class="addon-desc">${d.desc}</p>
-      <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
-        <span class="addon-state ${stateClass}">${st.key==="on"?"🟢":"⚪"} ${st.txt}</span>
-        ${idval?`<span class="addon-idline">${escSoft(idval)}</span>`:""}
-      </div>
-      <div class="addon-actions">
-        <button class="btn addon-setup" onclick="openAddon('${d.key}')">⚙ إعداد</button>
-        ${c.enabled===true
-          ?`<button class="btn addon-disable" onclick="toggleAddon('${d.key}',false)">⏸ تعطيل</button>`
-          :`<button class="btn addon-enable" onclick="toggleAddon('${d.key}',true)">▶ تفعيل</button>`}
-        <button class="btn addon-test" onclick="testAddon('${d.key}')">🔬 اختبار</button>
-      </div>
+      <div class="addon-actions"><button class="btn addon-setup" onclick="openAddon('${d.key}')">ربط الخدمة 🔗</button></div>
     </div>`;
   }).join("");
 }
@@ -631,7 +622,7 @@ function toggleAddon(key,on){
 }
 async function openAddon(key){
   activeAddonKey=key;
-  const d=addonDefs.find(x=>x.key===key);
+  const d=addonsDefs.find(x=>x.key===key);
   const modal=document.getElementById("settingsModal");
   modal.classList.remove("hidden");
   document.getElementById("settingModalIcon").textContent=d?d.icon:"🧩";
@@ -1356,17 +1347,28 @@ body{background:#f7f8fa;color:#20242b}
 .banner-preview{height:150px;object-fit:cover}
 @media(max-width:650px){.settings-grid{grid-template-columns:1fr}.shipping-grid{grid-template-columns:1fr}.shipping-item input{width:95px}}
 
-/* ===== مركز الإضافات (Addons) ===== */
-.addons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.addon-card{background:#fff;border:1px solid #e9e9e9;border-radius:16px;padding:18px;box-shadow:0 2px 8px #00000005;display:flex;flex-direction:column;gap:10px}
-.addon-top{display:flex;align-items:center;gap:12px}
-.addon-icon{width:46px;height:46px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:22px;background:#f1effb}
-.addon-top h3{margin:0;font-size:16px;color:#222}.addon-desc{margin:0;color:#8a8a8a;font-size:12px;line-height:1.6}
-.addon-state{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:20px}
-.state-on{background:#e5f8ec;color:#16a34a}.state-off{background:#f1f1f1;color:#8a8a8a}.state-partial{background:#fff4e0;color:#b26a00}.state-setup{background:#e8f0ff;color:#1769aa}
-.addon-idline{font-family:monospace;direction:ltr;color:#5b49a7;font-size:12px;background:#f6f6f8;padding:4px 8px;border-radius:6px}
-.addon-actions{display:flex;flex-wrap:wrap;gap:8px}
-.addon-actions .btn{border:0;border-radius:9px;padding:9px 13px;cursor:pointer;font-weight:700}
-.addon-setup{background:#e8f0ff;color:#1769aa}.addon-enable{background:#e5f8ec;color:#15803d}.addon-disable{background:#fff0f0;color:#c62828}.addon-test{background:#eef6ff;color:#0369a1}
-@media(max-width:650px){.addons-grid{grid-template-columns:1fr}}
+/* ===== صفحة الإضافات — تصميم مطابق للمرجع ===== */
+.addons-page{display:flex;flex-direction:column;gap:26px}
+.addons-intro,.addons-services{background:#fff;border:1px solid #eee;border-radius:18px;box-shadow:0 2px 10px #00000005}
+.addons-intro{padding:34px 32px}
+.addons-intro h1{margin:0 0 14px;font-size:29px;color:#151515}
+.addons-intro p{margin:0;color:#777;font-size:17px;line-height:1.9}
+.addons-services{padding:30px 28px 34px}
+.addons-services-head{display:flex;align-items:center;gap:10px;margin-bottom:25px}
+.addons-services-dot{width:13px;height:13px;border-radius:50%;background:#5bd27d;flex:none}
+.addons-services-head h2{margin:0 0 6px;font-size:23px;color:#222}
+.addons-services-head p{margin:0;color:#888;font-size:15px}
+.addons-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.addon-card{background:#fff;border:1px solid #e8e8e8;border-radius:16px;min-height:285px;padding:28px 20px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;transition:.18s}
+.addon-card:hover{box-shadow:0 8px 24px #0000000c;transform:translateY(-2px)}
+.addon-top{width:100%;display:flex;flex-direction:column;align-items:center;gap:13px}
+.addon-icon{width:96px;height:96px;flex:none;border-radius:18px;display:grid;place-items:center;font-size:42px;background:#f5f5f5}
+.addon-icon.ga{background:#fff5dc}.addon-icon.tiktok{background:#fff0f3}.addon-icon.meta{background:#e8f2ff}.addon-icon.gtm{background:#eef7ff}.addon-icon.search{background:#edf3f8}
+.addon-top h3{margin:0;font-size:20px;color:#202124;font-weight:700}.addon-desc{margin:0;color:#888;font-size:14px;line-height:1.75;max-width:230px;min-height:48px}
+.addon-actions{width:100%;margin-top:auto;display:flex;justify-content:center}
+.addon-actions .btn{border:0;border-radius:10px;padding:11px 22px;cursor:pointer;font-weight:700;font-family:inherit;font-size:14px}
+.addon-setup{background:#f5f6f7;color:#222;min-width:125px}.addon-setup:hover{background:#eceeef}
+.addon-state,.addon-idline,.addon-enable,.addon-disable,.addon-test{display:none!important}
+@media(max-width:1050px){.addons-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.addons-intro{padding:24px 20px}.addons-intro h1{font-size:25px}.addons-intro p{font-size:15px}.addons-services{padding:22px 15px}.addons-services-head h2{font-size:20px}.addons-services-head p{font-size:14px}.addons-grid{grid-template-columns:1fr;gap:14px}.addon-card{min-height:270px}}
 </style>
