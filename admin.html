@@ -571,7 +571,7 @@ const addonsDefs=[
  {key:"tiktokPixel",icon:"♪",iconClass:"tiktok",name:"TikTok Pixel",desc:"تتبع وتحليل أداء الإعلانات عبر TikTok Pixel.",label:"Pixel ID",ph:"e.g. 123456789012345",pattern:/^[0-9]{10,25}$/},
  {key:"metaPixel",icon:"∞",iconClass:"meta",name:"Meta Pixel",desc:"ربط وتتبع أحداث متجرك عبر Meta Pixel.",label:"Pixel ID",ph:"e.g. 1234567890",pattern:/^[0-9]{8,20}$/},
  {key:"googleTagManager",icon:"◆",iconClass:"gtm",name:"Google Tag Manager",desc:"إدارة العلامات والتتبع بسهولة عبر Google Tag Manager.",label:"Container ID",ph:"GTM-XXXXXXX",pattern:/^GTM-[A-Z0-9]{4,}$/},
- {key:"searchConsole",icon:"▣",iconClass:"search",name:"Google Search Console",desc:"راقب أداء متجرك في نتائج البحث وتحسين ظهوره.",label:"Verification Code",ph:"google-site-verification",pattern:null}
+ {key:"searchConsole",icon:"▣",iconClass:"search",name:"Google Search Console",desc:"راقب أداء متجرك في نتائج البحث وتحسين ظهوره.",label:"Verification Code",ph:"google-site-verification",pattern:/^\S+$/}
 ];
 const ADDON_FIELD_LABELS={"customerName":"الاسم","customerPhone":"الهاتف","wilaya":"الولاية","address":"العنوان","product":"المنتج","quantity":"الكمية","price":"السعر","shipping":"التوصيل","total":"الإجمالي","status":"الحالة","createdAt":"التاريخ","order":"رقم الطلب"};
 let localAddons={},activeAddonKey=null;
@@ -705,13 +705,25 @@ function openAddon(key){
   var c=localAddons[key]||{};
   var current=d?idValueOf(c,d):"";
   var hint= (d&&d.key==="searchConsole")
-    ? "يُدرج الرمز في &lt;head&gt; للموقع الفعلي عند التفعيل."
+    ? "يُدرج هذا الرمز في صفحة <strong>index.html</strong> الفعلية عند التفعيل. لكنَّ حقن JavaScript وحده لا يكفي للتحقق من ملكية الموقع.\nالطريقة الموثوقة مع GitHub Pages: أضِف سجل DNS أو ضع ملف <code>googleXXXX.html</code> ثابتًا في جذر المستودع (تولّده من هذا الزر)."
     : "عند التفعيل يُحمَّل كود الخدمة في صفحات المتجر مرة واحدة فقط.";
   var checked=(c.enabled===true)?"checked":"";
+  var gscHelp = (d&&d.key==="searchConsole")
+    ? '<div class="gsc-help" style="margin-top:12px;border:1px solid #e4e7ec;border-radius:10px;padding:12px;background:#fafbfc">'+
+        '<b style="font-size:13px">💡 تحقق صحيح مع GitHub Pages</b>'+
+        '<ol style="margin:8px 0 10px;padding-right:20px;font-size:12px;line-height:1.9;color:#555">'+
+          '<li>احفظ الرمز أعلاه وافعّل الإضافة أولًا.</li>'+
+          '<li>اضغط «توليد ملف التحقق» لإنزالت <code>googleXXXX.html</code>.</li>'+
+          '<li>ارفع هذا الملف إلى جذر المستودع (GitHub Pages) بجانب index.html.</li>'+
+          '<li>في Search Console اختر طريقة «ملف HTML» والصقه بالرمز.</li></ol>'+
+        '<button type="button" class="btn gray" style="padding:9px 12px;background:#eef2ff;color:#3b4fd8;width:auto" onclick="gscDownloadFile()">⬇ توليد ملف التحقق</button>'+
+      '</div>'
+    : "";
   document.getElementById("settingModalBody").innerHTML=
     '<div class="setting-form">'+
       '<label>'+d.label+'<input id="addon_id" type="text" value="'+escSoft(current)+'" placeholder="'+d.ph+'" dir="ltr"></label>'+
-      '<small class="hint">'+hint+'</small>'+
+      '<small class="hint" style="white-space:pre-line">'+hint+'</small>'+
+      gscHelp+
       '<div class="toggle-row"><div>مفعّلة</div><input id="addon_enabled" type="checkbox" '+checked+'></div>'+
     '</div>';
   var buttons='<button class="green" onclick="saveAddon()">💾 حفظ الإعدادات</button><button class="gray" onclick="closeAddon()">إلغاء</button>';
@@ -737,15 +749,58 @@ async function saveAddon(){
   closeAddon();
   await saveAddons("تم حفظ إعداد الإضافة");
 }
-function testAddon(key){
+async function testAddon(key){
   var d=addonsDefs.find(function(x){return x.key===key;});
   var c=localAddons[key]||{};
-  if(!c||c.enabled!==true){setAddonStatus("الإضافة غير مفعّلة — فعّلها من الزر أدناه. ⚪",true);return;}
   var raw=idValueOf(d,c);
-  if(!raw){setAddonStatus("بحاجة إلى إعداد: أضف الـ ID أولًا. 🟡",true);return;}
-  var v=validatePattern(d,raw);
-  if(!v.ok){setAddonStatus(v.msg,true);return;}
-  setAddonStatus("الإضافة مفعّلة والمُعرّف محفوظ وتنسيقه صحيح ("+raw+"). ✅",true);
+  var lines=[];
+  // 1) الحالة من حيث التفعيل
+  if(c.enabled===true) lines.push("✓ إعداد مفعّل");
+  else lines.push("⚪ غير مفعّلة — فعّلها من الزر أدناه");
+
+  // 2) وجود المعرّف وصحة تنسيقه
+  if(!raw) lines.push("🟡 بحاجة إلى إعداد: أضف الـ ID أولًا");
+  else{
+    var v=validatePattern(d,raw);
+    if(v.ok) lines.push("✓ تنسيق المُعرّف صحيح ("+raw+")");
+    else lines.push("✗ "+v.msg);
+  }
+
+  // 3) التحقق من الحفظ الفعلي في Firestore (subscripton المباشر)
+  if(window.bazarSyncAddons){
+    lines.push("⏳ جارٍ التحقق من Firestore…");
+    setAddonStatus(lines.join(" · "),true);
+    var okFirestore=false;
+    try{
+      var done=await window.bazarSyncAddons();
+      okFirestore=!!done;
+      var fresh=localAddons[key]||{};
+      var freshRaw=idValueOf(d,fresh);
+      if(okFirestore && freshRaw){
+        lines=[];
+        if(fresh.enabled===true) lines.push("✓ مفعّل");
+        else lines.push("⚪ غير مفعّل");
+        var vv=validatePattern(d,freshRaw);
+        if(vv.ok) lines.push("✓ صيغة صحيحة ("+freshRaw+")") ; else lines.push("✗ "+vv.msg);
+        lines.push("✓ محفوظ في Firestore (settings/addons)");
+      }else{
+        lines.push("✗ لم يُحفظ بعد في Firestore — احفظ الإعداد أولًا");
+      }
+    }catch(e){
+      lines.push("؟ تعذر التحقق من Firestore: "+(e&&e.message||"خطأ"));
+    }
+  }else{
+    var v2; var rawNow=idValueOf(d,c);
+    if(rawNow){ v2=validatePattern(d,rawNow); if(v2.ok) lines.push("✓ محفوظ محليًا"); else lines.push("✗ "+v2.msg); }
+    lines.push("؟ Firestore غير متصل — التأكيد النهائي غير متاح");
+  }
+
+  // ملاحظة دقيقة لخدمة Search Console
+  if(d&&d.key==="searchConsole"){
+    lines.push("⚠ تحقق GSC يتطلب أيضًا: ملف googleXXXX.html ثابت في جذر GitHub Pages أو سجل DNS، أو الميتا في مصدر HTML الفعلي. حقن JavaScript وحده لا يؤكد الملكية لمعظم طرق التحقق.");
+  }
+
+  setAddonStatus(lines.join(" — "),true);
 }
 function slugifySitemap(name){
   let s=String(name||"").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
@@ -785,6 +840,21 @@ function copySitemapXML(){
   if(!ta||!ta.value){setAddonStatus("اضغط توليد أولًا.");return;}
   if(navigator.clipboard){navigator.clipboard.writeText(ta.value).then(()=>setAddonStatus("تم نسخ sitemap.xml ✅")).catch(()=>{});
   }else{ta.select();document.execCommand("copy");setAddonStatus("تم النسخ ✅");}
+}
+function gscDownloadFile(){
+  const inp=document.getElementById("addon_id");
+  const code=(inp&&String(inp.value||"").trim())||"";
+  if(!code){setAddonStatus("أدخل رمز التحقق أولًا لإنشاء الملف. 🟡",true);return;}
+  const fileName="google"+code.replace(/[^A-Za-z0-9_-]/g,"")+".html";
+  const content='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Google verification</title></head><body><p>google-site-verification: '+code+'</p></body></html>';
+  const blob=new Blob([content],{type:"text/html;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=fileName;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},200);
+  setAddonStatus("تم إنزال "+fileName+" — ارفعه إلى جذر المستودع بجانب index.html. 📄",true);
 }
 // تحميل البطاقات الخمس فورًا من الخزينة المؤقتة (بدون انتظار Firestore).
 // ثم يُشغَّل الحدث عند التأكد من تسجيل الدخول لقراءة المصدر الحقيقي.
