@@ -705,7 +705,7 @@ function openAddon(key){
   var c=localAddons[key]||{};
   var current=d?idValueOf(c,d):"";
   var hint= (d&&d.key==="searchConsole")
-    ? "يُدرج هذا الرمز في صفحة <strong>index.html</strong> الفعلية عند التفعيل. لكنَّ حقن JavaScript وحده لا يكفي للتحقق من ملكية الموقع.\nالطريقة الموثوقة مع GitHub Pages: أضِف سجل DNS أو ضع ملف <code>googleXXXX.html</code> ثابتًا في جذر المستودع (تولّده من هذا الزر)."
+    ? "ملاحظة صريحة: حقن <code>&lt;meta&gt;</code> عبر JavaScript لا يكفي — زاحف Google يقرأ ملف HTML المصدر ولا ينفّذ السكربتات عند التحقق من الملكية.\nالطريقة الموثوقة مع GitHub Pages هي ملف تحقق ثابت <code>googleXXXX.html</code> في جذر المستودع، أو سجل DNS TXT. استخدم زر «⬇ توليد ملف التحقق» بالأسفل وأنشره على GitHub مرة واحدة، وسيبقى التحقق ساريًا."
     : "عند التفعيل يُحمَّل كود الخدمة في صفحات المتجر مرة واحدة فقط.";
   var checked=(c.enabled===true)?"checked":"";
   var gscHelp = (d&&d.key==="searchConsole")
