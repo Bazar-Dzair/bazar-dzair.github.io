@@ -574,121 +574,178 @@ const addonsDefs=[
  {key:"searchConsole",icon:"▣",iconClass:"search",name:"Google Search Console",desc:"راقب أداء متجرك في نتائج البحث وتحسين ظهوره.",label:"Verification Code",ph:"google-site-verification",pattern:null}
 ];
 const ADDON_FIELD_LABELS={"customerName":"الاسم","customerPhone":"الهاتف","wilaya":"الولاية","address":"العنوان","product":"المنتج","quantity":"الكمية","price":"السعر","shipping":"التوصيل","total":"الإجمالي","status":"الحالة","createdAt":"التاريخ","order":"رقم الطلب"};
-const FIELD_OPTIONS=Object.keys(ADDON_FIELD_LABELS);
 let localAddons={},activeAddonKey=null;
 function escSoft(v){return String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-function showAddons(){showView("addons",null,false);loadAddons();}
+function addonDefaults(){
+  var d={};
+  addonsDefs.forEach(function(x){d[x.key]={id:"",enabled:false};});
+  return d;
+}
+function dbReady(){return !!(window.bazarDb&&window.bazarDoc&&window.bazarGetDoc&&window.bazarSetDoc);}
+function showAddons(){showView("addons",null,false);renderAddonsGrid();if(window.bazarSyncAddons)window.bazarSyncAddons();}
 function addonStateOf(c){
-  if(!c||c.enabled!==true)return{key:"off",txt:"غير متصل"};
-  const has=(c.id&&String(c.id).trim())||(c.key==="googleSheets"&&c.endpoint&&String(c.endpoint).trim());
-  if(!has)return{key:"setup",txt:"يحتاج إلى إعداد"};
+  if(!c)c={};
+  var enabled=c.enabled===true;
+  var hasId=String(c.id||c.endpoint||"").trim();
+  if(!enabled)return{key:"off",txt:"غير متصل"};
+  if(!hasId)return{key:"setup",txt:"يحتاج إلى إعداد"};
   return{key:"on",txt:"مفعّل"};
 }
-async function loadAddons(){
-  const grid=document.getElementById("addonsGrid");
+function renderAddonsGrid(){
+  var grid=document.getElementById("addonsGrid");
   if(!grid)return;
-  grid.innerHTML='<div class="empty-card">⏳ جاري تحميل الإضافات...</div>';
-  let remote={};
-  try{if(window.bazarGetDoc&&window.bazarDoc&&window.bazarDb){const snap=await window.bazarGetDoc(window.bazarDoc(window.bazarDb,"settings","addons"));if(snap.exists())remote=snap.data();}}catch(e){console.warn("addons load",e)}
-  let local={};try{local=JSON.parse(localStorage.getItem("bazarAddons")||"{}");}catch(e){}
-  const saved=Object.assign({},local,remote);
-  addonsDefs.forEach(d=>{if(saved[d.key]===undefined)saved[d.key]={};});
-  localAddons=saved;
-  grid.innerHTML=addonsDefs.map(d=>{
-    const c=Object.assign({key:d.key},saved[d.key]||{});
-    return `<div class="addon-card">
-      <div class="addon-top"><span class="addon-icon ${d.iconClass||""}">${d.icon}</span><h3>${d.name}</h3></div>
-      <p class="addon-desc">${d.desc}</p>
-      <div class="addon-actions"><button class="btn addon-setup" onclick="openAddon('${d.key}')">ربط الخدمة 🔗</button></div>
-    </div>`;
+  grid.innerHTML=addonsDefs.map(function(d){
+    var c=localAddons[d.key]||{};
+    var st=addonStateOf(c);
+    var enabled=c.enabled===true;
+    var shownId=String(c.id||c.endpoint||"").trim();
+    var idLine=shownId?('<div class="addon-idline" dir="ltr">'+escSoft(shownId)+'</div>'):"";
+    var toggleBtn=enabled
+      ? '<button class="btn addon-disable" onclick="toggleAddon(\''+d.key+'\')">تعطيل</button>'
+      : '<button class="btn addon-enable" onclick="toggleAddon(\''+d.key+'\')">تفعيل</button>';
+    return '<div class="addon-card">'+
+      '<div class="addon-top"><span class="addon-icon '+d.iconClass+'">'+d.icon+'</span><h3>'+d.name+'</h3></div>'+
+      '<span class="addon-badge st-'+st.key+'">'+st.txt+'</span>'+
+      '<p class="addon-desc">'+d.desc+'</p>'+
+      idLine+
+      '<div class="addon-actions">'+
+        '<button class="btn addon-setup" onclick="openAddon(\''+d.key+'\')">⚙ إعداد</button>'+
+        '<button class="btn addon-test" onclick="testAddon(\''+d.key+'\')">🔍 اختبار</button>'+
+        toggleBtn+
+      '</div>'+
+    '</div>';
   }).join("");
 }
 function setAddonStatus(msg,ok){
-  const st=document.getElementById("addonStatus");
-  if(!st)return;st.className=ok?"status ok":"status err";st.classList.remove("hidden");st.textContent=String(msg||"");setTimeout(()=>st.classList.add("hidden"),5000);
+  var st=document.getElementById("addonStatus");
+  if(!st)return;
+  st.className="status "+(ok?"ok":"err");
+  st.classList.remove("hidden");
+  st.textContent=String(msg||"");
+  setTimeout(function(){st.classList.add("hidden");},6000);
 }
+function readLocalCache(){
+  try{return JSON.parse(localStorage.getItem("bazarAddons")||"{}");}catch(e){return{};}
+}
+function writeLocalCache(v){
+  try{localStorage.setItem("bazarAddons",JSON.stringify(v||{}));}catch(e){}
+}
+// Firestore = المصدر الحقيقي للبيانات. localStorage = خزينة مؤقتة (Cache) فقط.
+async function syncAddons(){
+  if(!dbReady()) return false;
+  try{
+    var ref=window.bazarDoc(window.bazarDb,"settings","addons");
+    var existing={};
+    try{var snap=await window.bazarGetDoc(ref);if(snap&&snap.exists())existing=snap.data()||{};}catch(e){console.warn("addons read",e);}
+    var merged=Object.assign(addonDefaults(),existing);
+    if(!Object.keys(existing).length){
+      // إنشاء برمجي تلقائي للمستند إن لم يكن موجودًا (بدون حذف أي بيانات)
+      try{await window.bazarSetDoc(ref,merged,{merge:true});}catch(e){console.warn("addons ensure doc",e);}
+    }
+    localAddons=merged;
+    writeLocalCache(localAddons);
+    renderAddonsGrid();
+    return true;
+  }catch(e){console.warn(e);return false;}
+}
+window.bazarSyncAddons=syncAddons;
+// تحديث مباشر من Firestore حتى عبر الأجهزة والجلسات الأخرى
+window.bazarOnRemoteAddon=function(data){
+  if(!data||typeof data!=="object")return;
+  var merged=Object.assign(addonDefaults(),data);
+  if(activeAddonKey)merged[activeAddonKey]=localAddons[activeAddonKey]||merged[activeAddonKey];
+  localAddons=merged;
+  writeLocalCache(localAddons);
+  renderAddons();
+};
 async function saveAddons(msg){
-  try{localStorage.setItem("bazarAddons",JSON.stringify(localAddons));}catch(e){}
-  let saved=false;
-  try{if(window.bazarDb&&window.bazarSetDoc&&window.bazarDoc){await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","addons"),localAddons,{merge:true});saved=true;}}catch(e){console.warn("addons remote save",e)}
-  if(msg)setAddonStatus(msg+(saved?" ✅":" (لا توجد قاعدة بيانات — محفوظ محليًا)"),saved);
-  loadAddons();
-  return saved;
+  writeLocalCache(localAddons);
+  renderAddons();
+  if(!dbReady()){
+    setAddonStatus("Firestore لم يكتمل اتصاله بعد — أعد المحاولة خلال لحظة.",false);
+    return false;
+  }
+  try{
+    var ref=window.bazarDoc(window.bazarDb,"settings","addons");
+    await window.bazarSetDoc(ref,Object.assign(addonDefaults(),localAddons),{merge:true});
+    if(msg)setAddonStatus(msg+" ✅",true);
+    renderAddons();
+    return true;
+  }catch(e){
+    console.error("addons save",e);
+    setAddonStatus("تعذر الحفظ في Firestore: "+(e.message||"خطأ غير معروف"),false);
+    return false;
+  }
 }
-function toggleAddon(key,on){
-  if(!localAddons[key])localAddons[key]={};
-  localAddons[key].enabled=on;
-  saveAddons("تم "+(on?"تفعيل":"تعطيل")+" الإضافة");
+window.bazarSaveAddons=saveAddons;
+function renderAddons(){renderAddonsGrid();}
+async function toggleAddon(key){
+  var on=!(localAddons[key]&&localAddons[key].enabled===true);
+  localAddons[key]=Object.assign({},localAddons[key]||addonDefaults()[key],{enabled:on});
+  renderAddonsGrid();
+  await saveAddons("تم "+(on?"تفعيل":"تعطيل")+" الإضافة");
 }
-async function openAddon(key){
+function idValueOf(c,d){
+  return (d&&d.field==="endpoint"?(c&&c.endpoint)||"":(c&&c.id)||"").trim();
+}
+function validatePattern(d,raw){
+  if(!raw)return{ok:false,msg:"لم يُدخل معرّف بعد. أضف الـ ID وفعّل الإضافة."};
+  if(d.pattern&&!d.pattern.test(raw))return{ok:false,msg:"صيغة المعرّف غير صحيحة. الصيغة الصحيحة مثال: "+d.ph};
+  return{ok:true,msg:""};
+}
+function openAddon(key){
   activeAddonKey=key;
-  const d=addonsDefs.find(x=>x.key===key);
-  const modal=document.getElementById("settingsModal");
+  var d=addonsDefs.find(function(x){return x.key===key;});
+  var modal=document.getElementById("settingsModal");
   modal.classList.remove("hidden");
   document.getElementById("settingModalIcon").textContent=d?d.icon:"🧩";
   document.getElementById("settingModalTitle").textContent=d?d.name:"الإضافة";
-  document.getElementById("settingModalDesc").textContent=(d?d.desc:"")+(key==="sitemap"?" يُنشأ sitemap.xml وrobots.txt كملفين حقيقيين في جذر المشروع.":"");
-  const c=localAddons[key]||{};
-  let body="";
-  if(key==="googleSheets"){
-    const selected=Array.isArray(c.fields)?c.fields:[];
-    body=`<div class="setting-form">
-      <label>${d.label}<input id="addon_endpoint" type="url" value="${c.endpoint?escSoft(c.endpoint):""}" placeholder="${d.ph}"></label>
-      <small class="hint">أنشئ مشروع Google Apps Script (Web App، تنفيذ "Anyone") والصق رابط exec. الرابط يُحفظ في Firestore ولا يُكشف أي مفتاح في الواجهة.</small>
-      <div style="margin:10px 0"><b>الحقول المرسلة مع كل طلب:</b>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${FIELD_OPTIONS.map(f=>`<label style="display:flex;align-items:center;gap:7px;font-size:12px"><input type="checkbox" id="sf_${f}" class="sheets-field" value="${f}" ${selected.includes(f)?"checked":""} style="width:auto">${ADDON_FIELD_LABELS[f]}</label>`).join("")}</div>
-      </div>
-      <div class="toggle-row" style="border:1px solid #eee;border-radius:10px;padding:12px"><div>مفعّل</div><input id="addon_enabled" type="checkbox" ${c.enabled===true?"checked":""} style="width:20px;height:20px"></div>
-    </div>`;
-  }else if(key==="sitemap"){
-    body=`<div class="setting-form">
-      <p style="color:#5b49a7;font-weight:700;margin:0 0 6px">🗺 sitemap.xml — ملف حقيقي</p>
-      <p style="color:#666;font-size:13px;line-height:1.7">GitHub Pages استضافة static، لذا ملف sitemap.xml وrobots.txt موجودان كملفات حقيقية في جذر المشروع ولا يمكن توليدهما ديناميكيًا من المتصفح. عند إضافة/حذف/تعديل منتج، استخدم الزر <b>توليد</b> أدناه ثم انسخ الناتج وصق مكان الملف وقت النشر.</p>
-      <div style="display:flex;gap:8px;margin:8px 0"><button class="btn addon-enable" onclick="genSitemapXML()">⚡ توليد Sitemap من المنتجات الحالية</button></div>
-      <textarea id="sitemap_out" style="direction:ltr;text-align:left;font-family:monospace;min-height:220px;width:100%;font-size:11px" placeholder="اضغط توليد لملء مايحت بناءً على منتجات المتجر الحقيقية"></textarea>
-      <button class="btn addon-setup" style="margin-top:8px" onclick="copySitemapXML()">📋 نسخ XML</button>
-    </div>`;
-  }else{
-    body=`<div class="setting-form">
-      <label>${d.label}<input id="addon_id" type="text" value="${c.id?escSoft(c.id):""}" placeholder="${d.ph}"></label>
-      <small class="hint">${d.key==="searchConsole"?"يُدرج رمز التوثيق في &lt;head&gt; للموقع الفعلي عند التفعيل.":"عند التفعيل يُحمَّل الكود في صفحات المتجر مرة واحدة فقط."}</small>
-      <div class="toggle-row" style="border:1px solid #eee;border-radius:10px;padding:12px"><div>مفعّلة</div><input id="addon_enabled" type="checkbox" ${c.enabled===true?"checked":""} style="width:20px;height:20px"></div>
-    </div>`;
-  }
-  document.getElementById("settingModalBody").innerHTML=body;
-  document.querySelector("#settingsModal .modal-actions").innerHTML=`<button class="green" onclick="saveAddon()">💾 حفظ الإعدادات</button><button class="gray" onclick="closeAddon()">إلغاء</button>`;
+  var descEl=document.getElementById("settingModalDesc");
+  descEl.textContent=d?d.desc:"";
+  var c=localAddons[key]||{};
+  var current=d?idValueOf(c,d):"";
+  var hint= (d&&d.key==="searchConsole")
+    ? "يُدرج الرمز في &lt;head&gt; للموقع الفعلي عند التفعيل."
+    : "عند التفعيل يُحمَّل كود الخدمة في صفحات المتجر مرة واحدة فقط.";
+  var checked=(c.enabled===true)?"checked":"";
+  document.getElementById("settingModalBody").innerHTML=
+    '<div class="setting-form">'+
+      '<label>'+d.label+'<input id="addon_id" type="text" value="'+escSoft(current)+'" placeholder="'+d.ph+'" dir="ltr"></label>'+
+      '<small class="hint">'+hint+'</small>'+
+      '<div class="toggle-row"><div>مفعّلة</div><input id="addon_enabled" type="checkbox" '+checked+'></div>'+
+    '</div>';
+  var buttons='<button class="green" onclick="saveAddon()">💾 حفظ الإعدادات</button><button class="gray" onclick="closeAddon()">إلغاء</button>';
+  document.querySelectorAll("#settingsModal .modal-actions").forEach(function(a){a.innerHTML=buttons;});
 }
 function closeAddon(){document.getElementById("settingsModal").classList.add("hidden");activeAddonKey=null;}
 async function saveAddon(){
-  if(!activeAddonKey){closeSetting();return}
-  const key=activeAddonKey;
-  const c=localAddons[key]||{};
-  if(key==="googleSheets"){
-    c.endpoint=document.getElementById("addon_endpoint")?.value.trim()||"";
-    c.fields=Array.from(document.querySelectorAll("#settingModalBody .sheets-field")).filter(x=>x.checked).map(x=>x.value);
-  }else{
-    const inp=document.getElementById("addon_id");
-    c.id=inp?inp.value.trim():"";
-  }
-  const chk=document.getElementById("addon_enabled");
-  if(chk)c.enabled=chk.checked;
+  if(!activeAddonKey){closeAddon();return;}
+  var key=activeAddonKey;
+  var d=addonsDefs.find(function(x){return x.key===key;});
+  var c=localAddons[key]||{};
+  var isEndpoint=(d&&d.field)==="endpoint";
+  var inp=document.getElementById("addon_id");
+  var raw=inp?String(inp.value||"").trim():"";
+  var fieldName=isEndpoint?"endpoint":"id";
+  if(isEndpoint){c.endpoint=raw;delete c.id;}else{c.id=raw;delete c.endpoint;}
+  var dest=document.getElementById("addon_enabled");
+  if(dest)c.enabled=dest.checked;
   localAddons[key]=c;
+  var check=null;
+  if(dest&&dest.checked&&raw)check=validatePattern(d,raw);
+  if(check&&!check.ok){setAddonStatus(check.msg,false);return;}
   closeAddon();
   await saveAddons("تم حفظ إعداد الإضافة");
 }
 function testAddon(key){
-  const c=localAddons[key]||{};
-  let msg="";
-  if(key==="sitemap"){
-    msg="sitemap.xml وrobots.txt ملفان حقيقيان في جذر المشروع. تحقّق من الرابطين.";
-  }else if(key==="searchConsole"){
-    msg=(c.enabled===true&&c.id)?" رمز التوثيق مفعّل ويُدرج في <head> الموقع الفعلي عند النشر.":"الإضافة غير مفعَّلة أو بلا رمز توثيق.";
-  }else if(key==="googleSheets"){
-    msg=(c.enabled===true&&c.endpoint)?"عند إرسال طلب جديد تُرسل بياناته إلى الرابط. أرسل طلبًا من المتجر وتأكد من ظهوره في الجدول.":"فعِّل الإضافة وأدخل رابط Webhook.";
-  }else{
-    msg=(c.enabled===true&&c.id)?"الكود يُحقن في صفحات المتجر فور فتحها عندما تكون مفعّلة (تحقّق من View-Source).":(c.id?"الإضافة محفوظة لكنها غير مفعّلة — فعّلها.":"أدخل المعرّف وفعّل الإضافة.");
-  }
-  setAddonStatus(msg,true);
+  var d=addonsDefs.find(function(x){return x.key===key;});
+  var c=localAddons[key]||{};
+  if(!c||c.enabled!==true){setAddonStatus("الإضافة غير مفعّلة — فعّلها من الزر أدناه. ⚪",true);return;}
+  var raw=idValueOf(d,c);
+  if(!raw){setAddonStatus("بحاجة إلى إعداد: أضف الـ ID أولًا. 🟡",true);return;}
+  var v=validatePattern(d,raw);
+  if(!v.ok){setAddonStatus(v.msg,true);return;}
+  setAddonStatus("الإضافة مفعّلة والمُعرّف محفوظ وتنسيقه صحيح ("+raw+"). ✅",true);
 }
 function slugifySitemap(name){
   let s=String(name||"").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
@@ -729,6 +786,10 @@ function copySitemapXML(){
   if(navigator.clipboard){navigator.clipboard.writeText(ta.value).then(()=>setAddonStatus("تم نسخ sitemap.xml ✅")).catch(()=>{});
   }else{ta.select();document.execCommand("copy");setAddonStatus("تم النسخ ✅");}
 }
+// تحميل البطاقات الخمس فورًا من الخزينة المؤقتة (بدون انتظار Firestore).
+// ثم يُشغَّل الحدث عند التأكد من تسجيل الدخول لقراءة المصدر الحقيقي.
+localAddons=Object.assign(addonDefaults(),readLocalCache());
+renderAddonsGrid();
 </script>
 
 <script type="module">
@@ -838,6 +899,10 @@ onAuthStateChanged(auth,u=>{
     renderCategorySelect();
     renderCategories();
     loadCategories();
+    if(window.bazarSyncAddons) window.bazarSyncAddons();
+    onSnapshot(doc(db,"settings","addons"),function(snap){
+      if(snap&&snap.exists&&snap.exists()){if(window.bazarOnRemoteAddon)window.bazarOnRemoteAddon(snap.data());}
+    },function(e){console.warn("addons realtime",e);});
   }else{
     appBox.classList.add("hidden");
     loginBox.classList.remove("hidden");
@@ -1365,10 +1430,17 @@ body{background:#f7f8fa;color:#20242b}
 .addon-icon{width:96px;height:96px;flex:none;border-radius:18px;display:grid;place-items:center;font-size:42px;background:#f5f5f5}
 .addon-icon.ga{background:#fff5dc}.addon-icon.tiktok{background:#fff0f3}.addon-icon.meta{background:#e8f2ff}.addon-icon.gtm{background:#eef7ff}.addon-icon.search{background:#edf3f8}
 .addon-top h3{margin:0;font-size:20px;color:#202124;font-weight:700}.addon-desc{margin:0;color:#888;font-size:14px;line-height:1.75;max-width:230px;min-height:48px}
-.addon-actions{width:100%;margin-top:auto;display:flex;justify-content:center}
-.addon-actions .btn{border:0;border-radius:10px;padding:11px 22px;cursor:pointer;font-weight:700;font-family:inherit;font-size:14px}
-.addon-setup{background:#f5f6f7;color:#222;min-width:125px}.addon-setup:hover{background:#eceeef}
-.addon-state,.addon-idline,.addon-enable,.addon-disable,.addon-test{display:none!important}
+.addon-badge{display:inline-block;min-width:150px;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;line-height:1.6}
+ .addon-badge.st-on{background:#dcfce7;color:#166534}
+ .addon-badge.st-off{background:#eef1f5;color:#64748b}
+ .addon-badge.st-setup{background:#fef3c7;color:#92400e}
+ .addon-idline{width:100%;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#f5f6f8;border:1px solid #eef0f3;border-radius:8px;padding:6px 10px;color:#5b6472;font-size:12px;text-align:left}
+ .addon-actions{width:100%;margin-top:auto;display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+ .addon-actions .btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700;font-family:inherit;font-size:13px;flex:1;min-width:0;transition:.15s}
+ .addon-setup{background:#f5f6f7;color:#222}.addon-setup:hover{background:#eceeef}
+ .addon-test{background:#eef2ff;color:#3b4fd8}.addon-test:hover{background:#e3eaff}
+ .addon-enable{background:#16a34a;color:#fff}.addon-enable:hover{opacity:.9}
+ .addon-disable{background:#fee2e2;color:#b91c1c}.addon-disable:hover{background:#fecaca}
 @media(max-width:1050px){.addons-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.addons-intro{padding:24px 20px}.addons-intro h1{font-size:25px}.addons-intro p{font-size:15px}.addons-services{padding:22px 15px}.addons-services-head h2{font-size:20px}.addons-services-head p{font-size:14px}.addons-grid{grid-template-columns:1fr;gap:14px}.addon-card{min-height:270px}}
 </style>
