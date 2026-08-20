@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الطلبات</title>
+
+<style>
+body{
+    margin:0;
+    background:#f5f5f5;
+    font-family:Arial,sans-serif;
+}
+header{
+    background:#111827;
+    color:#fff;
+    padding:15px;
+    text-align:center;
+    font-size:22px;
+    font-weight:bold;
+}
+#orders{
+    padding:20px;
+}
+.card{
+    background:#fff;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:15px;
+    box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+.card h3{
+    margin:0 0 10px;
+}
+button{
+    border:none;
+    padding:10px 15px;
+    border-radius:8px;
+    cursor:pointer;
+    margin:5px;
+}
+.accept{
+    background:#16a34a;
+    color:white;
+}
+.reject{
+    background:#dc2626;
+    color:white;
+}
+.delete{
+    background:#000;
+    color:white;
+}
+</style>
+</head>
+
+<body>
+
+<header>📦 الطلبات</header>
+
+<div id="orders"></div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+query,
+orderBy,
+onSnapshot,
+doc,
+updateDoc,
+deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBWdA_QIy_2gOBl-bP1S1tLaGIqaZjpar8",
+  authDomain: "bazar-dzair-33816.firebaseapp.com",
+  projectId: "bazar-dzair-33816",
+  storageBucket: "bazar-dzair-33816.firebasestorage.app",
+  messagingSenderId: "51073161969",
+  appId: "1:51073161969:web:cb75a3224bdca11ea8e750"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const ordersDiv = document.getElementById("orders");
+
+const q = query(
+    collection(db,"orders")
+);
+
+onSnapshot(q,(snapshot)=>{
+
+    ordersDiv.innerHTML="";
+
+    if(snapshot.empty){
+        ordersDiv.innerHTML="<h2 style='text-align:center'>لا توجد طلبات</h2>";
+        return;
+    }
+
+    snapshot.forEach((docSnap)=>{
+
+        const order=docSnap.data();
+
+        ordersDiv.innerHTML += `
+        <div class="card">
+
+        <h3>${order.product}</h3>
+
+        <p>👤 ${order.customerName}</p>
+
+        <p>📞 ${order.customerPhone}</p>
+
+        <p>📍 ${order.wilaya}</p>
+
+        <p>🏠 ${order.address}</p>
+
+        <p>💰 ${order.total} دج</p>
+
+        <p>📦 الحالة :
+        <b>${order.status}</b>
+        </p>
+
+        <button class="accept"
+        onclick="acceptOrder('${docSnap.id}')">
+        قبول
+        </button>
+
+        <button class="reject"
+        onclick="rejectOrder('${docSnap.id}')">
+        رفض
+        </button>
+
+        <button class="delete"
+        onclick="deleteOrder('${docSnap.id}')">
+        حذف
+        </button>
+
+        </div>
+        `;
+
+    });
+
+},(err)=>{
+  console.error("تعذر قراءة الطلبات",err);
+  ordersDiv.innerHTML="<h2 style='text-align:center'>تعذر تحميل الطلبات</h2><p style='text-align:center'>تحقق من Firestore Rules ثم حدّث الصفحة.</p>";
+});
+
+window.acceptOrder = async(id)=>{
+try{
+await updateDoc(doc(db,"orders",id),{
+status:"مقبول"
+});
+}catch(e){console.error(e);alert("تعذر قبول الطلب: "+e.message)}
+}
+
+window.rejectOrder = async(id)=>{
+try{
+await updateDoc(doc(db,"orders",id),{
+status:"مرفوض"
+});
+}catch(e){console.error(e);alert("تعذر رفض الطلب: "+e.message)}
+}
+
+window.deleteOrder = async(id)=>{
+if(confirm("حذف الطلب؟")){
+try{
+await deleteDoc(doc(db,"orders",id));
+}catch(e){console.error(e);alert("تعذر حذف الطلب: "+e.message)}
+}
+}
+
+</script>
+
+</body>
+</html>
