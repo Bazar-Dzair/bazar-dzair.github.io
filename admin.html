@@ -66,6 +66,35 @@ body{background:#f7f7f8;color:#202124}
 
 
 .footer-admin-item{border:1px solid #e4e7ec;border-radius:14px;padding:16px;margin:12px 0;background:#fafbfc}.footer-admin-actions{display:flex;gap:8px;justify-content:flex-start;margin-top:10px}.footer-admin-add,.footer-admin-delete{border:0;border-radius:9px;padding:9px 13px;font-family:inherit;cursor:pointer}.footer-admin-add{background:#eaf7ee;color:#16803a}.footer-admin-delete{background:#fff0f0;color:#c62828}.footer-admin-item>b{display:block;margin-bottom:12px;color:#344054}.setting-form textarea{width:100%;resize:vertical;min-height:110px;font-family:inherit;line-height:1.7}.setting-form label{display:block;margin-bottom:12px}.setting-form input,.setting-form textarea{margin-top:6px}
+
+/* ===== Google Search Console — نشر حقيقي إلى GitHub Pages ===== */
+.gsc-box{background:#fff;border:1px solid #e4e7ec;border-radius:16px;padding:20px;margin-top:18px;box-shadow:0 2px 8px #00000005}
+.gsc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.gsc-head h3{margin:0;font-size:17px;color:#111}
+.gsc-status{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;padding:7px 12px;border-radius:999px}
+.gsc-status.on{background:#eaf7ee;color:#16803a}.gsc-status.off{background:#f1f3f5;color:#8a93a3}
+.gsc-dot{width:9px;height:9px;border-radius:50%;display:inline-block}.gsc-status.on .gsc-dot{background:#22c55e}.gsc-status.off .gsc-dot{background:#b6bcc6}
+.gsc-desc{color:#6b7280;font-size:13px;margin:0 0 14px;line-height:1.8}
+.gsc-field{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.gsc-field label{font-weight:700;font-size:13px;color:#344054}
+.gsc-field input{font-size:13px;direction:ltr;text-align:left;padding:12px;border:1px solid #d9dee7;border-radius:10px;background:#fbfbfc}
+.gsc-meta-samples{color:#8a93a3;font-size:11px;line-height:1.8;margin-top:4px}
+.gsc-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:4px}
+.gsc-actions button{border:0;border-radius:10px;padding:11px 18px;font-weight:800;font-size:14px;cursor:pointer}
+.gsc-save{background:#ff6a00;color:#fff}.gsc-disable{background:#fff;color:#c62828;border:1px solid #f3c6c6!important}
+.gsc-test{background:#eef2ff;color:#3b4fd8}
+.gsc-connect{background:#eaf7ee;color:#16803a}
+.gsc-msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.7;white-space:pre-line}
+.gsc-msg.ok{background:#eaf7ee;color:#16803a}.gsc-msg.err{background:#fee2e2;color:#991b1b}.gsc-msg.info{background:#eef3ff;color:#27419b}
+.gsc-connect-box{background:#fbfcfe;border:1px dashed #c4cdd9;border-radius:12px;padding:16px;margin-bottom:16px}
+.gsc-connect-box b{font-size:14px;display:block;margin-bottom:6px;color:#222}
+.gsc-connect-box small{color:#7a8494;font-size:12px;line-height:1.8;display:block;margin-bottom:12px}
+.gsc-conn-field{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.gsc-conn-field input{flex:1;min-width:180px;font-size:13px;direction:ltr;text-align:left;padding:11px 12px;border:1px solid #d9dee7;border-radius:10px}
+.gsc-conn-meta{display:flex;gap:8px;flex-wrap:wrap}
+.gsc-conn-meta input{width:170px}
+.gsc-badge-connected{display:inline-flex;gap:7px;align-items:center;background:#eaf7ee;color:#16803a;font-size:12px;font-weight:700;padding:6px 11px;border-radius:999px;direction:ltr}
+.gsc-empty-note{color:#9aa3af;font-size:13px}
 </style>
 <style>
 .image-row{display:flex;gap:8px;margin-bottom:8px}.image-row input{flex:1}.removeImage{width:44px;padding:8px}.image-thumb{width:70px;height:70px;object-fit:contain;background:#f5f5f5;border:1px solid #ddd;border-radius:8px}
@@ -226,6 +255,33 @@ body{background:#f7f7f8;color:#202124}
             </div>
             <div id="addonStatus" class="status hidden"></div>
             <div class="addons-grid" id="addonsGrid"><div class="empty-card">⏳ جاري تحميل الإضافات...</div></div>
+          </div>
+
+          <div class="gsc-box" id="gscBox">
+            <div class="gsc-head">
+              <h3>▣ Google Search Console — نشر حقيقي على GitHub Pages</h3>
+              <span class="gsc-status off" id="gscStatus"><span class="gsc-dot"></span><span id="gscStatusTxt">غير متصل</span></span>
+            </div>
+            <p class="gsc-desc">
+              يضع وسم التحقق <code>google-site-verification</code> في ملف <code>index.html</code>
+              الحقيقي داخل مستودع GitHub المنشور، ثم يعمل commit وحدوث <b>GitHub Pages redeploy</b> تلقائيًا —
+              فلا يختفي الوسم مهما أنعشت الصفحة، ويظهر في <b>الصفحة المنشورة الفعلية</b>.
+            </p>
+
+            <div id="gscConnectWrap"></div>
+
+            <div class="gsc-field">
+              <label for="gscTag">HTML Verification Tag</label>
+              <input id="gscTag" type="text" dir="ltr" placeholder='<meta name="google-site-verification" content="XXXXXXXX">' autocomplete="off">
+              <span class="gsc-meta-samples">يمكنك لصق الوسم كاملًا أو قيمة <b>content</b> فقط. مثال: <code>&lt;meta name="google-site-verification" content="AbC123…"&gt;</code></span>
+            </div>
+
+            <div class="gsc-actions">
+              <button class="gsc-save" type="button" onclick="gscSave()">💾 حفظ وتفعيل</button>
+              <button class="gsc-disable" type="button" onclick="gscDisable()">تعطيل</button>
+              <button class="gsc-test" type="button" onclick="gscCheck()">🔍 فحص الحالة الحي</button>
+            </div>
+            <div class="gsc-msg info hidden" id="gscMsg"></div>
           </div>
         </div>
       </section>
@@ -582,7 +638,7 @@ function addonDefaults(){
   return d;
 }
 function dbReady(){return !!(window.bazarDb&&window.bazarDoc&&window.bazarGetDoc&&window.bazarSetDoc);}
-function showAddons(){showView("addons",null,false);renderAddonsGrid();if(window.bazarSyncAddons)window.bazarSyncAddons();}
+function showAddons(){showView("addons",null,false);renderAddonsGrid();if(window.bazarSyncAddons)window.bazarSyncAddons();if(typeof loadGsc==="function")loadGsc();}
 function addonStateOf(c){
   if(!c)c={};
   var enabled=c.enabled===true;
@@ -860,6 +916,101 @@ function gscDownloadFile(){
 // ثم يُشغَّل الحدث عند التأكد من تسجيل الدخول لقراءة المصدر الحقيقي.
 localAddons=Object.assign(addonDefaults(),readLocalCache());
 renderAddonsGrid();
+
+// ================= Google Search Console — نشر حقيقي عبر GitHub (server.js) =================
+function gscShowMsg(text,type){
+  const el=document.getElementById("gscMsg");
+  if(!el)return;
+  if(!text){el.classList.add("hidden");return;}
+  el.className="gsc-msg "+(type||"info");
+  el.classList.remove("hidden");
+  el.textContent=text;
+  if(type==="ok"||type==="err")setTimeout(()=>el.classList.add("hidden"),7000);
+}
+function gscRenderStatus(cfg){
+  const st=document.getElementById("gscStatus");
+  if(st){
+    st.className="gsc-status "+(cfg&&cfg.active?"on":"off");
+    const t=document.getElementById("gscStatusTxt");
+    if(t)t.textContent=(cfg&&cfg.active)?"● Active":"● Disabled";
+  }
+  const wrap=document.getElementById("gscConnectWrap");
+  const tag=document.getElementById("gscTag");
+  if(wrap){
+    if(cfg&&cfg.connected){
+      wrap.innerHTML='<div class="gsc-badge-connected">✓ مرتبط: '+escSoft(cfg.repo)+' · '+escSoft(cfg.branch)+' · توكن …'+escSoft(cfg.token_masked||"")+'</div>';
+    }else{
+      wrap.innerHTML=gscConnectBoxHtml();
+    }
+  }
+  if(tag&&tag.value===""&&cfg&&cfg.verification)tag.value=cfg.verification;
+}
+function gscConnectBoxHtml(){
+  return '<div class="gsc-connect-box">'+
+    '<b>🔗 ربط GitHub — مرة واحدة قبل النشر</b>'+
+    '<small>حتى يظهر الوسم في <b>https://bazar-dzair.github.io/</b> يجب أن يكتب Backend في المستودع ثم يعيد النشر. الصقل أصحّ هنا: <b>repo</b> و<b>توكن</b> (Fine-Grained، صلاحية Contents: Read &amp; Write على هذا المستودع فقط). يُحفظ التوكن في قاعدة خادم المشروع (غير مرئية للعميل) ولا يظهر أبدًا في admin.html أو index.html. أنت مالك المشروع الوحيد القادر على ربطه.</small>'+
+    '<div class="gsc-conn-field"><input id="gscRepo" placeholder="owner/repo — مثال: bazar-dzair/bazar-dzair.github.io" dir="ltr"><input id="gscToken" placeholder="github_pat_… أو ghp_…" dir="ltr" type="password"></div>'+
+    '<div class="gsc-conn-meta"><input id="gscBranch" placeholder="الفرع: main" value="main" dir="ltr"><input id="gscPath" placeholder="المسار: index.html" value="index.html" dir="ltr"></div>'+
+    '<div class="gsc-actions" style="margin-top:12px"><button class="gsc-connect" type="button" onclick="gscConnect()">🔗 ربط GitHub</button></div>'+
+  '</div>';
+}
+async function gscApi(path,method,body){
+  try{
+    const res=await fetch(path,{method:method||"GET",headers:body?{"Content-Type":"application/json"}:{},body:body?JSON.stringify(body):undefined});
+    let data={};try{data=await res.json();}catch(e){data={error:await res.text()};}
+    if(!res.ok)return{ok:false,status:res.status,error:data.error||data.msg||data.message||("HTTP "+res.status),missingBackend:res.status===404};
+    return{ok:true,data:data};
+  }catch(e){return{ok:false,error:e&&e.message||"تعذر الاتصال بالخادم",network:true};}
+}
+async function loadGsc(){
+  const r=await gscApi("/api/gsc/status","GET");
+  if(r.ok){gscRenderStatus(r.data);gscShowMsg("","");return;}
+  gscRenderStatus(null);
+  if(r.missingBackend||r.network){
+    gscShowMsg("خادم Backend غير متاح بعد. انشر المشروع مرة واحدة من WebSim ثم أعد فتح هذه الصفحة لتظهر اللوحة المتكاملة.", "err");
+  }else if(r.status===401){
+    gscShowMsg("يجب تسجيل الدخول كمُلاك للمشروع لضبط Search Console.","err");
+  }else{
+    gscShowMsg(String(r.error||"تعذر جلب الحالة"),"err");
+  }
+}
+async function gscConnect(){
+  const repo=(document.getElementById("gscRepo")||{}).value||"";
+  const token=(document.getElementById("gscToken")||{}).value||"";
+  const branch=(document.getElementById("gscBranch")||{}).value||"main";
+  const path=(document.getElementById("gscPath")||{}).value||"index.html";
+  if(!repo||!token){gscShowMsg("أدخل repo وtoken لربط GitHub.","err");return;}
+  const r=await gscApi("/api/gsc/connect","POST",{repo,token,branch,path});
+  if(!r.ok){gscShowMsg(r.error||"فشل الربط","err");return;}
+  gscShowMsg(r.data&&r.data.msg||"تم ربط GitHub بنجاح.","ok");
+  await loadGsc();
+}
+async function gscSave(){
+  const tag=String((document.getElementById("gscTag")||{}).value||"").trim();
+  if(!tag){gscShowMsg("أدخل HTML Verification Tag أولًا.","err");return;}
+  gscShowMsg("⏳ جاري التفعيل والنشر…", "info");
+  const r=await gscApi("/api/gsc/activate","POST",{tag});
+  if(!r.ok){gscShowMsg(r.error||"فشل التفعيل","err");return;}
+  const d=r.data||{};
+  gscShowMsg("تم تفعيل Google Search Console بنجاح. "+(d.msg||"")+(d.live?"":" جاري إتمام النشر…"),"ok");
+  await loadGsc();
+}
+async function gscDisable(){
+  gscShowMsg("⏳ جاري التعطيل وإزالة الوسم…","info");
+  const r=await gscApi("/api/gsc/disable","POST",{});
+  if(!r.ok){gscShowMsg(r.error||"فشل التعطيل","err");return;}
+  const d=r.data||{};
+  gscShowMsg("تم تعطيل الخدمة. "+(d.msg||""),"ok");
+  await loadGsc();
+}
+async function gscCheck(){
+  gscShowMsg("⏳ فحص الصفحة المنشورة…","info");
+  const r=await gscApi("/api/gsc/check","POST",{});
+  if(!r.ok){gscShowMsg(r.error||"تعذر الفحص","err");return;}
+  const d=r.data||{};
+  gscShowMsg(d.msg||(d.ok?"الوسم ظاهر في الصفحة المنشورة ✓":"غير ظاهر بعد"),d.ok?"ok":"info");
+}
+function showAddonsGscHook(){loadGsc();}
 </script>
 
 <script type="module">
