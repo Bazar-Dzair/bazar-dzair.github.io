@@ -835,8 +835,9 @@ onAuthStateChanged(auth,u=>{
     renderCategorySelect();
     renderCategories();
     loadCategories();
-    // لا يتم تحميل المنتجات أو الطلبات أو الإضافات أثناء فتح اللوحة.
-    // كل قسم يجلب بياناته عند فتحه لتقليل زمن الدخول واستهلاك الشبكة.
+    // تحميل المنتجات في الخلفية فور الدخول حتى تكون جاهزة فورًا عند فتح قسم المنتجات.
+    // الطلبات والإضافات تبقى عند فتحها فقط لتقليل استهلاك الشبكة؛ المنتجات تُسبق تسريعًا.
+    setTimeout(()=>{try{if(window.bazarLoadProducts&&!productsLoaded)window.bazarLoadProducts();}catch(e){}},0);
     try{
       const cachedCount=localStorage.getItem("bazarProductsCount");
       const pc=document.getElementById("statProducts");
@@ -1066,7 +1067,7 @@ function startProductsSync(){
 }
 
 window.bazarLoadProducts=async function(force=false){
-  if(productsLoading)return productsLoading;
+  if(productsLoading){ if(box && !productsLoaded && products.length) render(); return productsLoading; }
   if(productsLoaded && !force){ render(); return; }
   if(force)productsLoaded=false;
   const box=listBox;
