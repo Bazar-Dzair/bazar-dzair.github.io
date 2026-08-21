@@ -419,7 +419,11 @@ function showView(name, el, createNew=false){
   if(target) target.classList.remove("hidden");
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
   if(el) el.classList.add("active");
-  if(name==="products" && typeof render==="function") render();
+  if(name==="products" && typeof loadProducts==="function"){
+    loadProducts().then(()=>render());
+  }
+  if(name==="orders" && typeof loadOrders==="function") loadOrders();
+  if(name==="categories" && typeof loadCategories==="function") loadCategories();
   if(name==="product" && createNew && typeof resetForm==="function") resetForm();
   try{sessionStorage.setItem("bazarAdminView",name);}catch(e){}
   if(window.innerWidth<=700) document.getElementById("sidebar")?.classList.remove("open");
@@ -705,7 +709,7 @@ function openAddon(key){
   var c=localAddons[key]||{};
   var current=d?idValueOf(c,d):"";
   var hint= (d&&d.key==="searchConsole")
-    ? "يُدرج هذا الرمز في صفحة <strong>index.html</strong> الفعلية عند التفعيل. لكنَّ حقن JavaScript وحده لا يكفي للتحقق من ملكية الموقع.\nالطريقة الموثوقة مع GitHub Pages: أضِف سجل DNS أو ضع ملف <code>googleXXXX.html</code> ثابتًا في جذر المستودع (تولّده من هذا الزر)."
+    ? "ملاحظة صريحة: حقن <code>&lt;meta&gt;</code> عبر JavaScript لا يكفي — زاحف Google يقرأ ملف HTML المصدر ولا ينفّذ السكربتات عند التحقق من الملكية.\nالطريقة الموثوقة مع GitHub Pages هي ملف تحقق ثابت <code>googleXXXX.html</code> في جذر المستودع، أو سجل DNS TXT. استخدم زر «⬇ توليد ملف التحقق» بالأسفل وأنشره على GitHub مرة واحدة، وسيبقى التحقق ساريًا."
     : "عند التفعيل يُحمَّل كود الخدمة في صفحات المتجر مرة واحدة فقط.";
   var checked=(c.enabled===true)?"checked":"";
   var gscHelp = (d&&d.key==="searchConsole")
@@ -864,7 +868,7 @@ renderAddonsGrid();
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,serverTimestamp,setDoc,getDoc}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,serverTimestamp,setDoc,getDoc,getCountFromServer}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const config={
@@ -965,14 +969,11 @@ onAuthStateChanged(auth,u=>{
   if(u){
     loginBox.classList.add("hidden");
     appPage();
-    listen();
+    // تحميل خفيف عند الدخول: لا نحمل كل المنتجات والطلبات أو الإضافات قبل الحاجة.
     renderCategorySelect();
     renderCategories();
     loadCategories();
-    if(window.bazarSyncAddons) window.bazarSyncAddons();
-    onSnapshot(doc(db,"settings","addons"),function(snap){
-      if(snap&&snap.exists&&snap.exists()){if(window.bazarOnRemoteAddon)window.bazarOnRemoteAddon(snap.data());}
-    },function(e){console.warn("addons realtime",e);});
+    refreshDashboardCounts();
   }else{
     appBox.classList.add("hidden");
     loginBox.classList.remove("hidden");
@@ -1102,40 +1103,93 @@ function appPage(){
   const idx={dashboard:0,orders:1,product:2,products:3,categories:4,sections:5,users:6,settings:7,addons:8}[view];
   showView(view,nav[idx]||nav[0],false);
 }
-function listen(){onSnapshot(collection(db,"products"),s=>{
-  products=s.docs.map(d=>({id:d.id,...d.data()}));
-  const productCounter=document.getElementById("statProducts");
-  if(productCounter) productCounter.textContent=s.size.toLocaleString("ar-DZ");
-  render();updateStats();
+let productsLoaded=false, productsLoading=null;
+let ordersLoaded=false, ordersLoading=null;
+
+async function refreshDashboardCounts(){
   try{
-    const editId=sessionStorage.getItem("bazarEditingProduct");
-    const view=sessionStorage.getItem("bazarAdminView");
-    if(editId && view==="product" && !editing){
-      const p=products.find(x=>x.id===editId);
-      if(p) window.editProduct(editId); else sessionStorage.removeItem("bazarEditingProduct");
-    }
-  }catch(e){}
-}); listenOrders();}
-function listenOrders(){
- const box=document.getElementById("orders"); if(!box)return;
- onSnapshot(collection(db,"orders"),snap=>{
-  updateOrderStats(snap.size);
-  if(snap.empty){box.innerHTML='<div class="empty-card">🛒<b>لا توجد طلبات</b><span>عند وصول طلب جديد سيظهر هنا.</span></div>';return;}
-  const rows=[];
-  snap.forEach(d=>{const o=d.data()||{}; rows.push({id:d.id,...o});});
-  rows.sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return tb-ta;});
-  box.innerHTML=rows.map(o=>`<div class="panel order-card">
-   <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2 style="margin:0">📦 ${esc(o.product||"منتج غير محدد")}</h2><span class="status ok">${esc(o.status||"جديد")}</span></div>
-   <p><b>👤 الزبون:</b> ${esc(o.customerName||o.name||"غير متوفر")}</p>
-   <p><b>📞 الهاتف:</b> ${esc(o.customerPhone||o.phone||"غير متوفر")}</p>
-   <p><b>📍 الولاية:</b> ${esc(o.wilaya||"")}</p>
-   <p><b>🏠 العنوان:</b> ${esc(o.address||"")}</p>
-   <p><b>🔢 الكمية:</b> ${Number(o.quantity||1)} &nbsp; | &nbsp; <b>💰 سعر المنتج:</b> ${Number(o.price||0).toLocaleString("ar-DZ")} دج</p>
-   <p><b>🚚 التوصيل:</b> ${Number(o.shipping||0).toLocaleString("ar-DZ")} دج &nbsp; | &nbsp; <b>💵 المجموع:</b> ${Number(o.total||0).toLocaleString("ar-DZ")} دج</p>
-   <button class="red" onclick="deleteOrder('${o.id}')">🗑️ حذف الطلبية</button>
-  </div>`).join("");
- },err=>{console.error(err);updateOrderStats(0);box.innerHTML='<div class="empty-card">❌ تعذر قراءة الطلبات من Firestore. تحقق من Firestore Rules.</div>';});
+    const [pc,oc]=await Promise.all([
+      getCountFromServer(collection(db,"products")),
+      getCountFromServer(collection(db,"orders"))
+    ]);
+    const pn=pc.data().count||0, on=oc.data().count||0;
+    const productCounter=document.getElementById("statProducts");
+    if(productCounter) productCounter.textContent=pn.toLocaleString("ar-DZ");
+    updateOrderStats(on);
+  }catch(e){
+    console.warn("تعذر تحميل إحصائيات لوحة التحكم:",e);
+  }
 }
+
+async function loadProducts(){
+  if(productsLoaded) return products;
+  if(productsLoading) return productsLoading;
+  productsLoading=(async()=>{
+    try{
+      listBox.innerHTML='<div class="empty-card">⏳ جاري تحميل المنتجات...</div>';
+      const snap=await new Promise((resolve,reject)=>{
+        onSnapshot(collection(db,"products"),resolve,reject,{includeMetadataChanges:false});
+      });
+      products=snap.docs.map(d=>({id:d.id,...d.data()}));
+      productsLoaded=true;
+      updateStats();
+      try{
+        const editId=sessionStorage.getItem("bazarEditingProduct");
+        const view=sessionStorage.getItem("bazarAdminView");
+        if(editId && view==="product" && !editing){
+          const p=products.find(x=>x.id===editId);
+          if(p) window.editProduct(editId); else sessionStorage.removeItem("bazarEditingProduct");
+        }
+      }catch(e){}
+      return products;
+    }catch(e){
+      console.error(e);
+      listBox.innerHTML='<div class="empty-card">❌ تعذر قراءة المنتجات من Firestore. تحقق من الاتصال وقواعد Firestore.</div>';
+      throw e;
+    }finally{
+      productsLoading=null;
+    }
+  })();
+  return productsLoading;
+}
+
+async function loadOrders(){
+  if(ordersLoaded) return;
+  if(ordersLoading) return ordersLoading;
+  const box=document.getElementById("orders"); if(!box)return;
+  ordersLoading=(async()=>{
+    try{
+      box.innerHTML='<div class="empty-card">⏳ جاري تحميل الطلبات...</div>';
+      const snap=await new Promise((resolve,reject)=>{
+        onSnapshot(collection(db,"orders"),resolve,reject,{includeMetadataChanges:false});
+      });
+      updateOrderStats(snap.size);
+      if(snap.empty){box.innerHTML='<div class="empty-card">🛒<b>لا توجد طلبات</b><span>عند وصول طلب جديد سيظهر هنا.</span></div>';ordersLoaded=true;return;}
+      const rows=[];
+      snap.forEach(d=>{const o=d.data()||{}; rows.push({id:d.id,...o});});
+      rows.sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return tb-ta;});
+      box.innerHTML=rows.map(o=>`<div class="panel order-card">
+       <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2 style="margin:0">📦 ${esc(o.product||"منتج غير محدد")}</h2><span class="status ok">${esc(o.status||"جديد")}</span></div>
+       <p><b>👤 الزبون:</b> ${esc(o.customerName||o.name||"غير متوفر")}</p>
+       <p><b>📞 الهاتف:</b> ${esc(o.customerPhone||o.phone||"غير متوفر")}</p>
+       <p><b>📍 الولاية:</b> ${esc(o.wilaya||"")}</p>
+       <p><b>🏠 العنوان:</b> ${esc(o.address||"")}</p>
+       <p><b>🔢 الكمية:</b> ${Number(o.quantity||1)} &nbsp; | &nbsp; <b>💰 سعر المنتج:</b> ${Number(o.price||0).toLocaleString("ar-DZ")} دج</p>
+       <p><b>🚚 التوصيل:</b> ${Number(o.shipping||0).toLocaleString("ar-DZ")} دج &nbsp; | &nbsp; <b>💵 المجموع:</b> ${Number(o.total||0).toLocaleString("ar-DZ")} دج</p>
+       <button class="red" onclick="deleteOrder('${o.id}')">🗑️ حذف الطلبية</button>
+      </div>`).join("");
+      ordersLoaded=true;
+    }catch(e){
+      console.error(e);updateOrderStats(0);box.innerHTML='<div class="empty-card">❌ تعذر قراءة الطلبات من Firestore. تحقق من Firestore Rules.</div>';
+    }finally{ordersLoading=null;}
+  })();
+  return ordersLoading;
+}
+
+// التوافق مع الاستيراد القديم: بعد استيراد Mayna نعيد تحميل قائمة المنتجات عند فتحها.
+function listen(){productsLoaded=false;productsLoading=null;ordersLoaded=false;ordersLoading=null;refreshDashboardCounts();}
+function listenOrders(){return loadOrders();}
+
 window.deleteOrder=async id=>{if(!confirm("حذف هذه الطلبية؟"))return;try{await deleteDoc(doc(db,"orders",id));}catch(e){alert("تعذر حذف الطلبية: "+e.message)}};
 
 window.render=()=>{if(!listBox||!searchInput)return;let q=searchInput.value.toLowerCase();let a=products.filter(p=>String(p.name||"").toLowerCase().includes(q));listBox.innerHTML=a.length?a.map(p=>`<div class="product"><img src="${esc((Array.isArray(p.images)&&p.images.length?p.images[0]:p.image)||"")}" onerror="this.style.display='none'"><div class="info"><b>${esc(p.name||"بدون اسم")}</b><div>💰 ${Number(p.price||0).toLocaleString("ar-DZ")} دج</div><div>📦 المخزون: ${p.stock||0}</div></div><div class="actions"><button style="background:#e0f2fe;color:#0369a1" onclick="editProduct('${p.id}')">✏️ تعديل</button><button class="red" onclick="removeProduct('${p.id}')">🗑️ حذف</button></div></div>`).join(""):"<div>لا توجد منتجات.</div>"};
@@ -1236,6 +1290,7 @@ window.save=async()=>{
     data.createdAt=serverTimestamp();
     const newRef=await addDoc(collection(db,"products"),data);
     products.push({id:newRef.id,...data});
+     productsLoaded=true;
   }
 
   render();
