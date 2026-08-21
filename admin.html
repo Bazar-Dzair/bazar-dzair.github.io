@@ -1005,16 +1005,70 @@ function appPage(){
 }
 let productsLoaded=false;
 let productsLoading=null;
+let productsSyncStarted=false;
+let productsSyncUnsub=null;
 let ordersLoaded=false;
 let ordersLoading=null;
 let addonsLoaded=false;
 
+// ===== طبقة البيانات: Firestore عبر REST (معتمدة وموثوقة) مع مزامنة لحظية خلفية =====
+// REST يعمل فورًا دون الاعتماد على اتصال SDK الدائم الذي قد يعلق إلى الأبد،
+// ويماثل الطريقة نفسها المستخدمة في صفحة المتجر (index.html) التي تعمل حاليًا.
+const FIRESTORE_REST="https://firestore.googleapis.com/v1/projects/"+config.projectId+"/databases/(default)/documents/";
+
+function fsVal(v){
+  if(!v)return null;
+  if(v.stringValue!==undefined)return v.stringValue;
+  if(v.integerValue!==undefined)return Number(v.integerValue);
+  if(v.doubleValue!==undefined)return Number(v.doubleValue);
+  if(v.booleanValue!==undefined)return v.booleanValue;
+  if(v.timestampValue!==undefined)return v.timestampValue;
+  if(v.nullValue!==undefined)return null;
+  if(v.arrayValue)return (v.arrayValue.values||[]).map(fsVal);
+  if(v.mapValue)return Object.fromEntries(Object.entries(v.mapValue.fields||{}).map(([k,x])=>[k,fsVal(x)]));
+  return null;
+}
+function fsDocData(doc){
+  const out={};
+  for(const [k,v] of Object.entries(doc.fields||{}))out[k]=fsVal(v);
+  return out;
+}
+async function restFetchProducts(){
+  let url=FIRESTORE_REST+"products?pageSize=1000";
+  const all=[];
+  while(url){
+    const r=await fetch(url,{cache:"no-store"});
+    if(!r.ok)throw new Error("Firestore REST "+r.status);
+    const j=await r.json();
+    (j.documents||[]).forEach(d=>all.push(d));
+    url=j.nextPageToken?(FIRESTORE_REST+"products?pageSize=1000&pageToken="+encodeURIComponent(j.nextPageToken)):null;
+  }
+  return all.map(d=>({id:(d.name||"").split("/").pop(),...fsDocData(d)}));
+}
+// مهل الزمن: لا نسمح للطلب بالتعليق إلى الأبد. عند تجاوز المهلة نعتبره خطأ.
+function withTimeout(promise,ms,label){
+  let timer;
+  const t=new Promise((_,rej)=>{timer=setTimeout(()=>rej(new Error("مهلة انتهت: "+label)),ms);});
+  return Promise.race([promise,t]).finally(()=>clearTimeout(timer));
+}
+// مزامنة لحظية خلفية: تعمل بعد التحميل الناجح، ولا تمنع عرض القائمة عند فشلها.
+function startProductsSync(){
+  if(productsSyncStarted)return;
+  productsSyncStarted=true;
+  try{
+    productsSyncUnsub=onSnapshot(collection(db,"products"),snap=>{
+      products=snap.docs.map(d=>({id:d.id,...d.data()}));
+      cacheProducts();render();updateStats();
+    },err=>{
+      console.warn("[Products] realtime sync غير متاح، تبقى REST هي المصدر:",err&&err.message);
+    });
+  }catch(e){console.warn("[Products] realtime sync failed",e);}
+}
+
 window.bazarLoadProducts=async function(force=false){
   if(productsLoading)return productsLoading;
-  if(productsLoaded){
-    if(force){productsLoaded=false;}
-    else { render(); return; }
-  }
+  if(productsLoaded && !force){ render(); return; }
+  if(force)productsLoaded=false;
   const box=listBox;
   // اعرض الكاش فورًا إن وُجد (بدون وميض)، ثم استبدله بالبيانات الكاملة بعد الجلب.
   if(box && !productsLoaded){
@@ -1025,15 +1079,19 @@ window.bazarLoadProducts=async function(force=false){
       box.innerHTML=renderSkeleton();
     }
   }
+  console.log("[Products] Fetch started");
   productsLoading=(async()=>{
     try{
-      const snap=await getDocs(collection(db,"products"));
-      products=snap.docs.map(d=>({id:d.id,...d.data()}));
+      let data=await withTimeout(restFetchProducts(),20000,"products fetch (REST)");
+      if(!Array.isArray(data))throw new Error("استجابة غير صالحة");
+      products=data;
+      console.log("[Products] Fetch succeeded — count:",products.length);
       productsLoaded=true;
       cacheProducts();
       const productCounter=document.getElementById("statProducts");
-      if(productCounter)productCounter.textContent=snap.size.toLocaleString("ar-DZ");
+      if(productCounter)productCounter.textContent=products.length.toLocaleString("ar-DZ");
       render();updateStats();
+      startProductsSync();
       try{
         const editId=sessionStorage.getItem("bazarEditingProduct");
         const view=sessionStorage.getItem("bazarAdminView");
@@ -1043,8 +1101,9 @@ window.bazarLoadProducts=async function(force=false){
         }
       }catch(e){}
     }catch(e){
-      console.error("products load",e);
-      if(box)box.innerHTML=`<div class="empty-card">❌ تعذر تحميل المنتجات. تحقق من الاتصال بالشبكة.</div><div class="form-actions"><button class="green" type="button" onclick="bazarLoadProducts(true)">↻ إعادة المحاولة</button></div>`;
+      console.error("[Products] Fetch failed:",e);
+      productsLoaded=false;
+      if(box)box.innerHTML=`<div class="empty-card"><span class="empty-icon">⚠️</span><b>تعذر تحميل المنتجات</b><span>حدث خطأ أثناء الاتصال بالبيانات.</span><button class="orange-btn" type="button" onclick="bazarLoadProducts(true)">↻ إعادة المحاولة</button></div>`;
     }finally{productsLoading=null;}
   })();
   return productsLoading;
