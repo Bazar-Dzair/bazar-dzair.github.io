@@ -182,7 +182,6 @@ body{background:#f7f7f8;color:#202124}
             <div><label>السعر بالدج *</label><input id="price" type="number" min="0" placeholder=""></div>
             <div><label>التصنيف</label><select id="category"></select></div>
             <div><label>المخزون *</label><input id="stock" type="number" min="0" placeholder=""></div>
-            <div><label>الحالة في المتجر</label><label style="display:flex;gap:8px;align-items:center;margin-top:8px;cursor:pointer"><input id="activeToggle" type="checkbox" checked style="width:auto;margin:0"> ظاهر ومتاح في المتجر</label></div>
             <div class="full"><label>الوصف</label><textarea id="description" placeholder=""></textarea></div>
 <div class="full">
               <label>صور المنتج *</label>
@@ -900,7 +899,6 @@ let products=[],editing=null;
 let selectedImages=[]; // {file,url,existing}
 let saving=false;
 const saveBtn=document.getElementById("saveBtn");
-const activeToggle=document.getElementById("activeToggle");
 
 // ===== مصدر واحد للمنتجات =====
 // `products` (هذه الـ module scope) هو المرجع الوحيد. كل العمليات
@@ -1140,12 +1138,7 @@ function listenOrders(){
 }
 window.deleteOrder=async id=>{if(!confirm("حذف هذه الطلبية؟"))return;try{await deleteDoc(doc(db,"orders",id));}catch(e){alert("تعذر حذف الطلبية: "+e.message)}};
 
-window.render=()=>{if(!listBox||!searchInput)return;let q=searchInput.value.toLowerCase();let a=products.filter(p=>String(p.name||"").toLowerCase().includes(q));listBox.innerHTML=a.length?a.map(p=>{
-  const active=p.isActive!==false;
-  const badge=active?'<span style="display:inline-block;background:#dcfce7;color:#166534;font-size:11px;padding:3px 9px;border-radius:999px;font-weight:700">🟢 ظاهر</span>':'<span style="display:inline-block;background:#fee2e2;color:#b91c1c;font-size:11px;padding:3px 9px;border-radius:999px;font-weight:700">🔴 مخفي</span>';
-  const toggleBtn=active?'<button style="background:#fff7ed;color:#c2410c" onclick="toggleActive(''+p.id+'')">🙈 إخفاء من المتجر</button>':'<button style="background:#dcfce7;color:#166534" onclick="toggleActive(''+p.id+'')">👁 إظهار في المتجر</button>';
-  return `<div class="product"><img src="${esc((Array.isArray(p.images)&&p.images.length?p.images[0]:p.image)||"")}" onerror="this.style.display='none'"><div class="info"><b>${esc(p.name||"بدون اسم")}</b><div>💰 ${Number(p.price||0).toLocaleString("ar-DZ")} دج</div><div>📦 المخزون: ${p.stock||0}</div><div>${badge}</div></div><div class="actions">${toggleBtn}<button style="background:#e0f2fe;color:#0369a1" onclick="editProduct('${p.id}')">✏️ تعديل</button><button class="red" onclick="removeProduct('${p.id}')">🗑️ حذف</button></div></div>`;
-}).join(""):"<div>لا توجد منتجات.</div>"};
+window.render=()=>{if(!listBox||!searchInput)return;let q=searchInput.value.toLowerCase();let a=products.filter(p=>String(p.name||"").toLowerCase().includes(q));listBox.innerHTML=a.length?a.map(p=>`<div class="product"><img src="${esc((Array.isArray(p.images)&&p.images.length?p.images[0]:p.image)||"")}" onerror="this.style.display='none'"><div class="info"><b>${esc(p.name||"بدون اسم")}</b><div>💰 ${Number(p.price||0).toLocaleString("ar-DZ")} دج</div><div>📦 المخزون: ${p.stock||0}</div></div><div class="actions"><button style="background:#e0f2fe;color:#0369a1" onclick="editProduct('${p.id}')">✏️ تعديل</button><button class="red" onclick="removeProduct('${p.id}')">🗑️ حذف</button></div></div>`).join(""):"<div>لا توجد منتجات.</div>"};
 
 async function compressImageToDataURL(file,maxSide=900,quality=0.62){
   if(!file || !file.type.startsWith("image/")) throw new Error("ملف صورة غير صالح");
@@ -1194,8 +1187,7 @@ window.save=async()=>{
     specifications,
     image:"",
     images:[],
-    updatedAt:serverTimestamp(),
-    isActive:(!activeToggle)||activeToggle.checked!==false
+    updatedAt:serverTimestamp()
   };
 
   if(!data.name||data.price<0||data.stock<0||!selectedImages.length){
@@ -1267,7 +1259,6 @@ window.editProduct=id=>{
  priceInput.value=p.price??"";
  renderCategorySelect(p.category||categories[0]?.key||"tools");
  stockInput.value=p.stock??"";
- if(activeToggle)activeToggle.checked=p.isActive!==false;
  descriptionInput.value=p.description||"";
  if(specificationsText){
    const specs=Array.isArray(p.specifications)?p.specifications:[];
@@ -1292,17 +1283,6 @@ window.removeProduct=async id=>{
  }catch(e){show("تعذر الحذف.","err")}
 };
 
-window.toggleActive=async id=>{
- const p=products.find(x=>x.id===id);if(!p)return;
- const next=!(p.isActive===false);
- try{
-  await updateDoc(doc(db,"products",id),{isActive:next,updatedAt:serverTimestamp()});
-  const i=products.findIndex(x=>x.id===id);
-  if(i>=0)products[i]={...products[i],isActive:next};
-  render();
-  show(next?"تم إظهار المنتج في المتجر ✅":"تم إخفاء المنتج من المتجر ✅","ok");
- }catch(e){console.error(e);show("تعذر تحديث حالة المنتج: "+(e.message||"خطأ"),"err");}
-};
 window.resetForm=()=>{
  editing=null;
  titleBox.textContent="➕ إضافة منتج";
@@ -1310,7 +1290,6 @@ window.resetForm=()=>{
  renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";descriptionInput.value="";
  if(specificationsText) specificationsText.value="";
  selectedImages=[];
- if(activeToggle)activeToggle.checked=true;
  try{sessionStorage.removeItem("bazarEditingProduct");}catch(e){}
  renderSelectedImages();
 };

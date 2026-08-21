@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta name="google-site-verification" content="nBpuWTenFFLcOZNsMJDTMSoDyUSigItHwsubj3huHhg" />
 <meta charset="utf-8">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -345,18 +344,16 @@ function mapRestProduct(docSnap,index){
   const data=firestoreDocData(docSnap);
   const imgs=Array.isArray(data.images)?data.images.filter(Boolean):[];
   const image=data.image||data.imageUrl||data.photo||imgs[0]||"./logo.svg";
-  const rid=(docSnap.name||"").split("/").pop();
   return {
-    id:rid,
-    firestoreId:rid,
+    id:index+1,
+    firestoreId:(docSnap.name||"").split("/").pop(),
     name:data.name||data.product||"منتج بدون اسم",
     price:Number(data.price||0),
     image,
     images:imgs.length?imgs:[image],
     badge:data.badge||"جديد",
     description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
-    category:data.category||"all",
-    isActive:data.isActive!==false
+    category:data.category||"all"
   };
 }
 
@@ -451,7 +448,7 @@ async function loadProductsFromFirestore(){
   try{
     const firestoreProducts=await restGetProducts();
     if(firestoreProducts.length){
-      products=firestoreProducts.filter(p=>p.isActive!==false);
+      products=firestoreProducts;
       displayProducts();
     }
     return true;
@@ -466,65 +463,36 @@ async function loadProductsFromFirestore(){
   try{const local=JSON.parse(localStorage.getItem("bazarFooterSettings")||"null");if(local)applyFooterData(local);}catch(_e){}
 })();
 
-// ====== مزامنة المنتجات لحظيًا (Firestore Realtime) — تحديث تدريجي ======
-// المنتجات تُقرأ من Firestore في الوقت الحقيقي عبر Listener واحد فقط.
-// عند أي تغيير (إضافة / تعديل / إخفاء / إظهار / حذف) يصل الحدث مباشرة ونُحدّث
-// عنصر المنتج المتغيّر وحده، دون إعادة بناء كل المتجر ودون إعادة تحميل كل الصور.
-// المنتجات الخفية (isActive=false) لا تُعرض في المتجر لكنها تبقى محفوظة في Firestore.
-let activeFilter = null; // {type:'search'|'category', value}
-
-function toProductData(dd){
-  const data=dd&&dd.data?dd.data():dd||{};
-  const imgs=Array.isArray(data.images)?data.images.filter(Boolean):[];
-  const image=data.image||data.imageUrl||data.photo||imgs[0]||"./logo.svg";
-  const docId=(dd&&dd.id)||data.id||"";
-  return {
-    id:docId,
-    firestoreId:docId,
-    name:data.name||data.product||"منتج بدون اسم",
-    price:Number(data.price||0),
-    image,
-    images:imgs.length?imgs:[image],
-    badge:data.badge||"جديد",
-    description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
-    category:data.category||"all",
-    isActive:data.isActive!==false
-  };
-}
-function activeProduct(p){ return p && p.isActive!==false; }
-function upsertProduct(p){
-  const i=products.findIndex(x=>x.id===p.id);
-  if(i<0) products.push(p); else products[i]=p;
-}
-function dropProduct(id){
-  const i=products.findIndex(x=>x.id===id);
-  if(i>=0) products.splice(i,1);
-}
-function handleStoreChange(ch){
-  const p=toProductData(ch.doc);
-  if(ch.type==="added"){
-    if(activeProduct(p) && !products.some(x=>x.id===p.id)) products.push(p);
-  }else if(ch.type==="modified"){
-    if(activeProduct(p)) upsertProduct(p); else dropProduct(p.id);
-  }else if(ch.type==="removed"){
-    dropProduct(p.id);
-  }
-}
-
+// ===== المصدر الوحيد للمنتجات: Firestore (Realtime onSnapshot) =====
+// المنتجات تُقرأ مباشرة من Firestore في الوقت الحقيقي. لا يوجد LocalStorage للمنتجات،
+// ولا بيانات ثابتة، ولا إخفاء بالـ CSS. أي حذف في Firestore يعكسه هذا الـ listener فورًا.
+// إذا فشل تحميل SDK Firebase تُستخدم الواجهة REST كخطة احتياطية مباشرة (بدون كاش قديم).
 (async function initStoreFirestore(){
-  const gridEL=document.getElementById("productGrid");
-  if(gridEL && !gridEL.hasChildNodes()){
-    gridEL.innerHTML='<div class="empty" style="grid-column:1/-1">جاري تحميل المنتجات...</div>';
+  function mapSnap(d,i){
+    const data=d.data()||{};
+    const imgs=Array.isArray(data.images)?data.images.filter(Boolean):[];
+    const image=data.image||data.imageUrl||data.photo||imgs[0]||"./logo.svg";
+    return {
+      id:i+1,
+      firestoreId:d.id,
+      name:data.name||data.product||"منتج بدون اسم",
+      price:Number(data.price||0),
+      image,
+      images:imgs.length?imgs:[image],
+      badge:data.badge||"جديد",
+      description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
+      category:data.category||"all"
+    };
   }
   try{
     const {initializeApp}=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
-    const fr=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
-    const {getFirestore,initializeFirestore,persistentLocalCache,collection,onSnapshot}=fr;
+    const firestore=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
+    const {getFirestore,initializeFirestore,persistentLocalCache,collection,onSnapshot}=firestore;
     const app=initializeApp(firebaseConfig);
-    try{db=initializeFirestore(app,{localCache:persistentLocalCache({})});}catch(_e2){db=getFirestore(app)}
+    try{db=initializeFirestore(app,{localCache:persistentLocalCache({})});}catch(_e){db=getFirestore(app)}
     firestoreReady=true;
     onSnapshot(collection(db,"products"),snap=>{
-      snap.docChanges().forEach(handleStoreChange);
+      products=snap.docs.map(mapSnap);
       displayProducts();
     },async error=>{
       console.warn("Realtime products sync failed; REST fallback",error);
@@ -543,74 +511,11 @@ loadFastSettings();
 const money=n=>Number(n).toLocaleString("ar-DZ")+" دج";
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 
-function displayProducts(list){
-  const list0=(Array.isArray(list)?list:desiredProducts());
-  renderGrid(list0);
+function displayProducts(list=products){
+ const g=document.getElementById("productGrid");
+ if(!list.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">لم نجد المنتج 🔎</div>';return}
+ g.innerHTML=list.map(p=>`<article class="product"><div class="pic" onclick="goToProduct(${p.id})">${p.badge?`<span class="new">${p.badge}</span>`:""}<img src="${p.image}" alt="${esc(p.name)}" loading="lazy" decoding="async"></div><div class="info"><div class="name" onclick="goToProduct(${p.id})">${esc(p.name)}</div><div class="price">${money(p.price)}</div><div class="buttons"><button class="btn cartbtn" onclick="addCart(${p.id})" aria-label="إضافة إلى السلة">🛒<span class="plus">+</span></button><button class="btn buybtn" onclick="buyNow(${p.id})">شراء <span class="buycart">🛒</span></button></div></div></article>`).join("");
 }
-function desiredProducts(){
-  if(!activeFilter) return products.slice();
-  if(activeFilter.type==="search"){
-    const q=activeFilter.value; if(!q) return products.slice();
-    return products.filter(p=>String(p.name||"").toLowerCase().includes(q));
-  }
-  if(activeFilter.type==="category"){
-    const cat=activeFilter.value;
-    if(!cat||cat==="all") return products.slice();
-    const wanted=(CAT_ALIAS[cat]||[cat]).map(v=>String(v).trim().toLowerCase());
-    return products.filter(p=>{const value=String(p.category||"").trim().toLowerCase();return wanted.includes(value);});
-  }
-  return products.slice();
-}
-
-var CAT_ALIAS={"tools":["tools","tool","أدوات","ادوات","أداة","اداة"],"home":["home","المنزل","منزل","المطبخ والمنزل","مطبخ","kitchen","house"],"electronics":["electronics","electronic","أكسسوارات وإلكترونيات","اكسسوارات وإلكترونيات","إلكترونيات","الكترونيات","accessories & electronics"],"phones":["phones","phone","هواتف","هاتف","mobile","mobiles"],"laptops":["laptops","laptop","حاسوب محمول","كمبيوتر محمول","لابتوب","computers"],"clothes":["clothes","clothing","ملابس وأحذية","ملابس","أحذية","البسة","shoes"],"beauty":["beauty","جمال","صحة وجمال","العناية","عناية","health & beauty"],"women":["women","woman","معدات نسوية","معدات نسائية","نسائية","women equipment"],"jewelry":["jewelry","jewellery","مجوهرات وإكسسوارات نسائية","مجوهرات واكسسوارات نسائية","مجوهرات","إكسسوارات نسائية","اكسسوارات نسائية"],"baby":["baby","kids","children","مستلزمات الأطفال والرضع","مستلزمات الاطفال والرضع","أطفال","رضع"],"medical":["medical","أدوات طبية","ادوات طبية","medical tools"],"carparts":["carparts","car parts","قطع غيار السيارات","قطع غيار سيارة","auto parts"],"summer":["summer","منتجات الصيف","منتوجات الصيف","summer products"],"shaving":["shaving","آلات الحلاقة","الات الحلاقة","ماكينات الحلاقة","shaver"],"gifts":["gifts","gift","هدايا متنوعة","هدايا","gifts & accessories"],"library":["library","مكتبة","كتب","books"],"realestate":["realestate","real estate","عقارات وأراضي","عقارات","أراضي","lands"],"clearance":["clearance","تصفية مخزون","تصفية","stock clearance","stock"],"misc":["misc","متنوعة","منتجات متنوعة","منتوجات متنوعة","متنوع"],"offers":["offers","offer","عروض","عرض","promo","promotions"]};
-const emptyCard='<div class="empty" style="grid-column:1/-1">لم نجد المنتج 🔎</div>';
-function setSlot(el,attr,fn){
-  if(!el) return;
-  if(el.getAttribute(attr)!==fn){el.setAttribute(attr,fn);el.setAttribute("onclick",fn);}
-}
-function patchCard(el,p){
-  const nameEl=el.querySelector('[data-role="name"]');
-  if(nameEl&&nameEl.textContent!==p.name) nameEl.textContent=p.name;
-  const priceTxt=money(p.price);
-  const priceEl=el.querySelector('[data-role="price"]');
-  if(priceEl&&priceEl.textContent!==priceTxt) priceEl.textContent=priceTxt;
-  const img=el.querySelector('[data-role="pic"]');
-  if(img){
-    if(img.getAttribute("src")!==p.image) img.setAttribute("src",p.image);
-    img.setAttribute("alt",p.name); img.setAttribute("loading","lazy"); img.setAttribute("decoding","async");
-  }
-  const badge=el.querySelector('[data-role="badge"]');
-  if(badge){ if(p.badge){badge.style.display="";badge.textContent=p.badge;}else badge.style.display="none"; }
-  setSlot(el.querySelector('[data-act="pick"]'),"data-handler",`goToProduct('${p.id}')`);
-  setSlot(el.querySelector('[data-act="add"]'),"data-handler",`addCart('${p.id}')`);
-  setSlot(el.querySelector('[data-act="buy"]'),"data-handler",`buyNow('${p.id}')`);
-}
-function buildCard(p){
-  const el=document.createElement("article");
-  el.className="product";
-  el.setAttribute("data-fid",p.id);
-  el.innerHTML=`<div class="pic" data-act="pick"><span class="new" data-role="badge" style="display:none"></span><img data-role="pic" alt=""></div><div class="info"><div class="name" data-role="name" data-act="pick"></div><div class="price" data-role="price"></div><div class="buttons"><button class="btn cartbtn" data-act="add" aria-label="إضافة إلى السلة">🛒<span class="plus">+</span></button><button class="btn buybtn" data-act="buy">شراء <span class="buycart">🛒</span></button></div></div>`;
-  patchCard(el,p);
-  return el;
-}
-function renderGrid(list){
-  const g=document.getElementById("productGrid");
-  if(!g) return;
-  if(!list.length){g.innerHTML=emptyCard;return;}
-  const fidSet={}; list.forEach(p=>fidSet[p.id]=1);
-  const children=Array.prototype.slice.call(g.children);
-  for(const ch of children){
-    if(!ch.getAttribute("data-fid")||!fidSet[ch.getAttribute("data-fid")]) g.removeChild(ch);
-  }
-  for(let i=0;i<list.length;i++){
-    const p=list[i];
-    let el=g.querySelector('[data-fid="'+p.id+'"]');
-    if(!el){ el=buildCard(p); g.appendChild(el); }
-    else { patchCard(el,p); g.appendChild(el); }
-  }
-}
-
-
 function productSlug(name){
   return String(name || "product")
     .trim()
@@ -690,14 +595,12 @@ function showProductsOnly(e){
   if(e)e.preventDefault();
   document.body.classList.add("products-only");
   closeCategoryMenu();
-  activeFilter=null;
   displayProducts(products);
   document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
 }
 function filterCategory(category){
   document.body.classList.remove("products-only");
   if(category === "all"){
-    activeFilter=null;
     displayProducts(products);
     closeCategoryMenu();
     document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
@@ -736,13 +639,12 @@ function filterCategory(category){
     return wanted.includes(value);
   });
 
-  activeFilter={type:"category",value:category};
   displayProducts(result);
   closeCategoryMenu();
   document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
-function searchProducts(){const q=document.getElementById("search").value.trim().toLowerCase();activeFilter=q?{type:"search",value:q}:null;displayProducts();}
+function searchProducts(){const q=document.getElementById("search").value.trim().toLowerCase();displayProducts(products.filter(p=>p.name.toLowerCase().includes(q)))}
 function submitOrder(){
  if(!cart.length){toast("السلة فارغة ❌");return}
  const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),wn=document.getElementById("wilaya").options[document.getElementById("wilaya").selectedIndex]?.text||"";
