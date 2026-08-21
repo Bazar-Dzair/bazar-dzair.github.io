@@ -103,7 +103,7 @@
 
 <section id="view-products" class="view hidden">
  <div class="page-head"><div><h1>المنتجات</h1><p>إدارة المنتجات والمخزون وحالة الظهور والتوفر. أي تغيير ينعكس فورًا على المتجر.</p></div><button class="orange-btn" onclick="showView('product',null,true)">＋ إنشاء منتج</button></div>
- <div class="panel"><div class="products-search"><input id="search" placeholder="🔎 ابحث باسم المنتج أو التصنيف أو الكود..." oninput="render()"></div><div id="list" class="products"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div></div>
+ <div class="panel"><div class="products-search"><input id="search" placeholder="🔎 ابحث باسم المنتج أو التصنيف أو الكود..." oninput="render()"></div><div id="list" class="products"></div></div>
 </section>
 
 <section id="view-orders" class="view hidden"><div class="page-head"><div><h1>الطلبات</h1><p>تابع طلبات العملاء وغيّر حالتها من نفس الصفحة.</p></div></div><div id="orders" class="products"><div class="empty-card">⏳ جاري تحميل الطلبات...</div></div></section>
@@ -835,8 +835,9 @@ onAuthStateChanged(auth,u=>{
     renderCategorySelect();
     renderCategories();
     loadCategories();
-    // لا يتم تحميل المنتجات أو الطلبات أو الإضافات أثناء فتح اللوحة.
-    // كل قسم يجلب بياناته عند فتحه لتقليل زمن الدخول واستهلاك الشبكة.
+    // تحميل المنتجات مسبقًا في الخلفية حتى تكون جاهزة عند فتح قسم المنتجات.
+    // لا نغيّر طريقة الحفظ أو المزامنة أو أي إعدادات أخرى.
+    if(window.bazarLoadProducts) window.bazarLoadProducts();
     try{
       const cachedCount=localStorage.getItem("bazarProductsCount");
       const pc=document.getElementById("statProducts");
@@ -1076,7 +1077,7 @@ window.bazarLoadProducts=async function(force=false){
     if(Array.isArray(cached)&&cached.length&&!products.length){
       products=cached; render();
     }else{
-      box.innerHTML=renderSkeleton();
+      // لا نعرض رسالة أو هيكل تحميل؛ تبقى القائمة هادئة حتى تصل البيانات.
     }
   }
   console.log("[Products] Fetch started");
