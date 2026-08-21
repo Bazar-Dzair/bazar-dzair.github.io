@@ -135,6 +135,17 @@
   }
   .buy:active,.cart:active,.view-all:active { transform:scale(.98); }
 
+  .skel {
+    background:#eef1f5; border-radius:22px; height:400px; position:relative;
+    overflow:hidden;
+  }
+  .skel::after {
+    content:""; position:absolute; inset:0; transform:translateX(-100%);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);
+    animation:skelShimmer 1.15s infinite;
+  }
+  @keyframes skelShimmer { 100% { transform:translateX(100%); } }
+
   .benefits {
     display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin:20px 0 16px;
   }
@@ -514,7 +525,9 @@ function handleStoreChange(ch){
 (async function initStoreFirestore(){
   const gridEL=document.getElementById("productGrid");
   if(gridEL && !gridEL.hasChildNodes()){
-    gridEL.innerHTML='<div class="empty" style="grid-column:1/-1">جاري تحميل المنتجات...</div>';
+    // هيكل خفيف (skeleton) بدون نص وبدون أي timeout — يظهر فورًا ثم تُستبدل
+    // البطاقات الفعلية بمجرد توفر البيانات من REST ثم onSnapshot.
+    gridEL.innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
   }
   // التحميل السريع الأول فورًا (REST) كي تظهر المنتجات بسرعة قبل اكتمال Firebase SDK،
   // ثم يتولى onSnapshot أسفل المزامنة اللحظية للتحديثات.
