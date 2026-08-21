@@ -134,6 +134,7 @@
     font-weight:900; padding:13px;
   }
   .buy:active,.cart:active,.view-all:active { transform:scale(.98); }
+  .unavail-badge{display:inline-block;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:9px;padding:4px 12px;font-weight:800;font-size:12px;margin:0 0 10px}
 
   .skel {
     background:#eef1f5; border-radius:22px; height:400px; position:relative;
@@ -352,6 +353,24 @@ function firestoreDocData(docSnap){
   for(const [k,v] of Object.entries(docSnap.fields||{})) out[k]=firestoreValue(v);
   return out;
 }
+// ===== Single source of truth for product state =====
+// isVisible  = هل يظهر المنتج في المتجر (إخفاء/إظهار)
+// isAvailable= هل يمكن شراؤه (متوفر/غير متوفر يدويًا)
+// stock      = الكمية المتاحة. يُحسب التوفر الفعلي من الثلاثة معًا.
+// التوافق مع البيانات القديمة: القديمة تستعمل isActive / published فقط.
+function effVisible(d){
+  if(d.isVisible!==undefined) return d.isVisible===true;
+  if(d.isActive===false) return false;
+  if(d.published===false) return false;
+  return true;
+}
+function effAvailable(d){
+  if(d.isAvailable===false) return false;
+  if(Number(d.stock??d.quantity??0)<=0) return false;
+  if(d.isActive===false) return false;
+  if(d.isVisible===false) return false;
+  return true;
+}
 function mapRestProduct(docSnap,index){
   const data=firestoreDocData(docSnap);
   const imgs=Array.isArray(data.images)?data.images.filter(Boolean):[];
@@ -367,7 +386,12 @@ function mapRestProduct(docSnap,index){
     badge:data.badge||"جديد",
     description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
     category:data.category||"all",
-    isActive:data.isActive!==false
+    stock:Number(data.stock??data.quantity??0),
+    isAvailable:data.isAvailable===true||data.isAvailable===undefined,
+    visible:effVisible(data),
+    available:effAvailable(data),
+    isActive:data.isActive!==false,
+    isVisible:effVisible(data)
   };
 }
 
@@ -462,7 +486,7 @@ async function loadProductsFromFirestore(){
   try{
     const firestoreProducts=await restGetProducts();
     if(firestoreProducts.length){
-      products=firestoreProducts.filter(p=>p.isActive!==false);
+      products=firestoreProducts.filter(p=>p.visible!==false);
       displayProducts();
     }
     return true;
@@ -499,10 +523,15 @@ function toProductData(dd){
     badge:data.badge||"جديد",
     description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
     category:data.category||"all",
-    isActive:data.isActive!==false
+    stock:Number(data.stock??data.quantity??0),
+    isAvailable:data.isAvailable===true||data.isAvailable===undefined,
+    visible:effVisible(data),
+    available:effAvailable(data),
+    isActive:data.isActive!==false,
+    isVisible:effVisible(data)
   };
 }
-function activeProduct(p){ return p && p.isActive!==false; }
+function activeProduct(p){ return p && p.visible!==false; }
 function upsertProduct(p){
   const i=products.findIndex(x=>x.id===p.id);
   if(i<0) products.push(p); else products[i]=p;
@@ -567,7 +596,10 @@ function desiredProducts(){
   if(!activeFilter) return products.slice();
   if(activeFilter.type==="search"){
     const q=activeFilter.value; if(!q) return products.slice();
-    return products.filter(p=>String(p.name||"").toLowerCase().includes(q));
+    return products.filter(p=>{
+      const hay=[p.name,p.category,p.id,p.description,p.badge].map(x=>String(x||"").toLowerCase()).join(" ");
+      return hay.includes(q);
+    });
   }
   if(activeFilter.type==="category"){
     const cat=activeFilter.value;
@@ -597,15 +629,27 @@ function patchCard(el,p){
   }
   const badge=el.querySelector('[data-role="badge"]');
   if(badge){ if(p.badge){badge.style.display="";badge.textContent=p.badge;}else badge.style.display="none"; }
+  const availStatus=el.querySelector('[data-role="avail"]');
+  const avail=p.available!==false && p.stock>0;
+  if(availStatus){
+    if(avail){availStatus.style.display="none";availStatus.textContent="";}
+    else{
+      availStatus.style.display="";
+      availStatus.textContent=Number(p.stock||0)<=0?"نفد المخزون":"غير متوفر";
+    }
+  }
+  const add=el.querySelector('[data-act="add"]');
+  const buy=el.querySelector('[data-act="buy"]');
+  if(add){if(avail){add.disabled=false;add.removeAttribute("disabled");setSlot(add,"data-handler",`addCart('${p.id}')`);}else{add.disabled=true;add.setAttribute("disabled","");add.removeAttribute("data-handler");add.removeAttribute("onclick");}}
+  if(buy){if(avail){buy.disabled=false;buy.removeAttribute("disabled");setSlot(buy,"data-handler",`buyNow('${p.id}')`);}else{buy.disabled=true;buy.setAttribute("disabled","");buy.removeAttribute("data-handler");buy.removeAttribute("onclick");}}
   setSlot(el.querySelector('[data-act="pick"]'),"data-handler",`goToProduct('${p.id}')`);
-  setSlot(el.querySelector('[data-act="add"]'),"data-handler",`addCart('${p.id}')`);
-  setSlot(el.querySelector('[data-act="buy"]'),"data-handler",`buyNow('${p.id}')`);
 }
 function buildCard(p){
   const el=document.createElement("article");
   el.className="product";
   el.setAttribute("data-fid",p.id);
-  el.innerHTML=`<div class="pic" data-act="pick"><span class="new" data-role="badge" style="display:none"></span><img data-role="pic" alt=""></div><div class="info"><div class="name" data-role="name" data-act="pick"></div><div class="price" data-role="price"></div><div class="buttons"><button class="btn cartbtn" data-act="add" aria-label="إضافة إلى السلة">🛒<span class="plus">+</span></button><button class="btn buybtn" data-act="buy">شراء <span class="buycart">🛒</span></button></div></div>`;
+  const avail=p.available!==false && p.stock>0;
+  el.innerHTML=`<div class="pic" data-act="pick"><span class="new" data-role="badge" style="display:none"></span><img data-role="pic" alt=""></div><div class="info"><div class="name" data-role="name" data-act="pick"></div><div class="price" data-role="price"></div><span class="unavail-badge" data-role="avail" style="display:none"></span><div class="buttons"><button class="btn cartbtn" data-act="add" aria-label="إضافة إلى السلة" ${avail?"":"disabled"}>🛒<span class="plus">+</span></button><button class="btn buybtn" data-act="buy" ${avail?"":"disabled"}>${avail?"شراء":"غير متوفر"} <span class="buycart">🛒</span></button></div></div>`;
   patchCard(el,p);
   return el;
 }
@@ -658,18 +702,27 @@ function goToProduct(id){
 function openProduct(id){
  selected=products.find(p=>p.id===id);if(!selected)return;dQty=1;
  document.getElementById("detailImage").src=selected.image;document.getElementById("detailName").textContent=selected.name;document.getElementById("detailPrice").textContent=money(selected.price);document.getElementById("detailDesc").textContent=selected.description;document.getElementById("detailQty").textContent=1;
+ const avail=selected.available!==false && Number(selected.stock||0)>0;
+ const buyBtn=document.querySelector('#productOverlay .detail-actions button.orange');
+ const cartBtn=document.querySelector('#productOverlay .detail-actions button.dark');
+ if(buyBtn){buyBtn.disabled=!avail;}
+ if(cartBtn){cartBtn.disabled=!avail;}
  document.getElementById("productOverlay").style.display="block";document.body.style.overflow="hidden";
  if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:selected.id,content_name:selected.name,price:selected.price,category:selected.category});
 }
 function detailQtyChange(x){dQty=Math.max(1,dQty+x);document.getElementById("detailQty").textContent=dQty}
-function cartDetail(){addCart(selected.id,dQty);closeModal("productOverlay")}
-function buyDetail(){addCart(selected.id,dQty);closeModal("productOverlay");openCart()}
+function cartDetail(){if(selected&&selected.available===false)return;addCart(selected.id,dQty);closeModal("productOverlay")}
+function buyDetail(){if(selected&&selected.available===false)return;addCart(selected.id,dQty);closeModal("productOverlay");openCart()}
 function addCart(id,q=1){
- const p=products.find(x=>x.id===id);if(!p)return;const e=cart.find(x=>x.id===id);
+ const p=products.find(x=>x.id===id);if(!p){toast("المنتج غير موجود");return}
+ if(p.available===false||Number(p.stock||0)<=0){toast("هذا المنتج غير متوفر حاليًا.");return}
+ const e=cart.find(x=>x.id===id);
  e?e.quantity+=q:cart.push({...p,quantity:q});updateCount();renderCart();toast("تمت إضافة المنتج إلى السلة ✅");
  if(window.bazarTrackEvent)window.bazarTrackEvent("AddToCart",{id:p.id,content_name:p.name,price:p.price,qty:q,category:p.category});
 }
 function buyNow(id){
+  const p=products.find(x=>x.id===id);
+  if(p&&(p.available===false||Number(p.stock||0)<=0)){toast("هذا المنتج غير متوفر حاليًا.");return}
   goToProduct(id);
 }
 function updateCount(){document.getElementById("cartCount").textContent=cart.reduce((s,x)=>s+x.quantity,0)}
