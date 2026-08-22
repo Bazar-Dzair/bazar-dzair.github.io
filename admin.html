@@ -89,7 +89,8 @@
    <div><label>السعر بالدج *</label><input id="price" type="number" min="0" placeholder="3500"></div>
    <div><label>التصنيف</label><select id="category"></select></div>
    <div><label>المخزون *</label><input id="stock" type="number" min="0" placeholder="20"></div>
-   <div class="full"><div class="publish-row"><div><b>نشر المنتج في المتجر</b><small>يمكنك تغيير الحالة لاحقًا من قائمة خيارات المنتج ⋮</small></div><label class="switch"><input id="published" type="checkbox" checked><span></span></label></div></div>
+   <div class="full"><div class="publish-row"><div><b>الظهور في المتجر</b><small>إخفاء/إظهار المنتج في المتجر العام</small></div><label class="switch"><input id="published" type="checkbox" checked><span></span></label></div></div>
+   <div class="full"><div class="publish-row"><div><b>متوفر للشراء</b><small>عند التعطيل يظهر المنتج بحالة «غير متوفر» ويُعطل الشراء (بغض النظر عن المخزون)</small></div><label class="switch"><input id="availableToggle" type="checkbox" checked><span></span></label></div></div>
    <div class="full"><label>الوصف</label><textarea id="description" placeholder="اكتب وصفًا واضحًا للمنتج..."></textarea></div>
    <div class="full"><label>المواصفات</label><textarea id="specificationsText" placeholder="القدرة: 600W&#10;اللون: أسود&#10;الضمان: 12 شهر"></textarea><small class="hint">اكتب كل مواصفة في سطر مستقل بالشكل: الاسم: القيمة</small></div>
    <div class="full"><label>صور المنتج *</label><div class="upload-card">
@@ -101,7 +102,7 @@
 </section>
 
 <section id="view-products" class="view hidden">
- <div class="page-head"><div><h1>المنتجات</h1><p>إدارة احترافية للمنتجات والمخزون بدون زر «إخفاء من المتجر» المباشر.</p></div><button class="orange-btn" onclick="showView('product',null,true)">＋ إنشاء منتج</button></div>
+ <div class="page-head"><div><h1>المنتجات</h1><p>إدارة المنتجات والمخزون وحالة الظهور والتوفر. أي تغيير ينعكس فورًا على المتجر.</p></div><button class="orange-btn" onclick="showView('product',null,true)">＋ إنشاء منتج</button></div>
  <div class="panel"><div class="products-search"><input id="search" placeholder="🔎 ابحث باسم المنتج أو التصنيف أو الكود..." oninput="render()"></div><div id="list" class="products"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div></div>
 </section>
 
@@ -120,6 +121,8 @@
 <section id="view-addons" class="view hidden"><div class="addons-page"><div class="addons-intro"><h1>الإضافات 🧩</h1><p>مركز إدارة وربط خدمات التحليلات والتتبع والتحقق من Google.</p></div><div class="addons-services"><div class="addons-services-head"><span class="addons-services-dot"></span><div><h2>الخدمات المتاحة</h2><p>قم بربط الخدمات التي تحتاجها مع متجرك.</p></div></div><div id="addonStatus" class="status hidden"></div><div class="addons-grid" id="addonsGrid"><div class="empty-card">⏳ جاري تحميل الإضافات...</div></div></div></div></section>
 </main></div>
 <div id="settingsModal" class="modal hidden"><div class="modal-card"><button class="modal-close" onclick="closeSetting()">×</button><div id="settingModalIcon" class="modal-icon">⚙</div><h2 id="settingModalTitle">الإعداد</h2><p id="settingModalDesc" class="modal-desc"></p><div id="settingModalBody"></div><div class="modal-actions"><button class="green" onclick="saveSetting()">💾 حفظ الإعدادات</button><button class="gray" onclick="closeSetting()">إلغاء</button></div></div></div>
+
+<div id="deleteModal" class="modal hidden"><div class="modal-card" style="width:min(460px,100%)"><div class="modal-icon" style="background:#feeceb;color:#c62828">🗑</div><h2>هل أنت متأكد من حذف هذا المنتج؟</h2><p class="modal-desc">سيتم حذف المنتج نهائيًا ولا يمكن التراجع عن هذا الإجراء. <span id="deleteProductName" style="font-weight:800;color:#1f2937"></span></p><div class="modal-actions"><button class="red" id="deleteConfirmBtn" onclick="removeProduct()">🗑 حذف المنتج</button><button class="gray" onclick="cancelDelete()">إلغاء</button></div></div></div>
 </div>
 
 <script>
@@ -637,28 +640,35 @@ async function genSitemapXML(){
   if(!ta)return;
   let productList=[];
   try{
-    // اقرأ المنتجات الحقيقية من Firestore (REST)
-    const res=await fetch("https://firestore.googleapis.com/v1/projects/bazar-dzair-33816/databases/(default)/documents/products?pageSize=1000",{headers:{"Accept":"application/json"}});
-    if(res.ok){
-      const j=await res.json();
+    // اقرأ المنتجات الحقيقية من Firestore (REST) مع كل الصفحات
+    let url="https://firestore.googleapis.com/v1/projects/bazar-dzair-33816/databases/(default)/documents/products?pageSize=1000";
+    while(url){
+      const res=await fetch(url,{headers:{"Accept":"application/json"}});
+      const j=res.ok?await res.json():null;
+      if(!j)break;
       (j.documents||[]).forEach(d=>{
         const f=d.fields||{};
         const gv=k=>{const v=f[k];if(!v)return null;return Object.values(v)[0];};
-        productList.push({name:gv("name")||gv("product"),category:gv("category")});
+        productList.push({name:gv("name")||gv("product"),category:gv("category"),updateTime:d.updateTime||null});
       });
+      url=j.nextPageToken?("https://firestore.googleapis.com/v1/projects/bazar-dzair-33816/databases/(default)/documents/products?pageSize=1000&pageToken="+encodeURIComponent(j.nextPageToken)):null;
     }
   }catch(e){console.warn(e);}
   const today=new Date().toISOString().slice(0,10);
+  const lastmodOf=p=>{const t=p.updateTime;if(t){const d=new Date(t);if(!isNaN(d.getTime()))return d.toISOString().slice(0,10);}return today;};
   const lines=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     `  <url><loc>https://bazar-dzair.github.io/</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>`];
+  const seen=new Set();
   productList.forEach(p=>{
     if(!p.name)return;
     const loc="https://bazar-dzair.github.io/product.html?id="+slugifySitemap(p.name);
-    lines.push(`  <url><loc>${loc}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>`);
+    if(seen.has(loc))return; // منع التكرار
+    seen.add(loc);
+    lines.push(`  <url><loc>${loc}</loc><lastmod>${lastmodOf(p)}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>`);
   });
   lines.push('</urlset>');
   ta.value=lines.join("\n");
-  setAddonStatus("تم توليد sitemap.xml من "+productList.length+" منتج حقيقي. انسخه إلى جذر المشروع وقت النشر.");
+  setAddonStatus("تم توليد sitemap.xml من "+productList.length+" منتج حقيقي ("+seen.size+" رابط فريد). يتم تحديثه تلقائيًا عبر GitHub Action بنفس هذه الروابط — انسخه يدويًا فقط إن أردت تسريع النشر.");
 }
 function copySitemapXML(){
   const ta=document.getElementById("sitemap_out");
@@ -712,6 +722,7 @@ const priceInput=document.getElementById("price");
 const categoryInput=document.getElementById("category");
 const stockInput=document.getElementById("stock");
 const publishedInput=document.getElementById("published");
+const availableInput=document.getElementById("availableToggle");
 const descriptionInput=document.getElementById("description");
 const specificationsText=document.getElementById("specificationsText");
 const titleBox=document.getElementById("title");
@@ -726,6 +737,34 @@ let selectedImages=[]; // {file,url,existing}
 let saving=false;
 const saveBtn=document.getElementById("saveBtn");
 
+// ===== مصدر واحد لحالة المنتج =====
+// isVisible  = ظهور المنتج في المتجر (إخفاء/إظهار)
+// isAvailable= توفر المنتج للشراء يدويًا (متوفر/غير متوفر)
+// stock      = الكمية. التوفر الفعلي يُحسب من الثلاثة.
+// توافق مع البيانات القديمة (isActive / published).
+function effVisible(p){
+  if(p.isVisible!==undefined) return p.isVisible===true;
+  if(p.isActive===false) return false;
+  if(p.published===false) return false;
+  return true;
+}
+function effAvailable(p){
+  if(p.isAvailable===false) return false;
+  if(Number(p.stock??p.quantity??0)<=0) return false;
+  if(p.isActive===false) return false;
+  if(p.isVisible===false) return false;
+  return true;
+}
+
+// كاش خفيف للمنتجات: يعرض قائمة سريعة فور فتح قسم المنتجات، ثم يُحدَّث في الخلفية.
+let productsCache=null;
+function cacheProducts(){
+  try{localStorage.setItem("bazar_admin_products",JSON.stringify(products.slice(0,400)));}catch(e){}
+}
+function readProductsCache(){
+  try{return JSON.parse(localStorage.getItem("bazar_admin_products")||"null")||null;}catch(e){return null;}
+}
+
 // ===== مصدر واحد للمنتجات =====
 // `products` (هذه الـ module scope) هو المرجع الوحيد. كل العمليات
 // (إضافة/تعديل/حذف/عرض/إحصائيات) تقرأ منه، فلا يحدث تعارض أو undefined.
@@ -734,8 +773,8 @@ function updateStats(){
   const list=Array.isArray(products)?products:[];
   const values={
     statProducts:list.length,
-    statPublished:list.filter(p=>p.published!==false).length,
-    statLowStock:list.filter(p=>Number(p.stock||0)<=5).length,
+    statPublished:list.filter(p=>effVisible(p)).length,
+    statLowStock:list.filter(p=>{const st=Number(p.stock||0);return st<=5&&effVisible(p);}).length,
     statInventory:list.reduce((sum,p)=>sum+Math.max(0,Number(p.stock||0)),0)
   };
   Object.entries(values).forEach(([id,value])=>{
@@ -803,8 +842,9 @@ onAuthStateChanged(auth,u=>{
     renderCategorySelect();
     renderCategories();
     loadCategories();
-    // لا يتم تحميل المنتجات أو الطلبات أو الإضافات أثناء فتح اللوحة.
-    // كل قسم يجلب بياناته عند فتحه لتقليل زمن الدخول واستهلاك الشبكة.
+    // تحميل المنتجات في الخلفية فور الدخول حتى تكون جاهزة فورًا عند فتح قسم المنتجات.
+    // الطلبات والإضافات تبقى عند فتحها فقط لتقليل استهلاك الشبكة؛ المنتجات تُسبق تسريعًا.
+    setTimeout(()=>{try{if(window.bazarLoadProducts&&!productsLoaded)window.bazarLoadProducts();}catch(e){}},0);
     try{
       const cachedCount=localStorage.getItem("bazarProductsCount");
       const pc=document.getElementById("statProducts");
@@ -973,26 +1013,93 @@ function appPage(){
 }
 let productsLoaded=false;
 let productsLoading=null;
+let productsSyncStarted=false;
+let productsSyncUnsub=null;
 let ordersLoaded=false;
 let ordersLoading=null;
 let addonsLoaded=false;
 
+// ===== طبقة البيانات: Firestore عبر REST (معتمدة وموثوقة) مع مزامنة لحظية خلفية =====
+// REST يعمل فورًا دون الاعتماد على اتصال SDK الدائم الذي قد يعلق إلى الأبد،
+// ويماثل الطريقة نفسها المستخدمة في صفحة المتجر (index.html) التي تعمل حاليًا.
+const FIRESTORE_REST="https://firestore.googleapis.com/v1/projects/"+config.projectId+"/databases/(default)/documents/";
+
+function fsVal(v){
+  if(!v)return null;
+  if(v.stringValue!==undefined)return v.stringValue;
+  if(v.integerValue!==undefined)return Number(v.integerValue);
+  if(v.doubleValue!==undefined)return Number(v.doubleValue);
+  if(v.booleanValue!==undefined)return v.booleanValue;
+  if(v.timestampValue!==undefined)return v.timestampValue;
+  if(v.nullValue!==undefined)return null;
+  if(v.arrayValue)return (v.arrayValue.values||[]).map(fsVal);
+  if(v.mapValue)return Object.fromEntries(Object.entries(v.mapValue.fields||{}).map(([k,x])=>[k,fsVal(x)]));
+  return null;
+}
+function fsDocData(doc){
+  const out={};
+  for(const [k,v] of Object.entries(doc.fields||{}))out[k]=fsVal(v);
+  return out;
+}
+async function restFetchProducts(){
+  let url=FIRESTORE_REST+"products?pageSize=1000";
+  const all=[];
+  while(url){
+    const r=await fetch(url,{cache:"no-store"});
+    if(!r.ok)throw new Error("Firestore REST "+r.status);
+    const j=await r.json();
+    (j.documents||[]).forEach(d=>all.push(d));
+    url=j.nextPageToken?(FIRESTORE_REST+"products?pageSize=1000&pageToken="+encodeURIComponent(j.nextPageToken)):null;
+  }
+  return all.map(d=>({id:(d.name||"").split("/").pop(),...fsDocData(d)}));
+}
+// مهل الزمن: لا نسمح للطلب بالتعليق إلى الأبد. عند تجاوز المهلة نعتبره خطأ.
+function withTimeout(promise,ms,label){
+  let timer;
+  const t=new Promise((_,rej)=>{timer=setTimeout(()=>rej(new Error("مهلة انتهت: "+label)),ms);});
+  return Promise.race([promise,t]).finally(()=>clearTimeout(timer));
+}
+// مزامنة لحظية خلفية: تعمل بعد التحميل الناجح، ولا تمنع عرض القائمة عند فشلها.
+function startProductsSync(){
+  if(productsSyncStarted)return;
+  productsSyncStarted=true;
+  try{
+    productsSyncUnsub=onSnapshot(collection(db,"products"),snap=>{
+      products=snap.docs.map(d=>({id:d.id,...d.data()}));
+      cacheProducts();render();updateStats();
+    },err=>{
+      console.warn("[Products] realtime sync غير متاح، تبقى REST هي المصدر:",err&&err.message);
+    });
+  }catch(e){console.warn("[Products] realtime sync failed",e);}
+}
+
 window.bazarLoadProducts=async function(force=false){
-  if(productsLoading)return productsLoading;
-  if(productsLoaded&&!force){ render(); return; }
+  if(productsLoading){ if(box && !productsLoaded && products.length) render(); return productsLoading; }
+  if(productsLoaded && !force){ render(); return; }
+  if(force)productsLoaded=false;
   const box=listBox;
-  if(box && !productsLoaded){box.innerHTML='<div class="empty-card"><span class="empty-icon">⏳</span><b>جاري تحميل المنتجات...</b><span>يتم تحميل البيانات عند فتح قسم المنتجات فقط.</span></div>';}
+  // اعرض الكاش فورًا إن وُجد (بدون وميض)، ثم استبدله بالبيانات الكاملة بعد الجلب.
+  if(box && !productsLoaded){
+    const cached=force?null:readProductsCache();
+    if(Array.isArray(cached)&&cached.length&&!products.length){
+      products=cached; render();
+    }else{
+      box.innerHTML=renderSkeleton();
+    }
+  }
+  console.log("[Products] Fetch started");
   productsLoading=(async()=>{
     try{
-      const snap=await getDocs(collection(db,"products"));
-      products=snap.docs.map(d=>({id:d.id,...d.data()}));
+      let data=await withTimeout(restFetchProducts(),20000,"products fetch (REST)");
+      if(!Array.isArray(data))throw new Error("استجابة غير صالحة");
+      products=data;
+      console.log("[Products] Fetch succeeded — count:",products.length);
       productsLoaded=true;
+      cacheProducts();
       const productCounter=document.getElementById("statProducts");
-      if(productCounter)productCounter.textContent=snap.size.toLocaleString("ar-DZ");
+      if(productCounter)productCounter.textContent=products.length.toLocaleString("ar-DZ");
       render();updateStats();
-      try{
-        localStorage.setItem("bazarProductsCount",String(snap.size));
-      }catch(e){}
+      startProductsSync();
       try{
         const editId=sessionStorage.getItem("bazarEditingProduct");
         const view=sessionStorage.getItem("bazarAdminView");
@@ -1002,12 +1109,22 @@ window.bazarLoadProducts=async function(force=false){
         }
       }catch(e){}
     }catch(e){
-      console.error("products load",e);
-      if(box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل المنتجات. تحقق من اتصال Firebase والصلاحيات.</div>';
+      console.error("[Products] Fetch failed:",e);
+      productsLoaded=false;
+      if(box)box.innerHTML=`<div class="empty-card"><span class="empty-icon">⚠️</span><b>تعذر تحميل المنتجات</b><span>حدث خطأ أثناء الاتصال بالبيانات.</span><button class="orange-btn" type="button" onclick="bazarLoadProducts(true)">↻ إعادة المحاولة</button></div>`;
     }finally{productsLoading=null;}
   })();
   return productsLoading;
 };
+function renderSkeleton(){
+  const skel=(w)=>`<div style="height:${w};background:#e8ecf1;border-radius:8px;animation:skDr 1.2s infinite"></div>`;
+  const shimmer=`<style>@keyframes skDr{0%{opacity:.4}50%{opacity:1}100%{opacity:.4}}</style>`;
+  return shimmer+Array.from({length:5}).map(()=>`<article class="product-row skeleton" style="pointer-events:none;background:linear-gradient(135deg,#f0f2f6,#e2e6ec)">
+    <div class="product-main"><div style="width:84px;height:84px;background:#dfe4ec;border-radius:12px;flex:none"></div><div class="product-details">${sk("18px")}<div style="height:5px"></div>${sk("14px")}<div style="height:5px"></div>${sk("24px")}</div></div>
+    <div class="product-stats"><div>${sk("14px")}</div><div>${sk("14px")}</div></div>
+    <div class="product-actions" style="justify-content:flex-start;opacity:.5"><div style="width:88px;height:38px;border-radius:9px;background:#e0e5ec"></div><div style="width:88px;height:38px;border-radius:9px;background:#e0e5ec"></div></div>
+    </article>`).join("");
+}
 
 window.bazarLoadOrders=async function(force=false){
   if(ordersLoading)return ordersLoading;
@@ -1058,7 +1175,8 @@ window.render=()=>{
   if(!listBox||!searchInput)return;
   const q=String(searchInput.value||"").trim().toLowerCase();
   const filtered=products.filter(p=>{
-    const hay=[p.name,p.category,p.description,p.id].map(v=>String(v||"").toLowerCase()).join(" ");
+    const catName=(categories.find(c=>String(c.key)===String(p.category))?.name)||"";
+    const hay=[p.name,p.category,p.id,p.description,p.badge,catName].map(v=>String(v||"").toLowerCase()).join(" ");
     return !q || hay.includes(q);
   });
   if(!filtered.length){
@@ -1067,30 +1185,54 @@ window.render=()=>{
   }
   listBox.innerHTML=filtered.map(p=>{
     const img=Array.isArray(p.images)&&p.images.length?p.images[0]:p.image;
-    const published=p.published!==false;
-    const stock=Number(p.stock||0);
-    const stockClass=stock<=0?"danger":stock<=5?"warning":"good";
-    const stockText=stock<=0?"نفد المخزون":stock<=5?"مخزون منخفض":"متوفر";
+    const visible=effVisible(p);
+    const stock=Number(p.stock??p.quantity??0);
+    const manualAvail=p.isAvailable!==false;
+    // حالة الظهور
+    const visBadge=visible
+      ? '<span class="publish-badge is-published" title="ظاهر في المتجر">● ظاهر</span>'
+      : '<span class="publish-badge is-hidden" title="مخفي من المتجر">○ مخفي</span>';
+    // حالة التوفر: المخزون + التبديل اليدوي
+    let availBadge;
+    if(stock<=0){
+      availBadge='<span class="stock-pill danger" title="نفد المخزون"><i></i>نفد المخزون</span>';
+    }else if(!manualAvail){
+      availBadge='<span class="stock-pill warning" title="غير متوفر يدويًا"><i></i>غير متوفر</span>';
+    }else{
+      availBadge='<span class="stock-pill good" title="متوفر"><i></i>متوفر</span>';
+    }
     const category=categories.find(c=>String(c.key)===String(p.category));
+    // خيارات القائمة حسب حالة المنتج (لا خيارات متناقضة)
+    const toggleVisible=visible
+      ? `<button type="button" onclick="toggleProductVisible('${esc(p.id)}')">🚫 إخفاء من المتجر</button>`
+      : `<button type="button" onclick="toggleProductVisible('${esc(p.id)}')">👁 إظهار في المتجر</button>`;
+    const toggleAvail=(stock>0)
+      ? (manualAvail
+          ? `<button type="button" onclick="toggleProductAvailable('${esc(p.id)}')">🟡 جعل غير متوفر</button>`
+          : `<button type="button" onclick="toggleProductAvailable('${esc(p.id)}')">🟢 جعل متوفر</button>`)
+      : `<button type="button" onclick="editProduct('${esc(p.id)}')">📦 تحديث المخزون</button>`;
+    const slug=encodeURIComponent(String(p.name||"product").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-+|-+$/g,""));
+    const viewUrl='product.html?id='+slug;
     return `<article class="product-row">
       <div class="product-main">
         <div class="product-image-wrap"><img class="product-image" src="${esc(img||"")}" alt="${esc(p.name||"منتج")}" onerror="this.style.display='none'"></div>
         <div class="product-details">
-          <div class="product-title-line"><h3>${esc(p.name||"بدون اسم")}</h3><span class="publish-badge ${published?"is-published":"is-hidden"}">${published?"● نشط":"● غير منشور"}</span></div>
+          <div class="product-title-line"><h3>${esc(p.name||"بدون اسم")}</h3>${visBadge} ${availBadge}</div>
           <div class="product-meta"><span>الكود: <b dir="ltr">${esc(String(p.id||"").slice(0,8).toUpperCase())}</b></span><span>${esc(category?.name||p.category||"بدون تصنيف")}</span></div>
-          <div class="product-bottom"><strong class="product-price">${Number(p.price||0).toLocaleString("ar-DZ")} دج</strong><span class="stock-pill ${stockClass}"><i></i>${stockText} · ${stock}</span></div>
+          <div class="product-bottom"><strong class="product-price">${Number(p.price||0).toLocaleString("ar-DZ")} دج</strong><span class="stock-pill ${stock<=0?"danger":stock<=5?"warning":"good"}"><i></i>المخزون ${stock}</span></div>
         </div>
       </div>
       <div class="product-stats"><div><small>المبيعات</small><b>${Number(p.sales||0).toLocaleString("ar-DZ")}</b></div><div><small>الصور</small><b>${Array.isArray(p.images)?p.images.length:(p.image?1:0)}</b></div></div>
       <div class="product-actions">
         <details class="product-menu"><summary aria-label="خيارات المنتج">⋮</summary><div class="menu-popover">
-          <button type="button" onclick="window.open('index.html','_blank')">↗ عرض المتجر</button>
-          <button type="button" onclick="editProduct('${esc(p.id)}')">✏️ تعديل</button>
-          <button type="button" onclick="toggleProductPublish('${esc(p.id)}')">${published?"⏸ إيقاف النشر":"▶ نشر المنتج"}</button>
-          <button type="button" class="danger-action" onclick="removeProduct('${esc(p.id)}')">🗑 حذف المنتج</button>
+          <button type="button" onclick="window.open('${esc(viewUrl)}','_blank')">👁 عرض المنتج</button>
+          <button type="button" onclick="editProduct('${esc(p.id)}')">✏️ تعديل المنتج</button>
+          ${toggleAvail}
+          ${toggleVisible}
+          <button type="button" class="danger-action" onclick="askRemoveProduct('${esc(p.id)}')">🗑 حذف المنتج</button>
         </div></details>
         <button class="outline-action" type="button" onclick="editProduct('${esc(p.id)}')">✏ تعديل</button>
-        <button class="view-action" type="button" onclick="window.open('index.html','_blank')">◉ عرض</button>
+        <button class="view-action" type="button" onclick="window.open('${esc(viewUrl)}','_blank')">◉ عرض</button>
       </div>
     </article>`;
   }).join("");
@@ -1141,13 +1283,16 @@ window.save=async()=>{
     stock:Number(stockInput?.value),
     description:descriptionInput?.value.trim()||"",
     specifications,
+    isVisible:publishedInput?.checked!==false,
+    published:publishedInput?.checked!==false,
+    isAvailable:availableInput?.checked===true,
     image:"",
     images:[],
     updatedAt:serverTimestamp()
   };
 
-  if(!data.name||data.price<0||data.stock<0||!selectedImages.length){
-    show("أكمل بيانات المنتج المطلوبة وأضف صورة واحدة على الأقل.","err");return;
+  if(!data.name||isNaN(data.price)||data.price<0||isNaN(data.stock)||data.stock<0||!selectedImages.length){
+    show("أكمل بيانات المنتج المطلوبة (الاسم، السعر، المخزون، صورة واحدة على الأقل).","err");return;
   }
 
   show("⏳ جاري تجهيز الصور...","ok");
@@ -1184,23 +1329,29 @@ window.save=async()=>{
   }
 
   if(editing) {
+    // تحديث جزئي: نرسل كل الحقول المطلوبة دفعة واحدة (لا يعاد رفع الصور القديمة).
     await updateDoc(doc(db,"products",editing),data);
     const idx=products.findIndex(x=>x.id===editing);
     if(idx>=0) products[idx]={...products[idx],...data};
+    cacheProducts();
   } else {
     // إضافة واحدة فقط مهما ضغط المستخدم على الزر بسرعة.
     data.createdAt=serverTimestamp();
     const newRef=await addDoc(collection(db,"products"),data);
     products.push({id:newRef.id,...data});
+    productsLoaded=true;
+    cacheProducts();
   }
 
   render();
   updateStats();
+  toast(editing?"تم تحديث المنتج بنجاح.":"تم إنشاء المنتج بنجاح.");
   show("تم الحفظ بنجاح ✅","ok");
   resetForm();
  }catch(e){
   console.error(e);
-  show("تعذر حفظ المنتج: "+(e.message||"خطأ غير معروف"),"err");
+  show("تعذر الحفظ: "+(e.message||"خطأ غير معروف"),"err");
+  toast("تعذر حفظ التغييرات. حاول مرة أخرى.");
  }finally{
   saving=false;
   setBtnSaving(false);
@@ -1216,6 +1367,8 @@ window.editProduct=id=>{
  renderCategorySelect(p.category||categories[0]?.key||"tools");
  stockInput.value=p.stock??"";
  descriptionInput.value=p.description||"";
+ if(publishedInput)publishedInput.checked=effVisible(p);
+ if(availableInput)availableInput.checked=p.isAvailable!==false;
  if(specificationsText){
    const specs=Array.isArray(p.specifications)?p.specifications:[];
    specificationsText.value=specs.map(x=>x&&x.key?`${x.key}: ${x.value??""}`:String(x||"")).join("\n");
@@ -1228,32 +1381,87 @@ window.editProduct=id=>{
  scrollTo({top:0,behavior:"smooth"});
 };
 
-window.toggleProductPublish=async id=>{
-  const p=products.find(x=>x.id===id);
-  if(!p)return;
-  const next=p.published===false;
+let toggling={};
+
+// ===== تبديل الظهور (إخفاء/إظهار) — تحديث متفائل =====
+window.toggleProductVisible=async id=>{
+  const p=products.find(x=>x.id===id); if(!p||toggling[id])return;
+  toggling[id]=true;
+  const prev={isVisible:p.isVisible,isActive:p.isActive,published:p.published};
+  const nextVisible=effVisible(p)!==true;
+  const patch={isVisible:nextVisible,updatedAt:serverTimestamp()};
+  if(p.isActive!==undefined)patch.isActive=nextVisible;
+  if(p.published!==undefined)patch.published=nextVisible;
+  // تطبيق متفائل فورًا
+  p.isVisible=nextVisible; if(p.isActive!==undefined)p.isActive=nextVisible; if(p.published!==undefined)p.published=nextVisible;
+  render(); updateStats();
   try{
-    await updateDoc(doc(db,"products",id),{published:next,updatedAt:serverTimestamp()});
-    p.published=next; render(); updateStats();
-    show(next?"تم نشر المنتج في المتجر ✅":"تم إيقاف نشر المنتج ✅","ok");
-  }catch(e){show("تعذر تغيير حالة النشر: "+(e.message||"خطأ غير معروف"),"err");}
+    await updateDoc(doc(db,"products",id),patch);
+    cacheProducts();
+    show(nextVisible?"تم إظهار المنتج في المتجر ✅":"تم إخفاء المنتج من المتجر ✅","ok");
+  }catch(e){
+    console.error("visibility toggle",e);
+    Object.assign(p,prev); render(); updateStats();
+    toast("تعذر تنفيذ العملية. حاول مرة أخرى.");
+  }finally{delete toggling[id];}
 };
-window.removeProduct=async id=>{
- let p=products.find(x=>x.id===id);
- if(p&&confirm("حذف "+p.name+"؟"))try{
-   await deleteDoc(doc(db,"products",id));
-   products=products.filter(x=>x.id!==id);
-   render();
-   updateStats();
-   show("تم الحذف ✅","ok");
- }catch(e){show("تعذر الحذف.","err")}
+
+// ===== تبديل التوفر (متوفر/غير متوفر) — تحديث متفائل =====
+window.toggleAvailable=async id=>{
+  const p=products.find(x=>x.id===id); if(!p||toggling[id])return;
+  if(Number(p.stock??p.quantity??0)<=0){ editProduct(id); return; } // المخزون صفر ← افتح التعديل لتحديثه
+  toggling[id]=true;
+  const prev=p.isAvailable;
+  const nextAvail=p.isAvailable===false; // إن كانت غير متوفرة ← متوفرة، والعكس
+  p.isAvailable=nextAvail?true:false;
+  render(); updateStats();
+  try{
+    await updateDoc(doc(db,"products",id),{isAvailable:nextAvail?true:false,updatedAt:serverTimestamp()});
+    cacheProducts();
+    show(nextAvail?"تم جعل المنتج متوفرًا ✅":"تم جعل المنتج غير متوفر ✅","ok");
+  }catch(e){
+    console.error("available toggle",e);
+    p.isAvailable=prev; render(); updateStats();
+    toast("تعذر تنفيذ العملية. حاول مرة أخرى.");
+  }finally{delete toggling[id];}
+};
+window.toggleProductAvailable=id=>window.toggleAvailable(id);
+let deleteTarget=null, deleting=false;
+window.askRemoveProduct=id=>{
+  deleteTarget=id;
+  const p=products.find(x=>x.id===id);
+  const box=document.getElementById("deleteModal");
+  const nameEl=document.getElementById("deleteProductName");
+  if(nameEl)nameEl.textContent=p?p.name:"المنتج";
+  if(box)box.classList.remove("hidden");
+};
+window.cancelDelete=()=>{deleteTarget=null;const box=document.getElementById("deleteModal");if(box)box.classList.add("hidden");};
+window.removeProduct=async ()=>{
+  const id=deleteTarget; if(!id||deleting)return;
+  deleting=true;
+  const btn=document.getElementById("deleteConfirmBtn");
+  if(btn){btn.disabled=true;btn.innerHTML="⏳ جارٍ الحذف...";}
+  try{
+    await deleteDoc(doc(db,"products",id));
+    products=products.filter(x=>x.id!==id);
+    render();
+    updateStats();
+    cancelDelete();
+    toast("تم حذف المنتج بنجاح.");
+  }catch(e){
+    console.error("delete",e);
+    toast("تعذر حذف المنتج. حاول مرة أخرى.");
+  }finally{
+    deleting=false;
+    if(btn){btn.disabled=false;btn.innerHTML="🗑 حذف المنتج";}
+  }
 };
 
 window.resetForm=()=>{
  editing=null;
  titleBox.textContent="➕ إضافة منتج";
  nameInput.value="";priceInput.value="";
- renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";if(publishedInput)publishedInput.checked=true;descriptionInput.value="";
+ renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";if(publishedInput)publishedInput.checked=true;if(availableInput)availableInput.checked=true;descriptionInput.value="";
  if(specificationsText) specificationsText.value="";
  selectedImages=[];
  try{sessionStorage.removeItem("bazarEditingProduct");}catch(e){}
@@ -1282,6 +1490,7 @@ window.removeSelectedImage=i=>{
 renderSelectedImages();
 
 function show(t,c){statusBox.textContent=t;statusBox.className="status "+c;setTimeout(()=>statusBox.className="status hidden",3500)}
+function toast(msg){let el=document.getElementById("adminToast");if(!el){el=document.createElement("div");el.id="adminToast";el.style.cssText="position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);background:#182536;color:#fff;padding:12px 18px;border-radius:12px;z-index:1000;opacity:0;transition:.25s;box-shadow:0 8px 26px rgba(0,0,0,.15);font-weight:700";document.body.appendChild(el);}el.textContent=msg;requestAnimationFrame(()=>{el.style.opacity="1";el.style.transform="translate(-50%,0)";});clearTimeout(window.__adminToastT);window.__adminToastT=setTimeout(()=>{el.style.opacity="0";el.style.transform="translate(-50%,20px)";},2200);}
 function esc(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 
 // ===== Mayna importer =====
