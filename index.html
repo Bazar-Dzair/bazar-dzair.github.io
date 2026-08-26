@@ -226,7 +226,7 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
 .footer-toggle{display:block;border:0;background:none;color:inherit;padding:0;margin:0;text-align:right;font:inherit;cursor:pointer;width:100%;line-height:1.8}.footer-toggle:hover{text-decoration:underline}.footer-link-text{display:none;font-size:12px;line-height:1.8;color:rgba(255,255,255,.78);margin:5px 0 10px;padding:8px 10px;border-right:2px solid rgba(255,255,255,.28);white-space:pre-line}.footer-link-text.open{display:block} 
 </style><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <script src="addons.js"></script>
-<link rel="canonical" href="https://bazar-dzair.github.io/">
+<link id="canonical" rel="canonical" href="https://bazar-dzair.github.io/">
 
 </head>
 <body>
@@ -650,8 +650,10 @@ function categoryMatches(product, category){
 function updateCategorySEO(categoryKey, filtered){
   const titleEl=document.getElementById("pageTitle"), descEl=document.getElementById("pageDescription");
   const h=document.getElementById("productsHeading"), sub=document.getElementById("productsSubheading");
+  const canonicalEl=document.getElementById("canonical");
   if(!categoryKey || categoryKey === "all"){
     activeCategoryKey="all";
+    if(canonicalEl) canonicalEl.href="https://bazar-dzair.github.io/";
     if(titleEl) titleEl.textContent="Bazar Dzair | متجر إلكتروني";
     if(descEl) descEl.setAttribute("content","Bazar Dzair - متجر إلكتروني جزائري يوفر منتجات متنوعة وأسعار مناسبة وخدمة توصيل.");
     if(h) h.textContent="منتجاتنا 🛍️";
@@ -662,6 +664,8 @@ function updateCategorySEO(categoryKey, filtered){
   const cat=storeCategoryIndex.get(String(categoryKey));
   const name=cat?.name || String(categoryKey);
   const desc=`تصفح منتجات ${name} المتوفرة في متجر Bazar Dzair. ${filtered.length} منتج متاح حالياً.`;
+  const catSlug=cat?.slug || normalizeCategoryText(name).replace(/\s+/g,"-");
+  if(canonicalEl) canonicalEl.href=`https://bazar-dzair.github.io/category/${encodeURIComponent(catSlug)}/`;
   if(titleEl) titleEl.textContent=`${name} | Bazar Dzair`;
   if(descEl) descEl.setAttribute("content",desc);
   if(h) h.textContent=name;
