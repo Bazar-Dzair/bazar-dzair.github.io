@@ -1,0 +1,10 @@
+{
+  "name": "Bazar Dzair",
+  "short_name": "Bazar Dzair",
+  "start_url": "/",
+  "display": "standalone",
+  "dir": "rtl",
+  "lang": "ar-DZ",
+  "description": "متجر Bazar Dzair الإلكتروني في الجزائر",
+  "icons": [{"src":"/logo.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

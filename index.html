@@ -4,8 +4,23 @@
 <meta charset="utf-8">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Bazar Dzair - متجر إلكتروني جزائري">
-<title>Bazar Dzair | متجر إلكتروني</title>
+<meta name="description" content="Bazar Dzair - متجر إلكتروني جزائري. منتجات متنوعة، أسعار مناسبة، والدفع عند الاستلام مع التوصيل داخل الجزائر.">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<meta name="theme-color" content="#061e3d">
+<link rel="canonical" href="https://bazar-dzair.github.io/">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_DZ">
+<meta property="og:site_name" content="Bazar Dzair">
+<meta property="og:title" content="Bazar Dzair | متجر إلكتروني جزائري">
+<meta property="og:description" content="متجر Bazar Dzair الإلكتروني في الجزائر. اكتشف منتجات متنوعة بأسعار مناسبة مع الدفع عند الاستلام.">
+<meta property="og:url" content="https://bazar-dzair.github.io/">
+<meta property="og:image" content="https://bazar-dzair.github.io/logo.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Bazar Dzair | متجر إلكتروني جزائري">
+<meta name="twitter:description" content="متجر Bazar Dzair الإلكتروني في الجزائر. اكتشف منتجات متنوعة بأسعار مناسبة مع الدفع عند الاستلام.">
+<title>Bazar Dzair | متجر إلكتروني جزائري</title>
+<script type="application/ld+json" id="bazar-site-schema">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://bazar-dzair.github.io/#website","url":"https://bazar-dzair.github.io/","name":"Bazar Dzair","inLanguage":"ar-DZ"},{"@type":"Organization","@id":"https://bazar-dzair.github.io/#organization","name":"Bazar Dzair","url":"https://bazar-dzair.github.io/","logo":{"@type":"ImageObject","url":"https://bazar-dzair.github.io/logo.svg"}}]}</script>
 <style>
   :root {
     --navy:#061e3d;
@@ -226,8 +241,6 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
 .footer-toggle{display:block;border:0;background:none;color:inherit;padding:0;margin:0;text-align:right;font:inherit;cursor:pointer;width:100%;line-height:1.8}.footer-toggle:hover{text-decoration:underline}.footer-link-text{display:none;font-size:12px;line-height:1.8;color:rgba(255,255,255,.78);margin:5px 0 10px;padding:8px 10px;border-right:2px solid rgba(255,255,255,.28);white-space:pre-line}.footer-link-text.open{display:block} 
 </style><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <script src="addons.js"></script>
-<link rel="canonical" href="https://bazar-dzair.github.io/">
-
 </head>
 <body>
 <header>
@@ -634,35 +647,48 @@ function setCategorySeo(categoryName, categoryKey, count){
   link.href=canonical;
 }
 
-function applyCategoryFromUrl(){
-  const key=new URLSearchParams(window.location.search).get("category");
-  if(key) filterCategory(key,false);
+function setCategorySchema(categoryName, categoryKey, list){
+  const id="bazar-category-jsonld";
+  let el=document.getElementById(id);
+  if(!el){el=document.createElement("script");el.type="application/ld+json";el.id=id;document.head.appendChild(el);}
+  const base="https://bazar-dzair.github.io/";
+  const url=categoryKey && categoryKey!=="all" ? base+"?category="+encodeURIComponent(categoryKey) : base;
+  const items=(Array.isArray(list)?list:[]).slice(0,100).map((p,i)=>({"@type":"ListItem","position":i+1,"url":base+"product.html?id="+encodeURIComponent(productSlug(p.name)),"name":p.name}));
+  el.text=JSON.stringify({"@context":"https://schema.org","@type":"CollectionPage","name":categoryName||"Bazar Dzair","url":url,"isPartOf":{"@type":"WebSite","url":base,"name":"Bazar Dzair"},"mainEntity":{"@type":"ItemList","numberOfItems":items.length,"itemListElement":items}});
 }
 
-function filterCategory(category, updateUrl=true){
+function applyCategoryFromUrl(){
+  const key=new URLSearchParams(window.location.search).get("category");
+  if(key) filterCategory(key,false,false);
+}
+
+function filterCategory(category, updateUrl=true, shouldScroll=true){
   document.body.classList.remove("products-only");
   if(category === "all"){
     displayProducts(products);
     setCategorySeo("","all",products.length);
+    setCategorySchema("Bazar Dzair","all",products);
     if(updateUrl) history.replaceState({},"",window.location.pathname);
     closeCategoryMenu();
-    document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
+    if(shouldScroll) document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
     return;
   }
 
   const key=String(category).trim();
   const aliases = {
-    tools:["tools","tool","أدوات","ادوات","أداة","اداة"],home:["home","المنزل","منزل","المطبخ والمنزل","مطبخ","kitchen","house"],electronics:["electronics","electronic","أكسسوارات وإلكترونيات","اكسسوارات وإلكترونيات","إلكترونيات","الكترونيات","accessories & electronics"],phones:["phones","phone","هواتف","هاتف","mobile","mobiles"],laptops:["laptops","laptop","حاسوب محمول","كمبيوتر محمول","لابتوب","computers"],clothes:["clothes","clothing","ملابس وأحذية","ملابس","أحذية","البسة","shoes"],beauty:["beauty","جمال","صحة وجمال","العناية","عناية","health & beauty"],women:["women","woman","معدات نسوية","معدات نسائية","نسائية","women equipment"],jewelry:["jewelry","jewellery","مجوهرات وإكسسوارات نسائية","مجوهرات واكسسوارات نسائية","مجوهرات","إكسسوارات نسائية","اكسسوارات نسائية"],baby:["baby","kids","children","مستلزمات الأطفال والرضع","مستلزمات الاطفال والرضع","أطفال","رضع"],medical:["medical","أدوات طبية","ادوات طبية","medical tools"],carparts:["carparts","car parts","قطع غيار السيارات","قطع غيار سيارة","auto parts"],summer:["summer","منتجات الصيف","منتوجات الصيف","summer products"],shaving:["shaving","آلات الحلاقة","الات الحلاقة","ماكينات الحلاقة","shavers"],gifts:["gifts","gift","هدايا متنوعة","هدايا","gifts & accessories"],library:["library","مكتبة","كتب","books"],realestate:["realestate","real estate","عقارات وأراضي","عقارات","أراضي","lands"],clearance:["clearance","تصفية مخزون","تصفية","stock clearance","stock"],misc:["misc","متنوعة","منتجات متنوعة","منتوجات متنوعة","متنوع"],offers:["offers","offer","عروض","عرض","promo","promotions"]
+    tools:["tools","tool","أدوات","ادوات","أداة","اداة"],telephones:["telephones","telephone","phones","phone","هواتف","هاتف","الهواتف","mobile","mobiles"],home:["home","المنزل","منزل","المطبخ والمنزل","مطبخ","kitchen","house"],electronics:["electronics","electronic","أكسسوارات وإلكترونيات","اكسسوارات وإلكترونيات","إلكترونيات","الكترونيات","accessories & electronics"],phones:["phones","phone","هواتف","هاتف","mobile","mobiles"],laptops:["laptops","laptop","حاسوب محمول","كمبيوتر محمول","لابتوب","computers"],clothes:["clothes","clothing","ملابس وأحذية","ملابس","أحذية","البسة","shoes"],beauty:["beauty","جمال","صحة وجمال","العناية","عناية","health & beauty"],women:["women","woman","معدات نسوية","معدات نسائية","نسائية","women equipment"],jewelry:["jewelry","jewellery","مجوهرات وإكسسوارات نسائية","مجوهرات واكسسوارات نسائية","مجوهرات","إكسسوارات نسائية","اكسسوارات نسائية"],baby:["baby","kids","children","مستلزمات الأطفال والرضع","مستلزمات الاطفال والرضع","أطفال","رضع"],medical:["medical","أدوات طبية","ادوات طبية","medical tools"],carparts:["carparts","car parts","قطع غيار السيارات","قطع غيار سيارة","auto parts"],summer:["summer","منتجات الصيف","منتوجات الصيف","summer products"],shaving:["shaving","آلات الحلاقة","الات الحلاقة","ماكينات الحلاقة","shavers"],gifts:["gifts","gift","هدايا متنوعة","هدايا","gifts & accessories"],library:["library","مكتبة","كتب","books"],realestate:["realestate","real estate","عقارات وأراضي","عقارات","أراضي","lands"],clearance:["clearance","تصفية مخزون","تصفية","stock clearance","stock"],misc:["misc","متنوعة","منتجات متنوعة","منتوجات متنوعة","متنوع"],offers:["offers","offer","عروض","عرض","promo","promotions"]
   };
   const wanted=(aliases[key]||[key]).map(v=>String(v).trim().toLowerCase());
   const result=products.filter(p=>{const value=String(p.category||"").trim().toLowerCase();return value===key.toLowerCase() || wanted.includes(value);});
   const catInfo=window.bazarCategoriesByKey?.[key];
-  const categoryName=catInfo?.name || (result[0]?.category && (result[0].category===key?result[0].category:null)) || key;
+  const knownNames={telephones:"الهواتف",phones:"الهواتف",tools:"أدوات",electronics:"إلكترونيات",home:"المنزل",beauty:"الجمال",clothes:"ملابس وأحذية",laptops:"الحواسيب المحمولة",women:"معدات نسائية",jewelry:"مجوهرات وإكسسوارات",baby:"مستلزمات الأطفال والرضع",medical:"أدوات طبية",carparts:"قطع غيار السيارات",summer:"منتجات الصيف",shaving:"آلات الحلاقة",gifts:"هدايا متنوعة",library:"مكتبة",realestate:"عقارات وأراضي",clearance:"تصفية مخزون",misc:"منتجات متنوعة",offers:"عروض"};
+  const categoryName=catInfo?.name || (result[0]?.category && (result[0].category===key?result[0].category:null)) || knownNames[key.toLowerCase()] || key;
   displayProducts(result);
   setCategorySeo(categoryName,key,result.length);
+  setCategorySchema(categoryName,key,result);
   if(updateUrl) history.replaceState({},"","?category="+encodeURIComponent(key));
   closeCategoryMenu();
-  document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
+  if(shouldScroll) document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function searchProducts(){const q=document.getElementById("search").value.trim().toLowerCase();displayProducts(products.filter(p=>p.name.toLowerCase().includes(q)))}
