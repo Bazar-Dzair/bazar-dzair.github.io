@@ -1,7 +1,6 @@
 User-agent: *
 Allow: /
-
 Disallow: /admin.html
-Disallow: /api/
-
+Disallow: /orders.html
+Disallow: /success.html
 Sitemap: https://bazar-dzair.github.io/sitemap.xml
