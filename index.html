@@ -501,12 +501,31 @@ async function loadProductsFromFirestore(){
       const ok=await loadProductsFromFirestore();
       if(!ok){products=[];displayProducts();}
     });
-    const renderStoreCategories=(snap)=>{
+    function categorySlug(c){
+      const raw=String(c?.slug||"").trim().toLowerCase();
+      const name=String(c?.name||"").trim().toLowerCase();
+      const key=String(c?.key||"").trim().toLowerCase();
+      const known={
+        telephones:"telephones",phones:"telephones",telephone:"telephones",
+        tools:"tools",tool:"tools", "أدوات":"tools","ادوات":"tools",
+        electronics:"electronics",home:"home",offers:"offers",summer:"summer",
+        women:"women",library:"library",carparts:"carparts",laptops:"laptops",
+        beauty:"beauty",shaving:"shaving",baby:"baby",medical:"medical",
+        gifts:"gifts",jewelry:"jewelry",clothes:"clothes",clearance:"clearance",
+        misc:"misc",realestate:"realestate"
+      };
+      if(known[raw]) return known[raw];
+      if(known[name]) return known[name];
+      if(known[key]) return known[key];
+      const latin=(raw||key||name).normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+      return latin || "category";
+    }
+        const renderStoreCategories=(snap)=>{
       const box=document.getElementById("storeCategories"); if(!box)return;
       const seen=new Set();
       const cats=snap.docs.map(d=>({key:d.id,...(d.data()||{})})).filter(c=>c.name&&!seen.has(c.key)&&seen.add(c.key)).sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));
       storeCategoryIndex=new Map(cats.map(c=>[String(c.key),c]));
-      box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>جميع الفئات</div>'+(cats.length?cats.map(c=>{const slug=c.slug||normalizeCategoryText(c.name).replace(/\s+/g,'-'); return `<a class="cat category-link" href="/category/${encodeURIComponent(slug)}/" data-category-key="${escapeHtml(c.key)}"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(c.name)}</a>`;}).join(""):'<div class="cat"><i>📂</i>لا توجد فئات</div>');
+      box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>جميع الفئات</div>'+(cats.length?cats.map(c=>{const slug=categorySlug(c); return `<a class="cat category-link" href="/category/${slug}/" data-category-key="${escapeHtml(c.key)}"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(c.name)}</a>`;}).join(""):'<div class="cat"><i>📂</i>لا توجد فئات</div>');
       applyCategoryFromURL();
     };
     onSnapshot(collection(db,"categories"),renderStoreCategories,error=>{const box=document.getElementById("storeCategories");if(box)box.innerHTML='<div class="cat"><i>⚠️</i>تعذر تحميل الفئات</div>';});
@@ -663,7 +682,7 @@ function updateCategorySEO(categoryKey, filtered){
   const cat=storeCategoryIndex.get(String(categoryKey));
   const name=cat?.name || String(categoryKey);
   const desc=`تصفح منتجات ${name} المتوفرة في متجر Bazar Dzair. ${filtered.length} منتج متاح حالياً.`;
-  const catSlug=cat?.slug || normalizeCategoryText(name).replace(/\s+/g,"-");
+  const catSlug=categorySlug(cat);
   if(canonicalEl) canonicalEl.href=`https://bazar-dzair.github.io/category/${encodeURIComponent(catSlug)}/`;
   if(titleEl) titleEl.textContent=`${name} | Bazar Dzair`;
   if(descEl) descEl.setAttribute("content",desc);
