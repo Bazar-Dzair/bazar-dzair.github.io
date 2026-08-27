@@ -3,7 +3,6 @@ Allow: /
 Disallow: /admin.html
 Disallow: /orders.html
 Disallow: /success.html
-Disallow: /*.html?*
 
 # Sitemaps
 Sitemap: https://bazar-dzair.github.io/sitemap.xml
