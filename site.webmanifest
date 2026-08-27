@@ -1,10 +1,30 @@
 {
-  "name": "Bazar Dzair",
+  "name": "Bazar Dzair - متجر إلكتروني جزائري",
   "short_name": "Bazar Dzair",
-  "start_url": "/",
+  "description": "متجر إلكتروني جزائري: منتجات أصلية بأسعار مناسبة، توصيل لجميع الولايات، ودفع عند الاستلام.",
+  "start_url": "https://bazar-dzair.github.io/",
+  "scope": "/",
   "display": "standalone",
-  "dir": "rtl",
+  "theme_color": "#061e3d",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["shopping", "business"],
+  "screenshots": [
+    {
+      "src": "logo.svg",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
   "lang": "ar-DZ",
-  "description": "متجر Bazar Dzair الإلكتروني في الجزائر",
-  "icons": [{"src":"/logo.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+  "dir": "rtl",
+  "orientation": "portrait-primary"
 }
