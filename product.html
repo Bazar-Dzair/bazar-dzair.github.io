@@ -4,15 +4,13 @@
 <meta charset="UTF-8">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
-<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <title>المنتج | Bazar Dzair</title>
 <meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">
 <meta name="theme-color" content="#071b33">
 <script src="addons.js"></script>
 <!--SEO/OG تُحدّث ديناميكيًا حسب المنتج الحقيقي قبل إغلاق head--> 
 <meta property="og:locale" content="ar_DZ"><meta property="og:site_name" content="Bazar Dzair">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <link id="canonical" rel="canonical" href="https://bazar-dzair.github.io/product.html">
 <style>
 :root{--navy:#071b33;--orange:#ff6a00;--green:#16a34a;--bg:#f5f7fa;--text:#172033;--muted:#667085;--border:#e4e7ec}
@@ -116,7 +114,7 @@ function toast(t){const x=document.getElementById("toast");x.textContent=t;x.cla
 // ===== SEO حقيقي لكل منتج =====
 function applyProductSEO(p,name,desc){
   const slug=productSlug(name);
-  const url="https://bazar-dzair.github.io/product/"+slug+"/";
+  const url="https://bazar-dzair.github.io/product/"+encodeURIComponent(slug)+"/";
   const image=(Array.isArray(p.images)&&p.images[0])||p.image||p.imageUrl||p.photo||"https://bazar-dzair.github.io/logo.svg";
   const setMeta=(id,prop,content)=>{let el=document.getElementById(id);if(!el&&prop){el=document.createElement("meta");el.setAttribute(prop?"property":"name",prop||"name");el.id=id;document.head.appendChild(el);}if(el)el.content=content;};
   const setOG=(id,property,content)=>{let el=document.getElementById(id);if(!el){el=document.createElement("meta");el.setAttribute("property",property);el.id=id;document.head.appendChild(el);}el.content=content;};
@@ -129,11 +127,6 @@ function applyProductSEO(p,name,desc){
   setMeta("twitterCard","name","summary_large_image");
   if(!document.querySelector('meta[name="twitter:title"]')){const t=document.createElement("meta");t.name="twitter:title";t.content=name;document.head.appendChild(t);}
   if(!document.querySelector('meta[name="twitter:description"]')){const t=document.createElement("meta");t.name="twitter:description";t.content=String(p.description||p.desc||"").slice(0,155);document.head.appendChild(t);}
-
-  // BreadcrumbList ثابت من الصفحة الرئيسية إلى المنتج.
-  let breadcrumb=document.getElementById("bazar_breadcrumb_jsonld");
-  if(!breadcrumb){breadcrumb=document.createElement("script");breadcrumb.type="application/ld+json";breadcrumb.id="bazar_breadcrumb_jsonld";document.head.appendChild(breadcrumb);}
-  breadcrumb.text=JSON.stringify({"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"الرئيسية","item":"https://bazar-dzair.github.io/"},{"@type":"ListItem","position":2,"name":name,"item":url}]});
 
   // Product JSON-LD — بيانات حقيقية فقط، بدون اختلاق تقييمات أو مراجعات.
   const ld={

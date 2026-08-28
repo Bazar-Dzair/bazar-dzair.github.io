@@ -1,14 +1,8 @@
 User-agent: *
 Allow: /
+
 Disallow: /admin.html
 Disallow: /orders.html
 Disallow: /success.html
 
-# Sitemaps
 Sitemap: https://bazar-dzair.github.io/sitemap.xml
-Sitemap: https://bazar-dzair.github.io/sitemap-main.xml
-Sitemap: https://bazar-dzair.github.io/sitemap-products.xml
-Sitemap: https://bazar-dzair.github.io/sitemap-categories.xml
-
-# Crawl delay
-Crawl-delay: 1
