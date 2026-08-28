@@ -111,7 +111,7 @@ if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:produc
 alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="success.html";},1000)};
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2400)}
 
-// ===== SEO حقيقي لكل منتج =====
+// ===== SEO: صفحة الشراء تبقى noindex، والصفحة الثابتة هي صفحة الفهرسة =====
 function applyProductSEO(p,name,desc){
   const slug=productSlug(name);
   const url="https://bazar-dzair.github.io/product/"+encodeURIComponent(slug)+"/";

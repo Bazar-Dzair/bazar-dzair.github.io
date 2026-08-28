@@ -1,0 +1,10 @@
+Bazar Dzair — Google SEO fix
+
+1) product.html?id=... is the checkout/product-detail application page. It intentionally has noindex because its product data is loaded client-side from Firestore. Do NOT submit this URL to Google Search Console for indexing.
+2) The indexable URL is /product/SLUG/ . These are real static HTML pages containing title, description, image, Product JSON-LD, canonical and index,follow.
+3) sitemap.xml and sitemap-products.xml contain only the static /product/SLUG/ URLs.
+4) GitHub Actions regenerates the static pages and sitemaps from the public Firestore collection every 30 minutes and on pushes to main.
+5) After uploading, run the workflow once from GitHub Actions if needed. Confirm that the product folder and sitemap files are committed to the main branch and served by GitHub Pages.
+6) In Google Search Console, inspect the static URL:
+   https://bazar-dzair.github.io/product/lanterne-de-camping-led-solaire-et-rechargeable-usb-40-led-2-cob/
+   Do not inspect the product.html?id=... URL for indexing.
