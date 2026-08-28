@@ -539,7 +539,7 @@ function displayProducts(list=products){
  if(!list.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">لم نجد المنتج 🔎</div>';return}
  g.innerHTML=list.map(p=>{
    const slug=productSlug(p.name);
-   const href="product/"+slug+"/";
+   const href="/product/"+slug+"/";
    return `<article class="product"><div class="pic">${p.badge?`<span class="new">${p.badge}</span>`:""}<a href="${href}" aria-label="عرض ${esc(p.name)}"><img src="${p.image}" alt="${esc(p.name)}" loading="lazy" decoding="async"></a></div><div class="info"><a class="name product-link" href="${href}">${esc(p.name)}</a><div class="price">${money(p.price)}</div><div class="buttons"><button class="btn cartbtn" onclick="addCart(${p.id})" aria-label="إضافة إلى السلة">🛒<span class="plus">+</span></button><button class="btn buybtn" onclick="buyNow(${p.id})">شراء <span class="buycart">🛒</span></button></div></div></article>`;
  }).join("");
 }
