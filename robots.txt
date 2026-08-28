@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+Allow: /product/
+Allow: /category/
 
 Disallow: /admin.html
 Disallow: /orders.html
