@@ -50,7 +50,7 @@ def fetch_collection(name: str) -> list[dict]:
             params["pageToken"] = token
         url = BASE + urllib.parse.quote(name) + "?" + urllib.parse.urlencode(params)
         req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "BazarDzair-SEO-Generator/1.0"})
-        with urllib.request.urlopen(req, timeout=45) as r:
+        with urllib.request.urlopen(req, timeout=60) as r:
             data = json.load(r)
         for doc in data.get("documents", []):
             item = doc_data(doc)
