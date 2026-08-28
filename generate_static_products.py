@@ -250,14 +250,15 @@ for product in products:
     description = str(product.get("description") or product.get("desc") or f"شراء {name} من متجر Bazar Dzair.").strip()
     images = collect_images(product, slug)
     if not images:
-        # Do not put a fake product image in Product JSON-LD.
-        images = [SITE + "logo.svg"]
+        raise RuntimeError(f"Product has no crawlable image: {name} ({product.get('_id')})")
 
     try:
         price = float(product.get("price"))
-        valid_price = price >= 0
+        valid_price = price >= 0 and price == price
     except (TypeError, ValueError):
         price, valid_price = None, False
+    if not valid_price:
+        raise RuntimeError(f"Product has no valid numeric price: {name} ({product.get('_id')})")
 
     sku = str(product.get("sku") or product.get("SKU") or "").strip()
     if not sku:
@@ -288,15 +289,14 @@ for product in products:
     elif re.fullmatch(r"\d{13}", gtin): jsonld["gtin13"] = gtin
     elif re.fullmatch(r"\d{14}", gtin): jsonld["gtin14"] = gtin
 
-    if valid_price:
-        jsonld["offers"] = {
-            "@type": "Offer",
-            "url": canonical,
-            "price": price,
-            "priceCurrency": "DZD",
-            "availability": availability(product),
-            "itemCondition": "https://schema.org/NewCondition",
-        }
+    jsonld["offers"] = {
+        "@type": "Offer",
+        "url": canonical,
+        "price": price,
+        "priceCurrency": "DZD",
+        "availability": availability(product),
+        "itemCondition": "https://schema.org/NewCondition",
+    }
 
     rating = product.get("aggregateRating") or product.get("rating")
     if isinstance(rating, dict):
@@ -329,6 +329,17 @@ for product in products:
 
     body = f'''<main class="card product"><section><img class="photo" src="{html.escape(images[0], quote=True)}" alt="{html.escape(name, quote=True)}" loading="eager" decoding="async">{''.join(f'<div class="gallery"><img class="thumb" src="{html.escape(img, quote=True)}" alt="{html.escape(name, quote=True)}" loading="lazy"></div>' for img in images[1:5])}</section><section><h1>{html.escape(name)}</h1><div class="price">{html.escape(money(price)) if valid_price else 'السعر عند الطلب'}</div><p class="muted">{html.escape(description)}</p><p>الدفع عند الاستلام · توصيل إلى الولايات المتاحة</p><a class="buy" href="{html.escape(purchase_url, quote=True)}">⚡ عرض المنتج والشراء</a></section></main>'''
     write_page(root / "product" / slug / "index.html", name + " | Bazar Dzair", description, canonical, body, jsonld, images[0])
+    generated = (root / "product" / slug / "index.html").read_text(encoding="utf-8")
+    if 'content="index,follow' not in generated:
+        raise RuntimeError(f"Missing index directive: {slug}")
+    if f'<link rel="canonical" href="{canonical}">' not in generated:
+        raise RuntimeError(f"Canonical mismatch: {slug}")
+    if '"@type":"Product"' not in generated:
+        raise RuntimeError(f"Missing Product JSON-LD: {slug}")
+    if 'data:image/' in generated.lower():
+        raise RuntimeError(f"Base64 image leaked into generated HTML: {slug}")
+    if images[0].startswith(SITE) is False and not images[0].startswith("https://"):
+        raise RuntimeError(f"Invalid image URL: {images[0]}")
     product_urls.append((canonical, name, updated_date(product, today)))
     product_rows.append((canonical, name, product, slug))
 
