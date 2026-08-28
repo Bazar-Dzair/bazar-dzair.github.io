@@ -593,11 +593,8 @@ function goToProduct(id){
   const slug = productSlug(product.name);
   try{ localStorage.setItem("bazar_selected_product", JSON.stringify(product)); }catch(_e){}
 
-  // الرابط يحتوي على اسم المنتج فقط، بدون ID أو أرقام.
-  // صفحة المنتجات موجودة داخل /pr/، لذلك نحافظ على نفس المجلد
-  // ونضع اسم المنتج مباشرة في مسار الرابط.
-  const productUrl = new URL("product.html", window.location.href);
-  productUrl.searchParams.set("id", slug);
+  // استخدم صفحة SEO ثابتة وقابلة للزحف. صفحة الشراء الديناميكية تبقى متاحة من داخلها.
+  const productUrl = new URL("product/" + encodeURIComponent(slug) + "/", window.location.origin);
   window.location.href = productUrl.href;
 }
 
