@@ -6,12 +6,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>المنتج | Bazar Dzair</title>
 <meta id="metaDescription" name="description" content="صفحة شراء المنتج من متجر Bazar Dzair">
-<meta name="robots" content="noindex,follow">
+<meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#071b33">
 <script src="addons.js"></script>
 <!--SEO/OG تُحدّث ديناميكيًا حسب المنتج الحقيقي قبل إغلاق head--> 
 <meta property="og:locale" content="ar_DZ"><meta property="og:site_name" content="Bazar Dzair">
 <link id="canonical" rel="canonical">
+<meta id="ogTitle" property="og:title" content="المنتج | Bazar Dzair">
+<meta id="ogDescription" property="og:description" content="صفحة المنتج في متجر Bazar Dzair">
+<meta id="ogUrl" property="og:url" content="https://bazar-dzair.github.io/product.html">
 <style>
 :root{--navy:#071b33;--orange:#ff6a00;--green:#16a34a;--bg:#f5f7fa;--text:#172033;--muted:#667085;--border:#e4e7ec}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Tahoma,sans-serif;line-height:1.6}
@@ -71,6 +74,19 @@ function productSlug(name){
     .replace(/[^\p{L}\p{N}]+/gu,"-")
     .replace(/^-+|-+$/g,"");
 }
+
+// SEO: product.html?id=SLUG is the canonical, indexable URL for each product.
+// Set it immediately so Google never receives a canonical pointing to another URL.
+const productCanonicalUrl = (() => {
+  const value = id ? String(id) : "";
+  const url = new URL("product.html", window.location.origin);
+  if (value) url.searchParams.set("id", value);
+  return url.href;
+})();
+const canonicalEl = document.getElementById("canonical");
+if (canonicalEl) canonicalEl.href = productCanonicalUrl;
+const ogUrlEl = document.getElementById("ogUrl");
+if (ogUrlEl) ogUrlEl.content = productCanonicalUrl;
 let galleryImages=[];let galleryIndex=0;function render(p){product=p;const name=p.name||p.product||"منتج";const desc=p.description||p.desc||"منتج متوفر في متجر Bazar Dzair.";galleryImages=Array.isArray(p.images)&&p.images.length?p.images.filter(Boolean):[p.image||p.imageUrl||p.photo||"./logo.svg"];galleryIndex=0;
 
 document.title=name+" | Bazar Dzair";
@@ -111,10 +127,9 @@ if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:produc
 alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="success.html";},1000)};
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2400)}
 
-// ===== SEO: صفحة الشراء تبقى noindex، والصفحة الثابتة هي صفحة الفهرسة =====
+// ===== SEO: product.html?id=SLUG is the single canonical/indexable product URL =====
 function applyProductSEO(p,name,desc){
-  const slug=productSlug(name);
-  const url="https://bazar-dzair.github.io/product/"+encodeURIComponent(slug)+"/";
+  const url=productCanonicalUrl;
   const image=(Array.isArray(p.images)&&p.images[0])||p.image||p.imageUrl||p.photo||"https://bazar-dzair.github.io/logo.svg";
   const setMeta=(id,prop,content)=>{let el=document.getElementById(id);if(!el&&prop){el=document.createElement("meta");el.setAttribute(prop?"property":"name",prop||"name");el.id=id;document.head.appendChild(el);}if(el)el.content=content;};
   const setOG=(id,property,content)=>{let el=document.getElementById(id);if(!el){el=document.createElement("meta");el.setAttribute("property",property);el.id=id;document.head.appendChild(el);}el.content=content;};
