@@ -169,8 +169,10 @@ for product in products:
     count = slug_counts.get(base, 0)
     slug_counts[base] = count + 1
     slug = base if count == 0 else f"{base}-{count + 1}"
-    url = SITE + "product/" + urllib.parse.quote(slug, safe="-._~") + "/"
+    # The dynamic product template is the single canonical/indexable URL.
+    # Static /product/slug/ pages remain as crawlable landing pages but point to this canonical.
     dynamic_url = SITE + "product.html?id=" + urllib.parse.quote(slug, safe="-._~")
+    url = dynamic_url
     description = str(product.get("description") or product.get("desc") or f"شراء {name} من متجر Bazar Dzair.").strip()
     image = image_of(product)
     try:
