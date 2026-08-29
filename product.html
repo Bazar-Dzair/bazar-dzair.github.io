@@ -113,7 +113,7 @@ function toast(t){const x=document.getElementById("toast");x.textContent=t;x.cla
 // ===== SEO حقيقي لكل منتج =====
 function applyProductSEO(p,name,desc){
   const slug=productSlug(name);
-  const url="https://bazar-dzair.github.io/product.html?id="+encodeURIComponent(slug);
+  const url="https://bazar-dzair.github.io/product/"+encodeURIComponent(slug)+"/";
   const image=(Array.isArray(p.images)&&p.images[0])||p.image||p.imageUrl||p.photo||"https://bazar-dzair.github.io/logo.svg";
   const setMeta=(id,prop,content)=>{let el=document.getElementById(id);if(!el&&prop){el=document.createElement("meta");el.setAttribute(prop?"property":"name",prop||"name");el.id=id;document.head.appendChild(el);}if(el)el.content=content;};
   const setOG=(id,property,content)=>{let el=document.getElementById(id);if(!el){el=document.createElement("meta");el.setAttribute("property",property);el.id=id;document.head.appendChild(el);}el.content=content;};
