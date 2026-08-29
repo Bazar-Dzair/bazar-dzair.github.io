@@ -1,8 +1,6 @@
-Bazar Dzair - SEO architecture
+FINAL SEO ARCHITECTURE
 
-1) product.html?id=SLUG is the customer checkout template and remains noindex. It must NOT be in any sitemap.
-2) /product/SLUG/ is the indexable static SEO page. It must contain index,follow, a unique canonical, and Product JSON-LD in the initial HTML.
-3) GitHub Actions runs scripts/generate_static_products.py and regenerates product pages, images, and sitemaps from Firestore.
-4) After uploading this version, open GitHub > Actions > Generate SEO pages and sitemaps > Run workflow once. Wait for a green check.
-5) The workflow fails deliberately if a published product has no crawlable image or numeric price. This prevents invalid Merchant Listing pages from being published.
-6) Search Console should test /product/SLUG/, not /product.html?id=SLUG/.
+Checkout: /product.html?id=SLUG -> noindex, not in sitemap.
+SEO: /product/SLUG/ -> index,follow, self-canonical, Product JSON-LD in initial HTML.
+Workflow: Actions -> Generate SEO pages and sitemaps -> Run workflow.
+Search Console: test /product/SLUG/, not product.html?id=SLUG.
