@@ -67,7 +67,7 @@ products=[p for p in collection('products') if is_published(p) and (p.get('name'
 categories=[c for c in collection('categories') if c.get('name')]
 
 # Reset only generated SEO folders; never touch the live store files.
-for folder in (root/'product',root/'category'):
+for folder in (root/'product',root/'product-category'):
     if folder.exists():
         import shutil; shutil.rmtree(folder)
 
@@ -94,14 +94,14 @@ for c in categories:
     slug=base if n==0 else f'{base}-{n+1}'
     cid=str(c['_id'])
     matched=[x for x in product_urls if str(x[2].get('category') or '')==cid or str(x[2].get('category') or '').strip().lower()==name.strip().lower()]
-    url=SITE+'category/'+urllib.parse.quote(slug,safe='-._~')+'/'
+    url=SITE+'product-category/'+urllib.parse.quote(slug,safe='-._~')+'/'
     desc=f'تصفح منتجات {name} المتوفرة في متجر Bazar Dzair.'
     cards=[]
     for pu,pn,p,pslug in matched:
         cards.append(f'<article class="card"><img src="{html.escape(image_of(p),quote=True)}" alt="{html.escape(pn,quote=True)}"><h2>{html.escape(pn)}</h2><p class="price">{html.escape(money(p.get("price")))}</p><a class="btn" href="{html.escape(pu,quote=True)}">مشاهدة المنتج</a></article>')
     body=f'<p><a href="/">Bazar Dzair</a> / {html.escape(name)}</p><h1>{html.escape(name)}</h1><p>{html.escape(desc)}</p><section class="grid">'+(''.join(cards) or '<div class="card">لا توجد منتجات منشورة في هذا التصنيف حالياً.</div>')+'</section>'
     ld={'@context':'https://schema.org','@type':'CollectionPage','name':name,'description':desc,'url':url,'mainEntity':{'@type':'ItemList','itemListElement':[{'@type':'ListItem','position':i+1,'url':pu,'name':pn} for i,(pu,pn,_,_) in enumerate(matched)]}}
-    write_page(root/'category'/slug/'index.html',name+' | Bazar Dzair',desc,url,body,ld)
+    write_page(root/'product-category'/slug/'index.html',name+' | Bazar Dzair',desc,url,body,ld)
     cat_urls.append((url,name))
 
 # Sitemap index-like single sitemap with all public SEO URLs.
