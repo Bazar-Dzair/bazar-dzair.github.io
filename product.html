@@ -117,9 +117,7 @@ function toast(t){const x=document.getElementById("toast");x.textContent=t;x.cla
 function applyProductSEO(p,name,desc){
   const slug=productSlug(name);
   const url="https://bazar-dzair.github.io/product/"+encodeURIComponent(slug)+"/";
-  const rawImage=(Array.isArray(p.images)&&p.images[0])||p.image||p.imageUrl||p.photo||"https://bazar-dzair.github.io/logo.svg";
-  const image=String(rawImage).startsWith("data:")?"https://bazar-dzair.github.io/logo.svg":String(rawImage);
-  const productImages=(Array.isArray(p.images)?p.images:[p.image||p.imageUrl||p.photo]).filter(Boolean).map(x=>String(x)).filter(x=>!x.startsWith("data:")&&/^https?:\/\//i.test(x));
+  const image=(Array.isArray(p.images)&&p.images[0])||p.image||p.imageUrl||p.photo||"https://bazar-dzair.github.io/logo.svg";
   const setMeta=(id,prop,content)=>{let el=document.getElementById(id);if(!el&&prop){el=document.createElement("meta");el.setAttribute(prop?"property":"name",prop||"name");el.id=id;document.head.appendChild(el);}if(el)el.content=content;};
   const setOG=(id,property,content)=>{let el=document.getElementById(id);if(!el){el=document.createElement("meta");el.setAttribute("property",property);el.id=id;document.head.appendChild(el);}el.content=content;};
 
@@ -137,8 +135,9 @@ function applyProductSEO(p,name,desc){
     "@context":"https://schema.org/",
     "@type":"Product",
     "name":name,
-    "image":productImages.length?productImages.slice(0,5):[image],
+    "image":(Array.isArray(p.images)&&p.images.length?p.images.slice(0,5):[p.image].filter(Boolean)),
     "description":(p.description||p.desc||"").slice(0,500),
+    "brand":{"@type":"Brand","name":"Bazar Dzair"},
     "offers":{
       "@type":"Offer",
       "priceCurrency":"DZD",
@@ -148,10 +147,6 @@ function applyProductSEO(p,name,desc){
     }
   };
 
-  const brandName=String(p.brand||p.manufacturer||"").trim();
-  if(brandName)ld.brand={"@type":"Brand","name":brandName};
-  const sku=String(p.sku||p.reference||"").trim();
-  if(sku)ld.sku=sku;
   if(Number(p.stock)===0)ld.offers.availability="https://schema.org/OutOfStock";
 
   // نضيف aggregateRating فقط إذا كانت بيانات التقييم الحقيقية موجودة في المنتج.
@@ -257,8 +252,6 @@ async function load(){
     if(!cachedProduct) box.innerHTML='<div class="error"><h2>تعذر تحميل المنتج</h2><p>حاول تحديث الصفحة.</p><a class="back" href="./">العودة للمتجر</a></div>';
   }
 }
-// Use server-generated product data when available; Firestore remains the fallback for legacy/direct links.
-if(window.__STATIC_PRODUCT__){try{render(window.__STATIC_PRODUCT__);localStorage.setItem("bazar_selected_product",JSON.stringify(window.__STATIC_PRODUCT__));}catch(_e){}}
 load();
 </script>
 </body>

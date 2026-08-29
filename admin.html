@@ -972,7 +972,7 @@ window.render=()=>{
   }).join("");
 };
 
-async function compressImageToDataURL(file,maxSide=900,quality=0.62){
+async function compressImageToBlob(file,maxSide=900,quality=0.62){
   if(!file || !file.type.startsWith("image/")) throw new Error("ملف صورة غير صالح");
   if(file.type==="image/gif"){
     // GIFs are converted to a normal JPEG frame to keep Firestore usage small.
@@ -992,7 +992,7 @@ async function compressImageToDataURL(file,maxSide=900,quality=0.62){
   const ctx=canvas.getContext("2d",{alpha:false});
   ctx.fillStyle="#ffffff";ctx.fillRect(0,0,w,h);
   ctx.drawImage(img,0,0,w,h);
-  return canvas.toDataURL("image/jpeg",quality);
+  return new Promise(resolve=>canvas.toBlob(b=>resolve(b),"image/jpeg",quality));
 }
 
 function setBtnSaving(on){
@@ -1026,33 +1026,31 @@ window.save=async()=>{
     show("أكمل بيانات المنتج المطلوبة وأضف صورة واحدة على الأقل.","err");return;
   }
 
-  show("⏳ جاري تجهيز الصور...","ok");
-  const uploaded=[];
-  let totalBytes=0;
-
-  // معالجة الصور بالتوازي لتسريع الحفظ. كل صورة تُضغط لملاءمة Firestore.
+  show("⏳ جاري رفع الصور...","ok");
+  // رفع حقيقي إلى Firebase Storage: كل صورة تُضغط ثم تُرفع وتُرجع رابط https حقيقي
+  // (بدل تخزين base64 داخل Firestore) — هذا ما يتطلبه Google Merchant/Product schema.
+  const uploaded=new Array(selectedImages.length);
+  const ownerId=editing||("tmp-"+Date.now().toString(36));
   const tasks=[];
   for(let i=0;i<selectedImages.length && i<10;i++){
     const item=selectedImages[i];
-    if(item.existing){ uploaded.push(item.url); continue; }
-    tasks.push({idx:tasks.length, file:item.file, i});
+    if(item.existing){ uploaded[i]=item.url; continue; }
+    tasks.push({i,file:item.file});
   }
-  const results=await Promise.all(tasks.map(t=>compressImageToDataURL(t.file,700,0.55).catch(e=>{throw e;})));
-  for(let r=0;r<results.length;r++){
-    const dataUrl=results[r];
-    if(!dataUrl) continue;
-    const bytes=Math.ceil((dataUrl.length*3)/4);
-    totalBytes+=bytes;
-    // Firestore documents are limited to about 1 MiB.
-    // حافظ على هامش أمان ليظل المستند قابلًا للحفظ.
-    if(totalBytes>760000){
-      show("الصور كبيرة جدًا. اختر صورًا أقل حجمًا أو عددًا أقل (الحد الآمن ~760KB للصور).","err");
-      return;
-    }
-    uploaded.push(dataUrl);
+  try{
+    await Promise.all(tasks.map(async t=>{
+      const blob=await compressImageToBlob(t.file,1000,0.7);
+      const path=`products/${ownerId}/${Date.now().toString(36)}-${t.i}-${Math.random().toString(36).slice(2,8)}.jpg`;
+      const ref=storageRef(storage,path);
+      await uploadBytes(ref,blob,{contentType:"image/jpeg"});
+      uploaded[t.i]=await getDownloadURL(ref);
+    }));
+  }catch(e){
+    show("فشل رفع الصور: "+(e?.message||"خطأ غير معروف"),"err");
+    return;
   }
 
-  data.images=uploaded.slice(0,10);
+  data.images=uploaded.filter(Boolean).slice(0,10);
   data.image=data.images[0]||"";
 
   if(!data.images.length){
