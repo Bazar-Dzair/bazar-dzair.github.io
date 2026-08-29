@@ -529,7 +529,11 @@ const money=n=>Number(n).toLocaleString("ar-DZ")+" دج";
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 
 function getUrlCategory(){
-  try{return new URLSearchParams(window.location.search).get("category")||"all";}catch(_e){return "all";}
+  try{
+    const m=window.location.pathname.match(/\/product-category\/([^\/]+)\/?$/);
+    if(m) return decodeURIComponent(m[1]);
+    return new URLSearchParams(window.location.search).get("category")||"all";
+  }catch(_e){return "all";}
 }
 function findCategory(key){
   const wanted=String(key||"").trim().toLowerCase();
@@ -660,7 +664,7 @@ function filterCategory(category,fromUrl=false){
   if(category === "all"){
     updateCategorySeo(null);
     if(!fromUrl){
-      const u=new URL(window.location.href);u.searchParams.delete("category");history.replaceState(null,"",u.pathname+(u.search?u.search:"")+u.hash);
+      history.replaceState(null,"","/");
     }
     displayProducts(products);
     closeCategoryMenu();
@@ -674,7 +678,7 @@ function filterCategory(category,fromUrl=false){
   }
   updateCategorySeo(resolved);
   if(!fromUrl){
-    const u=new URL(window.location.href);u.searchParams.set("category",resolved.key);history.pushState(null,"",u.pathname+u.search+u.hash);
+    history.pushState(null,"","/product-category/"+encodeURIComponent(resolved.key)+"/");
   }
   const wanted=String(resolved.key).trim().toLowerCase();
   const result=products.filter(p=>String(p.category||"").trim().toLowerCase()===wanted);
