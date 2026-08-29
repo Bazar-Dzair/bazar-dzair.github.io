@@ -59,7 +59,10 @@ async function getFirebase(){
 }
 const firebaseConfig={apiKey:"AIzaSyBWdQ_AIy_2gOBl-bP1S1tLaGIqaZjpar8",authDomain:"bazar-dzair-33816.firebaseapp.com",projectId:"bazar-dzair-33816",storageBucket:"bazar-dzair-33816.firebasestorage.app",messagingSenderId:"51073161969",appId:"1:51073161969:web:cb75a3224bdca11ea8e750"};
 const shippingPrices={"01":1000,"02":600,"03":800,"04":600,"05":600,"06":600,"07":800,"08":950,"09":450,"10":550,"11":1200,"12":650,"13":600,"14":600,"15":550,"16":300,"17":800,"18":600,"19":600,"20":650,"21":600,"22":600,"23":600,"24":650,"25":600,"26":550,"27":650,"28":650,"29":600,"30":800,"31":600,"32":900,"33":1200,"34":600,"35":450,"36":650,"37":1100,"38":600,"39":800,"40":650,"41":650,"42":450,"43":650,"44":550,"45":800,"46":600,"47":800,"48":600,"49":1100,"50":null,"51":800,"52":1000,"53":1200,"54":null,"55":800,"56":null,"57":850,"58":850};
-const id=new URLSearchParams(location.search).get("id");const box=document.getElementById("product");let product=null,quantity=1;
+const queryId=new URLSearchParams(location.search).get("id");
+const pathMatch=location.pathname.match(/\/product\/([^\/]+)\/?$/);
+const id=pathMatch ? decodeURIComponent(pathMatch[1]) : queryId;
+const box=document.getElementById("product");let product=null,quantity=1;
 const money=n=>Number(n||0).toLocaleString("ar-DZ")+" دج";const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 function productSlug(name){
   return String(name||"product")
@@ -114,7 +117,9 @@ function toast(t){const x=document.getElementById("toast");x.textContent=t;x.cla
 function applyProductSEO(p,name,desc){
   const slug=productSlug(name);
   const url="https://bazar-dzair.github.io/product/"+encodeURIComponent(slug)+"/";
-  const image=(Array.isArray(p.images)&&p.images[0])||p.image||p.imageUrl||p.photo||"https://bazar-dzair.github.io/logo.svg";
+  const rawImage=(Array.isArray(p.images)&&p.images[0])||p.image||p.imageUrl||p.photo||"https://bazar-dzair.github.io/logo.svg";
+  const image=String(rawImage).startsWith("data:")?"https://bazar-dzair.github.io/logo.svg":String(rawImage);
+  const productImages=(Array.isArray(p.images)?p.images:[p.image||p.imageUrl||p.photo]).filter(Boolean).map(x=>String(x)).filter(x=>!x.startsWith("data:")&&/^https?:\/\//i.test(x));
   const setMeta=(id,prop,content)=>{let el=document.getElementById(id);if(!el&&prop){el=document.createElement("meta");el.setAttribute(prop?"property":"name",prop||"name");el.id=id;document.head.appendChild(el);}if(el)el.content=content;};
   const setOG=(id,property,content)=>{let el=document.getElementById(id);if(!el){el=document.createElement("meta");el.setAttribute("property",property);el.id=id;document.head.appendChild(el);}el.content=content;};
 
@@ -132,9 +137,8 @@ function applyProductSEO(p,name,desc){
     "@context":"https://schema.org/",
     "@type":"Product",
     "name":name,
-    "image":(Array.isArray(p.images)&&p.images.length?p.images.slice(0,5):[p.image].filter(Boolean)),
+    "image":productImages.length?productImages.slice(0,5):[image],
     "description":(p.description||p.desc||"").slice(0,500),
-    "brand":{"@type":"Brand","name":"Bazar Dzair"},
     "offers":{
       "@type":"Offer",
       "priceCurrency":"DZD",
@@ -144,6 +148,10 @@ function applyProductSEO(p,name,desc){
     }
   };
 
+  const brandName=String(p.brand||p.manufacturer||"").trim();
+  if(brandName)ld.brand={"@type":"Brand","name":brandName};
+  const sku=String(p.sku||p.reference||"").trim();
+  if(sku)ld.sku=sku;
   if(Number(p.stock)===0)ld.offers.availability="https://schema.org/OutOfStock";
 
   // نضيف aggregateRating فقط إذا كانت بيانات التقييم الحقيقية موجودة في المنتج.
@@ -249,6 +257,8 @@ async function load(){
     if(!cachedProduct) box.innerHTML='<div class="error"><h2>تعذر تحميل المنتج</h2><p>حاول تحديث الصفحة.</p><a class="back" href="./">العودة للمتجر</a></div>';
   }
 }
+// Use server-generated product data when available; Firestore remains the fallback for legacy/direct links.
+if(window.__STATIC_PRODUCT__){try{render(window.__STATIC_PRODUCT__);localStorage.setItem("bazar_selected_product",JSON.stringify(window.__STATIC_PRODUCT__));}catch(_e){}}
 load();
 </script>
 </body>
