@@ -103,7 +103,7 @@
 
 <section id="view-products" class="view hidden">
  <div class="page-head"><div><h1>المنتجات</h1><p>إدارة احترافية للمنتجات والمخزون بدون زر «إخفاء من المتجر» المباشر.</p></div><button class="orange-btn" onclick="showView('product',null,true)">＋ إنشاء منتج</button></div>
- <div class="panel"><div class="products-search"><input id="search" placeholder="🔎 ابحث باسم المنتج أو التصنيف أو الكود..." oninput="render()"><button type="button" onclick="migrateBase64Images()" style="white-space:nowrap;background:#e65c00;color:#fff;border:none;border-radius:8px;padding:0 14px;font-weight:700;cursor:pointer">🔄 إصلاح صور المنتجات القديمة</button></div><div id="migrateStatus" style="margin:6px 0 0;font-size:13px"></div><div id="list" class="products"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div></div>
+ <div class="panel"><div class="products-search"><input id="search" placeholder="🔎 ابحث باسم المنتج أو التصنيف أو الكود..." oninput="render()"><button type="button" onclick="migrateBase64Images()" style="white-space:nowrap;background:#e65c00;color:#fff;border:none;border-radius:8px;padding:0 14px;font-weight:700;cursor:pointer">🔄 إصلاح صور المنتجات القديمة</button><button type="button" onclick="bazarResetImgbbKey()" title="إعداد/تغيير مفتاح رفع الصور (ImgBB)" style="white-space:nowrap;background:#374151;color:#fff;border:none;border-radius:8px;padding:0 12px;font-weight:700;cursor:pointer">🔑</button></div><div id="migrateStatus" style="margin:6px 0 0;font-size:13px"></div><div id="list" class="products"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div></div>
 </section>
 
 <section id="view-orders" class="view hidden"><div class="page-head"><div><h1>الطلبات</h1><p>تابع طلبات العملاء وغيّر حالتها من نفس الصفحة.</p></div></div><div id="orders" class="products"><div class="empty-card">⏳ جاري تحميل الطلبات...</div></div></section>
@@ -723,6 +723,45 @@ appId:"1:51073161969:web:cb75a3224bdca11ea8e750"};
 const firebaseApp=initializeApp(config),db=getFirestore(firebaseApp),auth=getAuth(firebaseApp),storage=getStorage(firebaseApp);
 window.bazarDb=db;window.bazarDoc=doc;window.bazarSetDoc=setDoc;window.bazarGetDoc=getDoc;window.bazarServerTimestamp=serverTimestamp;window.bazarStorage=storage;window.bazarStorageRef=storageRef;window.bazarUploadBytes=uploadBytes;window.bazarGetDownloadURL=getDownloadURL;
 
+// ===== رفع الصور عبر ImgBB (مجاني 100%، بدون اشتراك أو بطاقة بنكية) =====
+// Firebase Storage يتطلب خطة Blaze (اشتراك) من Google، لذلك تم استبداله بـ ImgBB.
+// المفتاح مجاني: سجّل حساب مجاني على https://api.imgbb.com/ وخذ الـ API Key من هناك.
+function getImgbbKey(){
+  let k=localStorage.getItem("bazarImgbbKey");
+  if(!k){
+    k=(prompt("أدخل مفتاح ImgBB API (مجاني 100% — سجّل في https://api.imgbb.com/ وانسخ المفتاح من هناك):")||"").trim();
+    if(k) localStorage.setItem("bazarImgbbKey",k);
+  }
+  return k;
+}
+window.bazarResetImgbbKey=function(){
+  localStorage.removeItem("bazarImgbbKey");
+  const k=getImgbbKey();
+  if(k) alert("تم حفظ المفتاح الجديد ✅");
+};
+async function uploadToImgbb(blob){
+  const key=getImgbbKey();
+  if(!key) throw new Error("لم يتم إدخال مفتاح ImgBB. اضغط 🔑 لإعداده.");
+  const fd=new FormData();
+  fd.append("image",blob);
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),25000);
+  let res;
+  try{
+    res=await fetch("https://api.imgbb.com/1/upload?key="+encodeURIComponent(key),{method:"POST",body:fd,signal:controller.signal});
+  }catch(e){
+    if(e.name==="AbortError") throw new Error("انتهت مهلة رفع الصورة (25 ثانية). تحقق من الاتصال بالإنترنت.");
+    throw e;
+  }finally{ clearTimeout(timeout); }
+  let json;
+  try{ json=await res.json(); }catch(_e){ throw new Error("رد غير صالح من خدمة رفع الصور."); }
+  if(!res.ok||!json||!json.success){
+    const msg=json&&json.error&&json.error.message?json.error.message:("فشل الرفع (HTTP "+res.status+"). تأكد من صحة مفتاح ImgBB.");
+    throw new Error(msg);
+  }
+  return json.data.url||json.data.display_url;
+}
+
 const loginBox=document.getElementById("login");
 const appBox=document.getElementById("app");
 const emailInput=document.getElementById("email");
@@ -854,18 +893,19 @@ let ordersLoading=null;
 let addonsLoaded=false;
 
 // يحوّل صور المنتجات القديمة المخزّنة كـ base64 داخل Firestore إلى صور حقيقية
-// مرفوعة على Firebase Storage (روابط https)، تلقائيًا وبدون إعادة رفع يدوي.
+// مرفوعة على ImgBB (مجاني، بدون اشتراك)، تلقائيًا وبدون إعادة رفع يدوي.
 // لا يمس أي منتج صوره أصلاً روابط حقيقية.
 window.migrateBase64Images=async function(){
   const statusEl=document.getElementById("migrateStatus");
   const setStatus=(t,c)=>{if(statusEl){statusEl.textContent=t;statusEl.style.color=c==="err"?"#dc2626":c==="ok"?"#16a34a":"#374151"}};
-  if(!confirm("سيتم فحص كل المنتجات وتحويل الصور القديمة (base64) إلى روابط حقيقية على Firebase Storage. لن يتم المساس بالصور الجاهزة كروابط. متابعة؟"))return;
+  if(!confirm("سيتم فحص كل المنتجات وتحويل الصور القديمة (base64) إلى روابط حقيقية على ImgBB (مجاني). لن يتم المساس بالصور الجاهزة كروابط. متابعة؟"))return;
+  getImgbbKey(); // يطلب المفتاح مرة واحدة إذا لم يكن معدًا مسبقًا
   setStatus("⏳ جاري فحص المنتجات...","");
   let snap;
   try{ snap=await getDocs(collection(db,"products")); }
   catch(e){ setStatus("تعذر تحميل المنتجات: "+(e?.message||"خطأ غير معروف"),"err"); return; }
 
-  let fixedProducts=0, fixedImages=0, failed=0;
+  let fixedProducts=0, fixedImages=0, failed=0, consecutiveFailures=0;
   for(const d of snap.docs){
     const p=d.data();
     const imgs=Array.isArray(p.images)&&p.images.length?p.images.slice():(p.image?[p.image]:[]);
@@ -880,14 +920,18 @@ window.migrateBase64Images=async function(){
       if(!isBase64(newImgs[i])) continue;
       try{
         const blob=await (await fetch(newImgs[i])).blob();
-        const path=`products/${d.id}/${Date.now().toString(36)}-${i}-${Math.random().toString(36).slice(2,8)}.jpg`;
-        const ref=storageRef(storage,path);
-        await uploadBytes(ref,blob,{contentType:blob.type||"image/jpeg"});
-        newImgs[i]=await getDownloadURL(ref);
+        newImgs[i]=await uploadToImgbb(blob);
         fixedImages++;
+        consecutiveFailures=0;
       }catch(e){
         console.error("migrate image failed",d.id,i,e);
         anyFailedHere=true;
+        consecutiveFailures++;
+        setStatus(`⚠️ فشل في "${p.name||p.product||d.id}": ${e?.message||"خطأ غير معروف"}`,"err");
+        if(consecutiveFailures>=3){
+          setStatus(`⚠️ توقف الإصلاح: 3 محاولات رفع فشلت تباعًا (${e?.message||"خطأ غير معروف"}). تحقق من مفتاح ImgBB (اضغط 🔑) ثم أعد المحاولة.`,"err");
+          return;
+        }
       }
     }
     if(anyFailedHere)failed++;
@@ -1080,10 +1124,9 @@ window.save=async()=>{
   }
 
   show("⏳ جاري رفع الصور...","ok");
-  // رفع حقيقي إلى Firebase Storage: كل صورة تُضغط ثم تُرفع وتُرجع رابط https حقيقي
+  // رفع حقيقي إلى ImgBB (مجاني، بلا اشتراك): كل صورة تُضغط ثم تُرفع وتُرجع رابط https حقيقي
   // (بدل تخزين base64 داخل Firestore) — هذا ما يتطلبه Google Merchant/Product schema.
   const uploaded=new Array(selectedImages.length);
-  const ownerId=editing||("tmp-"+Date.now().toString(36));
   const tasks=[];
   for(let i=0;i<selectedImages.length && i<10;i++){
     const item=selectedImages[i];
@@ -1091,13 +1134,11 @@ window.save=async()=>{
     tasks.push({i,file:item.file});
   }
   try{
-    await Promise.all(tasks.map(async t=>{
+    // الرفع بالتتابع (وليس بالتوازي) لتفادي رفض ImgBB للطلبات الكثيرة دفعة واحدة.
+    for(const t of tasks){
       const blob=await compressImageToBlob(t.file,1000,0.7);
-      const path=`products/${ownerId}/${Date.now().toString(36)}-${t.i}-${Math.random().toString(36).slice(2,8)}.jpg`;
-      const ref=storageRef(storage,path);
-      await uploadBytes(ref,blob,{contentType:"image/jpeg"});
-      uploaded[t.i]=await getDownloadURL(ref);
-    }));
+      uploaded[t.i]=await uploadToImgbb(blob);
+    }
   }catch(e){
     show("فشل رفع الصور: "+(e?.message||"خطأ غير معروف"),"err");
     return;
