@@ -1,0 +1,29 @@
+name: Generate SEO product and category pages
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate static SEO pages from Firestore
+        run: python3 scripts/generate_static_products.py
+      - name: Commit generated SEO files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add product product-category sitemap.xml sitemap-products.xml sitemap-categories.xml
+          git rm -r --cached --ignore-unmatch category >/dev/null 2>&1 || true
+          if git diff --cached --quiet; then
+            echo 'No SEO changes.'
+          else
+            git commit -m 'chore: regenerate SEO product and category pages'
+            git push
+          fi
