@@ -90,7 +90,7 @@ jobs:
               if slug in seen:
                   continue
               seen.add(slug)
-              loc = SITE + "product.html?id=" + urllib.parse.quote(slug, safe="-._~")
+              loc = SITE + "product/" + urllib.parse.quote(slug, safe="-._~") + "/"
               lines.append(f'  <url><loc>{esc(loc)}</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>')
 
           lines.append("</urlset>")
