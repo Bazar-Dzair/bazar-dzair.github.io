@@ -83,7 +83,7 @@ for p in products:
     img=image_of(p)
     cat_id=str(p.get('category') or '')
     ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':desc[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':str(price),'availability':'https://schema.org/InStock'}}
-    body=f'''<p><a href="/">Bazar Dzair</a> / منتج</p><main class="card"><img src="{html.escape(img,quote=True)}" alt="{html.escape(name,quote=True)}"><h1>{html.escape(name)}</h1><p>{html.escape(desc)}</p><p class="price">{html.escape(money(price))}</p><a class="btn" href="/product.html?id={urllib.parse.quote(slug,safe='-._~')}">اشترِ الآن</a></main>'''
+    body=f'''<p><a href="/">Bazar Dzair</a> / منتج</p><main class="card"><img src="{html.escape(img,quote=True)}" alt="{html.escape(name,quote=True)}"><h1>{html.escape(name)}</h1><p>{html.escape(desc)}</p><p class="price">{html.escape(money(price))}</p><a class="btn" href="{SITE}product.html?id={urllib.parse.quote(slug,safe='-._~')}">اشترِ الآن</a></main>'''
     write_page(root/'product'/slug/'index.html',name+' | Bazar Dzair',desc[:155],url,body,ld)
     product_urls.append((url,name,p,slug))
 
