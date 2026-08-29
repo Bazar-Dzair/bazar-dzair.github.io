@@ -25,9 +25,9 @@ main{max-width:1180px;width:94%;margin:25px auto 60px}.crumb{color:var(--muted);
 </style>
 </head>
 <body>
-<header><div class="in"><a href="./">🛍️ Bazar Dzair</a><a class="backtop" href="./">← المتجر</a></div></header>
+<header><div class="in"><a href="/">🛍️ Bazar Dzair</a><a class="backtop" href="/">← المتجر</a></div></header>
 <main>
-<div class="crumb"><a href="./">الرئيسية</a> / تفاصيل المنتج</div>
+<div class="crumb"><a href="/">الرئيسية</a> / تفاصيل المنتج</div>
 <div id="product" class="product-card"><div class="loading">جاري تحميل المنتج...</div></div>
 <div id="checkout" class="checkout">
   <h2>📦 تأكيد الطلب</h2>
@@ -73,12 +73,12 @@ function productSlug(name){
     .replace(/[^\p{L}\p{N}]+/gu,"-")
     .replace(/^-+|-+$/g,"");
 }
-let galleryImages=[];let galleryIndex=0;function render(p){product=p;const name=p.name||p.product||"منتج";const desc=p.description||p.desc||"منتج متوفر في متجر Bazar Dzair.";galleryImages=Array.isArray(p.images)&&p.images.length?p.images.filter(Boolean):[p.image||p.imageUrl||p.photo||"./logo.svg"];galleryIndex=0;
+let galleryImages=[];let galleryIndex=0;function render(p){product=p;const name=p.name||p.product||"منتج";const desc=p.description||p.desc||"منتج متوفر في متجر Bazar Dzair.";galleryImages=Array.isArray(p.images)&&p.images.length?p.images.filter(Boolean):[p.image||p.imageUrl||p.photo||"/logo.svg"];galleryIndex=0;
 
 document.title=name+" | Bazar Dzair";
 const md=document.getElementById("metaDescription");if(md)md.content=String(desc).slice(0,155);
 applyProductSEO(p,name,desc);
-if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:name,price:Number(p.price||0),category:p.category||""});box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="الصورة السابقة">‹</button><img id="mainProductPhoto" class="photo" src="${esc(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='./logo.svg'"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="الصورة التالية">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${esc(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${p.badge?`<span class="badge">${esc(p.badge)}</span>`:""}</div><div class="info"><h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="trust"><div>💵<br><b>الدفع عند الاستلام</b></div><div>🚚<br><b>توصيل للولايات</b></div><div>🛡️<br><b>خدمة آمنة</b></div></div><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div><button class="buy" onclick="showCheckout()">⚡ اشترِ الآن</button><a class="back" href="./">← العودة للمتجر</a></div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=galleryImages[galleryIndex];const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
+if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:name,price:Number(p.price||0),category:p.category||""});box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="الصورة السابقة">‹</button><img id="mainProductPhoto" class="photo" src="${esc(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="الصورة التالية">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${esc(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${p.badge?`<span class="badge">${esc(p.badge)}</span>`:""}</div><div class="info"><h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="trust"><div>💵<br><b>الدفع عند الاستلام</b></div><div>🚚<br><b>توصيل للولايات</b></div><div>🛡️<br><b>خدمة آمنة</b></div></div><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div><button class="buy" onclick="showCheckout()">⚡ اشترِ الآن</button><a class="back" href="/">← العودة للمتجر</a></div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=galleryImages[galleryIndex];const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
 window.changeQty=x=>{quantity=Math.max(1,quantity+x);document.getElementById("qty").textContent=quantity;document.getElementById("checkoutProduct").textContent=(product.name||product.product)+" × "+quantity+" — "+money(product.price*quantity);updateTotal()};
 window.showCheckout=()=>{const c=document.getElementById("checkout");c.classList.add("show");c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>document.getElementById("customerName").focus(),350)};
 function updateTotal(){const w=document.getElementById("wilaya").value,s=shippingPrices[w];const base=Number(product?.price||0)*quantity;document.getElementById("grandTotal").textContent=s==null?money(base):(money(base+s));document.getElementById("shipping").textContent=!w?"اختر الولاية لمعرفة سعر التوصيل.":s==null?"❌ التوصيل غير متوفر لهذه الولاية حالياً.":"🚚 سعر التوصيل: "+money(s)+" — المجموع: "+money(base+s)}
@@ -110,16 +110,14 @@ try{
   }
 }catch(e){}
 if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:product.name,price:total,category:product.category||"",qty:quantity,id:product.id||""});
-alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="success.html";},1000)};
+alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="/success.html";},1000)};
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2400)}
 
 // ===== SEO حقيقي لكل منتج =====
 function applyProductSEO(p,name,desc){
   const slug=productSlug(name);
   const url="https://bazar-dzair.github.io/product/"+encodeURIComponent(slug)+"/";
-  const rawImage=(Array.isArray(p.images)&&p.images[0])||p.image||p.imageUrl||p.photo||"https://bazar-dzair.github.io/logo.svg";
-  const image=String(rawImage).startsWith("data:")?"https://bazar-dzair.github.io/logo.svg":String(rawImage);
-  const productImages=(Array.isArray(p.images)?p.images:[p.image||p.imageUrl||p.photo]).filter(Boolean).map(x=>String(x)).filter(x=>!x.startsWith("data:")&&/^https?:\/\//i.test(x));
+  const image=(Array.isArray(p.images)&&p.images[0])||p.image||p.imageUrl||p.photo||"https://bazar-dzair.github.io/logo.svg";
   const setMeta=(id,prop,content)=>{let el=document.getElementById(id);if(!el&&prop){el=document.createElement("meta");el.setAttribute(prop?"property":"name",prop||"name");el.id=id;document.head.appendChild(el);}if(el)el.content=content;};
   const setOG=(id,property,content)=>{let el=document.getElementById(id);if(!el){el=document.createElement("meta");el.setAttribute("property",property);el.id=id;document.head.appendChild(el);}el.content=content;};
 
@@ -137,8 +135,9 @@ function applyProductSEO(p,name,desc){
     "@context":"https://schema.org/",
     "@type":"Product",
     "name":name,
-    "image":productImages.length?productImages.slice(0,5):[image],
+    "image":(Array.isArray(p.images)&&p.images.length?p.images.slice(0,5):[p.image].filter(Boolean)),
     "description":(p.description||p.desc||"").slice(0,500),
+    "brand":{"@type":"Brand","name":"Bazar Dzair"},
     "offers":{
       "@type":"Offer",
       "priceCurrency":"DZD",
@@ -148,10 +147,6 @@ function applyProductSEO(p,name,desc){
     }
   };
 
-  const brandName=String(p.brand||p.manufacturer||"").trim();
-  if(brandName)ld.brand={"@type":"Brand","name":brandName};
-  const sku=String(p.sku||p.reference||"").trim();
-  if(sku)ld.sku=sku;
   if(Number(p.stock)===0)ld.offers.availability="https://schema.org/OutOfStock";
 
   // نضيف aggregateRating فقط إذا كانت بيانات التقييم الحقيقية موجودة في المنتج.
@@ -257,8 +252,6 @@ async function load(){
     if(!cachedProduct) box.innerHTML='<div class="error"><h2>تعذر تحميل المنتج</h2><p>حاول تحديث الصفحة.</p><a class="back" href="./">العودة للمتجر</a></div>';
   }
 }
-// Use server-generated product data when available; Firestore remains the fallback for legacy/direct links.
-if(window.__STATIC_PRODUCT__){try{render(window.__STATIC_PRODUCT__);localStorage.setItem("bazar_selected_product",JSON.stringify(window.__STATIC_PRODUCT__));}catch(_e){}}
 load();
 </script>
 </body>
