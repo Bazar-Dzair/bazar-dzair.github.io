@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>المنتج | Bazar Dzair</title>
 <meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">
@@ -245,11 +245,11 @@ async function load(){
       try{localStorage.setItem("bazar_selected_product",JSON.stringify(p));}catch(_e){}
       render(p);
     }else if(!cachedProduct){
-      box.innerHTML='<div class="error"><h2>المنتج غير موجود</h2><p>تأكد من اسم المنتج في الرابط.</p><a class="back" href="./">العودة للمتجر</a></div>';
+      box.innerHTML='<div class="error"><h2>المنتج غير موجود</h2><p>تأكد من اسم المنتج في الرابط.</p><a class="back" href="/">العودة للمتجر</a></div>';
     }
   }catch(e){
     console.error(e);
-    if(!cachedProduct) box.innerHTML='<div class="error"><h2>تعذر تحميل المنتج</h2><p>حاول تحديث الصفحة.</p><a class="back" href="./">العودة للمتجر</a></div>';
+    if(!cachedProduct) box.innerHTML='<div class="error"><h2>تعذر تحميل المنتج</h2><p>حاول تحديث الصفحة.</p><a class="back" href="/">العودة للمتجر</a></div>';
   }
 }
 load();
