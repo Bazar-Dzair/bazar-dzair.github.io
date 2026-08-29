@@ -1,6 +1,0 @@
-FINAL SEO ARCHITECTURE
-
-Checkout: /product.html?id=SLUG -> noindex, not in sitemap.
-SEO: /product/SLUG/ -> index,follow, self-canonical, Product JSON-LD in initial HTML.
-Workflow: Actions -> Generate SEO pages and sitemaps -> Run workflow.
-Search Console: test /product/SLUG/, not product.html?id=SLUG.
