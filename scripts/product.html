@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>المنتج | Bazar Dzair</title>
+<meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">
+<meta name="theme-color" content="#071b33">
+<script src="addons.js"></script>
+<!--SEO/OG تُحدّث ديناميكيًا حسب المنتج الحقيقي قبل إغلاق head--> 
+<meta property="og:locale" content="ar_DZ"><meta property="og:site_name" content="Bazar Dzair">
+<link id="canonical" rel="canonical">
+<style>
+:root{--navy:#071b33;--orange:#ff6a00;--green:#16a34a;--bg:#f5f7fa;--text:#172033;--muted:#667085;--border:#e4e7ec}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Tahoma,sans-serif;line-height:1.6}
+button,input,select{font:inherit}button{cursor:pointer}a{text-decoration:none}
+header{background:var(--navy);color:#fff;position:sticky;top:0;z-index:20;box-shadow:0 3px 15px #0002}header .in{max-width:1180px;width:94%;margin:auto;min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:10px}header a{color:#fff;font-weight:800}header .backtop{border:1px solid #ffffff33;padding:8px 13px;border-radius:10px;font-size:13px}
+main{max-width:1180px;width:94%;margin:25px auto 60px}.crumb{color:var(--muted);font-size:13px;margin-bottom:12px}.crumb a{color:var(--navy);font-weight:700}
+.product-card{background:#fff;border:1px solid var(--border);border-radius:24px;box-shadow:0 8px 30px #0000000c;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:35px;padding:25px;overflow:hidden;align-items:stretch}
+.photo-wrap{background:#f8fafc;border-radius:18px;min-height:0;padding:12px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;min-width:0}.main-photo-box{width:100%;aspect-ratio:1 / 1;height:auto;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border-radius:16px;background:#fff}.photo{width:100%;height:100%;object-fit:contain;display:block}.gallery-arrow{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;border-radius:50%;background:#fff;color:#172033;font-size:28px;box-shadow:0 4px 16px #0002;z-index:2}.gallery-arrow.prev{left:12px}.gallery-arrow.next{right:12px}.gallery-count{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:#071b33dd;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px;z-index:2}.thumbs{width:100%;display:flex;gap:10px;overflow-x:auto;padding:12px 4px 4px;scrollbar-width:thin}.thumb{flex:0 0 78px;height:78px;aspect-ratio:1 / 1;border:2px solid transparent;border-radius:11px;background:#fff;padding:3px;overflow:hidden;cursor:pointer}.thumb.active{border-color:var(--green)}.thumb img{width:100%;height:100%;object-fit:contain;border-radius:8px}.badge{position:absolute;top:14px;right:14px;background:var(--orange);color:#fff;padding:5px 10px;border-radius:9px;font-size:12px;font-weight:700;z-index:3}
+.info{padding:15px 5px;min-width:0;overflow:hidden}.title{font-size:34px;line-height:1.25;margin:5px 0 15px;overflow-wrap:anywhere;word-break:normal}.price{font-size:31px;color:var(--orange);font-weight:900;margin-bottom:15px}.desc{color:var(--muted);font-size:16px;white-space:pre-line;margin-bottom:20px;overflow-wrap:anywhere}.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}.trust div{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;font-size:12px}.qty{display:flex;width:max-content;border:1px solid var(--border);border-radius:11px;overflow:hidden;margin:15px 0}.qty button{border:0;background:#fff;width:44px;height:44px;font-size:20px}.qty span{min-width:45px;text-align:center;padding-top:9px;font-weight:700}.buy{width:100%;border:0;border-radius:13px;background:var(--green);color:#fff;padding:15px;font-weight:800;font-size:18px;box-shadow:0 5px 15px #16a34a30}.buy:hover{filter:brightness(.96)}
+.checkout{display:none;background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:0 8px 30px #0000000c;margin-top:20px;padding:25px}.checkout.show{display:block}.checkout h2{margin-top:0}.checkout-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{width:100%;border:1px solid var(--border);border-radius:10px;padding:13px;outline:none;background:#fff}.field:focus{border-color:var(--orange);box-shadow:0 0 0 3px #ff6a0014}.full{grid-column:1/-1}.shipping{background:#f8fafc;border-radius:12px;padding:12px;margin-top:10px;color:var(--muted)}.total{display:flex;justify-content:space-between;font-size:20px;font-weight:800;margin-top:14px;border-top:1px solid var(--border);padding-top:14px}.confirm{width:100%;border:0;border-radius:12px;background:var(--orange);color:#fff;padding:15px;margin-top:12px;font-weight:800}.small{color:var(--muted);font-size:12px;margin-top:8px}.back{display:inline-block;background:var(--navy);color:#fff;padding:12px 17px;border-radius:10px;margin-top:12px}.loading,.error{text-align:center;padding:60px;background:#fff;border-radius:20px}.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,100px);background:var(--navy);color:#fff;padding:12px 20px;border-radius:12px;z-index:50;transition:.25s}.toast.show{transform:translate(-50%,0)}
+@media(max-width:800px){main{margin-top:15px}.product-card{grid-template-columns:1fr;padding:12px;gap:10px;border-radius:18px}.photo-wrap{min-height:0}.main-photo-box{height:auto;aspect-ratio:1 / 1}.thumb{flex-basis:68px;height:68px}.gallery-arrow{width:38px;height:38px;font-size:24px}.info{padding:10px}.title{font-size:25px}.price{font-size:25px}.trust{grid-template-columns:1fr 1fr 1fr}.checkout-grid{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<header><div class="in"><a href="./">🛍️ Bazar Dzair</a><a class="backtop" href="./">← المتجر</a></div></header>
+<main>
+<div class="crumb"><a href="./">الرئيسية</a> / تفاصيل المنتج</div>
+<div id="product" class="product-card"><div class="loading">جاري تحميل المنتج...</div></div>
+<div id="checkout" class="checkout">
+  <h2>📦 تأكيد الطلب</h2>
+  <div id="checkoutProduct" class="small"></div>
+  <div class="checkout-grid" style="margin-top:14px">
+    <input class="field" id="customerName" placeholder="الاسم واللقب *">
+    <input class="field" id="customerPhone" type="tel" inputmode="tel" placeholder="رقم الهاتف *">
+    <select class="field" id="wilaya"><option value="">اختر الولاية *</option>
+<option value="01">01 - أدرار</option><option value="02">02 - الشلف</option><option value="03">03 - الأغواط</option><option value="04">04 - أم البواقي</option><option value="05">05 - باتنة</option><option value="06">06 - بجاية</option><option value="07">07 - بسكرة</option><option value="08">08 - بشار</option><option value="09">09 - البليدة</option><option value="10">10 - البويرة</option><option value="11">11 - تمنراست</option><option value="12">12 - تبسة</option><option value="13">13 - تلمسان</option><option value="14">14 - تيارت</option><option value="15">15 - تيزي وزو</option><option value="16">16 - الجزائر</option><option value="17">17 - الجلفة</option><option value="18">18 - جيجل</option><option value="19">19 - سطيف</option><option value="20">20 - سعيدة</option><option value="21">21 - سكيكدة</option><option value="22">22 - سيدي بلعباس</option><option value="23">23 - عنابة</option><option value="24">24 - قالمة</option><option value="25">25 - قسنطينة</option><option value="26">26 - المدية</option><option value="27">27 - مستغانم</option><option value="28">28 - المسيلة</option><option value="29">29 - معسكر</option><option value="30">30 - ورقلة</option><option value="31">31 - وهران</option><option value="32">32 - البيض</option><option value="33">33 - إليزي</option><option value="34">34 - برج بوعريريج</option><option value="35">35 - بومرداس</option><option value="36">36 - الطارف</option><option value="37">37 - تندوف</option><option value="38">38 - تيسمسيلت</option><option value="39">39 - الوادي</option><option value="40">40 - خنشلة</option><option value="41">41 - سوق أهراس</option><option value="42">42 - تيبازة</option><option value="43">43 - ميلة</option><option value="44">44 - عين الدفلى</option><option value="45">45 - النعامة</option><option value="46">46 - عين تموشنت</option><option value="47">47 - غرداية</option><option value="48">48 - غليزان</option><option value="49">49 - تيميمون</option><option value="50">50 - برج باجي مختار</option><option value="51">51 - أولاد جلال</option><option value="52">52 - بني عباس</option><option value="53">53 - إن صالح</option><option value="54">54 - إن قزام</option><option value="55">55 - تقرت</option><option value="56">56 - جانت</option><option value="57">57 - المغير</option><option value="58">58 - المنيعة</option></select>
+    <input class="field" id="address" placeholder="العنوان / البلدية *">
+  </div>
+  <div id="shipping" class="shipping">اختر الولاية لمعرفة سعر التوصيل.</div>
+  <div class="total"><span>المجموع</span><span id="grandTotal">—</span></div>
+  <button class="confirm" onclick="submitOrder()">✅ تأكيد الطلب بالدفع عند الاستلام</button>
+  <div class="small">سيتم فتح واتساب لإرسال تفاصيل الطلب. لا تدفع أي مبلغ الآن.</div>
+</div>
+</main>
+<div id="toast" class="toast"></div>
+<script type="module">
+let firebasePromise=null;
+async function getFirebase(){
+  if(!firebasePromise){
+    firebasePromise=Promise.all([
+      import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js")
+    ]).then(([app,store])=>({...app,...store}));
+  }
+  return firebasePromise;
+}
+const firebaseConfig={apiKey:"AIzaSyBWdQ_AIy_2gOBl-bP1S1tLaGIqaZjpar8",authDomain:"bazar-dzair-33816.firebaseapp.com",projectId:"bazar-dzair-33816",storageBucket:"bazar-dzair-33816.firebasestorage.app",messagingSenderId:"51073161969",appId:"1:51073161969:web:cb75a3224bdca11ea8e750"};
+const shippingPrices={"01":1000,"02":600,"03":800,"04":600,"05":600,"06":600,"07":800,"08":950,"09":450,"10":550,"11":1200,"12":650,"13":600,"14":600,"15":550,"16":300,"17":800,"18":600,"19":600,"20":650,"21":600,"22":600,"23":600,"24":650,"25":600,"26":550,"27":650,"28":650,"29":600,"30":800,"31":600,"32":900,"33":1200,"34":600,"35":450,"36":650,"37":1100,"38":600,"39":800,"40":650,"41":650,"42":450,"43":650,"44":550,"45":800,"46":600,"47":800,"48":600,"49":1100,"50":null,"51":800,"52":1000,"53":1200,"54":null,"55":800,"56":null,"57":850,"58":850};
+const queryId=new URLSearchParams(location.search).get("id");
+const pathMatch=location.pathname.match(/\/product\/([^\/]+)\/?$/);
+const id=pathMatch ? decodeURIComponent(pathMatch[1]) : queryId;
+const box=document.getElementById("product");let product=null,quantity=1;
+const money=n=>Number(n||0).toLocaleString("ar-DZ")+" دج";const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+function productSlug(name){
+  return String(name||"product")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}]+/gu,"-")
+    .replace(/^-+|-+$/g,"");
+}
+let galleryImages=[];let galleryIndex=0;function render(p){product=p;const name=p.name||p.product||"منتج";const desc=p.description||p.desc||"منتج متوفر في متجر Bazar Dzair.";galleryImages=Array.isArray(p.images)&&p.images.length?p.images.filter(Boolean):[p.image||p.imageUrl||p.photo||"./logo.svg"];galleryIndex=0;
+
+document.title=name+" | Bazar Dzair";
+const md=document.getElementById("metaDescription");if(md)md.content=String(desc).slice(0,155);
+applyProductSEO(p,name,desc);
+if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:name,price:Number(p.price||0),category:p.category||""});box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="الصورة السابقة">‹</button><img id="mainProductPhoto" class="photo" src="${esc(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='./logo.svg'"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="الصورة التالية">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${esc(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${p.badge?`<span class="badge">${esc(p.badge)}</span>`:""}</div><div class="info"><h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="trust"><div>💵<br><b>الدفع عند الاستلام</b></div><div>🚚<br><b>توصيل للولايات</b></div><div>🛡️<br><b>خدمة آمنة</b></div></div><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div><button class="buy" onclick="showCheckout()">⚡ اشترِ الآن</button><a class="back" href="./">← العودة للمتجر</a></div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=galleryImages[galleryIndex];const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
+window.changeQty=x=>{quantity=Math.max(1,quantity+x);document.getElementById("qty").textContent=quantity;document.getElementById("checkoutProduct").textContent=(product.name||product.product)+" × "+quantity+" — "+money(product.price*quantity);updateTotal()};
+window.showCheckout=()=>{const c=document.getElementById("checkout");c.classList.add("show");c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>document.getElementById("customerName").focus(),350)};
+function updateTotal(){const w=document.getElementById("wilaya").value,s=shippingPrices[w];const base=Number(product?.price||0)*quantity;document.getElementById("grandTotal").textContent=s==null?money(base):(money(base+s));document.getElementById("shipping").textContent=!w?"اختر الولاية لمعرفة سعر التوصيل.":s==null?"❌ التوصيل غير متوفر لهذه الولاية حالياً.":"🚚 سعر التوصيل: "+money(s)+" — المجموع: "+money(base+s)}
+document.getElementById("wilaya").addEventListener("change",updateTotal);
+window.submitOrder=async()=>{if(!product)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}const s=shippingPrices[w];if(s==null){toast("التوصيل غير متوفر لهذه الولاية ❌");return}const {initializeApp,getFirestore,collection,addDoc}=await getFirebase();const app=initializeApp(firebaseConfig);const db=getFirestore(app);const total=Number(product.price||0)*quantity+s;
+await addDoc(collection(db, "orders"), {
+  customerName: n,
+  customerPhone: ph,
+  wilaya: wn,
+  address: a,
+  product: product.name,
+  quantity: quantity,
+  price: product.price,
+  shipping: s,
+  total: total,
+  status: "جديد",
+  createdAt: new Date()
+});fetch("https://api.telegram.org/bot8899974981:AAHJIh0varMd1ht-u1Q9rV8A8kPnf0cpmhE/sendMessage",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:"1636163793",text:`🛒 طلب جديد\n👤 الاسم: ${n}\n📞 الهاتف: ${ph}\n📍 الولاية: ${wn}\n🏠 العنوان: ${a}\n📦 المنتج: ${product.name}\n🔢 الكمية: ${quantity}\n💰 المجموع: ${total} دج`})});
+try{
+  const addonsCfg=window.__bazarAddons||{};
+  const gs=addonsCfg.googleSheets||{};
+  const endpoint=typeof gs.endpoint==="string"?gs.endpoint.trim():"";
+  const fieldChoice=Array.isArray(gs.fields)&&gs.fields.length?gs.fields:["customerName","customerPhone","wilaya","product","quantity","total"];
+  if(gs.enabled===true && endpoint){
+    const payload={};
+    const map={customerName:n,customerPhone:ph,wilaya:wn,address:a,product:product.name,quantity:quantity,price:Number(product.price||0),shipping:s,total:total,status:"جديد",createdAt:new Date().toISOString(),order:product.id||""};
+    fieldChoice.forEach(f=>{if(map[f]!==undefined)payload[f]=map[f];});
+    fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}).catch(()=>{});
+  }
+}catch(e){}
+if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:product.name,price:total,category:product.category||"",qty:quantity,id:product.id||""});
+alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="success.html";},1000)};
+function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2400)}
+
+// ===== SEO حقيقي لكل منتج =====
+function applyProductSEO(p,name,desc){
+  const slug=productSlug(name);
+  const url="https://bazar-dzair.github.io/product/"+encodeURIComponent(slug)+"/";
+  const image=(Array.isArray(p.images)&&p.images[0])||p.image||p.imageUrl||p.photo||"https://bazar-dzair.github.io/logo.svg";
+  const setMeta=(id,prop,content)=>{let el=document.getElementById(id);if(!el&&prop){el=document.createElement("meta");el.setAttribute(prop?"property":"name",prop||"name");el.id=id;document.head.appendChild(el);}if(el)el.content=content;};
+  const setOG=(id,property,content)=>{let el=document.getElementById(id);if(!el){el=document.createElement("meta");el.setAttribute("property",property);el.id=id;document.head.appendChild(el);}el.content=content;};
+
+  document.querySelector('link[rel="canonical"]')&&(document.querySelector('link[rel="canonical"]').href=url);
+  setOG("ogTitle","og:title",name);
+  setOG("ogDescription","og:description",String(p.description||p.desc||"").slice(0,155));
+  setOG("ogUrl","og:url",url);
+  setOG("ogImage","og:image",image);
+  setMeta("twitterCard","name","summary_large_image");
+  if(!document.querySelector('meta[name="twitter:title"]')){const t=document.createElement("meta");t.name="twitter:title";t.content=name;document.head.appendChild(t);}
+  if(!document.querySelector('meta[name="twitter:description"]')){const t=document.createElement("meta");t.name="twitter:description";t.content=String(p.description||p.desc||"").slice(0,155);document.head.appendChild(t);}
+
+  // Product JSON-LD — بيانات حقيقية فقط، بدون اختلاق تقييمات أو مراجعات.
+  const ld={
+    "@context":"https://schema.org/",
+    "@type":"Product",
+    "name":name,
+    "image":(Array.isArray(p.images)&&p.images.length?p.images.slice(0,5):[p.image].filter(Boolean)),
+    "description":(p.description||p.desc||"").slice(0,500),
+    "brand":{"@type":"Brand","name":"Bazar Dzair"},
+    "offers":{
+      "@type":"Offer",
+      "priceCurrency":"DZD",
+      "price":Number(p.price||0),
+      "availability":"https://schema.org/InStock",
+      "url":url
+    }
+  };
+
+  if(Number(p.stock)===0)ld.offers.availability="https://schema.org/OutOfStock";
+
+  // نضيف aggregateRating فقط إذا كانت بيانات التقييم الحقيقية موجودة في المنتج.
+  const rating = p.aggregateRating || p.rating;
+  const ratingValue = Number(rating?.ratingValue ?? rating?.value);
+  const reviewCount = Number(rating?.reviewCount ?? rating?.count);
+
+  if(
+    Number.isFinite(ratingValue) &&
+    ratingValue >= 1 &&
+    ratingValue <= 5 &&
+    Number.isFinite(reviewCount) &&
+    reviewCount > 0
+  ){
+    ld.aggregateRating={
+      "@type":"AggregateRating",
+      "ratingValue":ratingValue,
+      "reviewCount":reviewCount
+    };
+  }
+
+  // نضيف review فقط إذا كان المنتج يحتوي على مراجعة حقيقية محفوظة.
+  const reviews = Array.isArray(p.reviews) ? p.reviews : [];
+  const validReviews = reviews.filter(r =>
+    r &&
+    String(r.text || r.reviewBody || "").trim() &&
+    String(r.author || r.authorName || "").trim() &&
+    r.datePublished
+  );
+
+  if(validReviews.length){
+    ld.review = validReviews.slice(0,10).map(r=>({
+      "@type":"Review",
+      "author":{
+        "@type":"Person",
+        "name":String(r.author || r.authorName).trim()
+      },
+      "datePublished":String(r.datePublished),
+      "reviewBody":String(r.text || r.reviewBody).trim(),
+      ...(Number.isFinite(Number(r.ratingValue)) ? {
+        "reviewRating":{
+          "@type":"Rating",
+          "ratingValue":Number(r.ratingValue),
+          "bestRating":5,
+          "worstRating":1
+        }
+      } : {})
+    }));
+  }
+
+  const existing=document.getElementById("bazar_product_jsonld");
+  if(existing){
+    existing.textContent=JSON.stringify(ld);
+  }else{
+    const s=document.createElement("script");
+    s.type="application/ld+json";
+    s.id="bazar_product_jsonld";
+    s.text=JSON.stringify(ld);
+    document.head.appendChild(s);
+  }
+}
+async function load(){
+  let cachedProduct=null;
+  try{
+    const cp=JSON.parse(localStorage.getItem("bazar_selected_product")||"null");
+    if(cp && (!id || productSlug(cp.name||cp.product)===decodeURIComponent(id) || cp.firestoreId===id)) cachedProduct=cp;
+  }catch(_e){}
+  if(cachedProduct) render(cachedProduct);
+
+  try{
+    const {initializeApp,getFirestore,doc,getDoc,collection,getDocs}=await getFirebase();
+    const app=initializeApp(firebaseConfig);
+    const db=getFirestore(app);
+    let p=null;
+    if(id){
+      // الروابط الجديدة هي slug؛ لا نرسل طلب Firestore إضافي لها.
+      // نحتفظ بـ getDoc فقط للروابط القديمة التي كانت تحتوي على Firestore ID.
+      const isLegacyFirestoreId=/^[A-Za-z0-9]{20}$/.test(id);
+      if(isLegacyFirestoreId){
+        try{
+          const snap=await getDoc(doc(db,"products",id));
+          if(snap.exists()) p={...snap.data(),firestoreId:snap.id};
+        }catch(e){}
+      }
+      if(!p){
+        const wanted=decodeURIComponent(id);
+        const all=await getDocs(collection(db,"products"));
+        all.forEach(snap=>{
+          if(p)return;
+          const data=snap.data();
+          if(productSlug(data.name||data.product)===wanted || String(data.name||data.product||"").toLowerCase()===wanted.toLowerCase()) p={...data,firestoreId:snap.id};
+        });
+      }
+    }
+    if(p){
+      try{localStorage.setItem("bazar_selected_product",JSON.stringify(p));}catch(_e){}
+      render(p);
+    }else if(!cachedProduct){
+      box.innerHTML='<div class="error"><h2>المنتج غير موجود</h2><p>تأكد من اسم المنتج في الرابط.</p><a class="back" href="./">العودة للمتجر</a></div>';
+    }
+  }catch(e){
+    console.error(e);
+    if(!cachedProduct) box.innerHTML='<div class="error"><h2>تعذر تحميل المنتج</h2><p>حاول تحديث الصفحة.</p><a class="back" href="./">العودة للمتجر</a></div>';
+  }
+}
+load();
+</script>
+</body>
+</html>
