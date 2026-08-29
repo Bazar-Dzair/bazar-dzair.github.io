@@ -103,7 +103,7 @@
 
 <section id="view-products" class="view hidden">
  <div class="page-head"><div><h1>المنتجات</h1><p>إدارة احترافية للمنتجات والمخزون بدون زر «إخفاء من المتجر» المباشر.</p></div><button class="orange-btn" onclick="showView('product',null,true)">＋ إنشاء منتج</button></div>
- <div class="panel"><div class="products-search"><input id="search" placeholder="🔎 ابحث باسم المنتج أو التصنيف أو الكود..." oninput="render()"></div><div id="list" class="products"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div></div>
+ <div class="panel"><div class="products-search"><input id="search" placeholder="🔎 ابحث باسم المنتج أو التصنيف أو الكود..." oninput="render()"><button type="button" onclick="migrateBase64Images()" style="white-space:nowrap;background:#e65c00;color:#fff;border:none;border-radius:8px;padding:0 14px;font-weight:700;cursor:pointer">🔄 إصلاح صور المنتجات القديمة</button></div><div id="migrateStatus" style="margin:6px 0 0;font-size:13px"></div><div id="list" class="products"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div></div>
 </section>
 
 <section id="view-orders" class="view hidden"><div class="page-head"><div><h1>الطلبات</h1><p>تابع طلبات العملاء وغيّر حالتها من نفس الصفحة.</p></div></div><div id="orders" class="products"><div class="empty-card">⏳ جاري تحميل الطلبات...</div></div></section>
@@ -852,6 +852,59 @@ let productsLoading=null;
 let ordersLoaded=false;
 let ordersLoading=null;
 let addonsLoaded=false;
+
+// يحوّل صور المنتجات القديمة المخزّنة كـ base64 داخل Firestore إلى صور حقيقية
+// مرفوعة على Firebase Storage (روابط https)، تلقائيًا وبدون إعادة رفع يدوي.
+// لا يمس أي منتج صوره أصلاً روابط حقيقية.
+window.migrateBase64Images=async function(){
+  const statusEl=document.getElementById("migrateStatus");
+  const setStatus=(t,c)=>{if(statusEl){statusEl.textContent=t;statusEl.style.color=c==="err"?"#dc2626":c==="ok"?"#16a34a":"#374151"}};
+  if(!confirm("سيتم فحص كل المنتجات وتحويل الصور القديمة (base64) إلى روابط حقيقية على Firebase Storage. لن يتم المساس بالصور الجاهزة كروابط. متابعة؟"))return;
+  setStatus("⏳ جاري فحص المنتجات...","");
+  let snap;
+  try{ snap=await getDocs(collection(db,"products")); }
+  catch(e){ setStatus("تعذر تحميل المنتجات: "+(e?.message||"خطأ غير معروف"),"err"); return; }
+
+  let fixedProducts=0, fixedImages=0, failed=0;
+  for(const d of snap.docs){
+    const p=d.data();
+    const imgs=Array.isArray(p.images)&&p.images.length?p.images.slice():(p.image?[p.image]:[]);
+    if(!imgs.length) continue;
+    const isBase64=s=>typeof s==="string"&&s.startsWith("data:");
+    if(!imgs.some(isBase64)) continue; // كل الصور روابط حقيقية أصلاً
+
+    setStatus(`⏳ جاري إصلاح: ${p.name||p.product||d.id}...`,"");
+    const newImgs=imgs.slice();
+    let anyFailedHere=false;
+    for(let i=0;i<newImgs.length;i++){
+      if(!isBase64(newImgs[i])) continue;
+      try{
+        const blob=await (await fetch(newImgs[i])).blob();
+        const path=`products/${d.id}/${Date.now().toString(36)}-${i}-${Math.random().toString(36).slice(2,8)}.jpg`;
+        const ref=storageRef(storage,path);
+        await uploadBytes(ref,blob,{contentType:blob.type||"image/jpeg"});
+        newImgs[i]=await getDownloadURL(ref);
+        fixedImages++;
+      }catch(e){
+        console.error("migrate image failed",d.id,i,e);
+        anyFailedHere=true;
+      }
+    }
+    if(anyFailedHere)failed++;
+    try{
+      await updateDoc(doc(db,"products",d.id),{images:newImgs,image:newImgs[0]||"",updatedAt:serverTimestamp()});
+      fixedProducts++;
+    }catch(e){
+      console.error("update product failed",d.id,e);
+      failed++;
+    }
+  }
+  productsLoaded=false;
+  await window.bazarLoadProducts(true);
+  if(failed) setStatus(`تم إصلاح ${fixedProducts} منتج (${fixedImages} صورة). فشل جزء من العملية في ${failed} حالة — أعد المحاولة.`,"err");
+  else if(fixedProducts) setStatus(`✅ تم إصلاح ${fixedProducts} منتج (${fixedImages} صورة) بنجاح. الآن شغّل GitHub Action لإعادة توليد صفحات SEO.`,"ok");
+  else setStatus("✅ لا توجد صور قديمة (base64) — كل الصور روابط حقيقية أصلاً.","ok");
+};
 
 window.bazarLoadProducts=async function(force=false){
   if(productsLoading)return productsLoading;
