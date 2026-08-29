@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, re, html, unicodedata, urllib.parse, urllib.request, base64
+import json, re, html, unicodedata, urllib.parse, urllib.request
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -47,41 +47,10 @@ def money(x):
     except: return 'السعر عند الطلب'
 
 
-def image_values(p):
-    imgs=p.get('images') if isinstance(p.get('images'),list) else []
-    vals=[x for x in imgs if x]
-    if not vals:
-        vals=[p.get('image') or p.get('imageUrl') or p.get('photo')]
-    return [str(x) for x in vals if x]
-
-def absolute_image_url(img):
-    img=str(img or '').strip()
-    if img.startswith(('https://','http://')): return img
-    if img.startswith('//'): return 'https:'+img
-    if img.startswith('/'): return SITE.rstrip('/')+img
-    return urllib.parse.urljoin(SITE,img)
-
 def image_of(p):
-    vals=image_values(p)
-    return absolute_image_url(vals[0]) if vals else SITE+'logo.svg'
+    imgs=p.get('images') if isinstance(p.get('images'),list) else []
+    return next((str(x) for x in imgs if x), str(p.get('image') or p.get('imageUrl') or p.get('photo') or SITE+'logo.svg'))
 
-def materialize_images(p, slug, root):
-    vals=image_values(p); out=[]; asset_dir=root/'product-assets'; asset_dir.mkdir(parents=True,exist_ok=True)
-    for i,raw in enumerate(vals[:8],1):
-        raw=str(raw).strip()
-        if raw.startswith('data:image/'):
-            m=re.match(r'^data:image/([A-Za-z0-9.+-]+);base64,(.+)$',raw,re.S)
-            if m:
-                subtype=m.group(1).lower().replace('jpeg','jpg')
-                ext={'svg+xml':'svg','webp':'webp','png':'png','gif':'gif','jpg':'jpg','avif':'avif'}.get(subtype,'jpg')
-                try:
-                    data=base64.b64decode(m.group(2),validate=True)
-                    fn=f'{slug}-{i}.{ext}'; (asset_dir/fn).write_bytes(data)
-                    out.append(SITE+'product-assets/'+urllib.parse.quote(fn,safe='-._~')); continue
-                except Exception: pass
-        u=absolute_image_url(raw)
-        if u.startswith(('https://','http://')): out.append(u)
-    return out or [SITE+'logo.svg']
 
 def is_published(p):
     return p.get('published') is not False
@@ -94,7 +63,6 @@ def write_page(path, title, description, canonical, body, jsonld):
 
 
 root=Path(__file__).resolve().parents[1]
-(root/'product-assets').mkdir(parents=True,exist_ok=True)
 products=[p for p in collection('products') if is_published(p) and (p.get('name') or p.get('product'))]
 categories=[c for c in collection('categories') if c.get('name')]
 
@@ -112,19 +80,12 @@ for p in products:
     url=SITE+'product/'+urllib.parse.quote(slug,safe='-._~')+'/'
     desc=str(p.get('description') or p.get('desc') or f'شراء {name} من متجر Bazar Dzair.')
     price=float(p.get('price') or 0)
-    seo_images=materialize_images(p,slug,root)
+    img=image_of(p)
     cat_id=str(p.get('category') or '')
-    availability='https://schema.org/OutOfStock' if str(p.get('stock','')).strip() in ('0','0.0') else 'https://schema.org/InStock'
-    ld={'@context':'https://schema.org','@type':'Product','name':name,'image':seo_images[:5],'description':desc[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':price,'availability':availability}}
-    brand=str(p.get('brand') or p.get('manufacturer') or '').strip()
-    if brand: ld['brand']={'@type':'Brand','name':brand}
-    sku=str(p.get('sku') or p.get('reference') or '').strip()
-    if sku: ld['sku']=sku
+    ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':desc[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':str(price),'availability':'https://schema.org/InStock'}}
+    # Each pretty URL is a real static directory containing the functional product app.
+    # product.html reads the slug from /product/<slug>/ and loads the matching product.
     template=(root/'product.html').read_text(encoding='utf-8')
-    static_product=dict(p); static_product['images']=seo_images; static_product['image']=seo_images[0]; static_product['imageUrl']=seo_images[0]; static_product['photo']=seo_images[0]; static_product['seoUrl']=url
-    payload=json.dumps(static_product,ensure_ascii=False,separators=(',',':')).replace('</','<\\/')
-    injection='<script>window.__STATIC_PRODUCT__='+payload+'</script><script id="bazar_product_jsonld" type="application/ld+json">'+json.dumps(ld,ensure_ascii=False,separators=(',',':'))+'</script>'
-    template=template.replace('</head>',injection+'</head>',1)
     (root/'product'/slug).mkdir(parents=True,exist_ok=True)
     (root/'product'/slug/'index.html').write_text(template,encoding='utf-8')
     product_urls.append((url,name,p,slug))
