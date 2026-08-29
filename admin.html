@@ -674,7 +674,7 @@ async function genSitemapXML(){
   const seen=new Set();
   productList.forEach(p=>{
     const sl=slugify(p.name); if(seen.has(sl))return; seen.add(sl);
-    const loc="https://bazar-dzair.github.io/product.html?id="+encodeURIComponent(sl);
+    const loc="https://bazar-dzair.github.io/product/"+encodeURIComponent(sl)+"/";
     lines.push(`  <url><loc>${xmlEsc(loc)}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>`);
   });
   lines.push('</urlset>');

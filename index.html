@@ -587,6 +587,29 @@ function productSlug(name){
     .replace(/^-+|-+$/g, "") || "product";
 }
 
+// ===== LEGACY PRODUCT URL GUARD =====
+// Force every product navigation to the clean /product/<slug>/ URL.
+(function(){
+  function cleanProductUrl(url){
+    try{
+      const u=new URL(url,window.location.href);
+      if(u.pathname.endsWith('/product.html') && u.searchParams.has('id')){
+        const slug=u.searchParams.get('id');
+        return new URL('/product/'+encodeURIComponent(slug)+'/',window.location.origin).href;
+      }
+    }catch(e){}
+    return url;
+  }
+  const _assign=window.location.assign.bind(window.location);
+  window.__cleanProductUrl=cleanProductUrl;
+  document.addEventListener('click',function(e){
+    const a=e.target.closest && e.target.closest('a[href]');
+    if(!a)return;
+    const clean=cleanProductUrl(a.href);
+    if(clean!==a.href){e.preventDefault(); window.location.href=clean;}
+  },true);
+})();
+
 function goToProduct(id){
   const product = products.find(p => String(p.id) === String(id));
   if(!product){
@@ -603,9 +626,8 @@ function goToProduct(id){
   // لأنه سيتحول إلى /product-category/tools/product.html
   // ويؤدي على GitHub Pages إلى 404/العودة للصفحة الرئيسية.
   // صفحة المنتج الديناميكية موجودة في جذر الموقع.
-  const productUrl = new URL("/product.html", window.location.origin);
-  productUrl.searchParams.set("id", slug);
-  window.location.assign(productUrl.href);
+  const productUrl = new URL("/product/" + encodeURIComponent(slug) + "/", window.location.origin);
+  window.location.href = productUrl.href;
 }
 
 function openProduct(id){
