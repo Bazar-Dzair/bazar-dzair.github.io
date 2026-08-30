@@ -114,17 +114,26 @@ function computeDeliveryOptions(w){
   const opts={};
   if(!w) return opts;
   const rate=shippingRatesData[w];
+  const productHome=product?.shippingHome||"";
+  const productOffice=product?.shippingOffice||"";
+  // إذا اختار صاحب المتجر شركة توصيل واحدة على الأقل لهذا المنتج (باب الدار أو المكتب)،
+  // فهذا يعني أنه حدّد فعليًا طرق التوصيل المسموحة لهذا المنتج بالذات.
+  // في هذه الحالة، أي طريقة توصيل تركها فارغة (لم يفعّلها) يجب اعتبارها غير متاحة لهذا المنتج،
+  // بدل معاملتها كأنها "متاحة لأي شركة" كما كان يحدث سابقًا.
+  const productHasDeliveryPrefs=!!(productHome||productOffice);
   let homePrice=null,homeCompanyStr="";
   if(rate){homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);homeCompanyStr=rate.homeCompany||"";}
   else if(legacyShippingPrices[w]!=null){homePrice=legacyShippingPrices[w];}
-  if(homePrice!=null){
-    const av=computeAvail(product?.shippingHome||"",homeCompanyStr);
+  const homeAllowedForProduct=!productHasDeliveryPrefs||!!productHome;
+  if(homePrice!=null&&homeAllowedForProduct){
+    const av=computeAvail(productHome,homeCompanyStr);
     if(av.available) opts.home={price:homePrice,codes:av.codes};
   }
-  if(rate){
+  const officeAllowedForProduct=!productHasDeliveryPrefs||!!productOffice;
+  if(rate&&officeAllowedForProduct){
     const officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);
     if(officePrice!=null){
-      const av=computeAvail(product?.shippingOffice||"",rate.officeCompany||"");
+      const av=computeAvail(productOffice,rate.officeCompany||"");
       if(av.available) opts.office={price:officePrice,codes:av.codes};
     }
   }
