@@ -251,6 +251,15 @@
   .shipping-rate-row .src-name{grid-column:1/-1;font-size:13px}
   .shipping-rate-row .src-company{grid-column:1/-1}
 }
+.multi-select{position:relative;width:100%}
+.multi-select-btn{width:100%;padding:9px 8px;border:1px solid #dfe3e8;border-radius:8px;font-size:12.5px;text-align:center;font-weight:700;background:#fff;cursor:pointer;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.multi-select-btn:focus{border-color:var(--orange);box-shadow:0 0 0 3px #ff6a0012;outline:none}
+.multi-select.empty .multi-select-btn{color:#9aa3ae}
+.multi-select-menu{display:none;position:absolute;z-index:50;top:calc(100% + 4px);right:0;left:0;background:#fff;border:1px solid #dfe3e8;border-radius:10px;box-shadow:0 10px 24px #0002;padding:6px;min-width:150px}
+.multi-select.open .multi-select-menu{display:block}
+.multi-select-menu label{display:flex;align-items:center;gap:8px;padding:8px 6px;font-size:12.5px;font-weight:700;color:#374151;border-radius:6px;cursor:pointer;white-space:nowrap;text-align:right}
+.multi-select-menu label:hover{background:#f8fafc}
+.multi-select-menu input[type="checkbox"]{width:15px;height:15px;flex-shrink:0}
 </style>
 </head>
 <body class="auth-check">
@@ -422,17 +431,19 @@
       <div class="search-wrap"><span class="search-ic">🔎</span><input id="shippingRatesSearch" placeholder="ابحث عن ولاية بالاسم أو الرقم..." oninput="filterShippingRatesTable()"></div>
       <div class="shipping-rates-bulk">
         <span>باب الدار للكل:</span>
-        <select id="bulkHomeCompanySelect">
-          <option value="">اختر شركة</option>
-          <option value="noest">Noest Express</option>
-          <option value="dhd">DHD Express</option>
-          <option value="48hr">48HR Express</option>
-        </select>
+        <div class="multi-select empty" id="bulkHomeCompanySelect" data-value="">
+          <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
+          <div class="multi-select-menu">
+            <label><input type="checkbox" value="dhd" onchange="updateMultiSelect(this)"> DHD Express</label>
+            <label><input type="checkbox" value="noest" onchange="updateMultiSelect(this)"> Noest Express</label>
+            <label><input type="checkbox" value="48hr" onchange="updateMultiSelect(this)"> 48HR Express</label>
+          </div>
+        </div>
         <button type="button" class="outline-action" onclick="applyBulkShippingCompany('home')">تطبيق</button>
         <span>للمكتب للكل:</span>
         <select id="bulkOfficeCompanySelect">
           <option value="">غير متوفر</option>
-          <option value="dhd">DHD Livraison</option>
+          <option value="dhd">DHD Express</option>
         </select>
         <button type="button" class="outline-action" onclick="applyBulkShippingCompany('office')">تطبيق</button>
       </div>
@@ -736,8 +747,32 @@ async function saveSetting(){
 renderSettings();
 
 // ================= أسعار التوصيل (58 ولاية المعتمدة في المتجر) =================
-const homeCompanyLabels={noest:"Noest Express",dhd:"DHD Express","48hr":"48HR Express"};
-const officeCompanyLabels={dhd:"DHD Livraison"};
+const homeCompanyLabels={dhd:"DHD Express",noest:"Noest Express","48hr":"48HR Express"};
+const officeCompanyLabels={dhd:"DHD Express"};
+function homeCompanyDisplay(val){
+  const codes=(val||"").split(",").map(v=>v.trim()).filter(Boolean);
+  if(!codes.length) return "اختر شركة";
+  return codes.map(c=>homeCompanyLabels[c]||c).join(" + ");
+}
+window.toggleMultiSelect=function(btn){
+  const wrap=btn.closest(".multi-select");
+  const isOpen=wrap.classList.contains("open");
+  document.querySelectorAll(".multi-select.open").forEach(el=>el.classList.remove("open"));
+  if(!isOpen) wrap.classList.add("open");
+};
+window.updateMultiSelect=function(cb){
+  const wrap=cb.closest(".multi-select");
+  const checked=[...wrap.querySelectorAll('input[type="checkbox"]:checked')].map(c=>c.value);
+  const val=checked.join(",");
+  wrap.dataset.value=val;
+  wrap.classList.toggle("empty",!checked.length);
+  wrap.querySelector(".multi-select-btn").textContent=homeCompanyDisplay(val);
+};
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".multi-select")){
+    document.querySelectorAll(".multi-select.open").forEach(el=>el.classList.remove("open"));
+  }
+});
 let shippingRatesLoaded=false;
 let shippingRatesData={};
 function shippingRateCode(i){return String(i+1).padStart(2,"0");}
@@ -778,10 +813,15 @@ function renderShippingRatesTable(){
       <div class="src-cell src-num">${code}</div>
       <div class="src-cell src-name">${escapeAttr(name)}</div>
       <div class="src-cell"><input type="number" min="0" step="50" data-field="home" data-code="${code}" value="${escapeAttr(r.home)}" placeholder="دج"></div>
-      <div class="src-cell src-company"><select data-field="homeCompany" data-code="${code}">
-        <option value="">اختر شركة</option>
-        ${Object.entries(homeCompanyLabels).map(([v,l])=>`<option value="${v}" ${r.homeCompany===v?"selected":""}>${l}</option>`).join("")}
-      </select></div>
+      <div class="src-cell src-company">${(()=>{
+        const selected=new Set((r.homeCompany||"").split(",").map(v=>v.trim()).filter(Boolean));
+        return `<div class="multi-select${selected.size?"":" empty"}" data-field="homeCompany" data-code="${code}" data-value="${escapeAttr(r.homeCompany||"")}">
+          <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">${homeCompanyDisplay(r.homeCompany)}</button>
+          <div class="multi-select-menu">
+            ${Object.entries(homeCompanyLabels).map(([v,l])=>`<label><input type="checkbox" value="${v}" ${selected.has(v)?"checked":""} onchange="updateMultiSelect(this)"> ${l}</label>`).join("")}
+          </div>
+        </div>`;
+      })()}</div>
       <div class="src-cell"><input type="number" min="0" step="50" data-field="office" data-code="${code}" value="${escapeAttr(r.office)}" placeholder="دج"></div>
       <div class="src-cell src-company"><select data-field="officeCompany" data-code="${code}">
         <option value="">غير متوفر</option>
@@ -799,10 +839,20 @@ window.filterShippingRatesTable=function(){
   });
 };
 window.applyBulkShippingCompany=function(type){
-  const selId=type==="home"?"bulkHomeCompanySelect":"bulkOfficeCompanySelect";
-  const field=type==="home"?"homeCompany":"officeCompany";
-  const val=document.getElementById(selId)?.value||"";
-  document.querySelectorAll(`.shipping-rate-row select[data-field="${field}"]`).forEach(sel=>{sel.value=val;});
+  if(type==="home"){
+    const wrap=document.getElementById("bulkHomeCompanySelect");
+    const val=wrap?.dataset.value||"";
+    document.querySelectorAll('.shipping-rate-row .multi-select[data-field="homeCompany"]').forEach(el=>{
+      const codes=new Set(val.split(",").map(v=>v.trim()).filter(Boolean));
+      el.dataset.value=val;
+      el.classList.toggle("empty",!codes.size);
+      el.querySelector(".multi-select-btn").textContent=homeCompanyDisplay(val);
+      el.querySelectorAll('input[type="checkbox"]').forEach(cb=>{cb.checked=codes.has(cb.value);});
+    });
+    return;
+  }
+  const val=document.getElementById("bulkOfficeCompanySelect")?.value||"";
+  document.querySelectorAll('.shipping-rate-row select[data-field="officeCompany"]').forEach(sel=>{sel.value=val;});
 };
 window.saveShippingRates=async function(){
   const status=document.getElementById("shippingRatesStatus");
@@ -813,7 +863,7 @@ window.saveShippingRates=async function(){
     document.querySelectorAll(".shipping-rate-row").forEach(row=>{
       const code=row.dataset.code;
       const home=row.querySelector('[data-field="home"]').value;
-      const homeCompany=row.querySelector('[data-field="homeCompany"]').value;
+      const homeCompany=row.querySelector('.multi-select[data-field="homeCompany"]')?.dataset.value||"";
       const office=row.querySelector('[data-field="office"]').value;
       const officeCompany=row.querySelector('[data-field="officeCompany"]').value;
       const duration=row.querySelector('[data-field="duration"]').value;
