@@ -164,7 +164,7 @@
 .order-status-badge.st-cancelled{background:#feeceb;color:#c62828}
 .orders-panel{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .orders-table-head,.order-row-pro{min-width:980px;display:grid;grid-template-columns:34px 90px minmax(140px,1.3fr) minmax(220px,1.7fr) 70px 110px 130px 130px 140px;gap:0;align-items:center}
-.orders-table-head{background:#f8fafc;border:1px solid #e5e9ef;border-radius:12px 12px 0 0;padding:0 14px;min-height:52px;color:#667085;font-size:11px;font-weight:800;position:sticky;top:66px;z-index:20}
+.orders-table-head{background:#f8fafc;border:1px solid #e5e9ef;border-radius:12px 12px 0 0;padding:0 14px;min-height:52px;color:#667085;font-size:11px;font-weight:800}
 .orders-table-head>div{text-align:center;padding:0 6px}
 .orders-table-head>div:nth-child(3),.orders-table-head>div:nth-child(4){text-align:right}
 .order-row-pro{background:#fff;border:1px solid #e6e9ee;border-top:0;padding:14px;transition:.16s;min-height:88px}
@@ -1099,7 +1099,7 @@ const selectedProducts=new Set(), selectedOrders=new Set();
 let orderSearchQuery="", orderStatusFilter="all";
 function money(n){return Number(n||0).toLocaleString("ar-DZ")+" دج"}
 function pad2(n){return String(n).padStart(2,"0")}
-function orderDisplayId(o){return "#"+String(o?.id||"").slice(-6).toUpperCase()}
+function orderDisplayId(o){if(o&&o.orderSeq)return "#"+String(o.orderSeq).padStart(4,"0");return "#"+String(o?.id||"").slice(-6).toUpperCase()}
 function orderDateObj(o){
   const c=o?.createdAt; if(!c) return null;
   if(typeof c.toDate==="function") return c.toDate();
@@ -1411,6 +1411,8 @@ window.bazarLoadOrders=async function(force=false){
       const snap=await getDocs(collection(db,"orders"));
       updateOrderStats(snap.size);
       window.adminOrders=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+      const ascByDate=[...window.adminOrders].sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return ta-tb;});
+      ascByDate.forEach((o,i)=>{o.orderSeq=i+1;});
       window.adminOrders.sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return tb-ta;});
       ordersLoaded=true;
       ordersPage=1; selectedOrders.clear(); renderOrders();
