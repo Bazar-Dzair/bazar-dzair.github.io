@@ -31,7 +31,9 @@
 .upload-card{border:1px solid #e7e9ee;border-radius:15px;padding:12px;background:#fafbfc}.upload-drop{width:100%;min-height:150px;border:2px dashed #d9dde5;border-radius:13px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}.upload-icon{font-size:30px}.upload-drop b{font-size:15px}.upload-drop small{color:#697386}.upload-hint{font-size:11px;color:#9aa2ad}.image-count{font-size:12px;color:#667085;font-weight:700;text-align:right;margin:9px 2px}.image-preview{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.image-item{text-align:center}.image-wrap{position:relative;background:#fff;border:1px solid #e5e7eb;border-radius:11px;padding:5px;aspect-ratio:1}.image-thumb{width:100%;height:100%;object-fit:contain;border-radius:7px}.image-remove{position:absolute;top:4px;left:4px;width:25px;height:25px;padding:0;border:0;border-radius:50%;background:#dc2626;color:#fff}.cover-badge{position:absolute;right:5px;bottom:5px;background:#16a34a;color:#fff;padding:2px 7px;border-radius:6px;font-size:9px}.image-item small{display:block;margin-top:4px;color:#667085;font-size:9px}
 
 /* ===== Premium product management UI ===== */
-.products-panel{overflow:hidden}
+.products-panel{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.products-table-head,.product-row{min-width:900px}
+@media(max-width:760px){.products-table-head,.product-row{min-width:0}}
 .products-table-head{position:sticky;top:66px;z-index:20;box-shadow:0 2px 8px #00000006}
 .product-row{min-height:126px;border-radius:0 0 0 0}
 .product-row:first-child{border-top:1px solid #e6e9ee}
