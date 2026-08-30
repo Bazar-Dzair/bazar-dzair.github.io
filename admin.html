@@ -223,6 +223,34 @@
 .toast-msg.show{opacity:1;transform:translateX(50%) translateY(-6px)}
 .toast-msg.err{background:#c62828}
 .toast-msg.ok{background:#16a34a}
+.shipping-rates-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;justify-content:space-between}
+.shipping-rates-toolbar .search-wrap{flex:1;min-width:220px;position:relative}
+.shipping-rates-toolbar .search-wrap input{width:100%;padding:13px 42px 13px 14px;border:1px solid #dfe3e8;border-radius:10px;outline:none;font-size:13px}
+.shipping-rates-toolbar .search-wrap input:focus{border-color:var(--orange);box-shadow:0 0 0 3px #ff6a0012}
+.shipping-rates-toolbar .search-wrap .search-ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#9aa3ae;font-size:14px;pointer-events:none}
+.shipping-rates-bulk{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;font-weight:700;color:#586170}
+.shipping-rates-bulk select{padding:9px 10px;border:1px solid #dfe3e8;border-radius:9px;font-size:12.5px;font-weight:700}
+.shipping-rates-panel{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e5e9ef;border-radius:12px}
+.shipping-rates-head,.shipping-rate-row{min-width:820px;display:grid;grid-template-columns:60px 190px 150px 150px 140px 150px;gap:0;align-items:center}
+.shipping-rates-head{background:#f8fafc;padding:0 14px;min-height:48px;color:#667085;font-size:11px;font-weight:800;border-bottom:1px solid #e5e9ef}
+.shipping-rates-head>div{text-align:center;padding:0 6px}
+.shipping-rates-head>div:nth-child(2){text-align:right}
+.shipping-rate-row{background:#fff;border-bottom:1px solid #f1f3f5;padding:10px 14px}
+.shipping-rate-row:last-child{border-bottom:0}
+.shipping-rate-row:hover{background:#fcfdff}
+.shipping-rate-row .src-cell{padding:0 6px;text-align:center;font-size:12.5px;color:#374151;font-weight:700}
+.shipping-rate-row .src-name{text-align:right;font-weight:800;color:#20242a}
+.shipping-rate-row input,.shipping-rate-row select{width:100%;padding:9px 8px;border:1px solid #dfe3e8;border-radius:8px;font-size:12.5px;text-align:center;font-weight:700}
+.shipping-rate-row input:focus,.shipping-rate-row select:focus{border-color:var(--orange);box-shadow:0 0 0 3px #ff6a0012;outline:none}
+@media(max-width:760px){
+  .shipping-rates-head{display:none}
+  .shipping-rates-panel{overflow-x:visible;border:0}
+  .shipping-rate-row{min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;border:1px solid #e6e9ee;border-radius:14px;margin-bottom:10px;padding:12px}
+  .shipping-rate-row .src-cell{text-align:right}
+  .shipping-rate-row .src-num{grid-column:1/-1;font-weight:800;color:#1d64d8;text-align:right}
+  .shipping-rate-row .src-name{grid-column:1/-1;font-size:13px}
+  .shipping-rate-row .src-company{grid-column:1/-1}
+}
 </style>
 </head>
 <body class="auth-check">
@@ -254,20 +282,21 @@
   <div class="side-brand"><div class="side-logo">BD</div><div><strong>Bazar Dzair</strong><small>لوحة الإدارة</small></div></div>
   <button class="store-mini" type="button" onclick="window.location.href='index.html'"><span>🏪</span><span>عرض متجري</span><b>↗</b></button>
   <div class="nav-title">الرئيسية</div><nav class="nav">
-    <button class="nav-item active" onclick="showView('dashboard',this)">⌂ <span>لوحة التحكم</span></button>
-    <button class="nav-item" onclick="showView('orders',this)">🛒 <span>الطلبات</span></button>
+    <button class="nav-item active" data-view="dashboard" onclick="showView('dashboard',this)">⌂ <span>لوحة التحكم</span></button>
+    <button class="nav-item" data-view="orders" onclick="showView('orders',this)">🛒 <span>الطلبات</span></button>
   </nav>
   <div class="nav-title">إدارة المتجر</div><nav class="nav">
-    <button class="nav-item" onclick="showView('product',this,true)">＋ <span>إنشاء منتج</span></button>
-    <button class="nav-item" onclick="showView('products',this)">◇ <span>المنتجات</span></button>
-    <button class="nav-item" onclick="showView('categories',this)">□ <span>التصنيفات</span></button>
-    <button class="nav-item" onclick="showView('sections',this);loadHomeSections()">▦ <span>أقسام المتجر</span></button>
-    <button class="nav-item" onclick="showView('footer',this)">▤ <span>تذييل المتجر</span></button>
-    <button class="nav-item" onclick="showView('users',this)">♧ <span>المستخدمون</span></button>
+    <button class="nav-item" data-view="product" onclick="showView('product',this,true)">＋ <span>إنشاء منتج</span></button>
+    <button class="nav-item" data-view="products" onclick="showView('products',this)">◇ <span>المنتجات</span></button>
+    <button class="nav-item" data-view="categories" onclick="showView('categories',this)">□ <span>التصنيفات</span></button>
+    <button class="nav-item" data-view="shipping-rates" onclick="showView('shipping-rates',this)">🚚 <span>أسعار التوصيل</span></button>
+    <button class="nav-item" data-view="sections" onclick="showView('sections',this);loadHomeSections()">▦ <span>أقسام المتجر</span></button>
+    <button class="nav-item" data-view="footer" onclick="showView('footer',this)">▤ <span>تذييل المتجر</span></button>
+    <button class="nav-item" data-view="users" onclick="showView('users',this)">♧ <span>المستخدمون</span></button>
   </nav>
   <div class="nav-title">النظام</div><nav class="nav">
-    <button class="nav-item" onclick="showView('settings',this)">⚙ <span>الإعدادات</span></button>
-    <button class="nav-item" onclick="showAddons()">🧩 <span>الإضافات</span></button>
+    <button class="nav-item" data-view="settings" onclick="showView('settings',this)">⚙ <span>الإعدادات</span></button>
+    <button class="nav-item" data-view="addons" onclick="showAddons()">🧩 <span>الإضافات</span></button>
   </nav>
   <div class="sidebar-bottom"><button class="logout-side" onclick="logout()">↪ <span>تسجيل الخروج</span></button></div>
 </aside>
@@ -386,6 +415,30 @@
 
 <section id="view-categories" class="view hidden"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><button class="orange-btn" type="button" onclick="openCategoryForm()">＋ إضافة فئة</button></div><div class="panel"><div id="categoryForm" class="category-form hidden"><input id="categoryId" type="hidden"><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"></label><label>الأيقونة<input id="categoryIcon" placeholder="🔧" maxlength="4"></label></div><div class="form-actions"><button class="green" type="button" onclick="saveCategory()">💾 حفظ الفئة</button><button class="gray" type="button" onclick="closeCategoryForm()">إلغاء</button></div><div id="categoryStatus" class="status hidden"></div></div><div id="categoriesList" class="categories-list"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
 
+<section id="view-shipping-rates" class="view hidden">
+  <div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر ومدة وشركة التوصيل لكل ولاية من ولايات الجزائر الـ69.</p></div><button class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button></div>
+  <div class="panel">
+    <div class="shipping-rates-toolbar">
+      <div class="search-wrap"><span class="search-ic">🔎</span><input id="shippingRatesSearch" placeholder="ابحث عن ولاية بالاسم أو الرقم..." oninput="filterShippingRatesTable()"></div>
+      <div class="shipping-rates-bulk">
+        <span>تعيين شركة التوصيل للكل:</span>
+        <select id="bulkCompanySelect">
+          <option value="">اختر شركة</option>
+          <option value="dhd">DHD Livraison</option>
+          <option value="noest">NOEST</option>
+          <option value="both">DHD + NOEST</option>
+        </select>
+        <button type="button" class="outline-action" onclick="applyBulkShippingCompany()">تطبيق على الكل</button>
+      </div>
+    </div>
+    <div id="shippingRatesStatus" class="status hidden"></div>
+    <div class="shipping-rates-panel">
+      <div class="shipping-rates-head"><div>رقم</div><div>الولاية</div><div>توصيل للمنزل (دج)</div><div>توصيل للمكتب (دج)</div><div>مدة التوصيل</div><div>شركة التوصيل</div></div>
+      <div id="shippingRatesBody"><div class="empty-card">⏳ جاري تحميل الأسعار...</div></div>
+    </div>
+  </div>
+</section>
+
 <section id="view-sections" class="view hidden"><div class="page-head"><div><h1>أقسام المتجر</h1><p>تحكم في الأقسام الرئيسية التي تريد عرضها في واجهة المتجر.</p></div></div><div class="panel"><div id="sectionsAdmin" class="section-admin-list"><div class="empty-card">⏳ جاري التحميل...</div></div><div class="form-actions"><button class="green" onclick="saveHomeSections()">💾 حفظ الأقسام</button><button class="gray" onclick="loadHomeSections()">↻ إعادة تحميل</button></div></div></section>
 
 <section id="view-footer" class="view hidden"><div class="page-head"><div><h1>تذييل المتجر</h1><p>عدّل روابط ومعلومات التذييل التي تظهر أسفل المتجر.</p></div></div><div class="panel"><div id="footerAdminForm"></div><div class="form-actions"><button class="green" type="button" onclick="saveFooterSetting()">💾 حفظ التذييل</button><button class="gray" type="button" onclick="loadFooterSetting()">↻ إعادة تحميل</button></div><div id="footerAdminStatus" class="status hidden"></div></div></section>
@@ -405,7 +458,6 @@ const settingDefinitions = [
   ["⚙","الإعدادات العامة","اسم المتجر، العملة، بيانات التواصل والإعدادات الأساسية","general"],
   ["✉","إعدادات البريد","إعداد SMTP وإعدادات إرسال البريد الإلكتروني","email"],
   ["🛒","السلة","إعدادات سلوك السلة وخيارات التسوق","cart"],
-  ["🚚","أسعار التوصيل","تعديل سعر التوصيل لكل ولاية","shipping"],
   ["🖼","الشعار والبانر","إضافة شعار المتجر وصورة البانر الرئيسية","branding"]
 ];
 
@@ -432,6 +484,7 @@ function showView(name, el, createNew=false, updateUrl=true){
   if(name==="product" && createNew && typeof resetForm==="function") resetForm();
   if(name==="product" && !createNew && window.bazarLoadProducts) window.bazarLoadProducts();
   if(name==="orders" && window.bazarLoadOrders) window.bazarLoadOrders();
+  if(name==="shipping-rates" && window.bazarLoadShippingRates) window.bazarLoadShippingRates();
   if(name==="addons" && window.bazarLoadAddons) window.bazarLoadAddons();
   if(name==="footer") setTimeout(loadFooterSetting,0);
   try{sessionStorage.setItem("bazarAdminView",name);}catch(e){}
@@ -445,9 +498,8 @@ window.addEventListener("popstate",()=>{
   try{
     const params=new URLSearchParams(window.location.search);
     let view=params.get("view")||"dashboard";
-    const valid=["dashboard","orders","product","products","categories","sections","footer","users","settings","addons","order-detail"];
+    const valid=["dashboard","orders","product","products","categories","shipping-rates","sections","footer","users","settings","addons","order-detail"];
     if(!valid.includes(view)) view="dashboard";
-    const nav=[...document.querySelectorAll(".nav-item")];
     const ordersNavItem=document.querySelector('.nav-item[onclick*="orders"]');
     if(view==="order-detail"){
       const oid=params.get("order");
@@ -456,8 +508,8 @@ window.addEventListener("popstate",()=>{
       else { showView("orders",ordersNavItem,false,false); }
       return;
     }
-    const idx={dashboard:0,orders:1,product:2,products:3,categories:4,sections:5,footer:6,users:7,settings:8,addons:9}[view];
-    showView(view,nav[idx]||nav[0],false,false);
+    const navItem=document.querySelector('.nav-item[data-view="'+view+'"]');
+    showView(view,navItem,false,false);
   }catch(e){}
 });
 function toggleSidebar(){document.getElementById("sidebar")?.classList.toggle("open");document.getElementById("sidebarBackdrop")?.classList.toggle("open")}
@@ -562,9 +614,10 @@ const wilayas = [
  "سكيكدة","سيدي بلعباس","عنابة","قالمة","قسنطينة","المدية","مستغانم","المسيلة","معسكر","ورقلة",
  "وهران","البيض","إليزي","برج بوعريريج","بومرداس","الطارف","تندوف","تيسمسيلت","الوادي","خنشلة",
  "سوق أهراس","تيبازة","ميلة","عين الدفلى","النعامة","عين تموشنت","غرداية","غليزان","تيميمون",
- "برج باجي مختار","أولاد جلال","بني عباس","عين صالح","عين قزام","تقرت","جانت","المغير","المنيعة"
+ "برج باجي مختار","أولاد جلال","بني عباس","عين صالح","عين قزام","تقرت","جانت","المغير","المنيعة",
+ "أفلو","بريكة","القنطرة","بئر العاتر","العريشة","قصر الشلالة","عين وسارة","مسعد","قصر البخاري","بوسعادة","الأبيض سيدي الشيخ"
 ];
-const defaultShipping = {
+const legacyShippingPrices = {
  "01":1000,"02":600,"03":800,"04":600,"05":600,"06":600,"07":800,"08":950,"09":450,"10":550,
  "11":1200,"12":650,"13":600,"14":600,"15":550,"16":300,"17":800,"18":600,"19":600,"20":650,
  "21":600,"22":600,"23":600,"24":650,"25":600,"26":550,"27":650,"28":650,"29":600,"30":800,
@@ -597,24 +650,7 @@ async function openSetting(key){
   document.getElementById("settingModalTitle").textContent=def?.[1]||"الإعداد";
   document.getElementById("settingModalDesc").textContent=def?.[2]||"تعديل إعدادات المتجر";
 
-  if(key==="shipping"){
-    const remote=await getRemoteSetting("shipping");
-    const prices={...defaultShipping,...(remote.prices||{})};
-    document.getElementById("settingModalBody").innerHTML=`
-      <div class="shipping-tools">
-        <input id="shippingSearch" placeholder="🔎 ابحث عن الولاية..." oninput="filterShipping()">
-        <div class="shipping-grid" id="shippingGrid">
-          ${wilayas.map((name,i)=>{
-            const code=String(i+1).padStart(2,"0");
-            const val=prices[code]??"";
-            return `<label class="shipping-item" data-name="${escapeAttr(name)}">
-              <span><b>${code}</b> ${name}</span>
-              <input class="shipping-price" data-code="${code}" type="number" min="0" step="50" value="${escapeAttr(val)}" placeholder="دج">
-            </label>`;
-          }).join("")}
-        </div>
-      </div>`;
-  }else if(key==="branding"){
+  if(key==="branding"){
     const remote=await getRemoteSetting("site");
     document.getElementById("settingModalBody").innerHTML=`
       <div class="branding-box">
@@ -648,12 +684,6 @@ async function openSetting(key){
   document.getElementById("settingsModal").classList.remove("hidden");
 }
 
-function filterShipping(){
-  const q=(document.getElementById("shippingSearch")?.value||"").trim().toLowerCase();
-  document.querySelectorAll(".shipping-item").forEach(el=>{
-    el.style.display=el.dataset.name.toLowerCase().includes(q)?"flex":"none";
-  });
-}
 function previewBrandImage(input,id){
   const file=input.files?.[0],img=document.getElementById(id);
   if(!file||!img)return;
@@ -673,11 +703,7 @@ async function saveSetting(){
   try{
     if(!window.bazarDb||!window.bazarSetDoc||!window.bazarDoc) throw new Error("Firebase غير جاهز");
 
-    if(activeSetting==="shipping"){
-      const prices={};
-      document.querySelectorAll(".shipping-price").forEach(el=>prices[el.dataset.code]=el.value===""?"":Number(el.value));
-      await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","shipping"),{prices,updatedAt:window.bazarServerTimestamp()},{merge:true});
-    }else if(activeSetting==="branding"){
+    if(activeSetting==="branding"){
       let logoUrl=document.getElementById("logoUrl")?.value.trim()||"";
       let bannerUrl=document.getElementById("bannerUrl")?.value.trim()||"";
       const logoFile=await uploadBrandFile(document.getElementById("logoFile"),"site/logo");
@@ -703,6 +729,98 @@ async function saveSetting(){
 }
 
 renderSettings();
+
+// ================= أسعار التوصيل (69 ولاية) =================
+const shippingCompanyLabels={dhd:"DHD Livraison",noest:"NOEST",both:"DHD + NOEST"};
+let shippingRatesLoaded=false;
+let shippingRatesData={};
+function shippingRateCode(i){return String(i+1).padStart(2,"0");}
+function buildDefaultShippingRates(){
+  const out={};
+  wilayas.forEach((name,i)=>{
+    const code=shippingRateCode(i);
+    out[code]={home:legacyShippingPrices[code]??"",office:"",duration:"",company:""};
+  });
+  return out;
+}
+window.bazarLoadShippingRates=async function(force=false){
+  const box=document.getElementById("shippingRatesBody"); if(!box)return;
+  if(shippingRatesLoaded&&!force){renderShippingRatesTable();return;}
+  box.innerHTML='<div class="empty-card">⏳ جاري تحميل الأسعار...</div>';
+  try{
+    const remote=await getRemoteSetting("shipping");
+    const defaults=buildDefaultShippingRates();
+    const rates=remote.rates||{};
+    shippingRatesData={};
+    wilayas.forEach((name,i)=>{
+      const code=shippingRateCode(i);
+      shippingRatesData[code]={...defaults[code],...(rates[code]||{})};
+    });
+    shippingRatesLoaded=true;
+    renderShippingRatesTable();
+  }catch(e){
+    console.error(e);
+    box.innerHTML='<div class="empty-card">❌ تعذر قراءة أسعار التوصيل من Firestore. تحقق من Firestore Rules.</div>';
+  }
+};
+function renderShippingRatesTable(){
+  const box=document.getElementById("shippingRatesBody"); if(!box)return;
+  box.innerHTML=wilayas.map((name,i)=>{
+    const code=shippingRateCode(i);
+    const r=shippingRatesData[code]||{home:"",office:"",duration:"",company:""};
+    return `<div class="shipping-rate-row" data-name="${escapeAttr(name)}" data-code="${code}">
+      <div class="src-cell src-num">${code}</div>
+      <div class="src-cell src-name">${escapeAttr(name)}</div>
+      <div class="src-cell"><input type="number" min="0" step="50" data-field="home" data-code="${code}" value="${escapeAttr(r.home)}" placeholder="دج"></div>
+      <div class="src-cell"><input type="number" min="0" step="50" data-field="office" data-code="${code}" value="${escapeAttr(r.office)}" placeholder="دج"></div>
+      <div class="src-cell"><input type="text" data-field="duration" data-code="${code}" value="${escapeAttr(r.duration)}" placeholder="مثال: 24-72 سا"></div>
+      <div class="src-cell src-company"><select data-field="company" data-code="${code}">
+        <option value="">اختر شركة</option>
+        ${Object.entries(shippingCompanyLabels).map(([v,l])=>`<option value="${v}" ${r.company===v?"selected":""}>${l}</option>`).join("")}
+      </select></div>
+    </div>`;
+  }).join("");
+}
+window.filterShippingRatesTable=function(){
+  const q=(document.getElementById("shippingRatesSearch")?.value||"").trim().toLowerCase();
+  document.querySelectorAll(".shipping-rate-row").forEach(el=>{
+    const match=el.dataset.name.toLowerCase().includes(q)||el.dataset.code.includes(q);
+    el.style.display=match?"":"none";
+  });
+};
+window.applyBulkShippingCompany=function(){
+  const val=document.getElementById("bulkCompanySelect")?.value;
+  if(!val){toast("اختر شركة توصيل أولاً","err");return;}
+  document.querySelectorAll('.shipping-rate-row select[data-field="company"]').forEach(sel=>{sel.value=val;});
+};
+window.saveShippingRates=async function(){
+  const status=document.getElementById("shippingRatesStatus");
+  try{
+    if(!window.bazarDb||!window.bazarSetDoc||!window.bazarDoc) throw new Error("Firebase غير جاهز");
+    const rates={};
+    const prices={};
+    document.querySelectorAll(".shipping-rate-row").forEach(row=>{
+      const code=row.dataset.code;
+      const home=row.querySelector('[data-field="home"]').value;
+      const office=row.querySelector('[data-field="office"]').value;
+      const duration=row.querySelector('[data-field="duration"]').value;
+      const company=row.querySelector('[data-field="company"]').value;
+      rates[code]={
+        home:home===""?"":Number(home),
+        office:office===""?"":Number(office),
+        duration:duration.trim(),
+        company
+      };
+      prices[code]=home===""?"":Number(home);
+    });
+    shippingRatesData=rates;
+    await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","shipping"),{rates,prices,updatedAt:window.bazarServerTimestamp()},{merge:true});
+    if(status){status.textContent="تم حفظ أسعار التوصيل بنجاح ✅";status.className="status ok";}
+  }catch(e){
+    console.error(e);
+    if(status){status.textContent="تعذر حفظ الأسعار: "+(e.message||"خطأ غير معروف");status.className="status err";}
+  }
+};
 
 // ================= مركز الإضافات (Addons) =================
 const addonsDefs=[
@@ -1301,11 +1419,11 @@ function appPage(){
     const params=new URLSearchParams(window.location.search);
     view=params.get("view")||sessionStorage.getItem("bazarAdminView")||"dashboard";
   }catch(e){}
-  const valid=["dashboard","orders","product","products","categories","sections","footer","users","settings","addons"];
+  const valid=["dashboard","orders","product","products","categories","shipping-rates","sections","footer","users","settings","addons"];
   if(!valid.includes(view)) view="dashboard";
   const nav=[...document.querySelectorAll(".nav-item")];
-  const idx={dashboard:0,orders:1,product:2,products:3,categories:4,sections:5,footer:6,users:7,settings:8,addons:9}[view];
-  showView(view,nav[idx]||nav[0],false,false);
+  const navItem=document.querySelector('.nav-item[data-view="'+view+'"]');
+  showView(view,navItem||nav[0],false,false);
 }
 let productsLoaded=false;
 let productsLoading=null;
