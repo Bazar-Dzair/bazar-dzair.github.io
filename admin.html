@@ -49,6 +49,13 @@
 .product-action-btn.unpublish-btn{background:#f4f5f7;border-color:#e2e5e9;color:#667085}
 .product-action-btn.copy-btn{background:#f7f5ff;border-color:#e6ddff;color:#6941c6}
 .product-action-btn.delete-btn{background:#fff1f1;border-color:#ffd8d8;color:#c62828}
+.icon-action-btn{width:38px;height:38px;min-height:38px;padding:0;border:1px solid #e1e6ed;border-radius:9px;background:#fff;color:#354052;font-size:16px;display:inline-flex;align-items:center;justify-content:center;transition:.16s;flex:none}
+.icon-action-btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px #0000000b}
+.icon-action-btn.view-icon{background:#eef5ff;border-color:#d6e6ff;color:#1d64d8}
+.icon-action-btn.edit-icon{background:#fff8ef;border-color:#ffe2bd;color:#c65a00}
+.icon-action-btn.copy-icon{background:#f7f5ff;border-color:#e6ddff;color:#6941c6}
+.icon-action-btn.delete-icon{background:#fff1f1;border-color:#ffd8d8;color:#c62828}
+.publish-badge{cursor:pointer}
 .product-select{width:36px;height:36px;border:1px solid #e4e8ed;border-radius:9px;background:#fff}
 .product-select input{width:18px;height:18px}
 .product-actions{justify-content:flex-start}
@@ -58,7 +65,7 @@
 .products-search input{min-height:46px;font-size:14px}
 .bulk-toolbar{min-height:54px}
 @media(max-width:1050px){.products-table-head,.product-row{grid-template-columns:minmax(300px,2fr) 125px 135px 135px 90px 100px 250px}}
-@media(max-width:1050px){.stats-grid{grid-template-columns:repeat(2,1fr)}.quick-grid{grid-template-columns:repeat(2,1fr)}.products-table-head{grid-template-columns:minmax(260px,2fr) 110px 120px 120px 90px 100px 190px}.product-row{grid-template-columns:minmax(260px,2fr) 110px 120px 120px 90px 100px 190px}.addons-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){.sidebar{position:fixed;right:0;top:58px;height:calc(100vh - 58px);transform:translateX(110%);transition:.22s;box-shadow:-12px 0 30px #0005}.sidebar.open{transform:translateX(0)}.topbar{height:58px}.topbar-inner{height:58px;padding:0 12px}.main-content{padding:14px 11px 30px}.dashboard-top{flex-direction:column;align-items:stretch}.dashboard-top .orange-btn{width:100%}.stats-grid,.quick-grid,.settings-grid{grid-template-columns:1fr 1fr}.products-table-head{display:none}.product-row{grid-template-columns:1fr;gap:12px;padding:14px;border:1px solid #e6e9ee;border-radius:14px;margin-bottom:10px}.product-cell{grid-column:1;align-items:flex-start}.product-image-wrap{width:72px;height:72px}.table-cell{display:flex;justify-content:space-between;align-items:center;text-align:right;padding:8px 0;border-top:1px solid #eef0f3}.table-cell::before{font-size:11px;color:#929ba8;font-weight:700}.category-cell::before{content:"التصنيف"}.price-cell::before{content:"السعر"}.stock-cell::before{content:"المخزون"}.sales-cell::before{content:"المبيعات"}.status-cell{justify-content:space-between;border-top:1px solid #eef0f3;padding:8px 0}.status-cell::before{content:"الحالة";font-size:11px;color:#929ba8;font-weight:700}.product-actions{justify-content:flex-start;border-top:1px solid #eef0f3;padding-top:10px}.product-select{order:-1;justify-content:flex-start}.product-actions .action-main{width:100%}.product-actions .product-action-btn{flex:1;min-width:110px}.product-select{width:36px}
+@media(max-width:1050px){.stats-grid{grid-template-columns:repeat(2,1fr)}.quick-grid{grid-template-columns:repeat(2,1fr)}.products-table-head{grid-template-columns:minmax(260px,2fr) 110px 120px 120px 90px 100px 190px}.product-row{grid-template-columns:minmax(260px,2fr) 110px 120px 120px 90px 100px 190px}.addons-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){.sidebar{position:fixed;right:0;top:58px;height:calc(100vh - 58px);transform:translateX(110%);transition:.22s;box-shadow:-12px 0 30px #0005}.sidebar.open{transform:translateX(0)}.topbar{height:58px}.topbar-inner{height:58px;padding:0 12px}.main-content{padding:14px 11px 30px}.dashboard-top{flex-direction:column;align-items:stretch}.dashboard-top .orange-btn{width:100%}.stats-grid,.quick-grid,.settings-grid{grid-template-columns:1fr 1fr}.products-table-head{display:none}.product-row{grid-template-columns:1fr;gap:12px;padding:14px;border:1px solid #e6e9ee;border-radius:14px;margin-bottom:10px}.product-cell{grid-column:1;align-items:flex-start}.product-image-wrap{width:72px;height:72px}.table-cell{display:flex;justify-content:space-between;align-items:center;text-align:right;padding:8px 0;border-top:1px solid #eef0f3}.table-cell::before{font-size:11px;color:#929ba8;font-weight:700}.category-cell::before{content:"التصنيف"}.price-cell::before{content:"السعر"}.stock-cell::before{content:"المخزون"}.sales-cell::before{content:"المبيعات"}.status-cell{justify-content:space-between;border-top:1px solid #eef0f3;padding:8px 0}.status-cell::before{content:"الحالة";font-size:11px;color:#929ba8;font-weight:700}.product-actions{justify-content:flex-start;border-top:1px solid #eef0f3;padding-top:10px}.product-select{order:-1;justify-content:flex-start}.product-actions .action-main{width:100%;display:flex;gap:8px}.product-actions .icon-action-btn{flex:1;height:44px}.product-select{width:36px}
 .category-form-grid{grid-template-columns:1fr}.user-info-grid{grid-template-columns:1fr}.addons-grid{grid-template-columns:1fr}.shipping-grid{grid-template-columns:1fr}.image-preview{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:450px){.stats-grid,.quick-grid,.settings-grid{grid-template-columns:1fr}.brand{font-size:16px}.icon-btn{display:none}.page-head{padding:18px}.product-main{align-items:flex-start}.product-image-wrap{width:72px;height:72px}.product-meta{flex-direction:column;gap:3px}.order-actions{flex-direction:column;align-items:stretch}}
 </style>
 </head>
@@ -1278,15 +1285,14 @@ window.render=()=>{
       <div class="table-cell price-cell"><strong class="product-price">${Number(p.price||0).toLocaleString("ar-DZ")} دج</strong></div>
       <div class="table-cell stock-cell"><span class="stock-pill ${stockClass}"><i></i>${stockText} · ${stock}</span></div>
       <div class="table-cell sales-cell">${Number(p.sales||0).toLocaleString("ar-DZ")}</div>
-      <div class="status-cell"><span class="publish-badge ${published?"is-published":"is-hidden"}">${published?"● نشط":"● غير منشور"}</span></div>
+      <div class="status-cell"><span class="publish-badge ${published?"is-published":"is-hidden"}" title="اضغط لتغيير الحالة" onclick="toggleProductPublish('${esc(p.id)}')">${published?"● نشط":"● غير منشور"}</span></div>
       <div class="product-actions">
         <label class="product-select" title="تحديد المنتج"><input type="checkbox" ${selectedProducts.has(p.id)?"checked":""} onchange="window.toggleProductSelection('${esc(p.id)}',this.checked)"></label>
         <div class="action-main">
-          <button class="product-action-btn primary-view" type="button" onclick="window.openProductStore('${esc(p.id)}')">↗ عرض المنتج</button>
-          <button class="product-action-btn edit-btn" type="button" onclick="editProduct('${esc(p.id)}')">✏ تعديل</button>
-          <button class="product-action-btn ${published?"publish-btn":"unpublish-btn"}" type="button" onclick="toggleProductPublish('${esc(p.id)}')">${published?"⏸ إخفاء":"▶ نشر"}</button>
-          <button class="product-action-btn copy-btn" type="button" onclick="window.copyProductLink('${esc(p.id)}')">🔗 نسخ الرابط</button>
-          <button class="product-action-btn delete-btn" type="button" onclick="removeProduct('${esc(p.id)}')">🗑 حذف</button>
+          <button class="icon-action-btn view-icon" type="button" title="عرض المنتج" onclick="window.openProductStore('${esc(p.id)}')">👁️</button>
+          <button class="icon-action-btn edit-icon" type="button" title="تعديل" onclick="editProduct('${esc(p.id)}')">✏️</button>
+          <button class="icon-action-btn copy-icon" type="button" title="نسخ الرابط" onclick="window.copyProductLink('${esc(p.id)}')">🔗</button>
+          <button class="icon-action-btn delete-icon" type="button" title="حذف" onclick="removeProduct('${esc(p.id)}')">🗑️</button>
         </div>
       </div>
     </article>`;
