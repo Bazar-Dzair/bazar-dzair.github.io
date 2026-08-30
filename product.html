@@ -121,22 +121,33 @@ function computeDeliveryOptions(w){
   // في هذه الحالة، أي طريقة توصيل تركها فارغة (لم يفعّلها) يجب اعتبارها غير متاحة لهذا المنتج،
   // بدل معاملتها كأنها "متاحة لأي شركة" كما كان يحدث سابقًا.
   const productHasDeliveryPrefs=!!(productHome||productOffice);
+
+  // سعر باب الدار: من جدول أسعار التوصيل (settings/shipping)، وإلا من الأسعار الافتراضية القديمة لكل ولاية.
   let homePrice=null,homeCompanyStr="";
   if(rate){homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);homeCompanyStr=rate.homeCompany||"";}
-  else if(legacyShippingPrices[w]!=null){homePrice=legacyShippingPrices[w];}
+  if(homePrice==null&&legacyShippingPrices[w]!=null) homePrice=legacyShippingPrices[w];
+
   const homeAllowedForProduct=!productHasDeliveryPrefs||!!productHome;
   if(homePrice!=null&&homeAllowedForProduct){
     const av=computeAvail(productHome,homeCompanyStr);
     if(av.available) opts.home={price:homePrice,codes:av.codes};
   }
+
+  // سعر المكتب: من جدول أسعار التوصيل إن وُجد لهذه الولاية تحديدًا.
+  // إذا لم يحدّد صاحب المتجر بعد سعرًا خاصًا بالمكتب لهذه الولاية، نعتمد سعر باب الدار كتقدير مبدئي
+  // (بدل اعتبار التوصيل للمكتب غير متوفر بالكامل لمجرد عدم تعبئة خانة السعر بعد).
+  // يبقى بإمكان صاحب المتجر ضبط سعر مختلف للمكتب من صفحة "أسعار التوصيل" في أي وقت، وسيُستخدم فورًا بدل هذا التقدير.
   const officeAllowedForProduct=!productHasDeliveryPrefs||!!productOffice;
-  if(rate&&officeAllowedForProduct){
-    const officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);
+  if(officeAllowedForProduct){
+    let officePrice=null,officeCompanyStr="";
+    if(rate){officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);officeCompanyStr=rate.officeCompany||"";}
+    if(officePrice==null) officePrice=homePrice;
     if(officePrice!=null){
-      const av=computeAvail(productOffice,rate.officeCompany||"");
+      const av=computeAvail(productOffice,officeCompanyStr);
       if(av.available) opts.office={price:officePrice,codes:av.codes};
     }
   }
+
   return opts;
 }
 function renderDeliveryOptions(opts){
