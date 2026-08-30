@@ -132,7 +132,18 @@ const settingDefinitions = [
   ["🖼","الشعار والبانر","إضافة شعار المتجر وصورة البانر الرئيسية","branding"]
 ];
 
-function showView(name, el, createNew=false){
+function updateAdminUrl(name, createNew=false){
+  try{
+    const url=new URL(window.location.href);
+    if(name && name!=="dashboard") url.searchParams.set("view",name);
+    else url.searchParams.delete("view");
+    // A new product has no product id; editing a product may set it separately.
+    if(name!=="product" || createNew) url.searchParams.delete("id");
+    window.history.pushState({adminView:name},"",url.pathname+(url.search?url.search:"")+url.hash);
+  }catch(e){}
+}
+
+function showView(name, el, createNew=false, updateUrl=true){
   document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));
   const target=document.getElementById("view-"+name);
   if(target) target.classList.remove("hidden");
@@ -145,8 +156,23 @@ function showView(name, el, createNew=false){
   if(name==="addons" && window.bazarLoadAddons) window.bazarLoadAddons();
   if(name==="footer") setTimeout(loadFooterSetting,0);
   try{sessionStorage.setItem("bazarAdminView",name);}catch(e){}
+  if(updateUrl) updateAdminUrl(name,createNew);
   if(window.innerWidth<=700) document.getElementById("sidebar")?.classList.remove("open");
 }
+
+// Keep the dashboard state in the browser URL so each admin section can be
+// refreshed, bookmarked, or opened with Back/Forward without returning to /admin.
+window.addEventListener("popstate",()=>{
+  try{
+    const params=new URLSearchParams(window.location.search);
+    let view=params.get("view")||"dashboard";
+    const valid=["dashboard","orders","product","products","categories","sections","footer","users","settings","addons"];
+    if(!valid.includes(view)) view="dashboard";
+    const nav=[...document.querySelectorAll(".nav-item")];
+    const idx={dashboard:0,orders:1,product:2,products:3,categories:4,sections:5,footer:6,users:7,settings:8,addons:9}[view];
+    showView(view,nav[idx]||nav[0],false,false);
+  }catch(e){}
+});
 function toggleSidebar(){document.getElementById("sidebar")?.classList.toggle("open")}
 
 const footerSettingDefaults={
@@ -931,12 +957,15 @@ function renderCurrentUser(u){
 function appPage(){
   appBox.classList.remove("hidden");
   let view="dashboard";
-  try{view=sessionStorage.getItem("bazarAdminView")||"dashboard";}catch(e){}
-  const valid=["dashboard","orders","product","products","categories","sections","users","settings","addons"];
+  try{
+    const params=new URLSearchParams(window.location.search);
+    view=params.get("view")||sessionStorage.getItem("bazarAdminView")||"dashboard";
+  }catch(e){}
+  const valid=["dashboard","orders","product","products","categories","sections","footer","users","settings","addons"];
   if(!valid.includes(view)) view="dashboard";
   const nav=[...document.querySelectorAll(".nav-item")];
-  const idx={dashboard:0,orders:1,product:2,products:3,categories:4,sections:5,users:6,settings:7,addons:8}[view];
-  showView(view,nav[idx]||nav[0],false);
+  const idx={dashboard:0,orders:1,product:2,products:3,categories:4,sections:5,footer:6,users:7,settings:8,addons:9}[view];
+  showView(view,nav[idx]||nav[0],false,false);
 }
 let productsLoaded=false;
 let productsLoading=null;
@@ -1245,6 +1274,12 @@ window.editProduct=id=>{
  renderSelectedImages();
  try{sessionStorage.setItem("bazarAdminView","product");sessionStorage.setItem("bazarEditingProduct",id);}catch(e){}
  showView("product",null,false);
+ try{
+   const url=new URL(window.location.href);
+   url.searchParams.set("view","product");
+   url.searchParams.set("id",id);
+   window.history.replaceState({adminView:"product",productId:id},"",url.pathname+url.search+url.hash);
+ }catch(e){}
  scrollTo({top:0,behavior:"smooth"});
 };
 
