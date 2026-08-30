@@ -1312,7 +1312,7 @@ window.render=()=>{
       <div class="table-cell price-cell"><strong class="product-price">${Number(p.price||0).toLocaleString("ar-DZ")} دج</strong></div>
       <div class="table-cell stock-cell"><span class="stock-pill ${stockClass}"><i></i>${stockText} · ${stock}</span></div>
       <div class="table-cell sales-cell">${Number(p.sales||0).toLocaleString("ar-DZ")}</div>
-      <div class="status-cell"><span class="publish-badge ${published?"is-published":"is-hidden"}" title="اضغط لتغيير الحالة" onclick="toggleProductPublish('${esc(p.id)}')">${published?"● نشط":"● غير منشور"}</span></div>
+      <div class="status-cell"><span class="publish-badge ${published?"is-published":"is-hidden"}" title="اضغط لتبديل حالة توفّر المنتج في المتجر" onclick="toggleProductPublish('${esc(p.id)}')">${published?"● نشط":"● غير متوفر"}</span></div>
       <div class="product-actions">
         <label class="product-select" title="تحديد المنتج"><input type="checkbox" ${selectedProducts.has(p.id)?"checked":""} onchange="window.toggleProductSelection('${esc(p.id)}',this.checked)"></label>
         <div class="action-main">

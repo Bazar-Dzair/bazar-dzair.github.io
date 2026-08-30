@@ -486,7 +486,9 @@ async function loadProductsFromFirestore(){
       images:imgs.length?imgs:[image],
       badge:data.badge||"جديد",
       description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
-      category:data.category||"all"
+      category:data.category||"all",
+      published:data.published!==false,
+      stock:Number(data.stock||0)
     };
   }
   try{
@@ -575,7 +577,14 @@ function applyUrlCategory(){
 function displayProducts(list=products){
  const g=document.getElementById("productGrid");
  if(!list.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">لم نجد المنتج 🔎</div>';return}
- g.innerHTML=list.map(p=>`<article class="product"><div class="pic" onclick="goToProduct(${p.id})">${p.badge?`<span class="new">${p.badge}</span>`:""}<img src="${p.image}" alt="${esc(p.name)}" loading="lazy" decoding="async"></div><div class="info"><div class="name" onclick="goToProduct(${p.id})">${esc(p.name)}</div><div class="price">${money(p.price)}</div><div class="buttons"><button class="btn cartbtn" onclick="addCart(${p.id})" aria-label="إضافة إلى السلة">🛒<span class="plus">+</span></button><button class="btn buybtn" onclick="buyNow(${p.id})">شراء <span class="buycart">🛒</span></button></div></div></article>`).join("");
+ g.innerHTML=list.map(p=>{
+   const available=p.published!==false;
+   const badgeHtml=available?(p.badge?`<span class="new">${p.badge}</span>`:""):'<span class="new" style="background:#9aa1ab">غير متوفر</span>';
+   const actionsHtml=available
+     ?`<button class="btn cartbtn" onclick="addCart(${p.id})" aria-label="إضافة إلى السلة">🛒<span class="plus">+</span></button><button class="btn buybtn" onclick="buyNow(${p.id})">شراء <span class="buycart">🛒</span></button>`
+     :`<button class="btn buybtn" disabled style="opacity:.55;cursor:not-allowed" onclick="return false">غير متوفر حاليًا</button>`;
+   return `<article class="product${available?"":" unavailable"}"><div class="pic" onclick="goToProduct(${p.id})">${badgeHtml}<img src="${p.image}" alt="${esc(p.name)}" loading="lazy" decoding="async" style="${available?"":"filter:grayscale(60%);opacity:.75"}"></div><div class="info"><div class="name" onclick="goToProduct(${p.id})">${esc(p.name)}</div><div class="price">${money(p.price)}</div><div class="buttons">${actionsHtml}</div></div></article>`;
+ }).join("");
 }
 function productSlug(name){
   return String(name || "product")
