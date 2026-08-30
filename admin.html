@@ -262,6 +262,10 @@
 .multi-select-menu input[type="checkbox"]{width:15px;height:15px;flex-shrink:0}
 .carrier-logo{width:20px;height:20px;border-radius:5px;object-fit:contain;flex-shrink:0;background:#fff;border:1px solid #eef0f3}
 .carrier-btn-logo{width:16px;height:16px;border-radius:4px;object-fit:contain;vertical-align:middle;margin-left:4px}
+.warn-banner{display:none;align-items:center;gap:8px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:10px;padding:10px 14px;font-size:12.5px;font-weight:700;margin-bottom:12px}
+.warn-banner.show{display:flex}
+.src-warn{border-color:#f59e0b!important;background:#fffbea!important}
+.src-warn-icon{display:inline-block;margin-right:3px}
 </style>
 </head>
 <body class="auth-check">
@@ -441,6 +445,7 @@
 <section id="view-shipping-rates" class="view hidden">
   <div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر ومدة وشركة التوصيل لكل ولاية من ولايات الجزائر (58 ولاية المعتمدة في المتجر).</p></div><button class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button></div>
   <div class="panel">
+    <div id="shippingWarnBanner" class="warn-banner"></div>
     <div class="shipping-rates-toolbar">
       <div class="search-wrap"><span class="search-ic">🔎</span><input id="shippingRatesSearch" placeholder="ابحث عن ولاية بالاسم أو الرقم..." oninput="filterShippingRatesTable()"></div>
       <div class="shipping-rates-bulk">
@@ -786,6 +791,8 @@ window.updateMultiSelect=function(cb){
   wrap.dataset.value=val;
   wrap.classList.toggle("empty",!checked.length);
   wrap.querySelector(".multi-select-btn").textContent=homeCompanyDisplay(val);
+  const row=wrap.closest(".shipping-rate-row");
+  if(row&&typeof updateRowShippingWarning==="function"){updateRowShippingWarning(row);if(typeof refreshShippingWarnBanner==="function")refreshShippingWarnBanner();}
 };
 document.addEventListener("click",e=>{
   if(!e.target.closest(".multi-select")){
@@ -853,6 +860,41 @@ function renderShippingRatesTable(){
       <div class="src-cell"><input type="text" data-field="duration" data-code="${code}" value="${escapeAttr(r.duration)}" placeholder="مثال: 24-72 سا"></div>
     </div>`;
   }).join("");
+  box.querySelectorAll('input[data-field="home"],input[data-field="office"]').forEach(inp=>{
+    inp.addEventListener("input",()=>{updateRowShippingWarning(inp.closest(".shipping-rate-row"));refreshShippingWarnBanner();});
+  });
+  box.querySelectorAll('select[data-field="officeCompany"]').forEach(sel=>{
+    sel.addEventListener("change",()=>{updateRowShippingWarning(sel.closest(".shipping-rate-row"));refreshShippingWarnBanner();});
+  });
+  refreshShippingWarnBanner();
+}
+function updateRowShippingWarning(row){
+  if(!row)return;
+  const homeCompanyVal=row.querySelector('.multi-select[data-field="homeCompany"]')?.dataset.value||"";
+  const homePriceEl=row.querySelector('[data-field="home"]');
+  const officeCompanyVal=row.querySelector('[data-field="officeCompany"]')?.value||"";
+  const officePriceEl=row.querySelector('[data-field="office"]');
+  const homeWarn=!!homeCompanyVal&&!String(homePriceEl?.value||"").trim();
+  const officeWarn=!!officeCompanyVal&&!String(officePriceEl?.value||"").trim();
+  if(homePriceEl) homePriceEl.classList.toggle("src-warn",homeWarn);
+  if(officePriceEl) officePriceEl.classList.toggle("src-warn",officeWarn);
+  row.dataset.priceWarn=(homeWarn||officeWarn)?"1":"0";
+}
+function refreshShippingWarnBanner(){
+  const banner=document.getElementById("shippingWarnBanner");
+  if(!banner)return;
+  let count=0;
+  document.querySelectorAll(".shipping-rate-row").forEach(row=>{
+    updateRowShippingWarning(row);
+    if(row.dataset.priceWarn==="1") count++;
+  });
+  if(count>0){
+    banner.textContent=`⚠️ ${count} ولاية بها شركة توصيل محددة بدون سعر — التوصيل لن يظهر للزبون في هذه الولايات حتى تُدخل السعر المطابق.`;
+    banner.classList.add("show");
+  }else{
+    banner.textContent="";
+    banner.classList.remove("show");
+  }
 }
 window.filterShippingRatesTable=function(){
   const q=(document.getElementById("shippingRatesSearch")?.value||"").trim().toLowerCase();
@@ -872,10 +914,12 @@ window.applyBulkShippingCompany=function(type){
       el.querySelector(".multi-select-btn").textContent=homeCompanyDisplay(val);
       el.querySelectorAll('input[type="checkbox"]').forEach(cb=>{cb.checked=codes.has(cb.value);});
     });
+    refreshShippingWarnBanner();
     return;
   }
   const val=document.getElementById("bulkOfficeCompanySelect")?.value||"";
   document.querySelectorAll('.shipping-rate-row select[data-field="officeCompany"]').forEach(sel=>{sel.value=val;});
+  refreshShippingWarnBanner();
 };
 window.saveShippingRates=async function(){
   const status=document.getElementById("shippingRatesStatus");
