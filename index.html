@@ -610,7 +610,7 @@ function productSlug(name){
   },true);
 })();
 
-function goToProduct(id){
+async function goToProduct(id){
   const product = products.find(p => String(p.id) === String(id));
   if(!product){
     showToast("المنتج غير موجود");
@@ -620,14 +620,18 @@ function goToProduct(id){
   const slug = productSlug(product.name);
   try{ localStorage.setItem("bazar_selected_product", JSON.stringify(product)); }catch(_e){}
 
-  // مهم: قد يكون المستخدم داخل صفحة تصنيف مثل:
-  // /product-category/tools/
-  // لذلك لا نستعمل رابطاً نسبياً مثل "product.html"،
-  // لأنه سيتحول إلى /product-category/tools/product.html
-  // ويؤدي على GitHub Pages إلى 404/العودة للصفحة الرئيسية.
-  // صفحة المنتج الديناميكية موجودة في جذر الموقع.
-  const productUrl = new URL("/product/" + encodeURIComponent(slug) + "/", window.location.origin);
-  window.location.href = productUrl.href;
+  // الصفحة الجميلة /product/<slug>/ تُنشأ فقط عند تشغيل GitHub Action (كل 6 ساعات أو يدويًا).
+  // المنتج المضاف حديثًا لا تكون له هذه الصفحة بعد، فنتحقق أولاً (طلب سريع HEAD)،
+  // وإن لم تكن جاهزة بعد ننتقل مباشرة لصفحة المنتج الديناميكية (product.html?id=)
+  // التي تعمل فورًا لأي منتج، قديمًا كان أو جديدًا، بلا انتظار.
+  const prettyUrl = new URL("/product/" + encodeURIComponent(slug) + "/", window.location.origin).href;
+  const fallbackUrl = new URL("/product.html?id=" + encodeURIComponent(slug), window.location.origin).href;
+  let target = fallbackUrl;
+  try{
+    const res = await fetch(prettyUrl, { method: "HEAD", cache: "no-store" });
+    if(res.ok) target = prettyUrl;
+  }catch(_e){ /* أي خطأ شبكة: استعمل الرابط الديناميكي الآمن */ }
+  window.location.href = target;
 }
 
 function openProduct(id){
