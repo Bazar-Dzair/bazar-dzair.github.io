@@ -1462,8 +1462,8 @@ function renderOrders(){
   box.innerHTML=pageRows.map(o=>{
     const img=findOrderProductImage(o.product);
     const statusTxt=String(o.status||"جديد");
-    return `<div class="order-row-pro">
-      <div class="order-cell oc-select"><label class="item-check"><input type="checkbox" ${selectedOrders.has(o.id)?"checked":""} onchange="window.toggleOrderSelection('${esc(o.id)}',this.checked)"></label></div>
+    return `<div class="order-row-pro" style="cursor:pointer" onclick="window.openOrderDetail('${esc(o.id)}')">
+      <div class="order-cell oc-select" onclick="event.stopPropagation()"><label class="item-check"><input type="checkbox" ${selectedOrders.has(o.id)?"checked":""} onchange="window.toggleOrderSelection('${esc(o.id)}',this.checked)"></label></div>
       <div class="order-cell oc-num">${esc(orderDisplayId(o))}</div>
       <div class="order-cell oc-customer">${esc(o.customerName||o.name||"غير متوفر")}</div>
       <div class="order-cell oc-product"><div class="order-product-cell">${img?`<img class="order-product-img" src="${esc(img)}" onerror="this.style.display='none'">`:`<span class="order-product-img ph">📦</span>`}<span class="order-product-name">${esc(o.product||"منتج غير محدد")}</span></div></div>
@@ -1471,7 +1471,7 @@ function renderOrders(){
       <div class="order-cell oc-total">${money(o.total)}</div>
       <div class="order-cell oc-status"><span class="order-status-badge ${orderStatusClass(statusTxt)}">${esc(statusTxt)}</span></div>
       <div class="order-cell oc-date"><div class="order-date-cell"><b>${orderListDate(o)}</b><span>${orderListTime(o)}</span></div></div>
-      <div class="order-cell oc-actions"><div class="order-actions-cell">
+      <div class="order-cell oc-actions" onclick="event.stopPropagation()"><div class="order-actions-cell">
         <button class="icon-action-btn view-icon" title="عرض الطلبية" type="button" onclick="window.openOrderDetail('${esc(o.id)}')">👁</button>
         <button class="icon-action-btn delete-icon" title="حذف" type="button" onclick="deleteOrder('${esc(o.id)}')">🗑</button>
       </div></div>
