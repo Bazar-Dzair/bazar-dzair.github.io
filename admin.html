@@ -33,6 +33,18 @@
 .addons-page{display:flex;flex-direction:column;gap:20px}.addons-intro,.addons-services{background:#fff;border:1px solid #eee;border-radius:16px;box-shadow:0 2px 8px #00000005}.addons-intro{padding:28px}.addons-intro h1{margin:0 0 10px;font-size:27px}.addons-intro p{margin:0;color:#7d8795;line-height:1.8}.addons-services{padding:25px}.addons-services-head{display:flex;gap:10px;align-items:center;margin-bottom:20px}.addons-services-dot{width:12px;height:12px;border-radius:50%;background:#5bd27d}.addons-services-head h2{margin:0 0 5px;font-size:21px}.addons-services-head p{margin:0;color:#89919d;font-size:13px}.addons-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.addon-card{background:#fff;border:1px solid #e8e8e8;border-radius:15px;padding:22px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}.addon-icon{width:78px;height:78px;border-radius:16px;display:grid;place-items:center;font-size:35px;background:#f5f5f5}.addon-icon.ga{background:#fff5dc}.addon-icon.tiktok{background:#fff0f3}.addon-icon.meta{background:#e8f2ff}.addon-icon.gtm{background:#eef7ff}.addon-icon.search{background:#edf3f8}.addon-top{display:flex;flex-direction:column;align-items:center;gap:10px}.addon-top h3{margin:0;font-size:17px}.addon-desc{color:#888;font-size:12px;line-height:1.7;min-height:42px}.addon-badge{min-width:130px;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:700}.addon-badge.st-on{background:#dcfce7;color:#166534}.addon-badge.st-off{background:#eef1f5;color:#64748b}.addon-badge.st-setup{background:#fef3c7;color:#92400e}.addon-idline{width:100%;background:#f5f6f8;border:1px solid #eef0f3;border-radius:8px;padding:6px;color:#5b6472;font-size:11px}.addon-actions{width:100%;display:flex;gap:7px;flex-wrap:wrap}.addon-actions .btn{flex:1;border:0;border-radius:9px;padding:9px;font-weight:700;font-size:11px}.addon-setup{background:#f5f6f7}.addon-test{background:#eef2ff;color:#3b4fd8}.addon-enable{background:#16a34a;color:#fff}.addon-disable{background:#fee2e2;color:#b91c1c}
 .upload-card{border:1px solid #e7e9ee;border-radius:15px;padding:12px;background:#fafbfc}.upload-drop{width:100%;min-height:150px;border:2px dashed #d9dde5;border-radius:13px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}.upload-icon{font-size:30px}.upload-drop b{font-size:15px}.upload-drop small{color:#697386}.upload-hint{font-size:11px;color:#9aa2ad}.image-count{font-size:12px;color:#667085;font-weight:700;text-align:right;margin:9px 2px}.image-preview{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.image-item{text-align:center}.image-wrap{position:relative;background:#fff;border:1px solid #e5e7eb;border-radius:11px;padding:5px;aspect-ratio:1}.image-thumb{width:100%;height:100%;object-fit:contain;border-radius:7px}.image-remove{position:absolute;top:4px;left:4px;width:25px;height:25px;padding:0;border:0;border-radius:50%;background:#dc2626;color:#fff}.cover-badge{position:absolute;right:5px;bottom:5px;background:#16a34a;color:#fff;padding:2px 7px;border-radius:6px;font-size:9px}.image-item small{display:block;margin-top:4px;color:#667085;font-size:9px}
 
+/* ===== Product management: reference design ===== */
+.products-page-head{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 24px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:15px;box-shadow:0 2px 8px #00000005}
+.products-title h1{margin:0 0 6px;color:#182536;font-size:25px}.products-title p{margin:0;color:#8b94a1;font-size:13px}.products-total{font-size:13px;color:#7d8795;white-space:nowrap}.products-total strong{display:inline-grid;place-items:center;min-width:38px;height:30px;padding:0 10px;margin-inline-start:5px;border-radius:999px;background:#eef5ff;color:#2563eb;font-size:13px}
+.products-panel-new{padding:12px;background:#fff}.products-toolbar-new{position:relative;display:flex;align-items:center;gap:10px;margin-bottom:10px}.products-search-new{height:50px;display:flex;align-items:center;gap:8px;flex:1;border:1px solid #e2e6eb;background:#fff;border-radius:11px;padding:0 13px}.products-search-new:focus-within{border-color:#bfd4f7;box-shadow:0 0 0 3px #2563eb0c}.products-search-new .search-icon{font-size:22px;color:#8b95a3;line-height:1}.products-search-new input{width:100%;border:0;outline:0;background:transparent;font-size:14px;color:#253040}.product-filter-btn{width:50px;height:50px;flex:none;border:1px solid #e2e6eb;background:#fff;color:#455160;border-radius:11px;font-size:21px;display:grid;place-items:center}.product-filter-btn:hover,.product-filter-btn[aria-expanded="true"]{background:#f7f9fc;border-color:#cfd7e2}.product-filter-panel{position:absolute;right:0;top:58px;width:230px;padding:12px;background:#fff;border:1px solid #e3e7ed;border-radius:12px;box-shadow:0 14px 35px #0002;z-index:45}.product-filter-panel label{display:block;font-size:12px;font-weight:800;color:#4b5563}.product-filter-panel select{width:100%;margin-top:7px;padding:10px;border:1px solid #dfe4ea;border-radius:9px;background:#fff;outline:0}.products-maintenance-status{min-height:0;font-size:12px;margin:0 3px}.products-bulk-new{margin:0 0 10px;border:0;background:#fafbfc;padding:8px 10px}.product-list-new{display:flex;flex-direction:column;gap:10px}.product-list-new .product-row{position:relative;display:grid;grid-template-columns:54px minmax(0,1fr) 135px 145px 130px 110px 180px;gap:12px;align-items:center;min-height:112px;margin:0;padding:12px 13px;background:#fff;border:1px solid #e6e9ee;border-radius:13px;box-shadow:0 2px 8px #00000004}.product-list-new .product-row:hover{border-color:#dbe2ea;box-shadow:0 7px 20px #00000009;transform:translateY(-1px)}
+.product-list-new .product-select{order:0;width:38px;height:38px}.product-list-new .product-cell{grid-column:auto;min-width:0;gap:12px}.product-list-new .product-image-wrap{width:76px;height:76px;border-radius:10px;background:#f8f9fb;border:1px solid #eef0f3;box-shadow:none}.product-list-new .product-title-line h3{font-size:14px;line-height:1.45}.product-list-new .product-meta{margin-top:5px;font-size:10px;gap:8px}.product-list-new .category-cell,.product-list-new .sales-cell{display:block}.product-list-new .table-cell{text-align:center;padding:0 5px}.product-list-new .price-cell{order:initial}.product-list-new .stock-cell{order:initial}.product-list-new .status-cell{order:initial;display:flex;justify-content:center}.product-list-new .publish-badge{cursor:pointer;padding:7px 11px}.product-list-new .product-actions{grid-column:auto;justify-content:flex-start;gap:6px;padding:0;border:0;order:initial}.product-list-new .action-main{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.product-list-new .product-menu{display:block;order:-1}.product-list-new .product-menu summary{width:36px;height:36px;border-radius:9px;background:#fff}.product-list-new .menu-popover{left:auto;right:0;top:41px}.product-list-new .icon-action-btn{width:36px;height:36px}.product-list-new .mobile-kebab{display:block}
+@media(max-width:1150px){.product-list-new .product-row{grid-template-columns:42px minmax(260px,1.8fr) 110px 125px 100px 100px 155px;gap:8px}.product-list-new .product-image-wrap{width:66px;height:66px}.product-list-new .product-title-line h3{font-size:13px}}
+@media(max-width:760px){.products-page-head{padding:16px 14px;border-radius:13px}.products-title h1{font-size:20px}.products-title p{font-size:11px}.products-total{font-size:11px}.products-total strong{min-width:30px;height:26px;padding:0 8px}.products-panel-new{padding:9px}.products-toolbar-new{margin-bottom:9px}.products-search-new{height:46px}.product-filter-btn{width:46px;height:46px}.product-filter-panel{top:53px;right:0;width:220px}.products-bulk-new{padding:6px 4px;background:transparent}.products-bulk-new .select-all-label{font-size:11px}.products-bulk-new .bulk-delete{padding:8px 10px;font-size:11px}.product-list-new{gap:9px}.product-list-new .product-row{display:grid;grid-template-columns:38px minmax(0,1fr) auto;grid-template-rows:auto auto auto;gap:8px 9px;padding:10px;border-radius:13px;min-height:0}.product-list-new .product-select{grid-column:1;grid-row:1;align-self:start}.product-list-new .product-cell{grid-column:2/4;grid-row:1;gap:9px;align-items:flex-start}.product-list-new .product-image-wrap{width:58px;height:58px}.product-list-new .product-details{padding-top:1px}.product-list-new .product-title-line h3{font-size:12px;line-height:1.4}.product-list-new .product-meta{font-size:9px;gap:5px;margin-top:4px;flex-direction:column}.product-list-new .category-cell,.product-list-new .sales-cell{display:none}.product-list-new .price-cell{grid-column:2;grid-row:2;justify-content:flex-start;text-align:right;font-size:13px}.product-list-new .stock-cell{grid-column:3;grid-row:2;justify-content:flex-end;text-align:left}.product-list-new .status-cell{grid-column:2;grid-row:3;justify-content:flex-start}.product-list-new .publish-badge{font-size:10px;padding:6px 9px}.product-list-new .product-actions{grid-column:3;grid-row:3;justify-content:flex-end;gap:5px}.product-list-new .action-main{gap:5px}.product-list-new .icon-action-btn{width:32px;height:32px;font-size:14px}.product-list-new .product-menu summary{width:32px;height:32px;font-size:18px}.product-list-new .product-menu .menu-popover{right:0;top:37px;width:170px}.product-list-new .stock-pill{font-size:10px;min-width:70px;padding:6px 8px}.product-list-new .stock-pill i{width:6px;height:6px}.product-list-new .product-actions .view-icon,.product-list-new .product-actions .copy-icon{display:none}.product-list-new .product-actions .delete-icon,.product-list-new .product-actions .edit-icon{display:inline-flex}.products-maintenance-status{font-size:11px}.products-page-head{align-items:flex-start}}
+@media(max-width:450px){.products-title p{display:none}.products-total{padding-top:2px}.product-list-new .product-row{grid-template-columns:34px minmax(0,1fr) auto;padding:9px}.product-list-new .product-image-wrap{width:54px;height:54px}.product-list-new .stock-pill{min-width:64px}.product-list-new .product-meta span:nth-child(2){display:none}}
+
+
+@media(max-width:760px){.product-list-new .product-row .product-select{position:absolute;left:8px;top:9px;width:30px;height:30px;border:0;background:transparent;z-index:4}.product-list-new .product-row .product-select input{width:16px;height:16px}.product-list-new .product-row .product-menu{position:absolute;left:8px;top:43px;z-index:5}.product-list-new .product-row .product-menu summary{background:#fff;box-shadow:0 2px 7px #0001}.product-list-new .product-row .product-cell{padding-left:34px}.product-list-new .product-row .product-actions{padding-left:0}.product-list-new .product-row .product-actions .product-menu + .action-main{padding-left:0}}
+
 /* ===== Premium product management UI ===== */
 .products-panel{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .products-table-head,.product-row{min-width:900px}
@@ -167,8 +179,34 @@
 </section>
 
 <section id="view-products" class="view hidden">
- <div class="page-head"><div><h1>المنتجات</h1><p>إدارة احترافية وسريعة للمنتجات والمخزون والروابط، مع وصول مباشر لكل منتج.</p></div></div>
- <div class="panel products-panel"><div class="products-search"><input id="search" placeholder="🔎 ابحث باسم المنتج أو التصنيف أو الكود..." oninput="productsPage=1;render()"><button type="button" onclick="migrateBase64Images()" style="white-space:nowrap;background:#e65c00;color:#fff;border:none;border-radius:8px;padding:0 14px;font-weight:700;cursor:pointer">🔄 إصلاح صور المنتجات القديمة</button><button type="button" onclick="bazarResetImgbbKey()" title="إعداد/تغيير مفتاح رفع الصور (ImgBB)" style="white-space:nowrap;background:#374151;color:#fff;border:none;border-radius:8px;padding:0 12px;font-weight:700;cursor:pointer">🔑</button></div><div id="migrateStatus" style="margin:6px 0 0;font-size:13px"></div><div class="products-table-head"><div>المنتج</div><div>التصنيف</div><div>السعر</div><div>المخزون</div><div>المبيعات</div><div>الحالة</div><div>الإجراءات</div></div><div id="productsBulk" class="bulk-toolbar"><div class="bulk-left"><label class="select-all-label"><input id="selectAllProducts" type="checkbox" onchange="window.toggleAllProducts(this.checked)"> تحديد كل منتجات الصفحة</label><span id="productsSelectedCount" class="page-info">0 محدد</span></div><button id="bulkDeleteProducts" class="bulk-delete" type="button" onclick="bulkDeleteProducts()" disabled>🗑 حذف المحدد</button></div><div id="list" class="products"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div><div id="productsPagination" class="pagination"></div></div>
+ <div class="products-page-head">
+   <div class="products-title"><h1>إدارة المنتجات</h1><p>إدارة المنتجات والمخزون والروابط بسهولة من مكان واحد.</p></div>
+   <div class="products-total">إجمالي المنتجات: <strong id="productsTotalBadge">0</strong></div>
+ </div>
+ <div class="panel products-panel products-panel-new">
+   <div class="products-toolbar-new">
+     <div class="products-search-new"><span class="search-icon">⌕</span><input id="search" placeholder="بحث في المنتجات..." oninput="productsPage=1;render()"></div>
+     <button id="productFilterBtn" class="product-filter-btn" type="button" onclick="toggleProductFilter()" aria-expanded="false" title="تصفية المنتجات">⚱</button>
+     <div id="productFilterPanel" class="product-filter-panel hidden">
+       <label>عرض المنتجات
+         <select id="productFilter" onchange="productsPage=1;render();toggleProductFilter(false)">
+           <option value="all">كل المنتجات</option>
+           <option value="published">النشطة فقط</option>
+           <option value="hidden">غير النشطة</option>
+           <option value="low">مخزون منخفض</option>
+           <option value="out">نفد المخزون</option>
+         </select>
+       </label>
+     </div>
+   </div>
+   <div id="migrateStatus" class="products-maintenance-status" aria-live="polite"></div>
+   <div id="productsBulk" class="bulk-toolbar products-bulk-new">
+     <div class="bulk-left"><label class="select-all-label"><input id="selectAllProducts" type="checkbox" onchange="window.toggleAllProducts(this.checked)"> تحديد كل منتجات الصفحة</label><span id="productsSelectedCount" class="page-info">0 محدد</span></div>
+     <button id="bulkDeleteProducts" class="bulk-delete" type="button" onclick="bulkDeleteProducts()" disabled>🗑 حذف المحدد</button>
+   </div>
+   <div id="list" class="products product-list-new"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div>
+   <div id="productsPagination" class="pagination"></div>
+ </div>
 </section>
 
 <section id="view-orders" class="view hidden"><div class="page-head"><div><h1>الطلبات</h1><p>تابع طلبات العملاء وغيّر حالتها من نفس الصفحة.</p></div></div><div class="panel"><div id="ordersBulk" class="bulk-toolbar"><div class="bulk-left"><label class="select-all-label"><input id="selectAllOrders" type="checkbox" onchange="window.toggleAllOrders(this.checked)"> تحديد كل طلبات الصفحة</label><span id="ordersSelectedCount" class="page-info">0 محدد</span></div><button id="bulkDeleteOrders" class="bulk-delete" type="button" onclick="bulkDeleteOrders()" disabled>🗑 حذف المحدد</button></div><div id="orders" class="products"><div class="empty-card">⏳ جاري تحميل الطلبات...</div></div><div id="ordersPagination" class="pagination"></div></div></section>
@@ -875,6 +913,7 @@ const imageFilesInput=document.getElementById("imageFiles");
 const imageCountBox=document.getElementById("imageCount");
 let products=[],editing=null;
 let productsPage=1, ordersPage=1;
+let productFilter="all";
 const ITEMS_PER_PAGE=10;
 const selectedProducts=new Set(), selectedOrders=new Set();
 let selectedImages=[]; // {file,url,existing}
@@ -1217,8 +1256,26 @@ function updateBulkUi(type){
 }
 function getFilteredProducts(){
   const q=String(searchInput?.value||"").trim().toLowerCase();
-  return products.filter(p=>{const hay=[p.name,p.category,p.description,p.id].map(v=>String(v||"").toLowerCase()).join(" ");return !q||hay.includes(q);});
+  const filter=String(document.getElementById("productFilter")?.value||productFilter||"all");
+  productFilter=filter;
+  return products.filter(p=>{
+    const hay=[p.name,p.category,p.description,p.id].map(v=>String(v||"").toLowerCase()).join(" ");
+    if(q&&!hay.includes(q)) return false;
+    const stock=Number(p.stock||0), published=p.published!==false;
+    if(filter==="published"&&!published) return false;
+    if(filter==="hidden"&&published) return false;
+    if(filter==="low"&&(stock<=0||stock>5)) return false;
+    if(filter==="out"&&stock>0) return false;
+    return true;
+  });
 }
+window.toggleProductFilter=function(force){
+  const panel=document.getElementById("productFilterPanel"),btn=document.getElementById("productFilterBtn");
+  if(!panel||!btn)return;
+  const open=typeof force==="boolean"?force:panel.classList.contains("hidden");
+  panel.classList.toggle("hidden",!open);btn.setAttribute("aria-expanded",String(open));
+};
+
 window.toggleAllProducts=function(checked){
   const rows=getFilteredProducts(), start=(productsPage-1)*ITEMS_PER_PAGE, pageRows=rows.slice(start,start+ITEMS_PER_PAGE);
   pageRows.forEach(p=>checked?selectedProducts.add(p.id):selectedProducts.delete(p.id));
@@ -1301,10 +1358,16 @@ window.copyProductLink=async function(id){
 window.render=()=>{
   if(!listBox||!searchInput)return;
   const filtered=getFilteredProducts();
+  const totalAll=products.length;
   const totalPages=Math.max(1,Math.ceil(filtered.length/ITEMS_PER_PAGE));
   if(productsPage>totalPages)productsPage=totalPages;
+  const totalBadge=document.getElementById("productsTotalBadge");
+  if(totalBadge)totalBadge.textContent=totalAll.toLocaleString("ar-DZ");
+  const filterSelect=document.getElementById("productFilter");
+  if(filterSelect&&filterSelect.value!==productFilter)filterSelect.value=productFilter;
   if(!filtered.length){
-    listBox.innerHTML=`<div class="empty-card"><span class="empty-icon">📦</span><b>لا توجد منتجات</b><span>${searchInput.value.trim()?"لم نجد منتجًا مطابقًا لبحثك.":"أضف أول منتج ليظهر هنا."}</span><button class="orange-btn" type="button" onclick="showView('product',null,true)">＋ إضافة منتج</button></div>`;
+    const hasQuery=searchInput.value.trim()||productFilter!=="all";
+    listBox.innerHTML=`<div class="empty-card"><span class="empty-icon">📦</span><b>لا توجد منتجات</b><span>${hasQuery?"لم نجد منتجًا مطابقًا للبحث أو التصفية.":"أضف أول منتج ليظهر هنا."}</span><button class="orange-btn" type="button" onclick="showView('product',null,true)">＋ إضافة منتج</button></div>`;
     renderPagination("productsPagination",1,0,"productsPage");updateBulkUi("products");return;
   }
   const start=(productsPage-1)*ITEMS_PER_PAGE, pageRows=filtered.slice(start,start+ITEMS_PER_PAGE);
@@ -1315,30 +1378,31 @@ window.render=()=>{
     const stockClass=stock<=0?"danger":stock<=5?"warning":"good";
     const stockText=stock<=0?"نفد المخزون":stock<=5?"مخزون منخفض":"متوفر";
     const category=categories.find(c=>String(c.key)===String(p.category));
-    return `<article class="product-row">
+    const shortId=String(p.id||"").slice(0,8).toUpperCase();
+    return `<article class="product-row" data-product-id="${esc(p.id)}">
+      <label class="product-select" title="تحديد المنتج"><input type="checkbox" aria-label="تحديد ${esc(p.name||"المنتج")}" ${selectedProducts.has(p.id)?"checked":""} onchange="window.toggleProductSelection('${esc(p.id)}',this.checked)"></label>
       <div class="product-cell">
-        <div class="product-image-wrap"><img class="product-image" src="${esc(img||"")}" alt="${esc(p.name||"منتج")}" onerror="this.style.display='none'"></div>
-        <div class="product-details">
-          <div class="product-title-line"><h3>${esc(p.name||"بدون اسم")}</h3></div>
-          <div class="product-meta"><span>الكود: <b dir="ltr">${esc(String(p.id||"").slice(0,8).toUpperCase())}</b></span><span>المتجر: Bazar Dzair</span></div>
-        </div>
+        <div class="product-image-wrap"><img class="product-image" src="${esc(img||"")}" alt="${esc(p.name||"منتج")}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="product-details"><div class="product-title-line"><h3>${esc(p.name||"بدون اسم")}</h3></div><div class="product-meta"><span>الكود: <b dir="ltr">${esc(shortId)}</b></span><span>المتجر: Bazar Dzair</span></div></div>
       </div>
       <div class="table-cell category-cell">${esc(category?.name||p.category||"بدون تصنيف")}</div>
       <div class="table-cell price-cell"><strong class="product-price">${Number(p.price||0).toLocaleString("ar-DZ")} دج</strong></div>
       <div class="table-cell stock-cell"><span class="stock-pill ${stockClass}"><i></i>${stockText} · ${stock}</span></div>
       <div class="table-cell sales-cell">${Number(p.sales||0).toLocaleString("ar-DZ")}</div>
-      <div class="status-cell"><span class="publish-badge ${published?"is-published":"is-hidden"}" title="اضغط لتبديل حالة توفّر المنتج في المتجر" onclick="toggleProductPublish('${esc(p.id)}')">${published?"● نشط":"● غير متوفر"}</span></div>
+      <div class="status-cell"><span class="publish-badge ${published?"is-published":"is-hidden"}" title="اضغط لتبديل حالة المنتج" role="button" tabindex="0" onclick="toggleProductPublish('${esc(p.id)}')" onkeydown="if(event.key==='Enter'||event.key===' ')toggleProductPublish('${esc(p.id)}')">${published?"● نشط":"● غير متوفر"}</span></div>
       <div class="product-actions">
-        <label class="product-select" title="تحديد المنتج"><input type="checkbox" ${selectedProducts.has(p.id)?"checked":""} onchange="window.toggleProductSelection('${esc(p.id)}',this.checked)"></label>
-        <details class="product-menu mobile-kebab"><summary title="خيارات إضافية">⋮</summary><div class="menu-popover">
+        <details class="product-menu"><summary title="خيارات المنتج" aria-label="خيارات المنتج">⋮</summary><div class="menu-popover">
           <button type="button" onclick="window.openProductStore('${esc(p.id)}')">👁️ عرض المنتج</button>
+          <button type="button" onclick="editProduct('${esc(p.id)}')">✏️ تعديل المنتج</button>
           <button type="button" onclick="window.copyProductLink('${esc(p.id)}')">🔗 نسخ الرابط</button>
+          <button type="button" onclick="toggleProductPublish('${esc(p.id)}')">${published?"⏸️ إيقاف النشر":"▶️ نشر المنتج"}</button>
+          <button type="button" class="danger-action" onclick="removeProduct('${esc(p.id)}')">🗑️ حذف المنتج</button>
         </div></details>
         <div class="action-main">
-          <button class="icon-action-btn view-icon" type="button" title="عرض المنتج" onclick="window.openProductStore('${esc(p.id)}')">👁️</button>
-          <button class="icon-action-btn edit-icon" type="button" title="تعديل" onclick="editProduct('${esc(p.id)}')">✏️</button>
-          <button class="icon-action-btn copy-icon" type="button" title="نسخ الرابط" onclick="window.copyProductLink('${esc(p.id)}')">🔗</button>
-          <button class="icon-action-btn delete-icon" type="button" title="حذف" onclick="removeProduct('${esc(p.id)}')">🗑️</button>
+          <button class="icon-action-btn view-icon" type="button" title="عرض المنتج" aria-label="عرض المنتج" onclick="window.openProductStore('${esc(p.id)}')">👁️</button>
+          <button class="icon-action-btn edit-icon" type="button" title="تعديل المنتج" aria-label="تعديل المنتج" onclick="editProduct('${esc(p.id)}')">✏️</button>
+          <button class="icon-action-btn copy-icon" type="button" title="نسخ الرابط" aria-label="نسخ الرابط" onclick="window.copyProductLink('${esc(p.id)}')">🔗</button>
+          <button class="icon-action-btn delete-icon" type="button" title="حذف المنتج" aria-label="حذف المنتج" onclick="removeProduct('${esc(p.id)}')">🗑️</button>
         </div>
       </div>
     </article>`;
