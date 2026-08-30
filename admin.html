@@ -86,7 +86,64 @@
 .product-actions .icon-action-btn{width:38px;height:38px;flex:none}
 .product-actions .icon-action-btn.view-icon,.product-actions .icon-action-btn.copy-icon{display:none}
 .mobile-kebab{display:inline-block}
-.category-form-grid{grid-template-columns:1fr}.user-info-grid{grid-template-columns:1fr}.addons-grid{grid-template-columns:1fr}.shipping-grid{grid-template-columns:1fr}.image-preview{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:450px){.stats-grid,.quick-grid,.settings-grid{grid-template-columns:1fr}.brand{font-size:16px}.icon-btn{display:none}.page-head{padding:18px}.product-main{align-items:flex-start}.product-image-wrap{width:72px;height:72px}.product-meta{flex-direction:column;gap:3px}.order-actions{flex-direction:column;align-items:stretch}}
+.category-form-grid{grid-template-columns:1fr}.user-info-grid{grid-template-columns:1fr}.addons-grid{grid-template-columns:1fr}.shipping-grid{grid-template-columns:1fr}.image-preview{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:450px){.stats-grid,.quick-grid,.settings-grid{grid-template-columns:1fr}.page-head{padding:18px}.order-actions{flex-direction:column;align-items:stretch}}
+
+/* ===== Redesign: topbar (icon cluster / centered brand / avatar) ===== */
+.topbar-inner{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:100%;padding:0 22px}
+.top-left{display:flex;gap:8px;justify-self:start}
+.top-right{display:flex;gap:8px;justify-self:end;align-items:center}
+.brand-center{justify-self:center;font-size:19px;font-weight:800;color:#151a20;white-space:nowrap}
+.brand-center b{color:var(--orange)}
+.brand-btn{background:var(--orange);border-color:var(--orange);color:#fff;font-weight:800}
+.bell-btn{position:relative}
+.bell-badge{position:absolute;top:-6px;left:-6px;background:var(--red);color:#fff;font-size:10px;line-height:1;min-width:16px;height:16px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:2px 4px;font-weight:800;border:2px solid #fff}
+.bell-badge.hidden{display:none}
+@media(max-width:450px){.brand-center{font-size:15px}.top-left .icon-btn:nth-child(3){display:none}}
+
+/* ===== Redesign: products toolbar (filter / search / count badge) ===== */
+.products-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.products-toolbar input{flex:1;padding:13px 14px;border:1px solid #dfe3e8;border-radius:10px;outline:none;font-size:13px}
+.products-toolbar input:focus{border-color:var(--orange);box-shadow:0 0 0 3px #ff6a0012}
+.funnel-btn{flex:none;width:46px;height:46px;border:1px solid #dfe3e8;background:#fff;border-radius:10px;font-size:15px;color:#586170}
+.funnel-btn:hover{background:#f7f8fa}
+.funnel-btn.active{background:var(--orange);border-color:var(--orange);color:#fff}
+.total-badge{flex:none;display:inline-flex;align-items:center;gap:6px;background:#eef5ff;color:#1d64d8;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:700;white-space:nowrap}
+.total-badge b{font-size:14px}
+.products-utility-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.util-btn{white-space:nowrap;background:#fff7ee;color:#c65a00;border:1px solid #ffe2bd;border-radius:9px;padding:9px 13px;font-weight:700;font-size:12px}
+.util-btn-dark{background:#374151;color:#fff;border-color:#374151;padding:9px 12px}
+@media(max-width:600px){.products-toolbar{flex-wrap:wrap}.products-toolbar input{order:1;flex-basis:100%}.total-badge{order:2}.funnel-btn{order:3}}
+
+/* ===== Redesign: product card list (applies at every width) ===== */
+.products-table-head{display:none!important}
+.products-panel{overflow-x:visible}
+.product-row{min-width:0;display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 0 12px;min-height:0}
+.product-row:first-child{border-top:1px solid var(--line)}
+.product-row+.product-row{border-top:1px solid var(--line)}
+.product-row:hover{background:#fff;box-shadow:0 6px 18px #00000009;transform:translateY(-1px)}
+.product-image-wrap{position:relative;width:72px;height:72px;flex:none;border-radius:14px;background:#f7f8fa;border:1px solid #eef0f3;display:grid;place-items:center;box-shadow:none}
+.product-select-overlay{position:absolute;top:4px;left:4px;z-index:2;background:#fffc;border-radius:6px;padding:1px;line-height:0}
+.product-select-overlay input{width:16px;height:16px;margin:0;accent-color:var(--orange);cursor:pointer}
+.product-details{flex:1 1 160px;min-width:0;text-align:right}
+.product-details h3{margin:0 0 6px;font-size:14.5px;font-weight:800;color:#20242a;line-height:1.4}
+.product-meta{font-size:11px;color:#9099a6;letter-spacing:.3px}
+.price-stock-col{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:110px}
+.price-stock-col .product-price{font-size:16px;font-weight:800;color:#20242a;white-space:nowrap}
+.pills-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pills-row .stock-pill{min-width:0;padding:6px 9px;font-size:10.5px}
+.pills-row .publish-badge{padding:6px 9px;font-size:10.5px}
+.product-row .product-actions{flex:none;display:flex;flex-direction:column;align-items:center;gap:7px;justify-content:center}
+.product-row .product-actions .action-main{display:flex;flex-direction:row;gap:6px}
+.product-row .product-menu summary{width:34px;height:34px;font-size:18px}
+.product-row .icon-action-btn{width:34px;height:34px;min-height:34px}
+@media(max-width:640px){
+  .product-row{flex-wrap:wrap}
+  .product-image-wrap{order:1}
+  .product-details{order:2;flex-basis:calc(100% - 86px)}
+  .price-stock-col{order:3;flex-basis:calc(100% - 86px);align-items:flex-start;flex-direction:row-reverse;justify-content:space-between;margin-right:86px}
+  .product-row .product-actions{order:4;flex-basis:100%;flex-direction:row;justify-content:flex-start;border-top:1px solid #eef0f3;margin-top:10px;padding-top:10px}
+  .product-row .product-actions .action-main{flex-direction:row}
+}
 </style>
 </head>
 <body class="auth-check">
@@ -100,7 +157,18 @@
   <br><br><button class="primary" onclick="login()">🔐 دخول إلى لوحة التحكم</button>
 </div>
 <div id="app" class="hidden">
-<header class="topbar"><div class="topbar-inner"><div class="brand"><span class="brand-mark">B</span><span>Bazar <b>Dzair</b></span></div><div class="top-actions"><button class="icon-btn" title="الطلبات" onclick="showView('orders')">♧</button><button class="icon-btn" title="بحث" onclick="showView('products');setTimeout(()=>document.getElementById('search')?.focus(),50)">⌕</button><button class="icon-btn menu-btn" onclick="toggleSidebar()">☰</button><button class="user-chip">A</button></div></div></header>
+<header class="topbar"><div class="topbar-inner">
+  <div class="top-left">
+    <button class="icon-btn brand-btn" title="الرئيسية" onclick="showView('dashboard')">B</button>
+    <button class="icon-btn bell-btn" title="الطلبات" onclick="showView('orders')">🔔<span id="bellBadge" class="bell-badge hidden">0</span></button>
+    <button class="icon-btn" title="الإعدادات" onclick="showView('settings')">⚙</button>
+  </div>
+  <div class="brand-center">Bazar <b>Dzair</b></div>
+  <div class="top-right">
+    <button class="icon-btn menu-btn" title="القائمة" onclick="toggleSidebar()">☰</button>
+    <button class="user-chip" title="حسابي" onclick="showView('users')">A</button>
+  </div>
+</div></header>
 <div class="layout">
 <aside id="sidebar" class="sidebar">
   <div class="side-brand"><div class="side-logo">BD</div><div><strong>Bazar Dzair</strong><small>لوحة الإدارة</small></div></div>
@@ -168,7 +236,21 @@
 
 <section id="view-products" class="view hidden">
  <div class="page-head"><div><h1>المنتجات</h1><p>إدارة احترافية وسريعة للمنتجات والمخزون والروابط، مع وصول مباشر لكل منتج.</p></div></div>
- <div class="panel products-panel"><div class="products-search"><input id="search" placeholder="🔎 ابحث باسم المنتج أو التصنيف أو الكود..." oninput="productsPage=1;render()"><button type="button" onclick="migrateBase64Images()" style="white-space:nowrap;background:#e65c00;color:#fff;border:none;border-radius:8px;padding:0 14px;font-weight:700;cursor:pointer">🔄 إصلاح صور المنتجات القديمة</button><button type="button" onclick="bazarResetImgbbKey()" title="إعداد/تغيير مفتاح رفع الصور (ImgBB)" style="white-space:nowrap;background:#374151;color:#fff;border:none;border-radius:8px;padding:0 12px;font-weight:700;cursor:pointer">🔑</button></div><div id="migrateStatus" style="margin:6px 0 0;font-size:13px"></div><div class="products-table-head"><div>المنتج</div><div>التصنيف</div><div>السعر</div><div>المخزون</div><div>المبيعات</div><div>الحالة</div><div>الإجراءات</div></div><div id="productsBulk" class="bulk-toolbar"><div class="bulk-left"><label class="select-all-label"><input id="selectAllProducts" type="checkbox" onchange="window.toggleAllProducts(this.checked)"> تحديد كل منتجات الصفحة</label><span id="productsSelectedCount" class="page-info">0 محدد</span></div><button id="bulkDeleteProducts" class="bulk-delete" type="button" onclick="bulkDeleteProducts()" disabled>🗑 حذف المحدد</button></div><div id="list" class="products"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div><div id="productsPagination" class="pagination"></div></div>
+ <div class="panel products-panel">
+   <div class="products-toolbar">
+     <span class="total-badge"><b id="productsTotalCount">0</b> إجمالي المنتجات</span>
+     <input id="search" placeholder="🔎 بحث في المنتجات..." oninput="productsPage=1;render()">
+     <button type="button" id="lowStockFilterBtn" class="funnel-btn" title="عرض المنتجات منخفضة المخزون فقط" onclick="window.toggleLowStockFilter()">🔽</button>
+   </div>
+   <div class="products-utility-row">
+     <button type="button" onclick="migrateBase64Images()" class="util-btn">🔄 إصلاح صور المنتجات القديمة</button>
+     <button type="button" onclick="bazarResetImgbbKey()" title="إعداد/تغيير مفتاح رفع الصور (ImgBB)" class="util-btn util-btn-dark">🔑</button>
+   </div>
+   <div id="migrateStatus" style="margin:6px 0 0;font-size:13px"></div>
+   <div id="productsBulk" class="bulk-toolbar"><div class="bulk-left"><label class="select-all-label"><input id="selectAllProducts" type="checkbox" onchange="window.toggleAllProducts(this.checked)"> تحديد كل منتجات الصفحة</label><span id="productsSelectedCount" class="page-info">0 محدد</span></div><button id="bulkDeleteProducts" class="bulk-delete" type="button" onclick="bulkDeleteProducts()" disabled>🗑 حذف المحدد</button></div>
+   <div id="list" class="products"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div>
+   <div id="productsPagination" class="pagination"></div>
+ </div>
 </section>
 
 <section id="view-orders" class="view hidden"><div class="page-head"><div><h1>الطلبات</h1><p>تابع طلبات العملاء وغيّر حالتها من نفس الصفحة.</p></div></div><div class="panel"><div id="ordersBulk" class="bulk-toolbar"><div class="bulk-left"><label class="select-all-label"><input id="selectAllOrders" type="checkbox" onchange="window.toggleAllOrders(this.checked)"> تحديد كل طلبات الصفحة</label><span id="ordersSelectedCount" class="page-info">0 محدد</span></div><button id="bulkDeleteOrders" class="bulk-delete" type="button" onclick="bulkDeleteOrders()" disabled>🗑 حذف المحدد</button></div><div id="orders" class="products"><div class="empty-card">⏳ جاري تحميل الطلبات...</div></div><div id="ordersPagination" class="pagination"></div></div></section>
@@ -875,6 +957,7 @@ const imageFilesInput=document.getElementById("imageFiles");
 const imageCountBox=document.getElementById("imageCount");
 let products=[],editing=null;
 let productsPage=1, ordersPage=1;
+let lowStockFilter=false;
 const ITEMS_PER_PAGE=10;
 const selectedProducts=new Set(), selectedOrders=new Set();
 let selectedImages=[]; // {file,url,existing}
@@ -901,6 +984,9 @@ function updateStats(){
 function updateOrderStats(count){
   const el=document.getElementById("statOrders");
   if(el)el.textContent=Number(count||0).toLocaleString("ar-DZ");
+  const n=Number(count||0);
+  const badge=document.getElementById("bellBadge");
+  if(badge){badge.textContent=n>99?"99+":n;badge.classList.toggle("hidden",n<=0);}
 }
 
 let dashboardStatsLoaded=false;
@@ -1217,8 +1303,19 @@ function updateBulkUi(type){
 }
 function getFilteredProducts(){
   const q=String(searchInput?.value||"").trim().toLowerCase();
-  return products.filter(p=>{const hay=[p.name,p.category,p.description,p.id].map(v=>String(v||"").toLowerCase()).join(" ");return !q||hay.includes(q);});
+  return products.filter(p=>{
+    const hay=[p.name,p.category,p.description,p.id].map(v=>String(v||"").toLowerCase()).join(" ");
+    if(q && !hay.includes(q))return false;
+    if(lowStockFilter && Number(p.stock||0)>5)return false;
+    return true;
+  });
 }
+window.toggleLowStockFilter=function(){
+  lowStockFilter=!lowStockFilter;
+  const btn=document.getElementById("lowStockFilterBtn");
+  if(btn)btn.classList.toggle("active",lowStockFilter);
+  productsPage=1; render();
+};
 window.toggleAllProducts=function(checked){
   const rows=getFilteredProducts(), start=(productsPage-1)*ITEMS_PER_PAGE, pageRows=rows.slice(start,start+ITEMS_PER_PAGE);
   pageRows.forEach(p=>checked?selectedProducts.add(p.id):selectedProducts.delete(p.id));
@@ -1308,36 +1405,37 @@ window.render=()=>{
     renderPagination("productsPagination",1,0,"productsPage");updateBulkUi("products");return;
   }
   const start=(productsPage-1)*ITEMS_PER_PAGE, pageRows=filtered.slice(start,start+ITEMS_PER_PAGE);
+  const totalBadge=document.getElementById("productsTotalCount"); if(totalBadge)totalBadge.textContent=Number(filtered.length).toLocaleString("ar-DZ");
   listBox.innerHTML=pageRows.map(p=>{
     const img=Array.isArray(p.images)&&p.images.length?p.images[0]:p.image;
     const published=p.published!==false;
     const stock=Number(p.stock||0);
     const stockClass=stock<=0?"danger":stock<=5?"warning":"good";
-    const stockText=stock<=0?"نفد المخزون":stock<=5?"مخزون منخفض":"متوفر";
-    const category=categories.find(c=>String(c.key)===String(p.category));
+    const stockText=stock<=0?"نفد المخزون":stock<=5?"منخفض":"متوفر";
+    const sku=esc(String(p.id||"").slice(0,9).toUpperCase());
     return `<article class="product-row">
-      <div class="product-cell">
-        <div class="product-image-wrap"><img class="product-image" src="${esc(img||"")}" alt="${esc(p.name||"منتج")}" onerror="this.style.display='none'"></div>
-        <div class="product-details">
-          <div class="product-title-line"><h3>${esc(p.name||"بدون اسم")}</h3></div>
-          <div class="product-meta"><span>الكود: <b dir="ltr">${esc(String(p.id||"").slice(0,8).toUpperCase())}</b></span><span>المتجر: Bazar Dzair</span></div>
+      <div class="product-image-wrap">
+        <label class="product-select-overlay" title="تحديد المنتج"><input type="checkbox" ${selectedProducts.has(p.id)?"checked":""} onchange="window.toggleProductSelection('${esc(p.id)}',this.checked)"></label>
+        <img class="product-image" src="${esc(img||"")}" alt="${esc(p.name||"منتج")}" onerror="this.style.display='none'">
+      </div>
+      <div class="product-details">
+        <h3>${esc(p.name||"بدون اسم")}</h3>
+        <div class="product-meta" dir="ltr"><b>${sku}</b></div>
+      </div>
+      <div class="price-stock-col">
+        <strong class="product-price">${Number(p.price||0).toLocaleString("ar-DZ")} دج</strong>
+        <div class="pills-row">
+          <span class="stock-pill ${stockClass}"><i></i>${stock} ${stockText}</span>
+          <span class="publish-badge ${published?"is-published":"is-hidden"}" title="اضغط لتبديل حالة توفّر المنتج في المتجر" onclick="toggleProductPublish('${esc(p.id)}')">${published?"● نشط":"● غير متوفر"}</span>
         </div>
       </div>
-      <div class="table-cell category-cell">${esc(category?.name||p.category||"بدون تصنيف")}</div>
-      <div class="table-cell price-cell"><strong class="product-price">${Number(p.price||0).toLocaleString("ar-DZ")} دج</strong></div>
-      <div class="table-cell stock-cell"><span class="stock-pill ${stockClass}"><i></i>${stockText} · ${stock}</span></div>
-      <div class="table-cell sales-cell">${Number(p.sales||0).toLocaleString("ar-DZ")}</div>
-      <div class="status-cell"><span class="publish-badge ${published?"is-published":"is-hidden"}" title="اضغط لتبديل حالة توفّر المنتج في المتجر" onclick="toggleProductPublish('${esc(p.id)}')">${published?"● نشط":"● غير متوفر"}</span></div>
       <div class="product-actions">
-        <label class="product-select" title="تحديد المنتج"><input type="checkbox" ${selectedProducts.has(p.id)?"checked":""} onchange="window.toggleProductSelection('${esc(p.id)}',this.checked)"></label>
-        <details class="product-menu mobile-kebab"><summary title="خيارات إضافية">⋮</summary><div class="menu-popover">
+        <details class="product-menu"><summary title="خيارات إضافية">⋮</summary><div class="menu-popover">
           <button type="button" onclick="window.openProductStore('${esc(p.id)}')">👁️ عرض المنتج</button>
           <button type="button" onclick="window.copyProductLink('${esc(p.id)}')">🔗 نسخ الرابط</button>
         </div></details>
         <div class="action-main">
-          <button class="icon-action-btn view-icon" type="button" title="عرض المنتج" onclick="window.openProductStore('${esc(p.id)}')">👁️</button>
           <button class="icon-action-btn edit-icon" type="button" title="تعديل" onclick="editProduct('${esc(p.id)}')">✏️</button>
-          <button class="icon-action-btn copy-icon" type="button" title="نسخ الرابط" onclick="window.copyProductLink('${esc(p.id)}')">🔗</button>
           <button class="icon-action-btn delete-icon" type="button" title="حذف" onclick="removeProduct('${esc(p.id)}')">🗑️</button>
         </div>
       </div>
