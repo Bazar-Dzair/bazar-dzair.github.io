@@ -144,6 +144,83 @@
   .product-row .product-actions{order:4;flex-basis:100%;flex-direction:row;justify-content:flex-start;border-top:1px solid #eef0f3;margin-top:10px;padding-top:10px}
   .product-row .product-actions .action-main{flex-direction:row}
 }
+
+/* ===== Orders redesign ===== */
+.orders-filter-wrap{position:relative;flex:none}
+.orders-filter-menu{position:absolute;left:0;top:52px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 14px 35px #0002;padding:8px;width:190px;z-index:40}
+.orders-filter-menu button{width:100%;border:0;background:#fff;text-align:right;padding:10px 12px;border-radius:8px;color:#374151;font-size:13px;font-weight:700}
+.orders-filter-menu button:hover{background:#f5f7fa}
+.orders-filter-menu button.active{background:#fff2e9;color:var(--orange)}
+.stat-icon.red{background:#feeceb}
+.orders-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.orders-toolbar .search-wrap{flex:1;min-width:220px;position:relative}
+.orders-toolbar .search-wrap input{width:100%;padding:13px 42px 13px 14px;border:1px solid #dfe3e8;border-radius:10px;outline:none;font-size:13px}
+.orders-toolbar .search-wrap input:focus{border-color:var(--orange);box-shadow:0 0 0 3px #ff6a0012}
+.orders-toolbar .search-wrap .search-ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#9aa3ae;font-size:14px;pointer-events:none}
+.order-status-badge{font-size:11px;font-weight:800;border-radius:999px;padding:6px 12px;white-space:nowrap;display:inline-block}
+.order-status-badge.st-new{background:#eef1ff;color:#4338ca}
+.order-status-badge.st-processing{background:#fff5db;color:#9a6700}
+.order-status-badge.st-completed{background:#e9f8ef;color:#17803a}
+.order-status-badge.st-cancelled{background:#feeceb;color:#c62828}
+.orders-panel{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.orders-table-head,.order-row-pro{min-width:980px;display:grid;grid-template-columns:34px 90px minmax(140px,1.3fr) minmax(220px,1.7fr) 70px 110px 130px 130px 140px;gap:0;align-items:center}
+.orders-table-head{background:#f8fafc;border:1px solid #e5e9ef;border-radius:12px 12px 0 0;padding:0 14px;min-height:52px;color:#667085;font-size:11px;font-weight:800;position:sticky;top:66px;z-index:20}
+.orders-table-head>div{text-align:center;padding:0 6px}
+.orders-table-head>div:nth-child(3),.orders-table-head>div:nth-child(4){text-align:right}
+.order-row-pro{background:#fff;border:1px solid #e6e9ee;border-top:0;padding:14px;transition:.16s;min-height:88px}
+.order-row-pro:first-child{border-top:1px solid #e6e9ee}
+.order-row-pro:hover{background:#fcfdff;box-shadow:0 5px 18px #00000008;position:relative;z-index:1}
+.order-cell{padding:0 6px;text-align:center;font-size:12.5px;color:#374151;font-weight:700}
+.order-cell.oc-num{font-weight:800;color:#1d64d8}
+.order-cell.oc-customer,.order-cell.oc-product{text-align:right}
+.order-product-cell{display:flex;align-items:center;gap:10px;text-align:right}
+.order-product-img{width:52px;height:52px;border-radius:10px;background:#f7f8fa;border:1px solid #eef0f3;object-fit:contain;flex:none}
+.order-product-img.ph{display:grid;place-items:center;font-size:20px;color:#c3c9d1}
+.order-product-name{font-weight:800;color:#20242a;font-size:12.5px;line-height:1.4}
+.order-date-cell{display:flex;flex-direction:column;gap:2px;font-size:11px;color:#586170}
+.order-date-cell b{font-size:12px;color:#20242a}
+.order-actions-cell{display:flex;align-items:center;justify-content:center;gap:6px}
+.order-select-cell{display:flex;align-items:center;justify-content:center}
+@media(max-width:1050px){.orders-table-head,.order-row-pro{grid-template-columns:34px 80px minmax(120px,1.2fr) minmax(190px,1.6fr) 60px 100px 120px 120px 120px}}
+@media(max-width:760px){
+  .orders-table-head{display:none}
+  .orders-panel{overflow-x:visible}
+  .order-row-pro{min-width:0;display:flex;flex-wrap:wrap;gap:8px 10px;border-radius:16px;margin-bottom:12px;padding:14px}
+  .order-cell{text-align:right;padding:0}
+  .order-cell.oc-select{order:-1;flex-basis:100%;display:flex;justify-content:flex-start}
+  .order-cell.oc-num{flex-basis:100%;font-size:13px}
+  .order-cell.oc-customer{flex-basis:100%}
+  .order-cell.oc-product{flex-basis:100%}
+  .order-cell.oc-qty,.order-cell.oc-total{flex:1}
+  .order-cell.oc-status{flex-basis:100%}
+  .order-cell.oc-date{flex-basis:100%}
+  .order-cell.oc-actions{flex-basis:100%;border-top:1px solid #eef0f3;padding-top:10px;justify-content:flex-start}
+}
+/* order detail page */
+.order-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.order-detail-card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:20px;box-shadow:0 2px 8px #00000004}
+.order-detail-card h3{margin:0 0 16px;font-size:15px;display:flex;align-items:center;gap:8px}
+.order-detail-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f3f5;font-size:13px;gap:10px}
+.order-detail-row:last-child{border-bottom:0}
+.order-detail-row span:first-child{color:#8a93a0;flex:none}
+.order-detail-row span:last-child{font-weight:800;color:#20242a;text-align:left}
+.order-products-table{width:100%;border-collapse:collapse}
+.order-products-table th{background:#f8fafc;color:#667085;font-size:11px;padding:12px 10px;text-align:center}
+.order-products-table th:first-child{text-align:right}
+.order-products-table td{padding:14px 10px;border-top:1px solid #f1f3f5;text-align:center;font-size:13px;font-weight:700;color:#374151}
+.order-products-table td:first-child{text-align:right}
+.order-product-line{display:flex;align-items:center;gap:12px;text-align:right}
+.order-products-total{display:flex;justify-content:space-between;align-items:center;padding:14px 4px 0;font-weight:800;font-size:15px}
+.order-products-total b{color:var(--green)}
+.back-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;color:#374151;border-radius:10px;padding:10px 16px;font-weight:700;margin-bottom:16px}
+.back-btn:hover{background:#f7f8fa}
+.order-notes-box{color:#8a93a0;font-size:13px;line-height:1.8;min-height:20px}
+.order-status-select-detail{padding:9px 12px;border:1px solid #dfe3e8;border-radius:9px;background:#fff;font-weight:700;font-size:12px}
+@media(max-width:760px){.order-detail-grid{grid-template-columns:1fr}.order-detail-row span:last-child{text-align:left;max-width:60%}}
+.toast-msg{position:fixed;bottom:20px;right:50%;transform:translateX(50%);background:#20242a;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:200;opacity:0;pointer-events:none;transition:.25s;box-shadow:0 10px 30px #0003;max-width:90vw;text-align:center}
+.toast-msg.show{opacity:1;transform:translateX(50%) translateY(-6px)}
+.toast-msg.err{background:#c62828}
+.toast-msg.ok{background:#16a34a}
 </style>
 </head>
 <body class="auth-check">
@@ -253,7 +330,56 @@
  </div>
 </section>
 
-<section id="view-orders" class="view hidden"><div class="page-head"><div><h1>الطلبات</h1><p>تابع طلبات العملاء وغيّر حالتها من نفس الصفحة.</p></div></div><div class="panel"><div id="ordersBulk" class="bulk-toolbar"><div class="bulk-left"><label class="select-all-label"><input id="selectAllOrders" type="checkbox" onchange="window.toggleAllOrders(this.checked)"> تحديد كل طلبات الصفحة</label><span id="ordersSelectedCount" class="page-info">0 محدد</span></div><button id="bulkDeleteOrders" class="bulk-delete" type="button" onclick="bulkDeleteOrders()" disabled>🗑 حذف المحدد</button></div><div id="orders" class="products"><div class="empty-card">⏳ جاري تحميل الطلبات...</div></div><div id="ordersPagination" class="pagination"></div></div></section>
+<section id="view-orders" class="view hidden">
+  <div class="page-head" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+    <div><h1>الطلبات</h1><p>إدارة جميع طلبات المتجر من مكان واحد.</p></div>
+    <div class="orders-filter-wrap">
+      <button type="button" class="funnel-btn" id="ordersFilterBtn" onclick="window.toggleOrdersFilterMenu()">🔽 فلتر</button>
+      <div id="ordersFilterMenu" class="orders-filter-menu hidden">
+        <button type="button" class="active" data-status="all" onclick="window.setOrderStatusFilter('all')">كل الطلبات</button>
+        <button type="button" data-status="جديد" onclick="window.setOrderStatusFilter('جديد')">جديدة</button>
+        <button type="button" data-status="قيد المعالجة" onclick="window.setOrderStatusFilter('قيد المعالجة')">قيد المعالجة</button>
+        <button type="button" data-status="مكتملة" onclick="window.setOrderStatusFilter('مكتملة')">مكتملة</button>
+        <button type="button" data-status="ملغية" onclick="window.setOrderStatusFilter('ملغية')">ملغية</button>
+      </div>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><span class="stat-icon purple">📦</span><div><small>إجمالي الطلبات</small><strong id="ordersStatTotal">0</strong><span class="stat-unit">كل الطلبات</span></div></div>
+    <div class="stat-card"><span class="stat-icon green">✅</span><div><small>مكتملة</small><strong id="ordersStatCompleted">0</strong><span class="stat-unit">طلب</span></div></div>
+    <div class="stat-card"><span class="stat-icon orange">⏳</span><div><small>قيد المعالجة</small><strong id="ordersStatProcessing">0</strong><span class="stat-unit">طلب</span></div></div>
+    <div class="stat-card"><span class="stat-icon red">❌</span><div><small>ملغية</small><strong id="ordersStatCancelled">0</strong><span class="stat-unit">طلبية</span></div></div>
+  </div>
+  <div class="panel">
+    <div class="orders-toolbar">
+      <div class="search-wrap"><span class="search-ic">🔎</span><input id="ordersSearch" placeholder="ابحث باسم الزبون أو رقم الطلب أو المنتج أو الهاتف..." oninput="window.__ordersSearchInput(this.value)"></div>
+    </div>
+    <div id="ordersBulk" class="bulk-toolbar">
+      <div class="bulk-left"><label class="select-all-label"><input id="selectAllOrders" type="checkbox" onchange="window.toggleAllOrders(this.checked)"> تحديد كل طلبات الصفحة</label><span id="ordersSelectedCount" class="page-info">0 محدد</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="bulkStatusSelect" class="order-status-select-detail"><option value="">تغيير الحالة للمحدد</option><option value="جديد">جديدة</option><option value="قيد المعالجة">قيد المعالجة</option><option value="مكتملة">مكتملة</option><option value="ملغية">ملغية</option></select>
+        <button type="button" class="outline-action" onclick="window.applyBulkStatus()">تطبيق</button>
+        <button id="bulkDeleteOrders" class="bulk-delete" type="button" onclick="bulkDeleteOrders()" disabled>🗑 حذف المحدد</button>
+      </div>
+    </div>
+    <div class="orders-panel">
+      <div class="orders-table-head"><div></div><div>رقم الطلب</div><div>الزبون</div><div>المنتج</div><div>الكمية</div><div>المجموع</div><div>الحالة</div><div>التاريخ</div><div>الإجراءات</div></div>
+      <div id="orders"><div class="empty-card">⏳ جاري تحميل الطلبات...</div></div>
+    </div>
+    <div id="ordersPagination" class="pagination"></div>
+  </div>
+</section>
+
+<section id="view-order-detail" class="view hidden">
+  <button type="button" class="back-btn" onclick="window.backToOrders()">→ رجوع</button>
+  <div class="page-head"><div><h1>تفاصيل الطلب</h1><p>معلومات كاملة عن الطلب</p></div></div>
+  <div class="order-detail-grid">
+    <div class="order-detail-card"><h3>📋 معلومات الطلب</h3><div id="orderDetailInfo"></div></div>
+    <div class="order-detail-card"><h3>👤 معلومات الزبون</h3><div id="orderDetailCustomer"></div></div>
+  </div>
+  <div class="order-detail-card" style="margin-bottom:16px"><h3>🛍 المنتجات في الطلب</h3><div id="orderDetailProducts"></div></div>
+  <div class="order-detail-card"><h3>📝 ملاحظات الطلب</h3><div id="orderDetailNotes" class="order-notes-box"></div></div>
+</section>
 
 <section id="view-categories" class="view hidden"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><button class="orange-btn" type="button" onclick="openCategoryForm()">＋ إضافة فئة</button></div><div class="panel"><div id="categoryForm" class="category-form hidden"><input id="categoryId" type="hidden"><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"></label><label>الأيقونة<input id="categoryIcon" placeholder="🔧" maxlength="4"></label></div><div class="form-actions"><button class="green" type="button" onclick="saveCategory()">💾 حفظ الفئة</button><button class="gray" type="button" onclick="closeCategoryForm()">إلغاء</button></div><div id="categoryStatus" class="status hidden"></div></div><div id="categoriesList" class="categories-list"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
 
@@ -267,6 +393,7 @@
 
 <section id="view-addons" class="view hidden"><div class="addons-page"><div class="addons-intro"><h1>الإضافات 🧩</h1><p>مركز إدارة وربط خدمات التحليلات والتتبع والتحقق من Google.</p></div><div class="addons-services"><div class="addons-services-head"><span class="addons-services-dot"></span><div><h2>الخدمات المتاحة</h2><p>قم بربط الخدمات التي تحتاجها مع متجرك.</p></div></div><div id="addonStatus" class="status hidden"></div><div class="addons-grid" id="addonsGrid"><div class="empty-card">⏳ جاري تحميل الإضافات...</div></div></div></div></section>
 </main></div>
+<div id="ordersToast" class="toast-msg"></div>
 <div id="settingsModal" class="modal hidden"><div class="modal-card"><button class="modal-close" onclick="closeSetting()">×</button><div id="settingModalIcon" class="modal-icon">⚙</div><h2 id="settingModalTitle">الإعداد</h2><p id="settingModalDesc" class="modal-desc"></p><div id="settingModalBody"></div><div class="modal-actions"><button class="green" onclick="saveSetting()">💾 حفظ الإعدادات</button><button class="gray" onclick="closeSetting()">إلغاء</button></div></div></div>
 </div>
 
@@ -286,6 +413,7 @@ function updateAdminUrl(name, createNew=false){
     else url.searchParams.delete("view");
     // A new product has no product id; editing a product may set it separately.
     if(name!=="product" || createNew) url.searchParams.delete("id");
+    if(name!=="order-detail") url.searchParams.delete("order");
     window.history.pushState({adminView:name},"",url.pathname+(url.search?url.search:"")+url.hash);
   }catch(e){}
 }
@@ -314,9 +442,17 @@ window.addEventListener("popstate",()=>{
   try{
     const params=new URLSearchParams(window.location.search);
     let view=params.get("view")||"dashboard";
-    const valid=["dashboard","orders","product","products","categories","sections","footer","users","settings","addons"];
+    const valid=["dashboard","orders","product","products","categories","sections","footer","users","settings","addons","order-detail"];
     if(!valid.includes(view)) view="dashboard";
     const nav=[...document.querySelectorAll(".nav-item")];
+    const ordersNavItem=document.querySelector('.nav-item[onclick*="orders"]');
+    if(view==="order-detail"){
+      const oid=params.get("order");
+      const o=(window.adminOrders||[]).find(x=>x.id===oid);
+      if(o){ renderOrderDetail(o); showView("order-detail",ordersNavItem,false,false); }
+      else { showView("orders",ordersNavItem,false,false); }
+      return;
+    }
     const idx={dashboard:0,orders:1,product:2,products:3,categories:4,sections:5,footer:6,users:7,settings:8,addons:9}[view];
     showView(view,nav[idx]||nav[0],false,false);
   }catch(e){}
@@ -960,6 +1096,38 @@ let productsPage=1, ordersPage=1;
 let lowStockFilter=false;
 const ITEMS_PER_PAGE=10;
 const selectedProducts=new Set(), selectedOrders=new Set();
+let orderSearchQuery="", orderStatusFilter="all";
+function money(n){return Number(n||0).toLocaleString("ar-DZ")+" دج"}
+function pad2(n){return String(n).padStart(2,"0")}
+function orderDisplayId(o){return "#"+String(o?.id||"").slice(-6).toUpperCase()}
+function orderDateObj(o){
+  const c=o?.createdAt; if(!c) return null;
+  if(typeof c.toDate==="function") return c.toDate();
+  if(c.seconds!=null) return new Date(c.seconds*1000);
+  if(typeof c==="string"||c instanceof Date){const d=new Date(c);return isNaN(d)?null:d;}
+  return null;
+}
+function orderListDate(o){const d=orderDateObj(o);return d?(d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())):"—"}
+function orderListTime(o){const d=orderDateObj(o);return d?(pad2(d.getHours())+":"+pad2(d.getMinutes())):""}
+function orderDetailDateTime(o){const d=orderDateObj(o);return d?(pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear()+" - "+pad2(d.getHours())+":"+pad2(d.getMinutes())):"—"}
+function orderStatusClass(status){
+  const s=String(status||"").trim();
+  if(s==="مكتملة") return "st-completed";
+  if(s==="ملغية") return "st-cancelled";
+  if(s==="قيد المعالجة") return "st-processing";
+  return "st-new";
+}
+function findOrderProductImage(name){
+  const p=(products||[]).find(x=>String(x.name||"").trim()===String(name||"").trim());
+  if(!p) return "";
+  return (Array.isArray(p.images)&&p.images[0])||p.image||p.imageUrl||p.photo||"";
+}
+function toast(t,c){
+  const box=document.getElementById("ordersToast"); if(!box)return;
+  box.textContent=t; box.className="toast-msg show"+(c?(" "+c):"");
+  clearTimeout(window.__ordersToastTimer);
+  window.__ordersToastTimer=setTimeout(()=>{box.className="toast-msg";},2600);
+}
 let selectedImages=[]; // {file,url,existing}
 let saving=false;
 const saveBtn=document.getElementById("saveBtn");
@@ -1246,32 +1414,151 @@ window.bazarLoadOrders=async function(force=false){
       window.adminOrders.sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return tb-ta;});
       ordersLoaded=true;
       ordersPage=1; selectedOrders.clear(); renderOrders();
+      if(window.bazarLoadProducts && !productsLoaded){
+        window.bazarLoadProducts().then(()=>{ if(document.getElementById("view-orders")&&!document.getElementById("view-orders").classList.contains("hidden")) renderOrders(); }).catch(()=>{});
+      }
     }catch(e){console.error(e);updateOrderStats(0);box.innerHTML='<div class="empty-card">❌ تعذر قراءة الطلبات من Firestore. تحقق من Firestore Rules.</div>';
     }finally{ordersLoading=null;}
   })();
   return ordersLoading;
 };
 
+function getFilteredOrders(){
+  const q=String(orderSearchQuery||"").trim().toLowerCase();
+  const rows=Array.isArray(window.adminOrders)?window.adminOrders:[];
+  return rows.filter(o=>{
+    if(orderStatusFilter!=="all"){
+      const s=String(o.status||"جديد").trim();
+      if(orderStatusFilter==="قيد المعالجة"){ if(s==="مكتملة"||s==="ملغية") return false; }
+      else if(s!==orderStatusFilter) return false;
+    }
+    if(!q) return true;
+    const hay=[orderDisplayId(o),o.id,o.customerName,o.name,o.customerPhone,o.phone,o.product].map(v=>String(v||"").toLowerCase()).join(" ");
+    return hay.includes(q);
+  });
+}
+function renderOrdersStats(all){
+  const total=all.length;
+  const completed=all.filter(o=>String(o.status||"")==="مكتملة").length;
+  const cancelled=all.filter(o=>String(o.status||"")==="ملغية").length;
+  const processing=Math.max(0,total-completed-cancelled);
+  const set=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=Number(v).toLocaleString("ar-DZ");};
+  set("ordersStatTotal",total); set("ordersStatCompleted",completed); set("ordersStatCancelled",cancelled); set("ordersStatProcessing",processing);
+}
 function renderOrders(){
   const box=document.getElementById("orders"); if(!box)return;
-  const rows=Array.isArray(window.adminOrders)?window.adminOrders:[];
+  const all=Array.isArray(window.adminOrders)?window.adminOrders:[];
+  renderOrdersStats(all);
+  const rows=getFilteredOrders();
   const totalPages=Math.max(1,Math.ceil(rows.length/ITEMS_PER_PAGE));
   if(ordersPage>totalPages)ordersPage=totalPages;
-  if(!rows.length){box.innerHTML='<div class="empty-card">🛒<b>لا توجد طلبات</b><span>عند وصول طلب جديد سيظهر هنا.</span></div>';renderPagination("ordersPagination",1,0,"ordersPage");updateBulkUi("orders");return;}
+  if(!rows.length){
+    box.innerHTML = all.length
+      ? '<div class="empty-card">🔎<b>لا توجد نتائج مطابقة</b><span>جرّب تعديل البحث أو الفلتر.</span></div>'
+      : '<div class="empty-card">🛒<b>لا توجد طلبات</b><span>عند وصول طلب جديد سيظهر هنا.</span></div>';
+    renderPagination("ordersPagination",1,0,"ordersPage"); updateBulkUi("orders"); return;
+  }
   const start=(ordersPage-1)*ITEMS_PER_PAGE, pageRows=rows.slice(start,start+ITEMS_PER_PAGE);
-  box.innerHTML=pageRows.map(o=>`<div class="panel order-card">
-    <label class="item-check order-select"><input type="checkbox" ${selectedOrders.has(o.id)?"checked":""} onchange="window.toggleOrderSelection('${esc(o.id)}',this.checked)"> تحديد هذه الطلبية</label>
-    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2 style="margin:0">📦 ${esc(o.product||"منتج غير محدد")}</h2><span class="status ok">${esc(o.status||"جديد")}</span></div>
-    <p><b>👤 الزبون:</b> ${esc(o.customerName||o.name||"غير متوفر")}</p>
-    <p><b>📞 الهاتف:</b> ${esc(o.customerPhone||o.phone||"غير متوفر")}</p>
-    <p><b>📍 الولاية:</b> ${esc(o.wilaya||"")}</p>
-    <p><b>🏠 العنوان:</b> ${esc(o.address||"")}</p>
-    <p><b>🔢 الكمية:</b> ${Number(o.quantity||1)} &nbsp; | &nbsp; <b>💰 سعر المنتج:</b> ${Number(o.price||0).toLocaleString("ar-DZ")} دج</p>
-    <p><b>🚚 التوصيل:</b> ${Number(o.shipping||0).toLocaleString("ar-DZ")} دج &nbsp; | &nbsp; <b>💵 المجموع:</b> ${Number(o.total||0).toLocaleString("ar-DZ")} دج</p>
-    <button class="red" onclick="deleteOrder('${esc(o.id)}')">🗑️ حذف الطلبية</button>
-  </div>`).join("");
+  box.innerHTML=pageRows.map(o=>{
+    const img=findOrderProductImage(o.product);
+    const statusTxt=String(o.status||"جديد");
+    return `<div class="order-row-pro">
+      <div class="order-cell oc-select"><label class="item-check"><input type="checkbox" ${selectedOrders.has(o.id)?"checked":""} onchange="window.toggleOrderSelection('${esc(o.id)}',this.checked)"></label></div>
+      <div class="order-cell oc-num">${esc(orderDisplayId(o))}</div>
+      <div class="order-cell oc-customer">${esc(o.customerName||o.name||"غير متوفر")}</div>
+      <div class="order-cell oc-product"><div class="order-product-cell">${img?`<img class="order-product-img" src="${esc(img)}" onerror="this.style.display='none'">`:`<span class="order-product-img ph">📦</span>`}<span class="order-product-name">${esc(o.product||"منتج غير محدد")}</span></div></div>
+      <div class="order-cell oc-qty">${Number(o.quantity||1)}</div>
+      <div class="order-cell oc-total">${money(o.total)}</div>
+      <div class="order-cell oc-status"><span class="order-status-badge ${orderStatusClass(statusTxt)}">${esc(statusTxt)}</span></div>
+      <div class="order-cell oc-date"><div class="order-date-cell"><b>${orderListDate(o)}</b><span>${orderListTime(o)}</span></div></div>
+      <div class="order-cell oc-actions"><div class="order-actions-cell">
+        <button class="icon-action-btn view-icon" title="عرض الطلبية" type="button" onclick="window.openOrderDetail('${esc(o.id)}')">👁</button>
+        <button class="icon-action-btn delete-icon" title="حذف" type="button" onclick="deleteOrder('${esc(o.id)}')">🗑</button>
+      </div></div>
+    </div>`;
+  }).join("");
   renderPagination("ordersPagination",ordersPage,totalPages,"ordersPage"); updateBulkUi("orders");
 }
+window.__ordersSearchInput=function(v){ orderSearchQuery=v; ordersPage=1; renderOrders(); };
+window.toggleOrdersFilterMenu=function(){ document.getElementById("ordersFilterMenu")?.classList.toggle("hidden"); };
+window.setOrderStatusFilter=function(status){
+  orderStatusFilter=status; ordersPage=1;
+  document.querySelectorAll("#ordersFilterMenu button").forEach(b=>b.classList.toggle("active",b.dataset.status===status));
+  document.getElementById("ordersFilterMenu")?.classList.add("hidden");
+  const btn=document.getElementById("ordersFilterBtn"); if(btn) btn.classList.toggle("active",status!=="all");
+  renderOrders();
+};
+document.addEventListener("click",(e)=>{
+  const menu=document.getElementById("ordersFilterMenu");
+  if(menu && !menu.classList.contains("hidden") && !e.target.closest(".orders-filter-wrap")) menu.classList.add("hidden");
+});
+window.applyBulkStatus=async function(){
+  const sel=document.getElementById("bulkStatusSelect");
+  const status=sel?.value; if(!status){toast("اختر الحالة الجديدة أولاً","err");return;}
+  const ids=[...selectedOrders]; if(!ids.length){toast("اختر طلبية واحدة على الأقل","err");return;}
+  if(!confirm(`تغيير حالة ${ids.length} طلبية إلى "${status}"؟`))return;
+  try{
+    await Promise.all(ids.map(id=>updateDoc(doc(db,"orders",id),{status,updatedAt:serverTimestamp()})));
+    window.adminOrders=(window.adminOrders||[]).map(o=>selectedOrders.has(o.id)?{...o,status}:o);
+    toast(`تم تحديث حالة ${ids.length} طلبية ✅`,"ok");
+    renderOrders();
+  }catch(e){console.error(e);toast("تعذر تحديث الحالة: "+(e.message||"خطأ غير معروف"),"err");}
+  finally{ if(sel) sel.value=""; }
+};
+window.openOrderDetail=function(id){
+  const o=(window.adminOrders||[]).find(x=>x.id===id);
+  if(!o){toast("تعذر العثور على الطلبية","err");return;}
+  renderOrderDetail(o);
+  showView("order-detail",document.querySelector('.nav-item[onclick*="orders"]'));
+  try{
+    const url=new URL(window.location.href);
+    url.searchParams.set("view","order-detail"); url.searchParams.set("order",id);
+    window.history.pushState({adminView:"order-detail",orderId:id},"",url.pathname+url.search+url.hash);
+  }catch(e){}
+};
+window.backToOrders=function(){ showView("orders",document.querySelector('.nav-item[onclick*="orders"]')); };
+function renderOrderDetail(o){
+  const infoBox=document.getElementById("orderDetailInfo");
+  const custBox=document.getElementById("orderDetailCustomer");
+  const prodBox=document.getElementById("orderDetailProducts");
+  const notesBox=document.getElementById("orderDetailNotes");
+  if(infoBox) infoBox.innerHTML=`
+    <div class="order-detail-row"><span>رقم الطلب</span><span>${esc(orderDisplayId(o))}</span></div>
+    <div class="order-detail-row"><span>تاريخ الطلب</span><span>${orderDetailDateTime(o)}</span></div>
+    <div class="order-detail-row"><span>الحالة</span><span><select class="order-status-select-detail" onchange="window.setOrderStatus('${esc(o.id)}',this.value)">
+      ${["جديد","قيد المعالجة","مكتملة","ملغية"].map(s=>`<option value="${esc(s)}" ${String(o.status||"جديد")===s?"selected":""}>${esc(s)}</option>`).join("")}
+    </select></span></div>
+    <div class="order-detail-row"><span>طريقة الدفع</span><span>الدفع عند الاستلام</span></div>
+    <div class="order-detail-row"><span>المجموع الكلي</span><span style="color:var(--green)">${money(o.total)}</span></div>
+  `;
+  if(custBox) custBox.innerHTML=`
+    <div class="order-detail-row"><span>الاسم الكامل</span><span>${esc(o.customerName||o.name||"غير متوفر")}</span></div>
+    <div class="order-detail-row"><span>رقم الهاتف</span><span>${esc(o.customerPhone||o.phone||"غير متوفر")}</span></div>
+    ${o.wilaya?`<div class="order-detail-row"><span>الولاية</span><span>${esc(o.wilaya)}</span></div>`:""}
+    ${o.address?`<div class="order-detail-row"><span>العنوان</span><span>${esc(o.address)}</span></div>`:""}
+  `;
+  const img=findOrderProductImage(o.product);
+  const lineTotal=Number(o.price||0)*Number(o.quantity||1);
+  if(prodBox) prodBox.innerHTML=`
+    <table class="order-products-table"><thead><tr><th>المنتج</th><th>السعر</th><th>الكمية</th><th>المجموع</th></tr></thead>
+    <tbody><tr>
+      <td><div class="order-product-line">${img?`<img class="order-product-img" src="${esc(img)}" onerror="this.style.display='none'">`:`<span class="order-product-img ph">📦</span>`}<span class="order-product-name">${esc(o.product||"منتج غير محدد")}</span></div></td>
+      <td>${money(o.price)}</td>
+      <td>${Number(o.quantity||1)}</td>
+      <td>${money(lineTotal)}</td>
+    </tr></tbody></table>
+    <div class="order-products-total"><span>مصاريف التوصيل</span><span>${money(o.shipping)}</span></div>
+    <div class="order-products-total"><span>المجموع الكلي</span><b>${money(o.total)}</b></div>
+  `;
+  if(notesBox) notesBox.textContent = o.notes ? String(o.notes) : "لا توجد ملاحظات على هذا الطلب";
+}
+window.setOrderStatus=async function(id,status){
+  try{
+    await updateDoc(doc(db,"orders",id),{status,updatedAt:serverTimestamp()});
+    window.adminOrders=(window.adminOrders||[]).map(o=>o.id===id?{...o,status}:o);
+    toast("تم تحديث حالة الطلبية ✅","ok");
+  }catch(e){console.error(e);toast("تعذر تحديث الحالة: "+(e.message||"خطأ غير معروف"),"err");}
+};
 
 window.__adminGoPage=function(type,page){
   const n=Math.max(1,Number(page)||1);
@@ -1291,9 +1578,8 @@ function renderPagination(id,current,totalPages,stateName){
 function updateBulkUi(type){
   const isProducts=type==="products";
   const set=isProducts?selectedProducts:selectedOrders;
-  const rows=isProducts?products:((window.adminOrders)||[]);
   const page=isProducts?productsPage:ordersPage;
-  const filtered=isProducts?getFilteredProducts():rows;
+  const filtered=isProducts?getFilteredProducts():getFilteredOrders();
   const start=(page-1)*ITEMS_PER_PAGE, pageRows=filtered.slice(start,start+ITEMS_PER_PAGE);
   const ids=pageRows.map(x=>x.id); const count=ids.filter(id=>set.has(id)).length;
   const all=ids.length>0&&count===ids.length;
@@ -1326,7 +1612,7 @@ window.toggleProductSelection=function(id,checked){
   updateBulkUi("products");
 };
 window.toggleAllOrders=function(checked){
-  const rows=window.adminOrders||[], start=(ordersPage-1)*ITEMS_PER_PAGE, pageRows=rows.slice(start,start+ITEMS_PER_PAGE);
+  const rows=getFilteredOrders(), start=(ordersPage-1)*ITEMS_PER_PAGE, pageRows=rows.slice(start,start+ITEMS_PER_PAGE);
   pageRows.forEach(o=>checked?selectedOrders.add(o.id):selectedOrders.delete(o.id));
   updateBulkUi("orders"); renderOrders();
 };
