@@ -231,7 +231,7 @@
 .shipping-rates-bulk{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;font-weight:700;color:#586170}
 .shipping-rates-bulk select{padding:9px 10px;border:1px solid #dfe3e8;border-radius:9px;font-size:12.5px;font-weight:700}
 .shipping-rates-panel{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e5e9ef;border-radius:12px}
-.shipping-rates-head,.shipping-rate-row{min-width:820px;display:grid;grid-template-columns:60px 190px 150px 150px 140px 150px;gap:0;align-items:center}
+.shipping-rates-head,.shipping-rate-row{min-width:980px;display:grid;grid-template-columns:55px 170px 130px 140px 130px 140px 150px;gap:0;align-items:center}
 .shipping-rates-head{background:#f8fafc;padding:0 14px;min-height:48px;color:#667085;font-size:11px;font-weight:800;border-bottom:1px solid #e5e9ef}
 .shipping-rates-head>div{text-align:center;padding:0 6px}
 .shipping-rates-head>div:nth-child(2){text-align:right}
@@ -416,24 +416,30 @@
 <section id="view-categories" class="view hidden"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><button class="orange-btn" type="button" onclick="openCategoryForm()">＋ إضافة فئة</button></div><div class="panel"><div id="categoryForm" class="category-form hidden"><input id="categoryId" type="hidden"><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"></label><label>الأيقونة<input id="categoryIcon" placeholder="🔧" maxlength="4"></label></div><div class="form-actions"><button class="green" type="button" onclick="saveCategory()">💾 حفظ الفئة</button><button class="gray" type="button" onclick="closeCategoryForm()">إلغاء</button></div><div id="categoryStatus" class="status hidden"></div></div><div id="categoriesList" class="categories-list"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
 
 <section id="view-shipping-rates" class="view hidden">
-  <div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر ومدة وشركة التوصيل لكل ولاية من ولايات الجزائر الـ69.</p></div><button class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button></div>
+  <div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر ومدة وشركة التوصيل لكل ولاية من ولايات الجزائر (58 ولاية المعتمدة في المتجر).</p></div><button class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button></div>
   <div class="panel">
     <div class="shipping-rates-toolbar">
       <div class="search-wrap"><span class="search-ic">🔎</span><input id="shippingRatesSearch" placeholder="ابحث عن ولاية بالاسم أو الرقم..." oninput="filterShippingRatesTable()"></div>
       <div class="shipping-rates-bulk">
-        <span>تعيين شركة التوصيل للكل:</span>
-        <select id="bulkCompanySelect">
+        <span>باب الدار للكل:</span>
+        <select id="bulkHomeCompanySelect">
           <option value="">اختر شركة</option>
-          <option value="dhd">DHD Livraison</option>
           <option value="noest">NOEST</option>
-          <option value="both">DHD + NOEST</option>
+          <option value="dhd">DHD Livraison</option>
+          <option value="48hr">48HR Tebessa</option>
         </select>
-        <button type="button" class="outline-action" onclick="applyBulkShippingCompany()">تطبيق على الكل</button>
+        <button type="button" class="outline-action" onclick="applyBulkShippingCompany('home')">تطبيق</button>
+        <span>للمكتب للكل:</span>
+        <select id="bulkOfficeCompanySelect">
+          <option value="">غير متوفر</option>
+          <option value="dhd">DHD Livraison</option>
+        </select>
+        <button type="button" class="outline-action" onclick="applyBulkShippingCompany('office')">تطبيق</button>
       </div>
     </div>
     <div id="shippingRatesStatus" class="status hidden"></div>
     <div class="shipping-rates-panel">
-      <div class="shipping-rates-head"><div>رقم</div><div>الولاية</div><div>توصيل للمنزل (دج)</div><div>توصيل للمكتب (دج)</div><div>مدة التوصيل</div><div>شركة التوصيل</div></div>
+      <div class="shipping-rates-head"><div>رقم</div><div>الولاية</div><div>سعر باب الدار (دج)</div><div>شركة باب الدار</div><div>سعر المكتب (دج)</div><div>شركة المكتب</div><div>مدة التوصيل</div></div>
       <div id="shippingRatesBody"><div class="empty-card">⏳ جاري تحميل الأسعار...</div></div>
     </div>
   </div>
@@ -614,8 +620,7 @@ const wilayas = [
  "سكيكدة","سيدي بلعباس","عنابة","قالمة","قسنطينة","المدية","مستغانم","المسيلة","معسكر","ورقلة",
  "وهران","البيض","إليزي","برج بوعريريج","بومرداس","الطارف","تندوف","تيسمسيلت","الوادي","خنشلة",
  "سوق أهراس","تيبازة","ميلة","عين الدفلى","النعامة","عين تموشنت","غرداية","غليزان","تيميمون",
- "برج باجي مختار","أولاد جلال","بني عباس","عين صالح","عين قزام","تقرت","جانت","المغير","المنيعة",
- "أفلو","بريكة","القنطرة","بئر العاتر","العريشة","قصر الشلالة","عين وسارة","مسعد","قصر البخاري","بوسعادة","الأبيض سيدي الشيخ"
+ "برج باجي مختار","أولاد جلال","بني عباس","عين صالح","عين قزام","تقرت","جانت","المغير","المنيعة"
 ];
 const legacyShippingPrices = {
  "01":1000,"02":600,"03":800,"04":600,"05":600,"06":600,"07":800,"08":950,"09":450,"10":550,
@@ -730,8 +735,9 @@ async function saveSetting(){
 
 renderSettings();
 
-// ================= أسعار التوصيل (69 ولاية) =================
-const shippingCompanyLabels={dhd:"DHD Livraison",noest:"NOEST",both:"DHD + NOEST"};
+// ================= أسعار التوصيل (58 ولاية المعتمدة في المتجر) =================
+const homeCompanyLabels={noest:"NOEST",dhd:"DHD Livraison","48hr":"48HR Tebessa"};
+const officeCompanyLabels={dhd:"DHD Livraison"};
 let shippingRatesLoaded=false;
 let shippingRatesData={};
 function shippingRateCode(i){return String(i+1).padStart(2,"0");}
@@ -739,7 +745,7 @@ function buildDefaultShippingRates(){
   const out={};
   wilayas.forEach((name,i)=>{
     const code=shippingRateCode(i);
-    out[code]={home:legacyShippingPrices[code]??"",office:"",duration:"",company:""};
+    out[code]={home:legacyShippingPrices[code]??"",homeCompany:"",office:"",officeCompany:"",duration:""};
   });
   return out;
 }
@@ -767,17 +773,21 @@ function renderShippingRatesTable(){
   const box=document.getElementById("shippingRatesBody"); if(!box)return;
   box.innerHTML=wilayas.map((name,i)=>{
     const code=shippingRateCode(i);
-    const r=shippingRatesData[code]||{home:"",office:"",duration:"",company:""};
+    const r=shippingRatesData[code]||{home:"",homeCompany:"",office:"",officeCompany:"",duration:""};
     return `<div class="shipping-rate-row" data-name="${escapeAttr(name)}" data-code="${code}">
       <div class="src-cell src-num">${code}</div>
       <div class="src-cell src-name">${escapeAttr(name)}</div>
       <div class="src-cell"><input type="number" min="0" step="50" data-field="home" data-code="${code}" value="${escapeAttr(r.home)}" placeholder="دج"></div>
-      <div class="src-cell"><input type="number" min="0" step="50" data-field="office" data-code="${code}" value="${escapeAttr(r.office)}" placeholder="دج"></div>
-      <div class="src-cell"><input type="text" data-field="duration" data-code="${code}" value="${escapeAttr(r.duration)}" placeholder="مثال: 24-72 سا"></div>
-      <div class="src-cell src-company"><select data-field="company" data-code="${code}">
+      <div class="src-cell src-company"><select data-field="homeCompany" data-code="${code}">
         <option value="">اختر شركة</option>
-        ${Object.entries(shippingCompanyLabels).map(([v,l])=>`<option value="${v}" ${r.company===v?"selected":""}>${l}</option>`).join("")}
+        ${Object.entries(homeCompanyLabels).map(([v,l])=>`<option value="${v}" ${r.homeCompany===v?"selected":""}>${l}</option>`).join("")}
       </select></div>
+      <div class="src-cell"><input type="number" min="0" step="50" data-field="office" data-code="${code}" value="${escapeAttr(r.office)}" placeholder="دج"></div>
+      <div class="src-cell src-company"><select data-field="officeCompany" data-code="${code}">
+        <option value="">غير متوفر</option>
+        ${Object.entries(officeCompanyLabels).map(([v,l])=>`<option value="${v}" ${r.officeCompany===v?"selected":""}>${l}</option>`).join("")}
+      </select></div>
+      <div class="src-cell"><input type="text" data-field="duration" data-code="${code}" value="${escapeAttr(r.duration)}" placeholder="مثال: 24-72 سا"></div>
     </div>`;
   }).join("");
 }
@@ -788,10 +798,11 @@ window.filterShippingRatesTable=function(){
     el.style.display=match?"":"none";
   });
 };
-window.applyBulkShippingCompany=function(){
-  const val=document.getElementById("bulkCompanySelect")?.value;
-  if(!val){toast("اختر شركة توصيل أولاً","err");return;}
-  document.querySelectorAll('.shipping-rate-row select[data-field="company"]').forEach(sel=>{sel.value=val;});
+window.applyBulkShippingCompany=function(type){
+  const selId=type==="home"?"bulkHomeCompanySelect":"bulkOfficeCompanySelect";
+  const field=type==="home"?"homeCompany":"officeCompany";
+  const val=document.getElementById(selId)?.value||"";
+  document.querySelectorAll(`.shipping-rate-row select[data-field="${field}"]`).forEach(sel=>{sel.value=val;});
 };
 window.saveShippingRates=async function(){
   const status=document.getElementById("shippingRatesStatus");
@@ -802,14 +813,16 @@ window.saveShippingRates=async function(){
     document.querySelectorAll(".shipping-rate-row").forEach(row=>{
       const code=row.dataset.code;
       const home=row.querySelector('[data-field="home"]').value;
+      const homeCompany=row.querySelector('[data-field="homeCompany"]').value;
       const office=row.querySelector('[data-field="office"]').value;
+      const officeCompany=row.querySelector('[data-field="officeCompany"]').value;
       const duration=row.querySelector('[data-field="duration"]').value;
-      const company=row.querySelector('[data-field="company"]').value;
       rates[code]={
         home:home===""?"":Number(home),
+        homeCompany,
         office:office===""?"":Number(office),
-        duration:duration.trim(),
-        company
+        officeCompany,
+        duration:duration.trim()
       };
       prices[code]=home===""?"":Number(home);
     });
