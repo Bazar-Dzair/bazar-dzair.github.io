@@ -1178,6 +1178,7 @@ window.updateOrderStatus=async(id,status)=>{
 };
 window.deleteOrder=async id=>{if(!confirm("حذف هذه الطلبية؟"))return;try{await deleteDoc(doc(db,"orders",id));window.adminOrders=(window.adminOrders||[]).filter(o=>o.id!==id);selectedOrders.delete(id);const total=Math.max(1,Math.ceil((window.adminOrders||[]).length/ITEMS_PER_PAGE));if(ordersPage>total)ordersPage=total;updateOrderStats((window.adminOrders||[]).length);renderOrders();show("تم حذف الطلبية ✅","ok")}catch(e){alert("تعذر حذف الطلبية: "+e.message)}};
 
+// PATCH_BAZAR_DZAIR_2026
 window.render=()=>{
   if(!listBox||!searchInput)return;
   const filtered=getFilteredProducts();
@@ -1507,3 +1508,5 @@ window.saveMaynaProducts=async()=>{
 </script>
 </body>
 </html>
+
+/* PATCH_BAZAR_DZAIR_2026 */
