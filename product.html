@@ -156,7 +156,12 @@ function renderDeliveryOptions(opts){
   const keys=Object.keys(opts);
   if(!keys.length){wrap.style.display="none";box.innerHTML="";selectedDeliveryType=null;return;}
   wrap.style.display="block";
-  if(!selectedDeliveryType||!opts[selectedDeliveryType]) selectedDeliveryType=keys.includes("home")?"home":keys[0];
+  if(!selectedDeliveryType||!opts[selectedDeliveryType]){
+    // إذا كانت هناك طريقة توصيل واحدة فقط متاحة لهذا المنتج ولهذه الولاية، نختارها تلقائيًا (لا لبس هنا).
+    // أما إذا كانت هناك أكثر من طريقة متاحة (باب الدار + المكتب)، فلا نفترض تفضيل الزبون؛
+    // نترك الاختيار فارغًا حتى يحدده هو بنفسه، بدل احتساب سعر باب الدار افتراضيًا دون طلبه فعليًا.
+    selectedDeliveryType=keys.length===1?keys[0]:null;
+  }
   box.innerHTML=keys.map(k=>{
     const o=opts[k];
     const label=k==="home"?"🏠 توصيل إلى المنزل":"🏤 استلام من المكتب";
@@ -170,10 +175,16 @@ function updateTotal(){
   const base=Number(product?.price||0)*quantity;
   const opts=computeDeliveryOptions(w);
   renderDeliveryOptions(opts);
-  const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
   const shippingEl=document.getElementById("shipping");
   if(!w){shippingEl.textContent="اختر الولاية لمعرفة سعر التوصيل.";document.getElementById("grandTotal").textContent=money(base);return;}
-  if(!chosen){shippingEl.textContent="❌ التوصيل غير متوفر لهذه الولاية حالياً.";document.getElementById("grandTotal").textContent=money(base);return;}
+  const keys=Object.keys(opts);
+  if(!keys.length){shippingEl.textContent="❌ التوصيل غير متوفر لهذه الولاية حالياً.";document.getElementById("grandTotal").textContent=money(base);return;}
+  if(!selectedDeliveryType||!opts[selectedDeliveryType]){
+    shippingEl.textContent="👆 اختر طريقة الاستلام أعلاه لمعرفة سعر التوصيل والمجموع.";
+    document.getElementById("grandTotal").textContent=money(base);
+    return;
+  }
+  const chosen=opts[selectedDeliveryType];
   const s=chosen.price;
   const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
   shippingEl.textContent="🚚 سعر التوصيل: "+money(s)+(carrierNames?" ("+carrierNames+")":"")+" — المجموع: "+money(base+s);
@@ -182,8 +193,9 @@ function updateTotal(){
 document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliveryType=null;updateTotal();});
 window.submitOrder=async()=>{if(!product)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
 const opts=computeDeliveryOptions(w);
-const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
-if(!chosen){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
+if(!Object.keys(opts).length){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
+if(!selectedDeliveryType||!opts[selectedDeliveryType]){toast("اختر طريقة الاستلام (منزل / مكتب) ⚠️");return}
+const chosen=opts[selectedDeliveryType];
 const s=chosen.price;
 const deliveryTypeLabel=selectedDeliveryType==="office"?"المكتب":"المنزل";
 const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
