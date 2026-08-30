@@ -424,9 +424,9 @@
         <span>باب الدار للكل:</span>
         <select id="bulkHomeCompanySelect">
           <option value="">اختر شركة</option>
-          <option value="noest">NOEST</option>
-          <option value="dhd">DHD Livraison</option>
-          <option value="48hr">48HR Tebessa</option>
+          <option value="noest">Noest Express</option>
+          <option value="dhd">DHD Express</option>
+          <option value="48hr">48HR Express</option>
         </select>
         <button type="button" class="outline-action" onclick="applyBulkShippingCompany('home')">تطبيق</button>
         <span>للمكتب للكل:</span>
@@ -736,7 +736,7 @@ async function saveSetting(){
 renderSettings();
 
 // ================= أسعار التوصيل (58 ولاية المعتمدة في المتجر) =================
-const homeCompanyLabels={noest:"NOEST",dhd:"DHD Livraison","48hr":"48HR Tebessa"};
+const homeCompanyLabels={noest:"Noest Express",dhd:"DHD Express","48hr":"48HR Express"};
 const officeCompanyLabels={dhd:"DHD Livraison"};
 let shippingRatesLoaded=false;
 let shippingRatesData={};
