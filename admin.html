@@ -99,6 +99,78 @@
 .product-actions .icon-action-btn.view-icon,.product-actions .icon-action-btn.copy-icon{display:none}
 .mobile-kebab{display:inline-block}
 .category-form-grid{grid-template-columns:1fr}.user-info-grid{grid-template-columns:1fr}.addons-grid{grid-template-columns:1fr}.shipping-grid{grid-template-columns:1fr}.image-preview{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:450px){.stats-grid,.quick-grid,.settings-grid{grid-template-columns:1fr}.brand{font-size:16px}.icon-btn{display:none}.page-head{padding:18px}.product-main{align-items:flex-start}.product-image-wrap{width:72px;height:72px}.product-meta{flex-direction:column;gap:3px}.order-actions{flex-direction:column;align-items:stretch}}
+
+/* ===== Product management: exact compact reference layout ===== */
+.products-panel-new{overflow:visible}
+.mobile-product-info{display:none}
+@media(max-width:760px){
+  body{overflow-x:hidden}
+  .topbar{height:58px}
+  .topbar-inner{height:58px;padding:0 12px}
+  .top-actions .menu-btn{display:none}
+  .layout{display:flex;align-items:stretch;min-height:calc(100vh - 58px)}
+  .sidebar{display:flex;position:sticky;right:auto;left:auto;top:58px;width:30vw;min-width:205px;max-width:230px;height:calc(100vh - 58px);transform:none!important;transition:none;padding:12px 8px;overflow-y:auto;box-shadow:none;flex:none;order:0}
+  .main-content{order:1;width:70vw;max-width:calc(100vw - 205px);padding:14px 9px 30px;overflow:hidden}
+  .view{max-width:none}
+  .products-page-head{padding:14px 12px;margin-bottom:10px;border-radius:12px;min-height:72px}
+  .products-title h1{font-size:19px;margin-bottom:4px}
+  .products-title p{font-size:10px;line-height:1.5}
+  .products-total{font-size:10px}
+  .products-total strong{min-width:28px;height:25px;padding:0 7px}
+  .products-panel-new{padding:7px;background:#fff;border-radius:12px}
+  .products-toolbar-new{gap:7px;margin-bottom:8px}
+  .products-search-new{height:43px;padding:0 10px;border-radius:9px}
+  .products-search-new input{font-size:11px}
+  .products-search-new .search-icon{font-size:17px}
+  .product-filter-btn{width:43px;height:43px;border-radius:9px;font-size:17px}
+  .product-filter-panel{top:49px;right:0;width:190px;padding:10px}
+  .products-bulk-new{display:none}
+  .products-maintenance-status{display:none}
+  .product-list-new{gap:7px}
+  .product-list-new .product-row{display:grid!important;grid-template-columns:54px 72px minmax(0,1fr)!important;grid-template-rows:1fr!important;gap:7px!important;align-items:center!important;min-width:0!important;width:100%;min-height:112px;margin:0;padding:9px!important;border:1px solid #e7eaf0!important;border-radius:12px!important;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.035)!important;overflow:visible}
+  .product-list-new .product-select{display:none!important}
+  .product-list-new .product-cell{grid-column:3!important;grid-row:1!important;padding:0!important;display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;min-width:0!important;direction:rtl}
+  .product-list-new .product-image-wrap{width:57px!important;height:57px!important;min-width:57px!important;border-radius:8px!important;background:#f7f8fa!important}
+  .product-list-new .product-details{min-width:0!important;flex:1!important;text-align:right}
+  .product-list-new .product-title-line{display:block!important}
+  .product-list-new .product-title-line h3{font-size:11px!important;line-height:1.35!important;font-weight:800!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .product-list-new .product-meta{font-size:8px!important;line-height:1.4!important;margin-top:3px!important;gap:4px!important;display:flex!important;flex-direction:column!important}
+  .product-list-new .product-meta span:nth-child(2){display:none!important}
+  .mobile-product-info{display:flex!important;align-items:center!important;gap:4px!important;flex-wrap:wrap!important;margin-top:4px!important}
+  .mobile-product-info .stock-pill{font-size:8px!important;min-width:0!important;padding:4px 6px!important;white-space:nowrap}
+  .mobile-product-info .stock-pill i{width:5px!important;height:5px!important}
+  .mobile-product-info .publish-badge{font-size:8px!important;padding:4px 6px!important;white-space:nowrap}
+  .product-list-new .category-cell,.product-list-new .sales-cell,.product-list-new .stock-cell,.product-list-new .status-cell{display:none!important}
+  .product-list-new .price-cell{grid-column:2!important;grid-row:1!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;padding:0!important;white-space:nowrap!important}
+  .product-list-new .product-price{font-size:11px!important;line-height:1.3!important}
+  .product-list-new .product-actions{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;gap:5px!important;padding:0!important;order:initial!important}
+  .product-list-new .product-menu{display:block!important;order:0!important}
+  .product-list-new .product-menu summary{width:30px!important;height:30px!important;border-radius:8px!important;font-size:17px!important;box-shadow:none!important}
+  .product-list-new .menu-popover{right:0!important;left:auto!important;top:35px!important;width:175px!important}
+  .product-list-new .action-main{display:flex!important;flex-direction:column!important;gap:5px!important}
+  .product-list-new .icon-action-btn{width:30px!important;height:30px!important;border-radius:8px!important;font-size:13px!important;padding:0!important}
+  .product-list-new .product-actions .view-icon,.product-list-new .product-actions .copy-icon{display:none!important}
+  .product-list-new .product-actions .edit-icon,.product-list-new .product-actions .delete-icon{display:grid!important;place-items:center!important}
+  .products-pagination{padding-top:8px}
+  .sidebar .side-brand{padding:3px 5px 12px;gap:7px}
+  .sidebar .side-logo{width:34px;height:34px;border-radius:9px;font-size:13px}
+  .sidebar .side-brand strong{font-size:12px}
+  .sidebar .side-brand small{font-size:7px}
+  .sidebar .store-mini{padding:8px 7px;margin-bottom:8px;font-size:9px;gap:5px}
+  .sidebar .nav-title{font-size:8px;padding:9px 6px 5px}
+  .sidebar .nav{gap:2px}
+  .sidebar .nav-item{min-height:34px;padding:7px 6px;gap:5px;border-radius:7px;font-size:10px}
+  .sidebar .nav-item span{font-size:9px}
+}
+@media(max-width:390px){
+  .sidebar{min-width:190px;width:30vw}
+  .main-content{max-width:calc(100vw - 190px);width:70vw;padding-left:6px;padding-right:6px}
+  .product-list-new .product-row{grid-template-columns:48px 65px minmax(0,1fr)!important;padding:7px!important}
+  .product-list-new .product-image-wrap{width:52px!important;height:52px!important;min-width:52px!important}
+  .product-list-new .product-title-line h3{font-size:10px!important}
+  .product-list-new .product-price{font-size:10px!important}
+  .product-list-new .icon-action-btn,.product-list-new .product-menu summary{width:28px!important;height:28px!important}
+}
 </style>
 </head>
 <body class="auth-check">
@@ -1383,7 +1455,7 @@ window.render=()=>{
       <label class="product-select" title="تحديد المنتج"><input type="checkbox" aria-label="تحديد ${esc(p.name||"المنتج")}" ${selectedProducts.has(p.id)?"checked":""} onchange="window.toggleProductSelection('${esc(p.id)}',this.checked)"></label>
       <div class="product-cell">
         <div class="product-image-wrap"><img class="product-image" src="${esc(img||"")}" alt="${esc(p.name||"منتج")}" loading="lazy" onerror="this.style.display='none'"></div>
-        <div class="product-details"><div class="product-title-line"><h3>${esc(p.name||"بدون اسم")}</h3></div><div class="product-meta"><span>الكود: <b dir="ltr">${esc(shortId)}</b></span><span>المتجر: Bazar Dzair</span></div></div>
+        <div class="product-details"><div class="product-title-line"><h3>${esc(p.name||"بدون اسم")}</h3></div><div class="product-meta"><span>الكود: <b dir="ltr">${esc(shortId)}</b></span><span>المتجر: Bazar Dzair</span></div><div class="mobile-product-info"><span class="stock-pill ${stockClass}"><i></i>${stockText} · ${stock}</span><span class="publish-badge ${published?"is-published":"is-hidden"}">${published?"● نشط":"● غير متوفر"}</span></div></div>
       </div>
       <div class="table-cell category-cell">${esc(category?.name||p.category||"بدون تصنيف")}</div>
       <div class="table-cell price-cell"><strong class="product-price">${Number(p.price||0).toLocaleString("ar-DZ")} دج</strong></div>
