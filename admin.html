@@ -242,6 +242,11 @@
 .shipping-rate-row .src-name{text-align:right;font-weight:800;color:#20242a}
 .shipping-rate-row input,.shipping-rate-row select{width:100%;padding:9px 8px;border:1px solid #dfe3e8;border-radius:8px;font-size:12.5px;text-align:center;font-weight:700}
 .shipping-rate-row input:focus,.shipping-rate-row select:focus{border-color:var(--orange);box-shadow:0 0 0 3px #ff6a0012;outline:none}
+.shipping-save-bar{position:sticky;bottom:0;left:0;right:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 -4px 16px #0000000f;padding:12px 16px;margin-top:14px}
+.shipping-save-bar .status{margin:0;flex:1}
+.shipping-save-bar button{white-space:nowrap}
+.shipping-save-bar button[disabled]{opacity:.7;cursor:wait}
+.page-head button.green[disabled]{opacity:.7;cursor:wait}
 @media(max-width:760px){
   .shipping-rates-head{display:none}
   .shipping-rates-panel{overflow-x:visible;border:0}
@@ -262,10 +267,6 @@
 .multi-select-menu input[type="checkbox"]{width:15px;height:15px;flex-shrink:0}
 .carrier-logo{width:20px;height:20px;border-radius:5px;object-fit:contain;flex-shrink:0;background:#fff;border:1px solid #eef0f3}
 .carrier-btn-logo{width:16px;height:16px;border-radius:4px;object-fit:contain;vertical-align:middle;margin-left:4px}
-.warn-banner{display:none;align-items:center;gap:8px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:10px;padding:10px 14px;font-size:12.5px;font-weight:700;margin-bottom:12px}
-.warn-banner.show{display:flex}
-.src-warn{border-color:#f59e0b!important;background:#fffbea!important}
-.src-warn-icon{display:inline-block;margin-right:3px}
 </style>
 </head>
 <body class="auth-check">
@@ -443,9 +444,8 @@
 <section id="view-categories" class="view hidden"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><button class="orange-btn" type="button" onclick="openCategoryForm()">＋ إضافة فئة</button></div><div class="panel"><div id="categoryForm" class="category-form hidden"><input id="categoryId" type="hidden"><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"></label><label>الأيقونة<input id="categoryIcon" placeholder="🔧" maxlength="4"></label></div><div class="form-actions"><button class="green" type="button" onclick="saveCategory()">💾 حفظ الفئة</button><button class="gray" type="button" onclick="closeCategoryForm()">إلغاء</button></div><div id="categoryStatus" class="status hidden"></div></div><div id="categoriesList" class="categories-list"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
 
 <section id="view-shipping-rates" class="view hidden">
-  <div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر ومدة وشركة التوصيل لكل ولاية من ولايات الجزائر (58 ولاية المعتمدة في المتجر).</p></div><button class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button></div>
+  <div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر ومدة وشركة التوصيل لكل ولاية من ولايات الجزائر (58 ولاية المعتمدة في المتجر).</p></div><button id="saveShippingBtnTop" class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button></div>
   <div class="panel">
-    <div id="shippingWarnBanner" class="warn-banner"></div>
     <div class="shipping-rates-toolbar">
       <div class="search-wrap"><span class="search-ic">🔎</span><input id="shippingRatesSearch" placeholder="ابحث عن ولاية بالاسم أو الرقم..." oninput="filterShippingRatesTable()"></div>
       <div class="shipping-rates-bulk">
@@ -467,10 +467,13 @@
         <button type="button" class="outline-action" onclick="applyBulkShippingCompany('office')">تطبيق</button>
       </div>
     </div>
-    <div id="shippingRatesStatus" class="status hidden"></div>
     <div class="shipping-rates-panel">
       <div class="shipping-rates-head"><div>رقم</div><div>الولاية</div><div>سعر باب الدار (دج)</div><div>شركة باب الدار</div><div>سعر المكتب (دج)</div><div>شركة المكتب</div><div>مدة التوصيل</div></div>
       <div id="shippingRatesBody"><div class="empty-card">⏳ جاري تحميل الأسعار...</div></div>
+    </div>
+    <div class="shipping-save-bar">
+      <div id="shippingRatesStatus" class="status hidden"></div>
+      <button id="saveShippingBtnBottom" class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button>
     </div>
   </div>
 </section>
@@ -791,8 +794,6 @@ window.updateMultiSelect=function(cb){
   wrap.dataset.value=val;
   wrap.classList.toggle("empty",!checked.length);
   wrap.querySelector(".multi-select-btn").textContent=homeCompanyDisplay(val);
-  const row=wrap.closest(".shipping-rate-row");
-  if(row&&typeof updateRowShippingWarning==="function"){updateRowShippingWarning(row);if(typeof refreshShippingWarnBanner==="function")refreshShippingWarnBanner();}
 };
 document.addEventListener("click",e=>{
   if(!e.target.closest(".multi-select")){
@@ -814,13 +815,15 @@ function buildDefaultShippingRates(){
   });
   return out;
 }
+function readShippingRatesCache(){try{return JSON.parse(localStorage.getItem("bazarShippingRatesCache")||"{}");}catch(_e){return{};}}
+function writeShippingRatesCache(rates){try{localStorage.setItem("bazarShippingRatesCache",JSON.stringify(rates||{}));}catch(_e){}}
 window.bazarLoadShippingRates=async function(force=false){
   const box=document.getElementById("shippingRatesBody"); if(!box)return;
   if(shippingRatesLoaded&&!force){renderShippingRatesTable();return;}
   box.innerHTML='<div class="empty-card">⏳ جاري تحميل الأسعار...</div>';
+  const defaults=buildDefaultShippingRates();
   try{
     const remote=await getRemoteSetting("shipping");
-    const defaults=buildDefaultShippingRates();
     const rates=remote.rates||{};
     shippingRatesData={};
     wilayas.forEach((name,i)=>{
@@ -828,10 +831,25 @@ window.bazarLoadShippingRates=async function(force=false){
       shippingRatesData[code]={...defaults[code],...(rates[code]||{})};
     });
     shippingRatesLoaded=true;
+    writeShippingRatesCache(shippingRatesData);
     renderShippingRatesTable();
   }catch(e){
     console.error(e);
-    box.innerHTML='<div class="empty-card">❌ تعذر قراءة أسعار التوصيل من Firestore. تحقق من Firestore Rules.</div>';
+    // تعذرت القراءة من Firestore (مشكلة اتصال أو صلاحيات) — نحاول استرجاع آخر نسخة محفوظة على الجهاز حتى لا تضيع البيانات.
+    const cached=readShippingRatesCache();
+    if(cached&&Object.keys(cached).length){
+      shippingRatesData={};
+      wilayas.forEach((name,i)=>{
+        const code=shippingRateCode(i);
+        shippingRatesData[code]={...defaults[code],...(cached[code]||{})};
+      });
+      shippingRatesLoaded=true;
+      renderShippingRatesTable();
+      const status=document.getElementById("shippingRatesStatus");
+      if(status){status.textContent="⚠️ تعذر الاتصال بـ Firestore، تم عرض آخر نسخة محفوظة على هذا الجهاز.";status.className="status err";status.classList.remove("hidden");}
+    }else{
+      box.innerHTML='<div class="empty-card">❌ تعذر قراءة أسعار التوصيل من Firestore. تحقق من الاتصال بالإنترنت أو من Firestore Rules الخاصة بمستند settings/shipping.</div>';
+    }
   }
 };
 function renderShippingRatesTable(){
@@ -860,41 +878,6 @@ function renderShippingRatesTable(){
       <div class="src-cell"><input type="text" data-field="duration" data-code="${code}" value="${escapeAttr(r.duration)}" placeholder="مثال: 24-72 سا"></div>
     </div>`;
   }).join("");
-  box.querySelectorAll('input[data-field="home"],input[data-field="office"]').forEach(inp=>{
-    inp.addEventListener("input",()=>{updateRowShippingWarning(inp.closest(".shipping-rate-row"));refreshShippingWarnBanner();});
-  });
-  box.querySelectorAll('select[data-field="officeCompany"]').forEach(sel=>{
-    sel.addEventListener("change",()=>{updateRowShippingWarning(sel.closest(".shipping-rate-row"));refreshShippingWarnBanner();});
-  });
-  refreshShippingWarnBanner();
-}
-function updateRowShippingWarning(row){
-  if(!row)return;
-  const homeCompanyVal=row.querySelector('.multi-select[data-field="homeCompany"]')?.dataset.value||"";
-  const homePriceEl=row.querySelector('[data-field="home"]');
-  const officeCompanyVal=row.querySelector('[data-field="officeCompany"]')?.value||"";
-  const officePriceEl=row.querySelector('[data-field="office"]');
-  const homeWarn=!!homeCompanyVal&&!String(homePriceEl?.value||"").trim();
-  const officeWarn=!!officeCompanyVal&&!String(officePriceEl?.value||"").trim();
-  if(homePriceEl) homePriceEl.classList.toggle("src-warn",homeWarn);
-  if(officePriceEl) officePriceEl.classList.toggle("src-warn",officeWarn);
-  row.dataset.priceWarn=(homeWarn||officeWarn)?"1":"0";
-}
-function refreshShippingWarnBanner(){
-  const banner=document.getElementById("shippingWarnBanner");
-  if(!banner)return;
-  let count=0;
-  document.querySelectorAll(".shipping-rate-row").forEach(row=>{
-    updateRowShippingWarning(row);
-    if(row.dataset.priceWarn==="1") count++;
-  });
-  if(count>0){
-    banner.textContent=`⚠️ ${count} ولاية بها شركة توصيل محددة بدون سعر — التوصيل لن يظهر للزبون في هذه الولايات حتى تُدخل السعر المطابق.`;
-    banner.classList.add("show");
-  }else{
-    banner.textContent="";
-    banner.classList.remove("show");
-  }
 }
 window.filterShippingRatesTable=function(){
   const q=(document.getElementById("shippingRatesSearch")?.value||"").trim().toLowerCase();
@@ -914,41 +897,59 @@ window.applyBulkShippingCompany=function(type){
       el.querySelector(".multi-select-btn").textContent=homeCompanyDisplay(val);
       el.querySelectorAll('input[type="checkbox"]').forEach(cb=>{cb.checked=codes.has(cb.value);});
     });
-    refreshShippingWarnBanner();
     return;
   }
   const val=document.getElementById("bulkOfficeCompanySelect")?.value||"";
   document.querySelectorAll('.shipping-rate-row select[data-field="officeCompany"]').forEach(sel=>{sel.value=val;});
-  refreshShippingWarnBanner();
 };
 window.saveShippingRates=async function(){
   const status=document.getElementById("shippingRatesStatus");
+  const buttons=[document.getElementById("saveShippingBtnTop"),document.getElementById("saveShippingBtnBottom")].filter(Boolean);
+  // 1) إظهار حالة "جاري الحفظ" فورًا حتى لا يظن المستخدم أن الزر لا يستجيب، ومنع الضغط المتكرر أثناء الحفظ.
+  buttons.forEach(b=>{b.disabled=true;b.dataset.originalText=b.dataset.originalText||b.textContent;b.textContent="⏳ جاري الحفظ...";});
+  if(status){status.textContent="⏳ جاري حفظ أسعار التوصيل...";status.className="status";status.classList.remove("hidden");}
+  const rates={};
+  const prices={};
+  document.querySelectorAll(".shipping-rate-row").forEach(row=>{
+    const code=row.dataset.code;
+    const home=row.querySelector('[data-field="home"]').value;
+    const homeCompany=row.querySelector('.multi-select[data-field="homeCompany"]')?.dataset.value||"";
+    const office=row.querySelector('[data-field="office"]').value;
+    const officeCompany=row.querySelector('[data-field="officeCompany"]').value;
+    const duration=row.querySelector('[data-field="duration"]').value;
+    rates[code]={
+      home:home===""?"":Number(home),
+      homeCompany,
+      office:office===""?"":Number(office),
+      officeCompany,
+      duration:duration.trim()
+    };
+    prices[code]=home===""?"":Number(home);
+  });
+  // 2) نحفظ نسخة على الجهاز فورًا (قبل محاولة Firestore) حتى لا تُفقد التعديلات مهما حدث لاحقًا.
+  writeShippingRatesCache(rates);
+  shippingRatesData=rates;
   try{
-    if(!window.bazarDb||!window.bazarSetDoc||!window.bazarDoc) throw new Error("Firebase غير جاهز");
-    const rates={};
-    const prices={};
-    document.querySelectorAll(".shipping-rate-row").forEach(row=>{
-      const code=row.dataset.code;
-      const home=row.querySelector('[data-field="home"]').value;
-      const homeCompany=row.querySelector('.multi-select[data-field="homeCompany"]')?.dataset.value||"";
-      const office=row.querySelector('[data-field="office"]').value;
-      const officeCompany=row.querySelector('[data-field="officeCompany"]').value;
-      const duration=row.querySelector('[data-field="duration"]').value;
-      rates[code]={
-        home:home===""?"":Number(home),
-        homeCompany,
-        office:office===""?"":Number(office),
-        officeCompany,
-        duration:duration.trim()
-      };
-      prices[code]=home===""?"":Number(home);
-    });
-    shippingRatesData=rates;
+    if(!window.bazarDb||!window.bazarSetDoc||!window.bazarDoc){
+      throw Object.assign(new Error("Firebase غير جاهز بعد، أعد المحاولة بعد ثانيتين."),{code:"not-ready"});
+    }
     await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","shipping"),{rates,prices,updatedAt:window.bazarServerTimestamp()},{merge:true});
     if(status){status.textContent="تم حفظ أسعار التوصيل بنجاح ✅";status.className="status ok";}
   }catch(e){
     console.error(e);
-    if(status){status.textContent="تعذر حفظ الأسعار: "+(e.message||"خطأ غير معروف");status.className="status err";}
+    let msg="تعذر حفظ الأسعار على Firestore، لكن تم حفظ تعديلاتك على هذا الجهاز مؤقتًا. ";
+    if(e&&e.code==="permission-denied"){
+      msg+="السبب على الأرجح: صلاحيات Firestore Rules لا تسمح بالكتابة في settings/shipping — راجع قواعد Firestore.";
+    }else if(e&&e.code==="not-ready"){
+      msg+="السبب: الاتصال بـ Firebase لم يكتمل بعد — انتظر قليلاً ثم اضغط حفظ مجددًا.";
+    }else if(!navigator.onLine){
+      msg+="يبدو أن جهازك غير متصل بالإنترنت حاليًا.";
+    }else{
+      msg+="التفاصيل: "+(e.message||"خطأ غير معروف");
+    }
+    if(status){status.textContent=msg;status.className="status err";}
+  }finally{
+    buttons.forEach(b=>{b.disabled=false;b.textContent=b.dataset.originalText||"💾 حفظ الأسعار";});
   }
 };
 
