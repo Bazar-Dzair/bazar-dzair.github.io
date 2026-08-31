@@ -356,6 +356,18 @@
        <div class="multi-select-menu" id="shippingOfficeMenu"></div>
      </div>
    </div>
+   <div class="full"><label style="display:block;margin-bottom:8px">🚚 خيارات التوصيل</label>
+     <div class="grid" style="margin:0">
+       <div><label>طريقة توصيل باب الدار (اختر الولاية)</label>
+         <select id="deliveryHomeWilaya" onchange="updateDeliveryPricePreview('home')"><option value="">اختر الولاية...</option></select>
+         <small class="hint" id="deliveryHomePriceDisplay">سعر باب الدار: —</small>
+       </div>
+       <div><label>التوصيل إلى المكتب (اختر الولاية)</label>
+         <select id="deliveryOfficeWilaya" onchange="updateDeliveryPricePreview('office')"><option value="">اختر الولاية...</option></select>
+         <small class="hint" id="deliveryOfficePriceDisplay">سعر المكتب: —</small>
+       </div>
+     </div>
+   </div>
    <div class="full"><label>الوصف</label><textarea id="description" placeholder="اكتب وصفًا واضحًا للمنتج..."></textarea></div>
    <div class="full"><label>المواصفات</label><textarea id="specificationsText" placeholder="القدرة: 600W&#10;اللون: أسود&#10;الضمان: 12 شهر"></textarea><small class="hint">اكتب كل مواصفة في سطر مستقل بالشكل: الاسم: القيمة</small></div>
    <div class="full"><label>صور المنتج *</label><div class="upload-card">
@@ -516,6 +528,7 @@ function showView(name, el, createNew=false, updateUrl=true){
   if(name==="product" && !createNew && window.bazarLoadProducts) window.bazarLoadProducts();
   if(name==="orders" && window.bazarLoadOrders) window.bazarLoadOrders();
   if(name==="shipping-rates" && window.bazarLoadShippingRates) window.bazarLoadShippingRates();
+  if(name==="product" && window.bazarLoadShippingRates) window.bazarLoadShippingRates().then(()=>{if(typeof refreshDeliveryPricePreviews==="function")refreshDeliveryPricePreviews();});
   if(name==="addons" && window.bazarLoadAddons) window.bazarLoadAddons();
   if(name==="footer") setTimeout(loadFooterSetting,0);
   try{sessionStorage.setItem("bazarAdminView",name);}catch(e){}
@@ -1308,6 +1321,48 @@ const shippingOfficeSelect=document.getElementById("shippingOfficeSelect");
   if(homeMenu) homeMenu.innerHTML=Object.entries(homeCompanyLabels).map(([v,l])=>carrierOptionHtml(v,l,false)).join("");
   if(officeMenu) officeMenu.innerHTML=Object.entries(officeCompanyLabels).map(([v,l])=>carrierOptionHtml(v,l,false)).join("");
 })();
+// ===== خيارات التوصيل حسب الولاية داخل "إنشاء منتج" — تُقرأ الأسعار مباشرة من جدول "أسعار التوصيل" (settings/shipping) =====
+const deliveryHomeWilayaSelect=document.getElementById("deliveryHomeWilaya");
+const deliveryOfficeWilayaSelect=document.getElementById("deliveryOfficeWilaya");
+(function initDeliveryWilayaSelects(){
+  const opts=wilayas.map((name,i)=>{const code=shippingRateCode(i);return `<option value="${code}">${code} - ${escapeAttr(name)}</option>`;}).join("");
+  if(deliveryHomeWilayaSelect) deliveryHomeWilayaSelect.insertAdjacentHTML("beforeend",opts);
+  if(deliveryOfficeWilayaSelect) deliveryOfficeWilayaSelect.insertAdjacentHTML("beforeend",opts);
+})();
+function deliveryRateFor(code){
+  if(!code) return null;
+  const r=shippingRatesData[code];
+  if(r) return r;
+  const defaults=buildDefaultShippingRates();
+  return defaults[code]||null;
+}
+window.updateDeliveryPricePreview=function(type){
+  const sel=type==="home"?deliveryHomeWilayaSelect:deliveryOfficeWilayaSelect;
+  const out=document.getElementById(type==="home"?"deliveryHomePriceDisplay":"deliveryOfficePriceDisplay");
+  const code=sel?.value||"";
+  const rate=deliveryRateFor(code);
+  const price=rate?(type==="home"?rate.home:rate.office):"";
+  if(out) out.textContent=(type==="home"?"سعر باب الدار: ":"سعر المكتب: ")+(price===""||price==null?"— (غير محدد لهذه الولاية)":Number(price).toLocaleString("ar-DZ")+" دج");
+};
+function refreshDeliveryPricePreviews(){
+  updateDeliveryPricePreview("home");
+  updateDeliveryPricePreview("office");
+}
+function currentDeliverySelection(type){
+  const sel=type==="home"?deliveryHomeWilayaSelect:deliveryOfficeWilayaSelect;
+  const code=sel?.value||"";
+  if(!code) return null;
+  const idx=Number(code)-1;
+  const name=wilayas[idx]||"";
+  const rate=deliveryRateFor(code);
+  const price=rate?(type==="home"?rate.home:rate.office):"";
+  return {wilayaCode:code,wilayaName:name,price:(price===""||price==null)?null:Number(price)};
+}
+function setDeliveryWilayaSelection(type,saved){
+  const sel=type==="home"?deliveryHomeWilayaSelect:deliveryOfficeWilayaSelect;
+  if(sel) sel.value=(saved&&saved.wilayaCode)||"";
+  updateDeliveryPricePreview(type);
+}
 function setMultiSelectValue(wrap,val){
   if(!wrap)return;
   const codes=new Set(String(val||"").split(",").map(v=>v.trim()).filter(Boolean));
@@ -2006,6 +2061,8 @@ window.save=async()=>{
     specifications,
     shippingHome:shippingHomeSelect?.dataset.value||"",
     shippingOffice:shippingOfficeSelect?.dataset.value||"",
+    deliveryHome:currentDeliverySelection("home"),
+    deliveryOffice:currentDeliverySelection("office"),
     image:"",
     images:[],
     updatedAt:serverTimestamp()
@@ -2085,6 +2142,8 @@ window.editProduct=id=>{
  renderSelectedImages();
  setMultiSelectValue(shippingHomeSelect,p.shippingHome||"");
  setMultiSelectValue(shippingOfficeSelect,p.shippingOffice||"");
+ setDeliveryWilayaSelection("home",p.deliveryHome||null);
+ setDeliveryWilayaSelection("office",p.deliveryOffice||null);
  try{sessionStorage.setItem("bazarAdminView","product");sessionStorage.setItem("bazarEditingProduct",id);}catch(e){}
  showView("product",null,false);
  try{
@@ -2127,6 +2186,8 @@ window.resetForm=()=>{
  selectedImages=[];
  setMultiSelectValue(shippingHomeSelect,"");
  setMultiSelectValue(shippingOfficeSelect,"");
+ setDeliveryWilayaSelection("home",null);
+ setDeliveryWilayaSelection("office",null);
  try{sessionStorage.removeItem("bazarEditingProduct");}catch(e){}
  renderSelectedImages();
 };
