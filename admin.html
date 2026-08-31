@@ -803,7 +803,7 @@ function buildDefaultShippingRates(){
   const out={};
   wilayas.forEach((name,i)=>{
     const code=shippingRateCode(i);
-    out[code]={home:legacyShippingPrices[code]??"",homeCompany:"",office:"",officeCompany:"",duration:""};
+    out[code]={home:legacyShippingPrices[code]??"",homeCompany:"dhd,noest,48hr",office:"",officeCompany:"dhd",duration:""};
   });
   return out;
 }
@@ -819,6 +819,8 @@ window.bazarLoadShippingRates=async function(force=false){
     wilayas.forEach((name,i)=>{
       const code=shippingRateCode(i);
       shippingRatesData[code]={...defaults[code],...(rates[code]||{})};
+      if(!shippingRatesData[code].homeCompany) shippingRatesData[code].homeCompany=defaults[code].homeCompany;
+      if(!shippingRatesData[code].officeCompany) shippingRatesData[code].officeCompany=defaults[code].officeCompany;
     });
     shippingRatesLoaded=true;
     renderShippingRatesTable();
