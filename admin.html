@@ -230,8 +230,13 @@
 .shipping-rates-toolbar .search-wrap .search-ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#9aa3ae;font-size:14px;pointer-events:none}
 .shipping-rates-bulk{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;font-weight:700;color:#586170}
 .shipping-rates-bulk select{padding:9px 10px;border:1px solid #dfe3e8;border-radius:9px;font-size:12.5px;font-weight:700}
+.shipping-rates-section{margin-bottom:22px}
+.shipping-rates-section:last-child{margin-bottom:0}
+.shipping-rates-section-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:#20242a;margin:0 0 10px}
 .shipping-rates-panel{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e5e9ef;border-radius:12px}
-.shipping-rates-head,.shipping-rate-row{min-width:980px;display:grid;grid-template-columns:55px 170px 130px 140px 130px 140px 150px;gap:0;align-items:center}
+.shipping-rates-head,.shipping-rate-row{display:grid;gap:0;align-items:center}
+.shipping-rates-head.cols-home,.shipping-rate-row.cols-home{min-width:820px;grid-template-columns:55px 1fr 130px 220px 150px}
+.shipping-rates-head.cols-office,.shipping-rate-row.cols-office{min-width:640px;grid-template-columns:55px 1fr 150px 200px}
 .shipping-rates-head{background:#f8fafc;padding:0 14px;min-height:48px;color:#667085;font-size:11px;font-weight:800;border-bottom:1px solid #e5e9ef}
 .shipping-rates-head>div{text-align:center;padding:0 6px}
 .shipping-rates-head>div:nth-child(2){text-align:right}
@@ -245,7 +250,7 @@
 @media(max-width:760px){
   .shipping-rates-head{display:none}
   .shipping-rates-panel{overflow-x:visible;border:0}
-  .shipping-rate-row{min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;border:1px solid #e6e9ee;border-radius:14px;margin-bottom:10px;padding:12px}
+  .shipping-rate-row{min-width:0!important;display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;border:1px solid #e6e9ee;border-radius:14px;margin-bottom:10px;padding:12px}
   .shipping-rate-row .src-cell{text-align:right}
   .shipping-rate-row .src-num{grid-column:1/-1;font-weight:800;color:#1d64d8;text-align:right}
   .shipping-rate-row .src-name{grid-column:1/-1;font-size:13px}
@@ -451,12 +456,17 @@
 <section id="view-categories" class="view hidden"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><button class="orange-btn" type="button" onclick="openCategoryForm()">＋ إضافة فئة</button></div><div class="panel"><div id="categoryForm" class="category-form hidden"><input id="categoryId" type="hidden"><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"></label><label>الأيقونة<input id="categoryIcon" placeholder="🔧" maxlength="4"></label></div><div class="form-actions"><button class="green" type="button" onclick="saveCategory()">💾 حفظ الفئة</button><button class="gray" type="button" onclick="closeCategoryForm()">إلغاء</button></div><div id="categoryStatus" class="status hidden"></div></div><div id="categoriesList" class="categories-list"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
 
 <section id="view-shipping-rates" class="view hidden">
-  <div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر ومدة وشركة التوصيل لكل ولاية من ولايات الجزائر (58 ولاية المعتمدة في المتجر).</p></div><button class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button></div>
+  <div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر وشركة التوصيل لكل ولاية من ولايات الجزائر (58 ولاية المعتمدة في المتجر) — قسمان منفصلان: باب الدار والمكتب.</p></div><button class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button></div>
   <div class="panel">
     <div class="shipping-rates-toolbar">
       <div class="search-wrap"><span class="search-ic">🔎</span><input id="shippingRatesSearch" placeholder="ابحث عن ولاية بالاسم أو الرقم..." oninput="filterShippingRatesTable()"></div>
-      <div class="shipping-rates-bulk">
-        <span>باب الدار للكل:</span>
+    </div>
+    <div id="shippingRatesStatus" class="status hidden"></div>
+
+    <div class="shipping-rates-section">
+      <h2 class="shipping-rates-section-title">🚚 أسعار التوصيل – باب الدار <small style="font-weight:600;color:#8b94a1;font-size:11px">(DHD + NOEST + 48HR)</small></h2>
+      <div class="shipping-rates-bulk" style="margin-bottom:10px">
+        <span>تطبيق شركة على كل الولايات:</span>
         <div class="multi-select empty" id="bulkHomeCompanySelect" data-value="">
           <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
           <div class="multi-select-menu">
@@ -466,18 +476,27 @@
           </div>
         </div>
         <button type="button" class="outline-action" onclick="applyBulkShippingCompany('home')">تطبيق</button>
-        <span>للمكتب للكل:</span>
+      </div>
+      <div class="shipping-rates-panel">
+        <div class="shipping-rates-head cols-home"><div>رقم</div><div>الولاية</div><div>السعر (دج)</div><div>الشركة</div><div>مدة التوصيل</div></div>
+        <div id="shippingRatesBodyHome"><div class="empty-card">⏳ جاري تحميل الأسعار...</div></div>
+      </div>
+    </div>
+
+    <div class="shipping-rates-section">
+      <h2 class="shipping-rates-section-title">🏢 أسعار التوصيل – المكتب <small style="font-weight:600;color:#8b94a1;font-size:11px">(DHD EXPRESS)</small></h2>
+      <div class="shipping-rates-bulk" style="margin-bottom:10px">
+        <span>تطبيق شركة على كل الولايات:</span>
         <select id="bulkOfficeCompanySelect">
           <option value="">غير متوفر</option>
           <option value="dhd">DHD Express</option>
         </select>
         <button type="button" class="outline-action" onclick="applyBulkShippingCompany('office')">تطبيق</button>
       </div>
-    </div>
-    <div id="shippingRatesStatus" class="status hidden"></div>
-    <div class="shipping-rates-panel">
-      <div class="shipping-rates-head"><div>رقم</div><div>الولاية</div><div>سعر باب الدار (دج)</div><div>شركة باب الدار</div><div>سعر المكتب (دج)</div><div>شركة المكتب</div><div>مدة التوصيل</div></div>
-      <div id="shippingRatesBody"><div class="empty-card">⏳ جاري تحميل الأسعار...</div></div>
+      <div class="shipping-rates-panel">
+        <div class="shipping-rates-head cols-office"><div>رقم</div><div>الولاية</div><div>السعر (دج)</div><div>الشركة</div></div>
+        <div id="shippingRatesBodyOffice"><div class="empty-card">⏳ جاري تحميل الأسعار...</div></div>
+      </div>
     </div>
   </div>
 </section>
@@ -821,9 +840,12 @@ function buildDefaultShippingRates(){
   return out;
 }
 window.bazarLoadShippingRates=async function(force=false){
-  const box=document.getElementById("shippingRatesBody"); if(!box)return;
+  const boxHome=document.getElementById("shippingRatesBodyHome");
+  const boxOffice=document.getElementById("shippingRatesBodyOffice");
+  if(!boxHome||!boxOffice)return;
   if(shippingRatesLoaded&&!force){renderShippingRatesTable();return;}
-  box.innerHTML='<div class="empty-card">⏳ جاري تحميل الأسعار...</div>';
+  boxHome.innerHTML='<div class="empty-card">⏳ جاري تحميل الأسعار...</div>';
+  boxOffice.innerHTML='<div class="empty-card">⏳ جاري تحميل الأسعار...</div>';
   try{
     const remote=await getRemoteSetting("shipping");
     const defaults=buildDefaultShippingRates();
@@ -839,33 +861,46 @@ window.bazarLoadShippingRates=async function(force=false){
     renderShippingRatesTable();
   }catch(e){
     console.error(e);
-    box.innerHTML='<div class="empty-card">❌ تعذر قراءة أسعار التوصيل من Firestore. تحقق من Firestore Rules.</div>';
+    boxHome.innerHTML='<div class="empty-card">❌ تعذر قراءة أسعار التوصيل من Firestore. تحقق من Firestore Rules.</div>';
+    boxOffice.innerHTML='<div class="empty-card">❌ تعذر قراءة أسعار التوصيل من Firestore. تحقق من Firestore Rules.</div>';
   }
 };
+// نفس مصدر البيانات (shippingRatesData / settings/shipping في Firestore) يُعرض في قائمتين منفصلتين تمامًا:
+// 🚚 باب الدار (DHD + NOEST + 48HR) — و — 🏢 المكتب (DHD EXPRESS). لا يوجد خلط بين السعرين أو الشركتين.
 function renderShippingRatesTable(){
-  const box=document.getElementById("shippingRatesBody"); if(!box)return;
-  box.innerHTML=wilayas.map((name,i)=>{
+  const boxHome=document.getElementById("shippingRatesBodyHome");
+  const boxOffice=document.getElementById("shippingRatesBodyOffice");
+  if(!boxHome||!boxOffice)return;
+  boxHome.innerHTML=wilayas.map((name,i)=>{
     const code=shippingRateCode(i);
-    const r=shippingRatesData[code]||{home:"",homeCompany:"",office:"",officeCompany:"",duration:""};
-    return `<div class="shipping-rate-row" data-name="${escapeAttr(name)}" data-code="${code}">
+    const r=shippingRatesData[code]||{home:"",homeCompany:"",duration:""};
+    const selected=new Set((r.homeCompany||"").split(",").map(v=>v.trim()).filter(Boolean));
+    return `<div class="shipping-rate-row cols-home" data-name="${escapeAttr(name)}" data-code="${code}">
       <div class="src-cell src-num">${code}</div>
       <div class="src-cell src-name">${escapeAttr(name)}</div>
       <div class="src-cell"><input type="number" min="0" step="50" data-field="home" data-code="${code}" value="${escapeAttr(r.home)}" placeholder="دج"></div>
-      <div class="src-cell src-company">${(()=>{
-        const selected=new Set((r.homeCompany||"").split(",").map(v=>v.trim()).filter(Boolean));
-        return `<div class="multi-select${selected.size?"":" empty"}" data-field="homeCompany" data-code="${code}" data-value="${escapeAttr(r.homeCompany||"")}">
+      <div class="src-cell src-company">
+        <div class="multi-select${selected.size?"":" empty"}" data-field="homeCompany" data-code="${code}" data-value="${escapeAttr(r.homeCompany||"")}">
           <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">${homeCompanyDisplay(r.homeCompany)}</button>
           <div class="multi-select-menu">
             ${Object.entries(homeCompanyLabels).map(([v,l])=>carrierOptionHtml(v,l,selected.has(v))).join("")}
           </div>
-        </div>`;
-      })()}</div>
+        </div>
+      </div>
+      <div class="src-cell"><input type="text" data-field="duration" data-code="${code}" value="${escapeAttr(r.duration)}" placeholder="مثال: 24-72 سا"></div>
+    </div>`;
+  }).join("");
+  boxOffice.innerHTML=wilayas.map((name,i)=>{
+    const code=shippingRateCode(i);
+    const r=shippingRatesData[code]||{office:"",officeCompany:""};
+    return `<div class="shipping-rate-row cols-office" data-name="${escapeAttr(name)}" data-code="${code}">
+      <div class="src-cell src-num">${code}</div>
+      <div class="src-cell src-name">${escapeAttr(name)}</div>
       <div class="src-cell"><input type="number" min="0" step="50" data-field="office" data-code="${code}" value="${escapeAttr(r.office)}" placeholder="دج"></div>
       <div class="src-cell src-company"><select data-field="officeCompany" data-code="${code}">
         <option value="">غير متوفر</option>
         ${Object.entries(officeCompanyLabels).map(([v,l])=>`<option value="${v}" ${r.officeCompany===v?"selected":""}>${l}</option>`).join("")}
       </select></div>
-      <div class="src-cell"><input type="text" data-field="duration" data-code="${code}" value="${escapeAttr(r.duration)}" placeholder="مثال: 24-72 سا"></div>
     </div>`;
   }).join("");
 }
@@ -880,7 +915,7 @@ window.applyBulkShippingCompany=function(type){
   if(type==="home"){
     const wrap=document.getElementById("bulkHomeCompanySelect");
     const val=wrap?.dataset.value||"";
-    document.querySelectorAll('.shipping-rate-row .multi-select[data-field="homeCompany"]').forEach(el=>{
+    document.querySelectorAll('#shippingRatesBodyHome .multi-select[data-field="homeCompany"]').forEach(el=>{
       const codes=new Set(val.split(",").map(v=>v.trim()).filter(Boolean));
       el.dataset.value=val;
       el.classList.toggle("empty",!codes.size);
@@ -890,7 +925,7 @@ window.applyBulkShippingCompany=function(type){
     return;
   }
   const val=document.getElementById("bulkOfficeCompanySelect")?.value||"";
-  document.querySelectorAll('.shipping-rate-row select[data-field="officeCompany"]').forEach(sel=>{sel.value=val;});
+  document.querySelectorAll('#shippingRatesBodyOffice select[data-field="officeCompany"]').forEach(sel=>{sel.value=val;});
 };
 window.saveShippingRates=async function(){
   const status=document.getElementById("shippingRatesStatus");
@@ -898,21 +933,30 @@ window.saveShippingRates=async function(){
     if(!window.bazarDb||!window.bazarSetDoc||!window.bazarDoc) throw new Error("Firebase غير جاهز");
     const rates={};
     const prices={};
-    document.querySelectorAll(".shipping-rate-row").forEach(row=>{
+    // قسم باب الدار: السعر + الشركة (DHD/NOEST/48HR) + المدة — لكل ولاية من الـ58
+    document.querySelectorAll('#shippingRatesBodyHome .shipping-rate-row').forEach(row=>{
       const code=row.dataset.code;
       const home=row.querySelector('[data-field="home"]').value;
       const homeCompany=row.querySelector('.multi-select[data-field="homeCompany"]')?.dataset.value||"";
-      const office=row.querySelector('[data-field="office"]').value;
-      const officeCompany=row.querySelector('[data-field="officeCompany"]').value;
       const duration=row.querySelector('[data-field="duration"]').value;
       rates[code]={
+        ...(rates[code]||{}),
         home:home===""?"":Number(home),
         homeCompany,
-        office:office===""?"":Number(office),
-        officeCompany,
         duration:duration.trim()
       };
       prices[code]=home===""?"":Number(home);
+    });
+    // قسم المكتب: السعر + الشركة (DHD EXPRESS) فقط — منفصل تمامًا عن باب الدار
+    document.querySelectorAll('#shippingRatesBodyOffice .shipping-rate-row').forEach(row=>{
+      const code=row.dataset.code;
+      const office=row.querySelector('[data-field="office"]').value;
+      const officeCompany=row.querySelector('[data-field="officeCompany"]').value;
+      rates[code]={
+        ...(rates[code]||{}),
+        office:office===""?"":Number(office),
+        officeCompany
+      };
     });
     shippingRatesData=rates;
     await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","shipping"),{rates,prices,updatedAt:window.bazarServerTimestamp()},{merge:true});
