@@ -69,30 +69,15 @@ const carrierLogos={"dhd":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAB
 function carrierCodes(v){return String(v||"").split(",").map(s=>s.trim()).filter(Boolean);}
 function carrierIntersect(a,b){const A=carrierCodes(a),B=carrierCodes(b);if(!A.length)return B;if(!B.length)return A;return A.filter(x=>B.includes(x));}
 let shippingRatesData={};
-// حالة تحميل أسعار التوصيل: تُستخدم للتفريق بين "الولاية هذه فقط غير مضبوطة" و"فشل تحميل كل الأسعار أصلاً"
-// (غالبًا بسبب صلاحيات Firestore Rules التي تمنع القراءة العامة لمستند settings/shipping،
-// أو لأن الحفظ من لوحة التحكم لم يصل فعليًا إلى Firestore وبقي محفوظًا محليًا فقط على جهاز الأدمن).
-let shippingRatesStatus="loading"; // loading | ok | empty | error
 async function loadShippingRatesData(db){
-  shippingRatesStatus="loading";
   try{
     const {doc,getDoc}=await getFirebase();
     const snap=await getDoc(doc(db,"settings","shipping"));
     if(snap.exists()){
       const d=snap.data();
       shippingRatesData=(d&&d.rates)||{};
-      shippingRatesStatus="ok";
-    }else{
-      shippingRatesData={};
-      shippingRatesStatus="empty";
-      console.warn("[bazar] مستند settings/shipping غير موجود في Firestore — لم يتم حفظ أي أسعار توصيل بعد من لوحة التحكم.");
     }
-  }catch(e){
-    shippingRatesData={};
-    shippingRatesStatus="error";
-    // نطبع الخطأ الحقيقي في الكونسول (مثلاً permission-denied) حتى يسهل تشخيصه من DevTools بدل أن يختفي بصمت.
-    console.error("[bazar] تعذر تحميل أسعار التوصيل من Firestore (settings/shipping):",e&&e.code||e);
-  }
+  }catch(e){shippingRatesData={};}
 }
 const queryId=new URLSearchParams(location.search).get("id");
 const pathMatch=location.pathname.match(/\/product\/([^\/]+)\/?$/);
@@ -129,70 +114,21 @@ function computeDeliveryOptions(w){
   const opts={};
   if(!w) return opts;
   const rate=shippingRatesData[w];
-  const productHome=product?.shippingHome||"";
-  const productOffice=product?.shippingOffice||"";
-  // إذا اختار صاحب المتجر شركة توصيل واحدة على الأقل لهذا المنتج (باب الدار أو المكتب)،
-  // فهذا يعني أنه حدّد فعليًا طرق التوصيل المسموحة لهذا المنتج بالذات.
-  // في هذه الحالة، أي طريقة توصيل تركها فارغة (لم يفعّلها) يجب اعتبارها غير متاحة لهذا المنتج،
-  // بدل معاملتها كأنها "متاحة لأي شركة" كما كان يحدث سابقًا.
-  const productHasDeliveryPrefs=!!(productHome||productOffice);
-
-  // سعر باب الدار: من جدول أسعار التوصيل (settings/shipping)، وإلا من الأسعار الافتراضية القديمة لكل ولاية.
   let homePrice=null,homeCompanyStr="";
   if(rate){homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);homeCompanyStr=rate.homeCompany||"";}
-  if(homePrice==null&&legacyShippingPrices[w]!=null) homePrice=legacyShippingPrices[w];
-
-  const homeAllowedForProduct=!productHasDeliveryPrefs||!!productHome;
-  if(homePrice!=null&&homeAllowedForProduct){
-    const av=computeAvail(productHome,homeCompanyStr);
+  else if(legacyShippingPrices[w]!=null){homePrice=legacyShippingPrices[w];}
+  if(homePrice!=null){
+    const av=computeAvail(product?.shippingHome||"",homeCompanyStr);
     if(av.available) opts.home={price:homePrice,codes:av.codes};
   }
-
-  // سعر المكتب: يُعتمد فقط إذا أدخل صاحب المتجر سعرًا خاصًا بالمكتب لهذه الولاية تحديدًا
-  // من صفحة "أسعار التوصيل" في لوحة التحكم. لا يتم أبدًا اعتماد سعر باب الدار كبديل تلقائي،
-  // حتى لا يظهر خيار "استلام من المكتب" بنفس سعر "توصيل إلى المنزل" لمجرد عدم تعبئة خانة سعر المكتب بعد.
-  // إذا لم يُدخل صاحب المتجر سعر مكتب حقيقيًا لهذه الولاية، فإن خيار المكتب لا يظهر إطلاقًا.
-  const officeAllowedForProduct=!productHasDeliveryPrefs||!!productOffice;
-  if(officeAllowedForProduct&&rate){
+  if(rate){
     const officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);
-    const officeCompanyStr=rate.officeCompany||"";
     if(officePrice!=null){
-      const av=computeAvail(productOffice,officeCompanyStr);
+      const av=computeAvail(product?.shippingOffice||"",rate.officeCompany||"");
       if(av.available) opts.office={price:officePrice,codes:av.codes};
     }
   }
-
   return opts;
-}
-// رسالة تشخيصية دقيقة تشرح لصاحب المتجر (والزبون) سبب عدم توفر أي طريقة توصيل لولاية معينة،
-// بدل رسالة عامة واحدة، حتى يسهل تمييز "لم أضبط السعر بعد" عن "الشركة غير مطابقة" عن "المنتج غير مهيأ لهذه الطريقة".
-function explainNoDeliveryOptions(w){
-  const productHome=product?.shippingHome||"";
-  const productOffice=product?.shippingOffice||"";
-  const productHasDeliveryPrefs=!!(productHome||productOffice);
-  const homeAllowedForProduct=!productHasDeliveryPrefs||!!productHome;
-  const officeAllowedForProduct=!productHasDeliveryPrefs||!!productOffice;
-  if(!homeAllowedForProduct&&!officeAllowedForProduct) return "❌ هذا المنتج غير مهيأ لأي طريقة توصيل (لم تُختر شركة توصيل لا لباب الدار ولا للمكتب في صفحة تعديل المنتج).";
-  // أولوية أولى: تحقق إن كان تحميل جدول الأسعار بأكمله قد فشل أو ما زال جاريًا — لأن هذا يفسّر عدم توفر
-  // أي ولاية إطلاقًا (وليس فقط الولاية المختارة)، وغالبًا سببه صلاحيات Firestore وليس نقص بيانات.
-  if(shippingRatesStatus==="loading") return "⏳ جاري تحميل أسعار التوصيل، انتظر لحظة ثم أعد اختيار الولاية...";
-  if(shippingRatesStatus==="error") return "❌ تعذر تحميل أسعار التوصيل من الخادم (على الأرجح مشكلة صلاحيات Firestore Rules لمستند settings/shipping). افتح أدوات المطوّر (Console) لرؤية تفاصيل الخطأ، أو تحقق من قواعد Firestore.";
-  if(shippingRatesStatus==="empty") return "❌ لم يتم حفظ أي أسعار توصيل في Firestore بعد. تأكد أنك ضغطت زر «حفظ الأسعار» في لوحة التحكم وأنه ظهرت رسالة «تم الحفظ بنجاح» فعليًا (لا رسالة تعذّر الحفظ).";
-  const rate=shippingRatesData[w];
-  if(!rate) return "❌ لم يتم ضبط أسعار التوصيل لهذه الولاية بعد من لوحة التحكم ← أسعار التوصيل.";
-  const reasons=[];
-  if(homeAllowedForProduct){
-    const homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);
-    if(homePrice==null&&legacyShippingPrices[w]==null) reasons.push("سعر باب الدار غير محدد لهذه الولاية");
-    else if(!computeAvail(productHome,rate.homeCompany||"").available) reasons.push("شركة باب الدار لهذه الولاية لا تطابق شركات هذا المنتج");
-  }
-  if(officeAllowedForProduct){
-    const officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);
-    if(officePrice==null) reasons.push("سعر المكتب غير محدد لهذه الولاية");
-    else if(!computeAvail(productOffice,rate.officeCompany||"").available) reasons.push("شركة المكتب لهذه الولاية لا تطابق شركات هذا المنتج");
-  }
-  if(!reasons.length) return "❌ التوصيل غير متوفر لهذه الولاية حالياً.";
-  return "❌ التوصيل غير متوفر لهذه الولاية حالياً — "+reasons.join(" / ")+".";
 }
 function renderDeliveryOptions(opts){
   const wrap=document.getElementById("deliveryTypeWrap");
@@ -200,12 +136,7 @@ function renderDeliveryOptions(opts){
   const keys=Object.keys(opts);
   if(!keys.length){wrap.style.display="none";box.innerHTML="";selectedDeliveryType=null;return;}
   wrap.style.display="block";
-  if(!selectedDeliveryType||!opts[selectedDeliveryType]){
-    // إذا كانت هناك طريقة توصيل واحدة فقط متاحة لهذا المنتج ولهذه الولاية، نختارها تلقائيًا (لا لبس هنا).
-    // أما إذا كانت هناك أكثر من طريقة متاحة (باب الدار + المكتب)، فلا نفترض تفضيل الزبون؛
-    // نترك الاختيار فارغًا حتى يحدده هو بنفسه، بدل احتساب سعر باب الدار افتراضيًا دون طلبه فعليًا.
-    selectedDeliveryType=keys.length===1?keys[0]:null;
-  }
+  if(!selectedDeliveryType||!opts[selectedDeliveryType]) selectedDeliveryType=keys.includes("home")?"home":keys[0];
   box.innerHTML=keys.map(k=>{
     const o=opts[k];
     const label=k==="home"?"🏠 توصيل إلى المنزل":"🏤 استلام من المكتب";
@@ -219,16 +150,10 @@ function updateTotal(){
   const base=Number(product?.price||0)*quantity;
   const opts=computeDeliveryOptions(w);
   renderDeliveryOptions(opts);
+  const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
   const shippingEl=document.getElementById("shipping");
   if(!w){shippingEl.textContent="اختر الولاية لمعرفة سعر التوصيل.";document.getElementById("grandTotal").textContent=money(base);return;}
-  const keys=Object.keys(opts);
-  if(!keys.length){shippingEl.textContent=explainNoDeliveryOptions(w);document.getElementById("grandTotal").textContent=money(base);return;}
-  if(!selectedDeliveryType||!opts[selectedDeliveryType]){
-    shippingEl.textContent="👆 اختر طريقة الاستلام أعلاه لمعرفة سعر التوصيل والمجموع.";
-    document.getElementById("grandTotal").textContent=money(base);
-    return;
-  }
-  const chosen=opts[selectedDeliveryType];
+  if(!chosen){shippingEl.textContent="❌ التوصيل غير متوفر لهذه الولاية حالياً.";document.getElementById("grandTotal").textContent=money(base);return;}
   const s=chosen.price;
   const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
   shippingEl.textContent="🚚 سعر التوصيل: "+money(s)+(carrierNames?" ("+carrierNames+")":"")+" — المجموع: "+money(base+s);
@@ -237,9 +162,8 @@ function updateTotal(){
 document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliveryType=null;updateTotal();});
 window.submitOrder=async()=>{if(!product)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
 const opts=computeDeliveryOptions(w);
-if(!Object.keys(opts).length){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
-if(!selectedDeliveryType||!opts[selectedDeliveryType]){toast("اختر طريقة الاستلام (منزل / مكتب) ⚠️");return}
-const chosen=opts[selectedDeliveryType];
+const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
+if(!chosen){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
 const s=chosen.price;
 const deliveryTypeLabel=selectedDeliveryType==="office"?"المكتب":"المنزل";
 const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
