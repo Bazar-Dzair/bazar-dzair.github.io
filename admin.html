@@ -345,14 +345,16 @@
    <div><label>المخزون *</label><input id="stock" type="number" min="0" placeholder="20"></div>
    <div class="full"><div class="publish-row"><div><b>نشر المنتج في المتجر</b><small>يمكنك تغيير الحالة لاحقًا من قائمة خيارات المنتج ⋮</small></div><label class="switch"><input id="published" type="checkbox" checked><span></span></label></div></div>
    <div><label>شركات التوصيل — باب الدار</label>
+     <label class="delivery-toggle" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12.5px;font-weight:700;color:#374151"><input id="homeEnabled" type="checkbox" checked> فعّل توصيل باب الدار لهذا المنتج</label>
      <div class="multi-select empty" id="shippingHomeSelect" data-value="">
-       <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
+       <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة (اختياري — اتركه فارغاً لقبول أي شركة)</button>
        <div class="multi-select-menu" id="shippingHomeMenu"></div>
      </div>
    </div>
    <div><label>شركات التوصيل — المكتب</label>
+     <label class="delivery-toggle" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12.5px;font-weight:700;color:#374151"><input id="officeEnabled" type="checkbox"> فعّل توصيل المكتب لهذا المنتج</label>
      <div class="multi-select empty" id="shippingOfficeSelect" data-value="">
-       <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
+       <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة (اختياري — اتركه فارغاً لقبول أي شركة)</button>
        <div class="multi-select-menu" id="shippingOfficeMenu"></div>
      </div>
    </div>
@@ -1300,6 +1302,8 @@ const imageFilesInput=document.getElementById("imageFiles");
 const imageCountBox=document.getElementById("imageCount");
 const shippingHomeSelect=document.getElementById("shippingHomeSelect");
 const shippingOfficeSelect=document.getElementById("shippingOfficeSelect");
+const homeEnabledInput=document.getElementById("homeEnabled");
+const officeEnabledInput=document.getElementById("officeEnabled");
 (function initProductShippingMenus(){
   const homeMenu=document.getElementById("shippingHomeMenu");
   const officeMenu=document.getElementById("shippingOfficeMenu");
@@ -2004,6 +2008,8 @@ window.save=async()=>{
     specifications,
     shippingHome:shippingHomeSelect?.dataset.value||"",
     shippingOffice:shippingOfficeSelect?.dataset.value||"",
+    homeEnabled:homeEnabledInput?.checked!==false,
+    officeEnabled:officeEnabledInput?.checked===true,
     image:"",
     images:[],
     updatedAt:serverTimestamp()
@@ -2083,6 +2089,8 @@ window.editProduct=id=>{
  renderSelectedImages();
  setMultiSelectValue(shippingHomeSelect,p.shippingHome||"");
  setMultiSelectValue(shippingOfficeSelect,p.shippingOffice||"");
+ if(homeEnabledInput) homeEnabledInput.checked = p.homeEnabled!==false; // افتراضي: مفعّل، إلا إذا عُطّل صراحةً
+ if(officeEnabledInput) officeEnabledInput.checked = p.officeEnabled===true || (p.officeEnabled===undefined && !!p.shippingOffice); // منتجات قديمة سبق اختيار شركة مكتب لها تُفعَّل تلقائياً مرة واحدة
  try{sessionStorage.setItem("bazarAdminView","product");sessionStorage.setItem("bazarEditingProduct",id);}catch(e){}
  showView("product",null,false);
  try{
@@ -2125,6 +2133,8 @@ window.resetForm=()=>{
  selectedImages=[];
  setMultiSelectValue(shippingHomeSelect,"");
  setMultiSelectValue(shippingOfficeSelect,"");
+ if(homeEnabledInput) homeEnabledInput.checked=true;
+ if(officeEnabledInput) officeEnabledInput.checked=false;
  try{sessionStorage.removeItem("bazarEditingProduct");}catch(e){}
  renderSelectedImages();
 };
