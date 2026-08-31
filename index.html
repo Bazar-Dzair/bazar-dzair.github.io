@@ -215,6 +215,7 @@
 .pic{height:285px;background:#f8fafc;position:relative;cursor:pointer}.pic img{width:100%;height:100%;object-fit:contain;display:block}.new{position:absolute;z-index:2;top:12px;right:12px;background:var(--orange);color:#fff;border-radius:14px;padding:7px 13px;font-weight:800;font-size:13px}
 .info{padding:0 18px 17px}.name{min-height:54px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;line-height:1.55;font-weight:800;cursor:pointer}.name:hover{color:var(--orange)}.price{color:var(--orange);font-weight:900;font-size:20px;margin:4px 0 14px;text-align:center}.buttons{display:flex;gap:10px;align-items:stretch}.btn{border-radius:17px;padding:13px;font-weight:900;min-height:56px;display:flex;align-items:center;justify-content:center;gap:7px}.cartbtn{width:74px;flex:0 0 74px;border:2px solid var(--navy);background:#fff;color:var(--navy);font-size:20px}.cartbtn .plus{font-size:18px;font-weight:900}.buybtn{flex:1;border:0;background:linear-gradient(135deg,var(--orange),#ff7100);color:#fff;width:auto;font-size:16px}.buycart{font-size:19px}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:950;padding:15px;overflow:auto}.modal{background:#fff;width:min(900px,100%);margin:30px auto;padding:22px;border-radius:22px;position:relative}.close{position:absolute;left:14px;top:12px;border:0;border-radius:50%;width:38px;height:38px;font-size:24px;background:#f3f5f8;color:var(--navy)}.detail{display:grid;grid-template-columns:1fr 1fr;gap:25px}.detail-pic{height:380px;background:#f4f6f8;border-radius:15px}.detail-pic img{width:100%;height:100%;object-fit:contain}.detail h2{margin-top:25px;font-size:27px}.detail-price{color:var(--orange);font-size:26px;font-weight:bold;margin:10px 0}.desc{color:var(--muted);margin-bottom:18px}.qty{display:flex;width:max-content;border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-bottom:15px}.qty button{border:0;width:40px;height:40px;background:#fff}.qty span{width:42px;text-align:center;padding-top:8px}.detail-actions{display:flex;gap:8px}.detail-actions button{flex:1;border:0;padding:13px;border-radius:10px;font-weight:bold}.orange{background:var(--orange);color:#fff}.dark{background:var(--navy);color:#fff}.cart-modal{width:min(720px,100%)}.cart-list{margin-top:42px}.cart-row{display:grid;grid-template-columns:62px 1fr auto auto;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.cart-row img{width:62px;height:62px;object-fit:contain;background:#f5f5f5;border-radius:8px}.cart-row h4{font-size:14px;margin:0}.small{font-size:12px;color:var(--muted)}.cq{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}.cq button{border:0;width:29px;background:#fff}.cq span{width:28px;text-align:center;padding-top:4px}.remove{border:0;background:none}.summary{background:#f8fafc;border-radius:13px;padding:14px;margin-top:15px}.line{display:flex;justify-content:space-between;margin:6px 0}.total{border-top:1px solid var(--line);padding-top:10px;margin-top:8px;font-size:19px;font-weight:bold}.order{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;outline:none;background:#fff}.full{grid-column:1/-1}.ship{color:var(--muted);font-size:13px;margin-top:6px}.confirm{width:100%;border:0;background:#16a34a;color:#fff;padding:14px;border-radius:10px;margin-top:10px;font-weight:bold}.empty{text-align:center;padding:35px;color:var(--muted)}
+.delivery-opt{display:flex;align-items:center;gap:6px;flex-direction:column;align-items:flex-start;border:2px solid var(--line);border-radius:12px;padding:9px 13px;cursor:pointer;background:#fff;font-size:13px;font-weight:700;color:var(--text)}.delivery-opt.active{border-color:var(--orange,#ff6a00);background:#fff7f0}.delivery-opt .small{font-weight:400}
 body.products-only .search-wrap,body.products-only .hero,body.products-only .home-features,body.products-only .newsletter{display:none!important}body.products-only main{padding-top:20px}body.products-only #products{margin-top:0}
 @media(max-width:900px){.products{grid-template-columns:repeat(2,1fr)}.pic{height:250px}.detail{grid-template-columns:1fr}.detail-pic{height:300px}}
 @media(max-width:560px){.products{grid-template-columns:1fr 1fr;gap:10px}.pic{height:205px}.info{padding:0 10px 12px}.name{font-size:13px;min-height:46px}.price{font-size:17px}.btn{font-size:12px;padding:10px 5px;min-height:48px}.cartbtn{width:54px;flex-basis:54px;font-size:17px}.drawer{width:88vw}.grid{grid-template-columns:1fr}.full{grid-column:auto}.cart-row{grid-template-columns:55px 1fr auto}.cart-row .cq{grid-column:2}.remove{grid-column:3;grid-row:1}}
@@ -253,7 +254,7 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
 </main>
 <footer id="footer"><div class="footer-grid"><div><div class="brand" style="justify-self:start;color:#fff;margin-bottom:12px"><div class="brand-mark"></div><div><div class="brand-text"><b style="color:#fff">Bazar</b> <b>Dzair</b></div><div class="brand-sub" style="color:#fff">متجر إلكتروني</div></div></div><p id="footerDescription">متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.</p></div><div><h4>روابط مهمة</h4><ul id="importantFooterList"><li><button type="button" class="footer-toggle">من نحن</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">سياسة الخصوصية</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">الشروط والأحكام</button><div class="footer-link-text"></div></li></ul></div><div><h4>خدمة الزبائن</h4><ul id="customerFooterList"><li><button type="button" class="footer-toggle">❓ أسئلة شائعة</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">📦 تتبع طلبي</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">🚚 سياسة التوصيل</button><div class="footer-link-text"></div></li></ul><ul><li>📞 <a id="footerPhone" href="tel:0550000000">0550 00 00 00</a></li><li><a id="footerWhatsapp" href="https://wa.me/213500000000" target="_blank" rel="noopener">💬 واتساب متوفر للطلبات</a></li></ul></div></div><div class="copyright" id="footerCopyright">© 2026 Bazar Dzair ❤️ — جميع الحقوق محفوظة</div></footer>
 <div class="overlay" id="productOverlay" onclick="overlayClose(event,'productOverlay')"><div class="modal"><button class="close" onclick="closeModal('productOverlay')">×</button><div class="detail"><div class="detail-pic"><img id="detailImage" alt="تفاصيل المنتج"></div><div><h2 id="detailName"></h2><div class="detail-price" id="detailPrice"></div><p class="desc" id="detailDesc"></p><div class="qty"><button onclick="detailQtyChange(-1)">−</button><span id="detailQty">1</span><button onclick="detailQtyChange(1)">+</button></div><div class="detail-actions"><button class="orange" onclick="buyDetail()">⚡ اشترِ الآن</button><button class="dark" onclick="cartDetail()">🛒 أضف إلى السلة</button></div></div></div></div></div>
-<div class="overlay" id="cartOverlay" onclick="overlayClose(event,'cartOverlay')"><div class="modal cart-modal"><button class="close" onclick="closeModal('cartOverlay')">×</button><h2>🛒 سلة المشتريات</h2><div class="cart-list" id="cartItems"></div><div id="summaryBox"></div><div class="order"><h3>📦 معلومات الطلب</h3><div class="grid"><input class="field" id="customerName" placeholder="الاسم واللقب *"><input class="field" id="customerPhone" type="tel" placeholder="رقم الهاتف *"><select class="field" id="wilaya" onchange="updateTotals()"><option value="">اختر الولاية *</option><option value="01">01 - أدرار</option><option value="02">02 - الشلف</option><option value="03">03 - الأغواط</option><option value="04">04 - أم البواقي</option><option value="05">05 - باتنة</option><option value="06">06 - بجاية</option><option value="07">07 - بسكرة</option><option value="08">08 - بشار</option><option value="09">09 - البليدة</option><option value="10">10 - البويرة</option><option value="11">11 - تمنراست</option><option value="12">12 - تبسة</option><option value="13">13 - تلمسان</option><option value="14">14 - تيارت</option><option value="15">15 - تيزي وزو</option><option value="16">16 - الجزائر</option><option value="17">17 - الجلفة</option><option value="18">18 - جيجل</option><option value="19">19 - سطيف</option><option value="20">20 - سعيدة</option><option value="21">21 - سكيكدة</option><option value="22">22 - سيدي بلعباس</option><option value="23">23 - عنابة</option><option value="24">24 - قالمة</option><option value="25">25 - قسنطينة</option><option value="26">26 - المدية</option><option value="27">27 - مستغانم</option><option value="28">28 - المسيلة</option><option value="29">29 - معسكر</option><option value="30">30 - ورقلة</option><option value="31">31 - وهران</option><option value="32">32 - البيض</option><option value="33">33 - إليزي</option><option value="34">34 - برج بوعريريج</option><option value="35">35 - بومرداس</option><option value="36">36 - الطارف</option><option value="37">37 - تندوف</option><option value="38">38 - تيسمسيلت</option><option value="39">39 - الوادي</option><option value="40">40 - خنشلة</option><option value="41">41 - سوق أهراس</option><option value="42">42 - تيبازة</option><option value="43">43 - ميلة</option><option value="44">44 - عين الدفلى</option><option value="45">45 - النعامة</option><option value="46">46 - عين تموشنت</option><option value="47">47 - غرداية</option><option value="48">48 - غليزان</option><option value="49">49 - تيميمون</option><option value="50">50 - برج باجي مختار</option><option value="51">51 - أولاد جلال</option><option value="52">52 - بني عباس</option><option value="53">53 - إن صالح</option><option value="54">54 - إن قزام</option><option value="55">55 - تقرت</option><option value="56">56 - جانت</option><option value="57">57 - المغير</option><option value="58">58 - المنيعة</option></select><input class="field full" id="address" placeholder="العنوان / البلدية *"><div class="ship full" id="shipNote">اختر الولاية لمعرفة سعر التوصيل.</div></div><button class="confirm" onclick="submitOrder()">✅ تأكيد الطلب بالدفع عند الاستلام</button></div></div></div>
+<div class="overlay" id="cartOverlay" onclick="overlayClose(event,'cartOverlay')"><div class="modal cart-modal"><button class="close" onclick="closeModal('cartOverlay')">×</button><h2>🛒 سلة المشتريات</h2><div class="cart-list" id="cartItems"></div><div id="summaryBox"></div><div class="order"><h3>📦 معلومات الطلب</h3><div class="grid"><input class="field" id="customerName" placeholder="الاسم واللقب *"><input class="field" id="customerPhone" type="tel" placeholder="رقم الهاتف *"><select class="field" id="wilaya" onchange="selectedDeliveryType=null;updateTotals()"><option value="">اختر الولاية *</option><option value="01">01 - أدرار</option><option value="02">02 - الشلف</option><option value="03">03 - الأغواط</option><option value="04">04 - أم البواقي</option><option value="05">05 - باتنة</option><option value="06">06 - بجاية</option><option value="07">07 - بسكرة</option><option value="08">08 - بشار</option><option value="09">09 - البليدة</option><option value="10">10 - البويرة</option><option value="11">11 - تمنراست</option><option value="12">12 - تبسة</option><option value="13">13 - تلمسان</option><option value="14">14 - تيارت</option><option value="15">15 - تيزي وزو</option><option value="16">16 - الجزائر</option><option value="17">17 - الجلفة</option><option value="18">18 - جيجل</option><option value="19">19 - سطيف</option><option value="20">20 - سعيدة</option><option value="21">21 - سكيكدة</option><option value="22">22 - سيدي بلعباس</option><option value="23">23 - عنابة</option><option value="24">24 - قالمة</option><option value="25">25 - قسنطينة</option><option value="26">26 - المدية</option><option value="27">27 - مستغانم</option><option value="28">28 - المسيلة</option><option value="29">29 - معسكر</option><option value="30">30 - ورقلة</option><option value="31">31 - وهران</option><option value="32">32 - البيض</option><option value="33">33 - إليزي</option><option value="34">34 - برج بوعريريج</option><option value="35">35 - بومرداس</option><option value="36">36 - الطارف</option><option value="37">37 - تندوف</option><option value="38">38 - تيسمسيلت</option><option value="39">39 - الوادي</option><option value="40">40 - خنشلة</option><option value="41">41 - سوق أهراس</option><option value="42">42 - تيبازة</option><option value="43">43 - ميلة</option><option value="44">44 - عين الدفلى</option><option value="45">45 - النعامة</option><option value="46">46 - عين تموشنت</option><option value="47">47 - غرداية</option><option value="48">48 - غليزان</option><option value="49">49 - تيميمون</option><option value="50">50 - برج باجي مختار</option><option value="51">51 - أولاد جلال</option><option value="52">52 - بني عباس</option><option value="53">53 - إن صالح</option><option value="54">54 - إن قزام</option><option value="55">55 - تقرت</option><option value="56">56 - جانت</option><option value="57">57 - المغير</option><option value="58">58 - المنيعة</option></select><input class="field full" id="address" placeholder="العنوان / البلدية *"><div class="full" id="deliveryTypeWrap" style="display:none"><label style="display:block;margin:2px 0 6px;font-weight:700;font-size:13px;color:var(--muted)">طريقة الاستلام</label><div id="deliveryTypeOptions" style="display:flex;gap:8px;flex-wrap:wrap"></div></div><div class="ship full" id="shipNote">اختر الولاية لمعرفة سعر التوصيل.</div></div><button class="confirm" onclick="submitOrder()">✅ تأكيد الطلب بالدفع عند الاستلام</button></div></div></div>
 <div class="toast" id="toast"></div>
 <script>
 function openCategoryMenu(){
@@ -296,6 +297,64 @@ let storeCategories=[];
 let activeCategory=null;
 
 const shippingPrices={"01":1000,"02":600,"03":800,"04":600,"05":600,"06":600,"07":800,"08":950,"09":450,"10":550,"11":1200,"12":650,"13":600,"14":600,"15":550,"16":300,"17":800,"18":600,"19":600,"20":650,"21":600,"22":600,"23":600,"24":650,"25":600,"26":550,"27":650,"28":650,"29":600,"30":800,"31":600,"32":900,"33":1200,"34":600,"35":450,"36":650,"37":1100,"38":600,"39":800,"40":650,"41":650,"42":450,"43":650,"44":550,"45":800,"46":600,"47":800,"48":600,"49":1100,"50":null,"51":800,"52":1000,"53":1200,"54":null,"55":800,"56":null,"57":850,"58":850};
+// أسعار وشركات التوصيل الكاملة (منزل + مكتب) كما تُحفظ من لوحة التحكم settings/shipping -> rates
+let shippingRatesData={};
+let selectedDeliveryType=null;
+const carrierLabels={dhd:"DHD Express",noest:"Noest Express","48hr":"48HR Express"};
+function carrierCodes(v){return String(v||"").split(",").map(s=>s.trim()).filter(Boolean);}
+function combinedProductCarriers(field){
+  // يدمج قيود شركات التوصيل لكل منتجات السلة: تقاطع القيود المفروضة فعليًا، وتجاهل المنتجات بدون قيد
+  let result=null;
+  cart.forEach(item=>{
+    const codes=carrierCodes(item[field]||"");
+    if(!codes.length)return;
+    result=result===null?codes:result.filter(x=>codes.includes(x));
+  });
+  return result===null?"":result.join(",");
+}
+function computeAvail(prod,wil){
+  const P=carrierCodes(prod),W=carrierCodes(wil);
+  if(!P.length&&!W.length) return {available:true,codes:[]};
+  if(!P.length) return {available:true,codes:W};
+  if(!W.length) return {available:true,codes:P};
+  const inter=P.filter(x=>W.includes(x));
+  return {available:inter.length>0,codes:inter};
+}
+function computeDeliveryOptions(w){
+  const opts={};
+  if(!w)return opts;
+  const rate=shippingRatesData[w];
+  let homePrice=null,homeCompanyStr="";
+  if(rate){homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);homeCompanyStr=rate.homeCompany||"";}
+  else if(shippingPrices[w]!=null){homePrice=shippingPrices[w];}
+  if(homePrice!=null){
+    const av=computeAvail(combinedProductCarriers("shippingHome"),homeCompanyStr);
+    if(av.available) opts.home={price:homePrice,codes:av.codes};
+  }
+  if(rate){
+    const officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);
+    if(officePrice!=null){
+      const av=computeAvail(combinedProductCarriers("shippingOffice"),rate.officeCompany||"");
+      if(av.available) opts.office={price:officePrice,codes:av.codes};
+    }
+  }
+  return opts;
+}
+function renderDeliveryOptions(opts){
+  const wrap=document.getElementById("deliveryTypeWrap"),box=document.getElementById("deliveryTypeOptions");
+  if(!wrap||!box)return;
+  const keys=Object.keys(opts);
+  if(!keys.length){wrap.style.display="none";box.innerHTML="";selectedDeliveryType=null;return;}
+  wrap.style.display="block";
+  if(!selectedDeliveryType||!opts[selectedDeliveryType]) selectedDeliveryType=keys.includes("home")?"home":keys[0];
+  box.innerHTML=keys.map(k=>{
+    const o=opts[k];
+    const label=k==="home"?"🏠 توصيل إلى المنزل":"🏤 استلام من المكتب";
+    const carrierNames=o.codes.map(c=>carrierLabels[c]||c).join(" + ");
+    return `<div class="delivery-opt ${selectedDeliveryType===k?"active":""}" onclick="selectDeliveryType('${k}')"><span>${label} — ${money(o.price)}</span>${carrierNames?`<span class="small">(${carrierNames})</span>`:""}</div>`;
+  }).join("");
+}
+window.selectDeliveryType=function(k){selectedDeliveryType=k;updateTotals();};
 
 let cart=[],selected=null,dQty=1;
 
@@ -356,7 +415,9 @@ function mapRestProduct(docSnap,index){
     images:imgs.length?imgs:[image],
     badge:data.badge||"جديد",
     description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
-    category:data.category||"all"
+    category:data.category||"all",
+    shippingHome:data.shippingHome||"",
+    shippingOffice:data.shippingOffice||""
   };
 }
 
@@ -440,7 +501,10 @@ async function loadFastSettings(){
   try{
     const [shipping,site,footer]=await Promise.allSettled([restGetDocument("settings/shipping"),restGetDocument("settings/site"),restGetDocument("settings/footer")]);
     if(shipping.status==="fulfilled"){
-      const d=firestoreDocData(shipping.value); if(d.prices) Object.keys(shippingPrices).forEach(k=>{if(Object.prototype.hasOwnProperty.call(d.prices,k)) shippingPrices[k]=d.prices[k];});
+      const d=firestoreDocData(shipping.value);
+      if(d.prices) Object.keys(shippingPrices).forEach(k=>{if(Object.prototype.hasOwnProperty.call(d.prices,k)) shippingPrices[k]=d.prices[k];});
+      if(d.rates) shippingRatesData=d.rates;
+      if(document.getElementById("wilaya")) updateTotals();
     }
     if(site.status==="fulfilled") applySiteData(firestoreDocData(site.value));
     if(footer.status==="fulfilled") applyFooterData(firestoreDocData(footer.value));
@@ -488,7 +552,9 @@ async function loadProductsFromFirestore(){
       description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
       category:data.category||"all",
       published:data.published!==false,
-      stock:Number(data.stock||0)
+      stock:Number(data.stock||0),
+      shippingHome:data.shippingHome||"",
+      shippingOffice:data.shippingOffice||""
     };
   }
   try{
@@ -676,11 +742,15 @@ function renderCart(){
 }
 function updateTotals(){
  if(!document.getElementById("wilaya"))return;
- const w=document.getElementById("wilaya").value,t=productTotal(),s=shippingPrices[w];
+ const w=document.getElementById("wilaya").value,t=productTotal();
  if(document.getElementById("sumShip"))document.getElementById("sumShip").textContent="—";
  if(document.getElementById("sumTotal"))document.getElementById("sumTotal").textContent=money(t);
+ const opts=computeDeliveryOptions(w);
+ renderDeliveryOptions(opts);
  if(!w){document.getElementById("shipNote").textContent="اختر الولاية لمعرفة سعر التوصيل.";return}
- if(s===null||s===undefined){document.getElementById("shipNote").textContent="❌ التوصيل غير متوفر لهذه الولاية حالياً.";return}
+ const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
+ if(!chosen){document.getElementById("shipNote").textContent="❌ التوصيل غير متوفر لهذه الولاية حالياً.";return}
+ const s=chosen.price;
  document.getElementById("shipNote").textContent="🚚 سعر التوصيل: "+money(s);document.getElementById("sumShip").textContent=money(s);document.getElementById("sumTotal").textContent=money(t+s);
 }
 function showHome(e){
@@ -730,9 +800,13 @@ function submitOrder(){
  if(!cart.length){toast("السلة فارغة ❌");return}
  const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),wn=document.getElementById("wilaya").options[document.getElementById("wilaya").selectedIndex]?.text||"";
  if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
- const s=shippingPrices[w];if(s===null||s===undefined){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
+ const opts=computeDeliveryOptions(w);
+ const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
+ if(!chosen){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
+ const s=chosen.price;
+ const deliveryTypeLabel=selectedDeliveryType==="office"?"المكتب":"المنزل";
  let m="🛍️ طلب جديد - Bazar Dzair%0A%0A";
- m+="👤 الاسم: "+encodeURIComponent(n)+"%0A📞 الهاتف: "+encodeURIComponent(ph)+"%0A📍 الولاية: "+encodeURIComponent(wn)+"%0A🏠 العنوان: "+encodeURIComponent(a)+"%0A%0A📦 المنتجات:%0A";
+ m+="👤 الاسم: "+encodeURIComponent(n)+"%0A📞 الهاتف: "+encodeURIComponent(ph)+"%0A📍 الولاية: "+encodeURIComponent(wn)+"%0A🏠 العنوان: "+encodeURIComponent(a)+"%0A🚛 طريقة الاستلام: "+encodeURIComponent(deliveryTypeLabel)+"%0A%0A📦 المنتجات:%0A";
  cart.forEach(x=>m+="• "+encodeURIComponent(x.name)+" × "+x.quantity+" = "+encodeURIComponent(money(x.price*x.quantity))+"%0A");
  m+="%0A💰 المنتجات: "+encodeURIComponent(money(productTotal()))+"%0A🚚 التوصيل: "+encodeURIComponent(money(s))+"%0A💵 النهائي: "+encodeURIComponent(money(productTotal()+s))+"%0A💳 الدفع عند الاستلام";
  const whatsappNumber="213500000000"; // بدّل هذا الرقم برقم واتساب المتجر

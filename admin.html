@@ -799,13 +799,11 @@ document.addEventListener("click",e=>{
 let shippingRatesLoaded=false;
 let shippingRatesData={};
 function shippingRateCode(i){return String(i+1).padStart(2,"0");}
-const defaultHomeCompany="dhd,noest,48hr";
-const defaultOfficeCompany="dhd";
 function buildDefaultShippingRates(){
   const out={};
   wilayas.forEach((name,i)=>{
     const code=shippingRateCode(i);
-    out[code]={home:legacyShippingPrices[code]??"",homeCompany:defaultHomeCompany,office:"",officeCompany:defaultOfficeCompany,duration:""};
+    out[code]={home:legacyShippingPrices[code]??"",homeCompany:"",office:"",officeCompany:"",duration:""};
   });
   return out;
 }
