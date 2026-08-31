@@ -377,7 +377,7 @@
      <button type="button" class="upload-drop" onclick="document.getElementById('imageFiles').click()"><span class="upload-icon">☁️</span><b>أضف صور المنتج</b><small>اختر الصور من الهاتف مباشرة — حتى 10 صور</small><span class="upload-hint">JPG, PNG, WEBP — ضغط تلقائي قبل الحفظ</span></button>
      <div class="image-count" id="imageCount">0 / 10 صور</div><div id="imagePreview" class="image-preview"></div>
    </div><small class="hint">الصورة الأولى تصبح صورة الواجهة. الصور الجديدة تُضغط لتقليل حجم مستند Firestore.</small></div>
- </div><div class="form-actions"><button id="saveBtn" class="green" onclick="save()">💾 حفظ المنتج</button><button class="gray" onclick="resetForm()">مسح النموذج</button></div></div>
+ </div><div class="form-actions"><button id="saveBtn" class="green" onclick="save()">💾 حفظ المنتج</button><button class="gray" onclick="resetForm()">مسح النموذج</button><button id="backToProductsBtn" class="gray hidden" type="button" onclick="window.backToProductsList()">↩️ رجوع إلى المنتجات</button></div></div>
 </section>
 
 <section id="view-products" class="view hidden">
@@ -568,7 +568,13 @@ window.addEventListener("popstate",()=>{
       return;
     }
     const navItem=document.querySelector('.nav-item[data-view="'+view+'"]');
-    showView(view,navItem,false,false);
+    // نفس منطق appPage(): صفحة منتج بلا معرّف = صفحة إنشاء منتج جديد ويجب أن تبدأ فارغة.
+    let createNew=false;
+    if(view==="product"){
+      const hasId=!!params.get("id")||!!sessionStorage.getItem("bazarEditingProduct");
+      createNew=!hasId;
+    }
+    showView(view,navItem,createNew,false);
   }catch(e){}
 });
 function toggleSidebar(){document.getElementById("sidebar")?.classList.toggle("open");document.getElementById("sidebarBackdrop")?.classList.toggle("open")}
@@ -1613,7 +1619,16 @@ function appPage(){
   if(!valid.includes(view)) view="dashboard";
   const nav=[...document.querySelectorAll(".nav-item")];
   const navItem=document.querySelector('.nav-item[data-view="'+view+'"]');
-  showView(view,navItem||nav[0],false,false);
+  // صفحة إنشاء/تعديل المنتج: إن لم يوجد معرّف منتج (لا في الرابط ولا في الجلسة)
+  // فهذه صفحة "إنشاء منتج جديد" ويجب أن تبدأ فارغة تمامًا.
+  let createNew=false;
+  if(view==="product"){
+    try{
+      const hasId=!!new URLSearchParams(window.location.search).get("id")||!!sessionStorage.getItem("bazarEditingProduct");
+      createNew=!hasId;
+    }catch(e){createNew=true;}
+  }
+  showView(view,navItem||nav[0],createNew,false);
 }
 let productsLoaded=false;
 let productsLoading=null;
@@ -2129,10 +2144,15 @@ window.save=async()=>{
     show("أضف صورة واحدة على الأقل للمنتج.","err");return;
   }
 
+  const wasEditing=!!editing;
   if(editing) {
     await updateDoc(doc(db,"products",editing),data);
     const idx=products.findIndex(x=>x.id===editing);
     if(idx>=0) products[idx]={...products[idx],...data};
+    // نُبقي المستخدم داخل صفحة تعديل نفس المنتج بعد الحفظ، ونحدّث الصور المرفوعة
+    // حديثًا لتصبح "موجودة" حتى لا تُرفع من جديد عند حفظ لاحق لنفس الجلسة.
+    selectedImages=data.images.map(u=>({url:u,existing:true,file:null}));
+    renderSelectedImages();
   } else {
     // إضافة واحدة فقط مهما ضغط المستخدم على الزر بسرعة.
     data.createdAt=serverTimestamp();
@@ -2143,7 +2163,7 @@ window.save=async()=>{
   render();
   updateStats();
   show("تم الحفظ بنجاح ✅","ok");
-  resetForm();
+  if(!wasEditing) resetForm();
  }catch(e){
   console.error(e);
   show("تعذر حفظ المنتج: "+(e.message||"خطأ غير معروف"),"err");
@@ -2173,6 +2193,7 @@ window.editProduct=id=>{
  setMultiSelectValue(shippingOfficeSelect,p.shippingOffice||"");
  // منتجات قديمة بدون طريقة توصيل محفوظة: نخمّن الطريقة من البيانات الموجودة حتى لا تتعطل عند التعديل.
  setDeliveryMethod(p.deliveryMethod||((!p.shippingHome&&p.shippingOffice)?"office":"home"));
+ document.getElementById("backToProductsBtn")?.classList.remove("hidden");
  try{sessionStorage.setItem("bazarAdminView","product");sessionStorage.setItem("bazarEditingProduct",id);}catch(e){}
  showView("product",null,false);
  try{
@@ -2216,8 +2237,12 @@ window.resetForm=()=>{
  setMultiSelectValue(shippingHomeSelect,"");
  setMultiSelectValue(shippingOfficeSelect,"");
  setDeliveryMethod("home");
+ document.getElementById("backToProductsBtn")?.classList.add("hidden");
  try{sessionStorage.removeItem("bazarEditingProduct");}catch(e){}
  renderSelectedImages();
+};
+window.backToProductsList=function(){
+ showView("products",document.querySelector('.nav-item[data-view="products"]'),false,true);
 };
 
 window.renderSelectedImages=()=>{
