@@ -117,17 +117,20 @@ function computeDeliveryOptions(w){
   const opts={};
   if(!w) return opts;
   const rate=shippingRatesData[w];
+  // منتجات بها طريقة توصيل محفوظة (deliveryMethod): تُعرض فقط طريقة التوصيل المختارة لهذا المنتج (باب الدار أو المكتب).
+  // منتجات قديمة بدون هذا الحقل: تبقى بالسلوك القديم (عرض الطريقتين إن توفرتا) حتى لا تتعطل.
+  const method=product?.deliveryMethod||null;
   let homePrice=null,homeCompanyStr="";
   if(rate){homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);homeCompanyStr=rate.homeCompany||"";}
   else if(legacyShippingPrices[w]!=null){homePrice=legacyShippingPrices[w];}
-  if(homePrice!=null){
+  if((!method||method==="home") && homePrice!=null){
     const av=computeAvail(product?.shippingHome||"",homeCompanyStr);
     if(av.available) opts.home={price:homePrice,codes:av.codes};
   }
   let officePrice=null,officeCompanyStr="";
   if(rate){officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);officeCompanyStr=rate.officeCompany||"";}
   if(officePrice==null && legacyOfficeShippingPrices[w]!=null){officePrice=legacyOfficeShippingPrices[w];officeCompanyStr=officeCompanyStr||"dhd";}
-  if(officePrice!=null){
+  if((!method||method==="office") && officePrice!=null){
     const av=computeAvail(product?.shippingOffice||"",officeCompanyStr);
     if(av.available) opts.office={price:officePrice,codes:av.codes};
   }
