@@ -1,15 +1,19 @@
-name: Update sitemap from Firestore
+name: Rebuild static product pages and sitemap
 
 on:
   workflow_dispatch:
   schedule:
     - cron: '*/15 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'product.html'
 
 permissions:
   contents: write
 
 jobs:
-  update-sitemap:
+  rebuild:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -22,94 +26,19 @@ jobs:
           git fetch origin main
           git rebase origin/main
 
-      - name: Generate sitemap.xml from Firestore
-        run: |
-          cat > /tmp/generate_sitemap.py <<'PY'
-          import json
-          import re
-          import unicodedata
-          import urllib.parse
-          import urllib.request
-          from datetime import datetime, timezone
-          from pathlib import Path
+      - name: Regenerate static product/category pages and sitemaps
+        run: python3 scripts/generate_static_products.py
 
-          BASE = "https://firestore.googleapis.com/v1/projects/bazar-dzair-33816/databases/(default)/documents/products"
-          SITE = "https://bazar-dzair.github.io/"
-
-          def value(v):
-              if not v:
-                  return None
-              for key in ("stringValue", "integerValue", "doubleValue", "booleanValue"):
-                  if key in v:
-                      return v[key]
-              return next(iter(v.values()), None)
-
-          def slugify(name):
-              s = str(name or "product")
-              s = unicodedata.normalize("NFKD", s)
-              s = re.sub(r"[\u0300-\u036f]", "", s)
-              s = s.lower().strip()
-              s = re.sub(r"[^\w\u0600-\u06ff]+", "-", s, flags=re.UNICODE)
-              s = re.sub(r"^-+|-+$", "", s)
-              return s or "product"
-
-          def esc(s):
-              return (str(s).replace("&", "&amp;").replace("<", "&lt;")
-                      .replace(">", "&gt;").replace('"', "&quot;").replace("'", "&apos;"))
-
-          products = []
-          token = None
-          while True:
-              params = {"pageSize": "1000"}
-              if token:
-                  params["pageToken"] = token
-              url = BASE + "?" + urllib.parse.urlencode(params)
-              req = urllib.request.Request(url, headers={"Accept": "application/json"})
-              with urllib.request.urlopen(req, timeout=30) as response:
-                  data = json.load(response)
-              for doc in data.get("documents", []):
-                  fields = doc.get("fields", {})
-                  name = value(fields.get("name")) or value(fields.get("product"))
-                  published = value(fields.get("published"))
-                  if name and published is not False:
-                      products.append(str(name))
-              token = data.get("nextPageToken")
-              if not token:
-                  break
-
-          today = datetime.now(timezone.utc).date().isoformat()
-          lines = [
-              '<?xml version="1.0" encoding="UTF-8"?>',
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-              f'  <url><loc>{SITE}</loc><lastmod>{today}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>'
-          ]
-
-          seen = set()
-          for name in products:
-              slug = slugify(name)
-              if slug in seen:
-                  continue
-              seen.add(slug)
-              loc = SITE + "product/" + urllib.parse.quote(slug, safe="-._~") + "/"
-              lines.append(f'  <url><loc>{esc(loc)}</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>')
-
-          lines.append("</urlset>")
-          Path("sitemap.xml").write_text("\n".join(lines) + "\n", encoding="utf-8")
-          print(f"Generated sitemap.xml with {len(seen)} published products")
-          PY
-          python3 /tmp/generate_sitemap.py
-
-      - name: Commit and push sitemap
+      - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add sitemap.xml
+          git add product product-category sitemap.xml sitemap-products.xml sitemap-categories.xml
           if git diff --cached --quiet; then
-            echo "No sitemap changes."
+            echo "No changes."
             exit 0
           fi
-          git commit -m "chore: update sitemap from Firestore"
+          git commit -m "chore: rebuild static product pages and sitemap from Firestore"
           git pull --rebase origin main
           git push origin HEAD:main
-
           
