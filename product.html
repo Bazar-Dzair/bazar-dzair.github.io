@@ -149,6 +149,31 @@ function computeDeliveryOptions(w){
 
   return opts;
 }
+// رسالة تشخيصية دقيقة تشرح لصاحب المتجر (والزبون) سبب عدم توفر أي طريقة توصيل لولاية معينة،
+// بدل رسالة عامة واحدة، حتى يسهل تمييز "لم أضبط السعر بعد" عن "الشركة غير مطابقة" عن "المنتج غير مهيأ لهذه الطريقة".
+function explainNoDeliveryOptions(w){
+  const rate=shippingRatesData[w];
+  const productHome=product?.shippingHome||"";
+  const productOffice=product?.shippingOffice||"";
+  const productHasDeliveryPrefs=!!(productHome||productOffice);
+  const homeAllowedForProduct=!productHasDeliveryPrefs||!!productHome;
+  const officeAllowedForProduct=!productHasDeliveryPrefs||!!productOffice;
+  if(!homeAllowedForProduct&&!officeAllowedForProduct) return "❌ هذا المنتج غير مهيأ لأي طريقة توصيل (لم تُختر شركة توصيل لا لباب الدار ولا للمكتب في صفحة تعديل المنتج).";
+  if(!rate) return "❌ لم يتم ضبط أسعار التوصيل لهذه الولاية بعد من لوحة التحكم ← أسعار التوصيل.";
+  const reasons=[];
+  if(homeAllowedForProduct){
+    const homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);
+    if(homePrice==null&&legacyShippingPrices[w]==null) reasons.push("سعر باب الدار غير محدد لهذه الولاية");
+    else if(!computeAvail(productHome,rate.homeCompany||"").available) reasons.push("شركة باب الدار لهذه الولاية لا تطابق شركات هذا المنتج");
+  }
+  if(officeAllowedForProduct){
+    const officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);
+    if(officePrice==null) reasons.push("سعر المكتب غير محدد لهذه الولاية");
+    else if(!computeAvail(productOffice,rate.officeCompany||"").available) reasons.push("شركة المكتب لهذه الولاية لا تطابق شركات هذا المنتج");
+  }
+  if(!reasons.length) return "❌ التوصيل غير متوفر لهذه الولاية حالياً.";
+  return "❌ التوصيل غير متوفر لهذه الولاية حالياً — "+reasons.join(" / ")+".";
+}
 function renderDeliveryOptions(opts){
   const wrap=document.getElementById("deliveryTypeWrap");
   const box=document.getElementById("deliveryTypeOptions");
@@ -177,7 +202,7 @@ function updateTotal(){
   const shippingEl=document.getElementById("shipping");
   if(!w){shippingEl.textContent="اختر الولاية لمعرفة سعر التوصيل.";document.getElementById("grandTotal").textContent=money(base);return;}
   const keys=Object.keys(opts);
-  if(!keys.length){shippingEl.textContent="❌ التوصيل غير متوفر لهذه الولاية حالياً.";document.getElementById("grandTotal").textContent=money(base);return;}
+  if(!keys.length){shippingEl.textContent=explainNoDeliveryOptions(w);document.getElementById("grandTotal").textContent=money(base);return;}
   if(!selectedDeliveryType||!opts[selectedDeliveryType]){
     shippingEl.textContent="👆 اختر طريقة الاستلام أعلاه لمعرفة سعر التوصيل والمجموع.";
     document.getElementById("grandTotal").textContent=money(base);
