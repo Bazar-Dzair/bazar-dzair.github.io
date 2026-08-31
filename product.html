@@ -69,15 +69,30 @@ const carrierLogos={"dhd":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAB
 function carrierCodes(v){return String(v||"").split(",").map(s=>s.trim()).filter(Boolean);}
 function carrierIntersect(a,b){const A=carrierCodes(a),B=carrierCodes(b);if(!A.length)return B;if(!B.length)return A;return A.filter(x=>B.includes(x));}
 let shippingRatesData={};
+// حالة تحميل أسعار التوصيل: تُستخدم للتفريق بين "الولاية هذه فقط غير مضبوطة" و"فشل تحميل كل الأسعار أصلاً"
+// (غالبًا بسبب صلاحيات Firestore Rules التي تمنع القراءة العامة لمستند settings/shipping،
+// أو لأن الحفظ من لوحة التحكم لم يصل فعليًا إلى Firestore وبقي محفوظًا محليًا فقط على جهاز الأدمن).
+let shippingRatesStatus="loading"; // loading | ok | empty | error
 async function loadShippingRatesData(db){
+  shippingRatesStatus="loading";
   try{
     const {doc,getDoc}=await getFirebase();
     const snap=await getDoc(doc(db,"settings","shipping"));
     if(snap.exists()){
       const d=snap.data();
       shippingRatesData=(d&&d.rates)||{};
+      shippingRatesStatus="ok";
+    }else{
+      shippingRatesData={};
+      shippingRatesStatus="empty";
+      console.warn("[bazar] مستند settings/shipping غير موجود في Firestore — لم يتم حفظ أي أسعار توصيل بعد من لوحة التحكم.");
     }
-  }catch(e){shippingRatesData={};}
+  }catch(e){
+    shippingRatesData={};
+    shippingRatesStatus="error";
+    // نطبع الخطأ الحقيقي في الكونسول (مثلاً permission-denied) حتى يسهل تشخيصه من DevTools بدل أن يختفي بصمت.
+    console.error("[bazar] تعذر تحميل أسعار التوصيل من Firestore (settings/shipping):",e&&e.code||e);
+  }
 }
 const queryId=new URLSearchParams(location.search).get("id");
 const pathMatch=location.pathname.match(/\/product\/([^\/]+)\/?$/);
@@ -152,13 +167,18 @@ function computeDeliveryOptions(w){
 // رسالة تشخيصية دقيقة تشرح لصاحب المتجر (والزبون) سبب عدم توفر أي طريقة توصيل لولاية معينة،
 // بدل رسالة عامة واحدة، حتى يسهل تمييز "لم أضبط السعر بعد" عن "الشركة غير مطابقة" عن "المنتج غير مهيأ لهذه الطريقة".
 function explainNoDeliveryOptions(w){
-  const rate=shippingRatesData[w];
   const productHome=product?.shippingHome||"";
   const productOffice=product?.shippingOffice||"";
   const productHasDeliveryPrefs=!!(productHome||productOffice);
   const homeAllowedForProduct=!productHasDeliveryPrefs||!!productHome;
   const officeAllowedForProduct=!productHasDeliveryPrefs||!!productOffice;
   if(!homeAllowedForProduct&&!officeAllowedForProduct) return "❌ هذا المنتج غير مهيأ لأي طريقة توصيل (لم تُختر شركة توصيل لا لباب الدار ولا للمكتب في صفحة تعديل المنتج).";
+  // أولوية أولى: تحقق إن كان تحميل جدول الأسعار بأكمله قد فشل أو ما زال جاريًا — لأن هذا يفسّر عدم توفر
+  // أي ولاية إطلاقًا (وليس فقط الولاية المختارة)، وغالبًا سببه صلاحيات Firestore وليس نقص بيانات.
+  if(shippingRatesStatus==="loading") return "⏳ جاري تحميل أسعار التوصيل، انتظر لحظة ثم أعد اختيار الولاية...";
+  if(shippingRatesStatus==="error") return "❌ تعذر تحميل أسعار التوصيل من الخادم (على الأرجح مشكلة صلاحيات Firestore Rules لمستند settings/shipping). افتح أدوات المطوّر (Console) لرؤية تفاصيل الخطأ، أو تحقق من قواعد Firestore.";
+  if(shippingRatesStatus==="empty") return "❌ لم يتم حفظ أي أسعار توصيل في Firestore بعد. تأكد أنك ضغطت زر «حفظ الأسعار» في لوحة التحكم وأنه ظهرت رسالة «تم الحفظ بنجاح» فعليًا (لا رسالة تعذّر الحفظ).";
+  const rate=shippingRatesData[w];
   if(!rate) return "❌ لم يتم ضبط أسعار التوصيل لهذه الولاية بعد من لوحة التحكم ← أسعار التوصيل.";
   const reasons=[];
   if(homeAllowedForProduct){
