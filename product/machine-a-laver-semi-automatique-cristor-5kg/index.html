@@ -21,6 +21,7 @@ main{max-width:1180px;width:94%;margin:25px auto 60px}.crumb{color:var(--muted);
 .photo-wrap{background:#f8fafc;border-radius:18px;min-height:0;padding:12px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;min-width:0}.main-photo-box{width:100%;aspect-ratio:1 / 1;height:auto;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border-radius:16px;background:#fff}.photo{width:100%;height:100%;object-fit:contain;display:block}.gallery-arrow{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;border-radius:50%;background:#fff;color:#172033;font-size:28px;box-shadow:0 4px 16px #0002;z-index:2}.gallery-arrow.prev{left:12px}.gallery-arrow.next{right:12px}.gallery-count{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:#071b33dd;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px;z-index:2}.thumbs{width:100%;display:flex;gap:10px;overflow-x:auto;padding:12px 4px 4px;scrollbar-width:thin}.thumb{flex:0 0 78px;height:78px;aspect-ratio:1 / 1;border:2px solid transparent;border-radius:11px;background:#fff;padding:3px;overflow:hidden;cursor:pointer}.thumb.active{border-color:var(--green)}.thumb img{width:100%;height:100%;object-fit:contain;border-radius:8px}.badge{position:absolute;top:14px;right:14px;background:var(--orange);color:#fff;padding:5px 10px;border-radius:9px;font-size:12px;font-weight:700;z-index:3}
 .info{padding:15px 5px;min-width:0;overflow:hidden}.title{font-size:34px;line-height:1.25;margin:5px 0 15px;overflow-wrap:anywhere;word-break:normal}.price{font-size:31px;color:var(--orange);font-weight:900;margin-bottom:15px}.desc{color:var(--muted);font-size:16px;white-space:pre-line;margin-bottom:20px;overflow-wrap:anywhere}.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}.trust div{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;font-size:12px}.qty{display:flex;width:max-content;border:1px solid var(--border);border-radius:11px;overflow:hidden;margin:15px 0}.qty button{border:0;background:#fff;width:44px;height:44px;font-size:20px}.qty span{min-width:45px;text-align:center;padding-top:9px;font-weight:700}.buy{width:100%;border:0;border-radius:13px;background:var(--green);color:#fff;padding:15px;font-weight:800;font-size:18px;box-shadow:0 5px 15px #16a34a30}.buy:hover{filter:brightness(.96)}
 .checkout{display:none;background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:0 8px 30px #0000000c;margin-top:20px;padding:25px}.checkout.show{display:block}.checkout h2{margin-top:0}.checkout-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{width:100%;border:1px solid var(--border);border-radius:10px;padding:13px;outline:none;background:#fff}.field:focus{border-color:var(--orange);box-shadow:0 0 0 3px #ff6a0014}.full{grid-column:1/-1}.shipping{background:#f8fafc;border-radius:12px;padding:12px;margin-top:10px;color:var(--muted)}.total{display:flex;justify-content:space-between;font-size:20px;font-weight:800;margin-top:14px;border-top:1px solid var(--border);padding-top:14px}.confirm{width:100%;border:0;border-radius:12px;background:var(--orange);color:#fff;padding:15px;margin-top:12px;font-weight:800}.small{color:var(--muted);font-size:12px;margin-top:8px}.back{display:inline-block;background:var(--navy);color:#fff;padding:12px 17px;border-radius:10px;margin-top:12px}.loading,.error{text-align:center;padding:60px;background:#fff;border-radius:20px}.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,100px);background:var(--navy);color:#fff;padding:12px 20px;border-radius:12px;z-index:50;transition:.25s}.toast.show{transform:translate(-50%,0)}
+.delivery-opt{display:flex;align-items:center;gap:8px;border:2px solid var(--border);border-radius:12px;padding:10px 14px;cursor:pointer;background:#fff;font-size:13px;font-weight:700;color:var(--text)}.delivery-opt.active{border-color:var(--orange);background:#fff7f0}.delivery-opt .carrier-logos{display:flex;gap:4px}.delivery-opt img{width:20px;height:20px;border-radius:5px;object-fit:contain;background:#fff;border:1px solid #eef0f3}.delivery-opt.disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:800px){main{margin-top:15px}.product-card{grid-template-columns:1fr;padding:12px;gap:10px;border-radius:18px}.photo-wrap{min-height:0}.main-photo-box{height:auto;aspect-ratio:1 / 1}.thumb{flex-basis:68px;height:68px}.gallery-arrow{width:38px;height:38px;font-size:24px}.info{padding:10px}.title{font-size:25px}.price{font-size:25px}.trust{grid-template-columns:1fr 1fr 1fr}.checkout-grid{grid-template-columns:1fr}.full{grid-column:auto}}
 </style>
 </head>
@@ -38,6 +39,10 @@ main{max-width:1180px;width:94%;margin:25px auto 60px}.crumb{color:var(--muted);
     <select class="field" id="wilaya"><option value="">اختر الولاية *</option>
 <option value="01">01 - أدرار</option><option value="02">02 - الشلف</option><option value="03">03 - الأغواط</option><option value="04">04 - أم البواقي</option><option value="05">05 - باتنة</option><option value="06">06 - بجاية</option><option value="07">07 - بسكرة</option><option value="08">08 - بشار</option><option value="09">09 - البليدة</option><option value="10">10 - البويرة</option><option value="11">11 - تمنراست</option><option value="12">12 - تبسة</option><option value="13">13 - تلمسان</option><option value="14">14 - تيارت</option><option value="15">15 - تيزي وزو</option><option value="16">16 - الجزائر</option><option value="17">17 - الجلفة</option><option value="18">18 - جيجل</option><option value="19">19 - سطيف</option><option value="20">20 - سعيدة</option><option value="21">21 - سكيكدة</option><option value="22">22 - سيدي بلعباس</option><option value="23">23 - عنابة</option><option value="24">24 - قالمة</option><option value="25">25 - قسنطينة</option><option value="26">26 - المدية</option><option value="27">27 - مستغانم</option><option value="28">28 - المسيلة</option><option value="29">29 - معسكر</option><option value="30">30 - ورقلة</option><option value="31">31 - وهران</option><option value="32">32 - البيض</option><option value="33">33 - إليزي</option><option value="34">34 - برج بوعريريج</option><option value="35">35 - بومرداس</option><option value="36">36 - الطارف</option><option value="37">37 - تندوف</option><option value="38">38 - تيسمسيلت</option><option value="39">39 - الوادي</option><option value="40">40 - خنشلة</option><option value="41">41 - سوق أهراس</option><option value="42">42 - تيبازة</option><option value="43">43 - ميلة</option><option value="44">44 - عين الدفلى</option><option value="45">45 - النعامة</option><option value="46">46 - عين تموشنت</option><option value="47">47 - غرداية</option><option value="48">48 - غليزان</option><option value="49">49 - تيميمون</option><option value="50">50 - برج باجي مختار</option><option value="51">51 - أولاد جلال</option><option value="52">52 - بني عباس</option><option value="53">53 - إن صالح</option><option value="54">54 - إن قزام</option><option value="55">55 - تقرت</option><option value="56">56 - جانت</option><option value="57">57 - المغير</option><option value="58">58 - المنيعة</option></select>
     <input class="field" id="address" placeholder="العنوان / البلدية *">
+  </div>
+  <div class="full" id="deliveryTypeWrap" style="display:none;margin-top:10px">
+    <label style="display:block;margin-bottom:6px;font-weight:700;font-size:13px;color:var(--muted)">طريقة الاستلام</label>
+    <div id="deliveryTypeOptions" style="display:flex;gap:10px;flex-wrap:wrap"></div>
   </div>
   <div id="shipping" class="shipping">اختر الولاية لمعرفة سعر التوصيل.</div>
   <div class="total"><span>المجموع</span><span id="grandTotal">—</span></div>
@@ -58,7 +63,22 @@ async function getFirebase(){
   return firebasePromise;
 }
 const firebaseConfig={apiKey:"AIzaSyBWdQ_AIy_2gOBl-bP1S1tLaGIqaZjpar8",authDomain:"bazar-dzair-33816.firebaseapp.com",projectId:"bazar-dzair-33816",storageBucket:"bazar-dzair-33816.firebasestorage.app",messagingSenderId:"51073161969",appId:"1:51073161969:web:cb75a3224bdca11ea8e750"};
-const shippingPrices={"01":1000,"02":600,"03":800,"04":600,"05":600,"06":600,"07":800,"08":950,"09":450,"10":550,"11":1200,"12":650,"13":600,"14":600,"15":550,"16":300,"17":800,"18":600,"19":600,"20":650,"21":600,"22":600,"23":600,"24":650,"25":600,"26":550,"27":650,"28":650,"29":600,"30":800,"31":600,"32":900,"33":1200,"34":600,"35":450,"36":650,"37":1100,"38":600,"39":800,"40":650,"41":650,"42":450,"43":650,"44":550,"45":800,"46":600,"47":800,"48":600,"49":1100,"50":null,"51":800,"52":1000,"53":1200,"54":null,"55":800,"56":null,"57":850,"58":850};
+const legacyShippingPrices={"01":1000,"02":600,"03":800,"04":600,"05":600,"06":600,"07":800,"08":950,"09":450,"10":550,"11":1200,"12":650,"13":600,"14":600,"15":550,"16":300,"17":800,"18":600,"19":600,"20":650,"21":600,"22":600,"23":600,"24":650,"25":600,"26":550,"27":650,"28":650,"29":600,"30":800,"31":600,"32":900,"33":1200,"34":600,"35":450,"36":650,"37":1100,"38":600,"39":800,"40":650,"41":650,"42":450,"43":650,"44":550,"45":800,"46":600,"47":800,"48":600,"49":1100,"50":null,"51":800,"52":1000,"53":1200,"54":null,"55":800,"56":null,"57":850,"58":850};
+const carrierLabels={dhd:"DHD Express",noest:"Noest Express","48hr":"48HR Express"};
+const carrierLogos={"dhd":"data:image/png;base64,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","noest":"data:image/png;base64,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","48hr":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAMiUlEQVR42u2beXBVVZ7HP+fe+/JekkcSIAQQwiZIYwsyI9uIDhYu5YbY4FKUWs5S00O0tEocy6aaQobRqZopnSqERqXGGcCyBJWhwFLLdI80TAtGlIRAwhITEgMJkP0lb7vL+c0fL++RkASwG6k05Je69d496z3fc37f33LzlNZa6BSlFAAiqaKrXqyuN9fSwpNicI3LAAADAAwAMADAAAC9SdInuGYBuFZ8ggEVGABgAIABAAYAuFIiInie168sjHWlJtJaY5omhmH0KzNrXMnFRyIR9u7dSygU6jcg/OQAuK6LaZrs3buXmTNnMnfuXF566SWUUmitr24AtNb4fD6OHTvGiy++SFNTE5ZlpXa+P5wA66daeHJxu3btYv/+/UyZMgXLsmhubmbGjBlXLwmKCKZpAvDGG2+wevXqlM4n5eabb+43AZd1ufXdMAzKy8vZvHkz+/btIycnh46ODpRSiAhDhgxh0qRJCf0zjKuBAwStNa7r4vP5MAyDDRs2sGvXLqLRKJmZmYwePRq/34/WmgkTJpCdnY3rulfHCVDKwDTBNE2KioooLi4mKyuL2bNnU1tby8mTJwmFQilOmDNnTkpFtAjqzwGArqR2bt8FA0V7PEp52VG++v2XvPyr5X0yu2EYKKUwTZM9u3czLG8EP5syGdG620nQnffJMs/zujlPhmGkys5vo5TC87wecycB72txcrHrQlKxZo38HAQQE8S0LLEsS0zTFNM0xTAMUUoJkPoE5Inb7pBwU4NorcXzPNFai+u6qXH7mtvzvG5tut53/X5+n77WZl2IzZN6umnTJg4ePIhpmmitEzsiQiA3l3+sOMonymBxIJPiaAc+V+Oge0+xiYBh8suFDzH6u28JtbSQMSQXEY3naSzLYvXq1cyaNYt7770XgA0bNlBSUoLrujz++OPceuutPP300xQUFDBv3jxisRhLly5l0aJFLFy4kIKCAurr67Ftm8zMTJYsWcKiRYtSJ+uST0BXCYVCUl1dLTU1NVJdXS1HjhyR4m+/lZKyw/LDM8+KVkoqBmXLX6YFBGWI2WWnkztvdJb9869Xyn/Pmi0rDUMaTp4UERE7HhcRkY8++kiuu+46ee+990REZMuWLbJkyRI5e/asHD9+XBYsWCC7d+8WQN59910REXEcRwBZuXKliIhYliWjRo2SBx54QG688UYB5LPPPku1vegJSO5wSUkJO3bswLIsfD4flmWhlMJ1Xe655x6m33ILAC0ZftpFGGt38L4VYInyURKP4zMMnC76rLVm7fq3mPBNEcXfFGFmZaM9FwBfWhqff/45X3/9NatWrSIcDiMiiAgTJ05k2LBhBINB8vPz0VoTCAQIhULU1dURjUYJBoNkZGSk9H3FihUsXboUgEAgQGFhIffdd1+v/GT1elSB/Px87rzzTpRSOI6T6qy1Jj09HTceB58P8QQL6NAW1ztR3koP8vd5IyivrcFnWbieh9aaTVu2cNOpk/xu40ayTYtGz0N7CVWpqa5m69atbNy4kffffx8RQSnFI488wuLFi3nyySepr69n3rx5zJw5ExHhhRdeYNmyZZimmTLBAJmZmWzatImqqirOnDlDPB7n7rvv7tPxMvoCYOjQodx2223MnTuX22+/nYaGBsaPH09JSQkffvgh1SeqsQwjYSGADKU4qTUjf72cwqI/cMv0v8BxXRSwdfv/MDs3j30v/hO5PpNYZxBkmga24/DUU08xZswYduzYwZdffsnu3bupr69n7dq1zJ8/n/Xr17N161ba29vZtm0bgUCAZcuWUVhYyPbt2xMb4iZOU1paGjU1NXz88cds3ryZdevWcf/99+N5Xq/WwLiQ6XMcB601VVVV1NTU8OmnnyIi+P1+Cn9bSFsshun3oQyDkB1DrVrJ2OW/YtTI0fz2f3/HnDlz+OCDD/jrOX/F3F88TKHlx7Z8pIlGVMI0GobB888/z6RJE2ltbSUWixEKhXAch9raWjIyMsjKyiI3NxfbtmlsbKSjo4Pp06dz11138eCDDxKPx4nFYwCcPn2a5557jqqqKsaOG8f27dtxHCfliV6yH5C02UopBg0axOjRo1PlSim04+C6LpZh0qE1kX9ZxbgVr/Afr7/OH776ii1bt7Jv3z6i0SgzZ8ygqT3ETsukCT+P+tNJN0w8z8MyTR559NHUvMFgkDRfGmPGjGHZsmWseuUVDpWWEotGGTdhAk8+8QQb3nmHjIwMPM8jEg4zbeo0RgwfgYgwberUFB/813++y9/97d+wc+dOFi9ejOd5PdXgT/UDKp9/Tk4sLRAtIv/62quiOpn/jjvukFOnTsljjz0mgPhMU4zOujyQX/oC0lhbk2Bn7YkWEddxxXYc8USk66x1TQ3SEAp1t+1ai6tFPElcjuNJ0otwtRbPO+dTtIfa+/QFLgkAz/PEcZxul23boj0tTd9XiRaRt9/6TTfTB0gwGOxhDmfNnCkLFi2S1199VVzXFq1Fqj7dKQf+/d+k9XSDOJGIHF63Vk58USiup+VM2UEpf3udnCkqEsd1pal4vxx8Z62cragUz9NSsW2bfL9zh7gi0nHqtJS+vV6aTlSKJ1rCLa1S+fFH3RyrS3aEelOHXuIgBl8/HtGaXyxajOvB4cOHCIfDNDY2Ul1dTVtbG+3t7di2TTweZ8FDD7FixYpEd61RCoIj8ggdLGNQ7mAiJ+to2fV/ZN50I6ahaC8rp/2rvYTrGsmbNYv20iNEDh3BWrAQ7Qmx6lqi0XbGzL8Lp62FUGk52eMnMWTcBBp/v4vja37DkJ9NJvvnU8HTYKjLGA0qQGsUkJc3nGeffYY333yTG264gZEjRzJt2jQmTpxIfn4+aWlpAOzZsydBsLaNkCClwPCRZE+9CcM0sTL9pN0wEbsjAkDG8FGY4ycSmHQ9IuDLvw7JzcUORTGUwj9tChJzcF0Pc0Qe/rFjcFtbcEUItXYw+Zl/oPF4BQJoepKg6vpfYn9qIsR1XUSETz75hDVr1lBXV0drayvNzc0pN3rs2LGUl5eTnp7emRNUOAimEhQmCo1ru2jPJS09HZRgR8JY6UHQGgwDNxJBmT6sNB9eLIKVbmEoP67nouMxzIxgYmxD8GHiaA+FwlAahfnjSfDHXklZvny5DB06tBsPmKYpR48eTZCV6yb6eOeN0UmCyToR6WzjidaJgMdL1ouI1iLa8xKfIuJ5WkRr8bQnnuNe8Fl/kpxgMogqKChAKUVlZSWNjY388MMPVFZWUlZWxuTJk88FVqrHceqmZiIalCLZULrmEZJtlUpg3OlFCqBQYKornxVOvgDJz8/ntdde4+WXX8Y0TYLBIH6/n+Li4j+CbH6KtlcgLR6Px5k8eTLz58+nuLiYaDRKVVVVv0mKXjYSvJgZBThw4ABffPEFDz/8MFOmTOk7Rr/aAEimrSzL6mY1+oNcMQCSKpEkvv6QEr/iAPRHueg2XA505HIP+EcMIz8GgCQxKaFbirpbXfK7Uol257G66mqOlEI6zbQyVO/E1zmPErqF3V3nPf+5uMT2osBQqlcLafTm0kbaw4ibyNrYkRjxeDyVo3M9F080ngInFseOxdBK0J4mGo4gnWkuV7up8WLJcqWIR+PE4/EeD+LE4sQj0dRD2raNbdupBdvROPFoIumhEexwBDsSTfj3CuxwFDsaT/WPRCLn+msIhyNoV/cNQDIP19rYSHXFUbTy8ERTcbicqrJjGIZBOBym9Nti2tvaMVEcLTnEsYNlGMqgrbWNfbv2ELPjKBT1J2pRShGJRCgt2o/nuKCE0u++ofJwWSpDk5z3WOlhak/UpE5C5bEKvi87mthFQ3GsrJwTFd+jlMIwFCXfFXGsrDTxQgTFoQMlNNTXozr/jpQcov5UXSKRKy5l+7+hraWpR2aoBwm68ThtrU0MzsvDUBYtZxsxlUHWsCG4nktT/VmGDh+G5fMRbg2BQObgLBzbIdwWIjg4G59lEWkPkz4oE8/zaD7TwODhw7BMg7bWZkxlEszOOefKKkVrYxMoRc7QIQjQ0dyGQggOyQGliITaCQTSMXyJYKatrRmA7OzBgKLpTAP+gJ9gThYItJxtxOdPI5iTjSsubfWnyczJIZAe7MYIPQBI6ZEkgtVuvyNSCc2Wzvqudef6JV6bJZFOlmsEQ5OKx8/3A87/vVJv98l5k1xysfbJeZUozi1LLm4G5bzFnT/BhUDqjeDOH0+lghd6OEZd+/c1Xs8gqA8g1Dky7musAT+Aa1wGABgAYACAAQAGABgAoJ/JlUyT9UsArmS67P8Br0FkyLoeDr0AAAAASUVORK5CYII="};
+function carrierCodes(v){return String(v||"").split(",").map(s=>s.trim()).filter(Boolean);}
+function carrierIntersect(a,b){const A=carrierCodes(a),B=carrierCodes(b);if(!A.length)return B;if(!B.length)return A;return A.filter(x=>B.includes(x));}
+let shippingRatesData={};
+async function loadShippingRatesData(db){
+  try{
+    const {doc,getDoc}=await getFirebase();
+    const snap=await getDoc(doc(db,"settings","shipping"));
+    if(snap.exists()){
+      const d=snap.data();
+      shippingRatesData=(d&&d.rates)||{};
+    }
+  }catch(e){shippingRatesData={};}
+}
 const queryId=new URLSearchParams(location.search).get("id");
 const pathMatch=location.pathname.match(/\/product\/([^\/]+)\/?$/);
 const id=pathMatch ? decodeURIComponent(pathMatch[1]) : queryId;
@@ -81,9 +101,129 @@ applyProductSEO(p,name,desc);
 if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:name,price:Number(p.price||0),category:p.category||""});const available=p.published!==false;const buyHtml=available?`<button class="buy" onclick="showCheckout()">⚡ اشترِ الآن</button>`:`<button class="buy" disabled style="opacity:.55;cursor:not-allowed">غير متوفر حاليًا</button>`;box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="الصورة السابقة">‹</button><img id="mainProductPhoto" class="photo" src="${esc(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="الصورة التالية">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${esc(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${available?(p.badge?`<span class="badge">${esc(p.badge)}</span>`:""):'<span class="badge" style="background:#9aa1ab">غير متوفر</span>'}</div><div class="info"><h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="trust"><div>💵<br><b>الدفع عند الاستلام</b></div><div>🚚<br><b>توصيل للولايات</b></div><div>🛡️<br><b>خدمة آمنة</b></div></div><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}<a class="back" href="/">← العودة للمتجر</a></div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=galleryImages[galleryIndex];const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
 window.changeQty=x=>{quantity=Math.max(1,quantity+x);document.getElementById("qty").textContent=quantity;document.getElementById("checkoutProduct").textContent=(product.name||product.product)+" × "+quantity+" — "+money(product.price*quantity);updateTotal()};
 window.showCheckout=()=>{const c=document.getElementById("checkout");c.classList.add("show");c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>document.getElementById("customerName").focus(),350)};
-function updateTotal(){const w=document.getElementById("wilaya").value,s=shippingPrices[w];const base=Number(product?.price||0)*quantity;document.getElementById("grandTotal").textContent=s==null?money(base):(money(base+s));document.getElementById("shipping").textContent=!w?"اختر الولاية لمعرفة سعر التوصيل.":s==null?"❌ التوصيل غير متوفر لهذه الولاية حالياً.":"🚚 سعر التوصيل: "+money(s)+" — المجموع: "+money(base+s)}
-document.getElementById("wilaya").addEventListener("change",updateTotal);
-window.submitOrder=async()=>{if(!product)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}const s=shippingPrices[w];if(s==null){toast("التوصيل غير متوفر لهذه الولاية ❌");return}const {initializeApp,getFirestore,collection,addDoc}=await getFirebase();const app=initializeApp(firebaseConfig);const db=getFirestore(app);const total=Number(product.price||0)*quantity+s;
+let selectedDeliveryType=null;
+function computeAvail(prod,wil){
+  const P=carrierCodes(prod),W=carrierCodes(wil);
+  if(!P.length&&!W.length) return {available:true,codes:[]};
+  if(!P.length) return {available:true,codes:W};
+  if(!W.length) return {available:true,codes:P};
+  const inter=P.filter(x=>W.includes(x));
+  return {available:inter.length>0,codes:inter};
+}
+function computeDeliveryOptions(w){
+  const opts={};
+  if(!w) return opts;
+  const rate=shippingRatesData[w];
+  const productHome=product?.shippingHome||"";
+  const productOffice=product?.shippingOffice||"";
+  // إذا اختار صاحب المتجر شركة توصيل واحدة على الأقل لهذا المنتج (باب الدار أو المكتب)،
+  // فهذا يعني أنه حدّد فعليًا طرق التوصيل المسموحة لهذا المنتج بالذات.
+  // في هذه الحالة، أي طريقة توصيل تركها فارغة (لم يفعّلها) يجب اعتبارها غير متاحة لهذا المنتج،
+  // بدل معاملتها كأنها "متاحة لأي شركة" كما كان يحدث سابقًا.
+  const productHasDeliveryPrefs=!!(productHome||productOffice);
+
+  // سعر باب الدار: من جدول أسعار التوصيل (settings/shipping)، وإلا من الأسعار الافتراضية القديمة لكل ولاية.
+  let homePrice=null,homeCompanyStr="";
+  if(rate){homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);homeCompanyStr=rate.homeCompany||"";}
+  if(homePrice==null&&legacyShippingPrices[w]!=null) homePrice=legacyShippingPrices[w];
+
+  const homeAllowedForProduct=!productHasDeliveryPrefs||!!productHome;
+  if(homePrice!=null&&homeAllowedForProduct){
+    const av=computeAvail(productHome,homeCompanyStr);
+    if(av.available) opts.home={price:homePrice,codes:av.codes};
+  }
+
+  // سعر المكتب: يُعتمد فقط إذا أدخل صاحب المتجر سعرًا خاصًا بالمكتب لهذه الولاية تحديدًا
+  // من صفحة "أسعار التوصيل" في لوحة التحكم. لا يتم أبدًا اعتماد سعر باب الدار كبديل تلقائي،
+  // حتى لا يظهر خيار "استلام من المكتب" بنفس سعر "توصيل إلى المنزل" لمجرد عدم تعبئة خانة سعر المكتب بعد.
+  // إذا لم يُدخل صاحب المتجر سعر مكتب حقيقيًا لهذه الولاية، فإن خيار المكتب لا يظهر إطلاقًا.
+  const officeAllowedForProduct=!productHasDeliveryPrefs||!!productOffice;
+  if(officeAllowedForProduct&&rate){
+    const officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);
+    const officeCompanyStr=rate.officeCompany||"";
+    if(officePrice!=null){
+      const av=computeAvail(productOffice,officeCompanyStr);
+      if(av.available) opts.office={price:officePrice,codes:av.codes};
+    }
+  }
+
+  return opts;
+}
+// رسالة تشخيصية دقيقة تشرح لصاحب المتجر (والزبون) سبب عدم توفر أي طريقة توصيل لولاية معينة،
+// بدل رسالة عامة واحدة، حتى يسهل تمييز "لم أضبط السعر بعد" عن "الشركة غير مطابقة" عن "المنتج غير مهيأ لهذه الطريقة".
+function explainNoDeliveryOptions(w){
+  const rate=shippingRatesData[w];
+  const productHome=product?.shippingHome||"";
+  const productOffice=product?.shippingOffice||"";
+  const productHasDeliveryPrefs=!!(productHome||productOffice);
+  const homeAllowedForProduct=!productHasDeliveryPrefs||!!productHome;
+  const officeAllowedForProduct=!productHasDeliveryPrefs||!!productOffice;
+  if(!homeAllowedForProduct&&!officeAllowedForProduct) return "❌ هذا المنتج غير مهيأ لأي طريقة توصيل (لم تُختر شركة توصيل لا لباب الدار ولا للمكتب في صفحة تعديل المنتج).";
+  if(!rate) return "❌ لم يتم ضبط أسعار التوصيل لهذه الولاية بعد من لوحة التحكم ← أسعار التوصيل.";
+  const reasons=[];
+  if(homeAllowedForProduct){
+    const homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);
+    if(homePrice==null&&legacyShippingPrices[w]==null) reasons.push("سعر باب الدار غير محدد لهذه الولاية");
+    else if(!computeAvail(productHome,rate.homeCompany||"").available) reasons.push("شركة باب الدار لهذه الولاية لا تطابق شركات هذا المنتج");
+  }
+  if(officeAllowedForProduct){
+    const officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);
+    if(officePrice==null) reasons.push("سعر المكتب غير محدد لهذه الولاية");
+    else if(!computeAvail(productOffice,rate.officeCompany||"").available) reasons.push("شركة المكتب لهذه الولاية لا تطابق شركات هذا المنتج");
+  }
+  if(!reasons.length) return "❌ التوصيل غير متوفر لهذه الولاية حالياً.";
+  return "❌ التوصيل غير متوفر لهذه الولاية حالياً — "+reasons.join(" / ")+".";
+}
+function renderDeliveryOptions(opts){
+  const wrap=document.getElementById("deliveryTypeWrap");
+  const box=document.getElementById("deliveryTypeOptions");
+  const keys=Object.keys(opts);
+  if(!keys.length){wrap.style.display="none";box.innerHTML="";selectedDeliveryType=null;return;}
+  wrap.style.display="block";
+  if(!selectedDeliveryType||!opts[selectedDeliveryType]){
+    // إذا كانت هناك طريقة توصيل واحدة فقط متاحة لهذا المنتج ولهذه الولاية، نختارها تلقائيًا (لا لبس هنا).
+    // أما إذا كانت هناك أكثر من طريقة متاحة (باب الدار + المكتب)، فلا نفترض تفضيل الزبون؛
+    // نترك الاختيار فارغًا حتى يحدده هو بنفسه، بدل احتساب سعر باب الدار افتراضيًا دون طلبه فعليًا.
+    selectedDeliveryType=keys.length===1?keys[0]:null;
+  }
+  box.innerHTML=keys.map(k=>{
+    const o=opts[k];
+    const label=k==="home"?"🏠 توصيل إلى المنزل":"🏤 استلام من المكتب";
+    const logos=o.codes.map(c=>carrierLogos[c]?`<img src="${carrierLogos[c]}" alt="${esc(carrierLabels[c]||c)}" title="${esc(carrierLabels[c]||c)}">`:"").join("");
+    return `<div class="delivery-opt ${selectedDeliveryType===k?"active":""}" onclick="selectDeliveryType('${k}')"><span>${label} — ${money(o.price)}</span>${logos?`<span class="carrier-logos">${logos}</span>`:""}</div>`;
+  }).join("");
+}
+window.selectDeliveryType=k=>{selectedDeliveryType=k;updateTotal();};
+function updateTotal(){
+  const w=document.getElementById("wilaya").value;
+  const base=Number(product?.price||0)*quantity;
+  const opts=computeDeliveryOptions(w);
+  renderDeliveryOptions(opts);
+  const shippingEl=document.getElementById("shipping");
+  if(!w){shippingEl.textContent="اختر الولاية لمعرفة سعر التوصيل.";document.getElementById("grandTotal").textContent=money(base);return;}
+  const keys=Object.keys(opts);
+  if(!keys.length){shippingEl.textContent=explainNoDeliveryOptions(w);document.getElementById("grandTotal").textContent=money(base);return;}
+  if(!selectedDeliveryType||!opts[selectedDeliveryType]){
+    shippingEl.textContent="👆 اختر طريقة الاستلام أعلاه لمعرفة سعر التوصيل والمجموع.";
+    document.getElementById("grandTotal").textContent=money(base);
+    return;
+  }
+  const chosen=opts[selectedDeliveryType];
+  const s=chosen.price;
+  const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
+  shippingEl.textContent="🚚 سعر التوصيل: "+money(s)+(carrierNames?" ("+carrierNames+")":"")+" — المجموع: "+money(base+s);
+  document.getElementById("grandTotal").textContent=money(base+s);
+}
+document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliveryType=null;updateTotal();});
+window.submitOrder=async()=>{if(!product)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
+const opts=computeDeliveryOptions(w);
+if(!Object.keys(opts).length){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
+if(!selectedDeliveryType||!opts[selectedDeliveryType]){toast("اختر طريقة الاستلام (منزل / مكتب) ⚠️");return}
+const chosen=opts[selectedDeliveryType];
+const s=chosen.price;
+const deliveryTypeLabel=selectedDeliveryType==="office"?"المكتب":"المنزل";
+const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
+const {initializeApp,getFirestore,collection,addDoc}=await getFirebase();const app=initializeApp(firebaseConfig);const db=getFirestore(app);const total=Number(product.price||0)*quantity+s;
 await addDoc(collection(db, "orders"), {
   customerName: n,
   customerPhone: ph,
@@ -93,10 +233,12 @@ await addDoc(collection(db, "orders"), {
   quantity: quantity,
   price: product.price,
   shipping: s,
+  deliveryType: deliveryTypeLabel,
+  shippingCompany: carrierNames,
   total: total,
   status: "جديد",
   createdAt: new Date()
-});fetch("https://api.telegram.org/bot8899974981:AAHJIh0varMd1ht-u1Q9rV8A8kPnf0cpmhE/sendMessage",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:"1636163793",text:`🛒 طلب جديد\n👤 الاسم: ${n}\n📞 الهاتف: ${ph}\n📍 الولاية: ${wn}\n🏠 العنوان: ${a}\n📦 المنتج: ${product.name}\n🔢 الكمية: ${quantity}\n💰 المجموع: ${total} دج`})});
+});fetch("https://api.telegram.org/bot8899974981:AAHJIh0varMd1ht-u1Q9rV8A8kPnf0cpmhE/sendMessage",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:"1636163793",text:`🛒 طلب جديد\n👤 الاسم: ${n}\n📞 الهاتف: ${ph}\n📍 الولاية: ${wn}\n🏠 العنوان: ${a}\n📦 المنتج: ${product.name}\n🔢 الكمية: ${quantity}\n🚚 التوصيل: ${deliveryTypeLabel}${carrierNames?" - "+carrierNames:""}\n💰 المجموع: ${total} دج`})});
 try{
   const addonsCfg=window.__bazarAddons||{};
   const gs=addonsCfg.googleSheets||{};
@@ -104,7 +246,7 @@ try{
   const fieldChoice=Array.isArray(gs.fields)&&gs.fields.length?gs.fields:["customerName","customerPhone","wilaya","product","quantity","total"];
   if(gs.enabled===true && endpoint){
     const payload={};
-    const map={customerName:n,customerPhone:ph,wilaya:wn,address:a,product:product.name,quantity:quantity,price:Number(product.price||0),shipping:s,total:total,status:"جديد",createdAt:new Date().toISOString(),order:product.id||""};
+    const map={customerName:n,customerPhone:ph,wilaya:wn,address:a,product:product.name,quantity:quantity,price:Number(product.price||0),shipping:s,deliveryType:deliveryTypeLabel,shippingCompany:carrierNames,total:total,status:"جديد",createdAt:new Date().toISOString(),order:product.id||""};
     fieldChoice.forEach(f=>{if(map[f]!==undefined)payload[f]=map[f];});
     fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}).catch(()=>{});
   }
@@ -220,6 +362,7 @@ async function load(){
     const {initializeApp,getFirestore,doc,getDoc,collection,getDocs}=await getFirebase();
     const app=initializeApp(firebaseConfig);
     const db=getFirestore(app);
+    loadShippingRatesData(db).then(()=>{ if(document.getElementById("wilaya").value) updateTotal(); });
     let p=null;
     if(id){
       // الروابط الجديدة هي slug؛ لا نرسل طلب Firestore إضافي لها.
