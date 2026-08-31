@@ -110,31 +110,21 @@ function computeAvail(prod,wil){
   const inter=P.filter(x=>W.includes(x));
   return {available:inter.length>0,codes:inter};
 }
-const defaultHomeCompany="dhd,noest,48hr";
-const defaultOfficeCompany="dhd";
 function computeDeliveryOptions(w){
   const opts={};
   if(!w) return opts;
   const rate=shippingRatesData[w];
-  const prodHome=product?.shippingHome||"";
-  const prodOffice=product?.shippingOffice||"";
-  // إذا حدد صاحب المتجر شركة واحدة على الأقل (باب الدار أو مكتب) لهذا المنتج،
-  // فهذا يعني أنه يتحكم يدويًا في أنواع التوصيل المتاحة: أي نوع تُرك فارغًا يُعتبر غير متاح لهذا المنتج.
-  // إذا تُرك الحقلان فارغين معًا (منتج لم يُخصَّص)، يبقى السلوك الافتراضي: متاح مع أي شركة.
-  const curated=!!(prodHome||prodOffice);
-  const homeAllowed=!(curated&&!prodHome);
-  const officeAllowed=!(curated&&!prodOffice);
-  let homePrice=null,homeCompanyStr=defaultHomeCompany;
-  if(rate){homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);homeCompanyStr=rate.homeCompany||defaultHomeCompany;}
+  let homePrice=null,homeCompanyStr="";
+  if(rate){homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);homeCompanyStr=rate.homeCompany||"";}
   else if(legacyShippingPrices[w]!=null){homePrice=legacyShippingPrices[w];}
-  if(homeAllowed&&homePrice!=null){
-    const av=computeAvail(prodHome,homeCompanyStr);
+  if(homePrice!=null){
+    const av=computeAvail(product?.shippingHome||"",homeCompanyStr);
     if(av.available) opts.home={price:homePrice,codes:av.codes};
   }
-  if(officeAllowed&&rate){
+  if(rate){
     const officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);
     if(officePrice!=null){
-      const av=computeAvail(prodOffice,rate.officeCompany||defaultOfficeCompany);
+      const av=computeAvail(product?.shippingOffice||"",rate.officeCompany||"");
       if(av.available) opts.office={price:officePrice,codes:av.codes};
     }
   }
