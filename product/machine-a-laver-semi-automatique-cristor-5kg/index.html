@@ -69,7 +69,6 @@ const carrierLogos={"dhd":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAB
 function carrierCodes(v){return String(v||"").split(",").map(s=>s.trim()).filter(Boolean);}
 function carrierIntersect(a,b){const A=carrierCodes(a),B=carrierCodes(b);if(!A.length)return B;if(!B.length)return A;return A.filter(x=>B.includes(x));}
 let shippingRatesData={};
-let shippingRatesLoadFailed=false;
 async function loadShippingRatesData(db){
   try{
     const {doc,getDoc}=await getFirebase();
@@ -77,16 +76,8 @@ async function loadShippingRatesData(db){
     if(snap.exists()){
       const d=snap.data();
       shippingRatesData=(d&&d.rates)||{};
-      console.info("[bazar] shipping rates loaded:",Object.keys(shippingRatesData).length,"wilayas");
-    }else{
-      shippingRatesData={};
-      console.warn("[bazar] settings/shipping غير موجود في Firestore — سيتم الاعتماد على أسعار افتراضية قديمة لباب الدار فقط، ولن يظهر خيار المكتب أبداً.");
     }
-  }catch(e){
-    shippingRatesData={};
-    shippingRatesLoadFailed=true;
-    console.error("[bazar] فشل تحميل أسعار التوصيل من Firestore (settings/shipping):",e);
-  }
+  }catch(e){shippingRatesData={};}
 }
 const queryId=new URLSearchParams(location.search).get("id");
 const pathMatch=location.pathname.match(/\/product\/([^\/]+)\/?$/);
@@ -119,25 +110,23 @@ function computeAvail(prod,wil){
   const inter=P.filter(x=>W.includes(x));
   return {available:inter.length>0,codes:inter};
 }
+const defaultHomeCompany="dhd,noest,48hr";
+const defaultOfficeCompany="dhd";
 function computeDeliveryOptions(w){
   const opts={};
   if(!w) return opts;
   const rate=shippingRatesData[w];
-  // إعدادات المنتج الصريحة: home مفعّل افتراضياً (توافقاً مع المنتجات القديمة)، office يحتاج تفعيلاً صريحاً
-  // أو أن يكون قد اختير له شركة مكتب سابقاً (توافق مع منتجات أُعدّت قبل إضافة هذا المفتاح).
-  const homeOn = product?.homeEnabled!==false;
-  const officeOn = product?.officeEnabled===true || (product?.officeEnabled===undefined && !!product?.shippingOffice);
-  let homePrice=null,homeCompanyStr="";
-  if(rate){homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);homeCompanyStr=rate.homeCompany||"";}
+  let homePrice=null,homeCompanyStr=defaultHomeCompany;
+  if(rate){homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);homeCompanyStr=rate.homeCompany||defaultHomeCompany;}
   else if(legacyShippingPrices[w]!=null){homePrice=legacyShippingPrices[w];}
-  if(homeOn && homePrice!=null){
+  if(homePrice!=null){
     const av=computeAvail(product?.shippingHome||"",homeCompanyStr);
     if(av.available) opts.home={price:homePrice,codes:av.codes};
   }
-  if(officeOn && rate){
+  if(rate){
     const officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);
     if(officePrice!=null){
-      const av=computeAvail(product?.shippingOffice||"",rate.officeCompany||"");
+      const av=computeAvail(product?.shippingOffice||"",rate.officeCompany||defaultOfficeCompany);
       if(av.available) opts.office={price:officePrice,codes:av.codes};
     }
   }
