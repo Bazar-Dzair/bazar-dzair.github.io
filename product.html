@@ -133,15 +133,14 @@ function computeDeliveryOptions(w){
     if(av.available) opts.home={price:homePrice,codes:av.codes};
   }
 
-  // سعر المكتب: من جدول أسعار التوصيل إن وُجد لهذه الولاية تحديدًا.
-  // إذا لم يحدّد صاحب المتجر بعد سعرًا خاصًا بالمكتب لهذه الولاية، نعتمد سعر باب الدار كتقدير مبدئي
-  // (بدل اعتبار التوصيل للمكتب غير متوفر بالكامل لمجرد عدم تعبئة خانة السعر بعد).
-  // يبقى بإمكان صاحب المتجر ضبط سعر مختلف للمكتب من صفحة "أسعار التوصيل" في أي وقت، وسيُستخدم فورًا بدل هذا التقدير.
+  // سعر المكتب: يُعتمد فقط إذا أدخل صاحب المتجر سعرًا خاصًا بالمكتب لهذه الولاية تحديدًا
+  // من صفحة "أسعار التوصيل" في لوحة التحكم. لا يتم أبدًا اعتماد سعر باب الدار كبديل تلقائي،
+  // حتى لا يظهر خيار "استلام من المكتب" بنفس سعر "توصيل إلى المنزل" لمجرد عدم تعبئة خانة سعر المكتب بعد.
+  // إذا لم يُدخل صاحب المتجر سعر مكتب حقيقيًا لهذه الولاية، فإن خيار المكتب لا يظهر إطلاقًا.
   const officeAllowedForProduct=!productHasDeliveryPrefs||!!productOffice;
-  if(officeAllowedForProduct){
-    let officePrice=null,officeCompanyStr="";
-    if(rate){officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);officeCompanyStr=rate.officeCompany||"";}
-    if(officePrice==null) officePrice=homePrice;
+  if(officeAllowedForProduct&&rate){
+    const officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);
+    const officeCompanyStr=rate.officeCompany||"";
     if(officePrice!=null){
       const av=computeAvail(productOffice,officeCompanyStr);
       if(av.available) opts.office={price:officePrice,codes:av.codes};
