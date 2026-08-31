@@ -26,6 +26,7 @@
 .status{padding:11px;border-radius:9px;margin:10px 0}.status.ok{background:#dcfce7;color:#166534}.status.err{background:#fee2e2;color:#991b1b}
 .settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.setting-card{background:#fff;border:1px solid var(--line);border-radius:14px;min-height:125px;padding:18px;display:flex;align-items:flex-start;gap:13px;text-align:right;cursor:pointer}.setting-card:hover{box-shadow:0 8px 22px #0000000a;transform:translateY(-1px)}.setting-icon{width:43px;height:43px;border-radius:11px;display:grid;place-items:center;background:#f0ecff;flex:none}.setting-content{flex:1}.setting-content h3{margin:3px 0 7px;font-size:16px}.setting-content p{margin:0;color:#8a93a0;font-size:12px;line-height:1.7}.setting-arrow{color:#a0a8b2;font-size:20px}
 .modal{position:fixed;inset:0;background:#0008;z-index:100;display:grid;place-items:center;padding:18px}.modal-card{background:#fff;border-radius:18px;width:min(620px,100%);max-height:90vh;overflow:auto;padding:24px;position:relative}.modal-close{position:absolute;left:15px;top:13px;border:0;background:#f2f3f5;color:#555;border-radius:50%;width:34px;height:34px;font-size:21px}.modal-icon{width:48px;height:48px;border-radius:12px;background:#f0ecff;color:#5b49a7;display:grid;place-items:center;font-size:21px;margin-bottom:11px}.modal-card h2{margin:0 0 5px}.modal-desc{color:#89919d;font-size:12px;margin:0 0 18px}.modal-actions{display:flex;gap:8px;margin-top:20px}
+.delivery-method-toggle{display:flex;gap:10px;flex-wrap:wrap}.delivery-method-opt{display:flex;align-items:center;gap:8px;border:2px solid #eceef2;border-radius:12px;padding:11px 15px;cursor:pointer;background:#fafbfc;font-weight:700;font-size:13.5px;color:#414955}.delivery-method-opt input{accent-color:var(--orange);width:16px;height:16px;cursor:pointer}.delivery-method-opt:has(input:checked){border-color:var(--orange);background:#fff7f0;color:#20242a}
 .shipping-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:55vh;overflow:auto}.shipping-item{display:flex!important;align-items:center;justify-content:space-between;gap:10px;border:1px solid #eceef2;border-radius:10px;padding:9px 10px;background:#fafbfc}.shipping-item input{width:100px!important;padding:8px!important}.branding-box{display:grid;gap:14px}.brand-upload-card{border:1px solid #e8eaf0;border-radius:14px;padding:14px;background:#fafbfc}.brand-preview{display:block;width:100%;height:130px;object-fit:contain;background:#fff;border:1px dashed #ddd;border-radius:10px;margin-top:10px}.banner-preview{height:150px;object-fit:cover}
 .order-card{margin:0}.order-card h2{font-size:16px}.order-card p{margin:8px 0;color:#586170;font-size:13px}.order-actions{display:flex;gap:8px;align-items:center;margin-top:12px}.order-status-select{padding:10px;border:1px solid #dfe3e8;border-radius:9px;background:#fff}
 .category-form{padding:17px;border:1px solid #e5e7eb;border-radius:13px;background:#fafbfc;margin-bottom:16px}.category-form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.category-form-grid label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:12px}.category-form-grid input{padding:11px;border:1px solid #d9dee7;border-radius:10px}.categories-list{display:grid;gap:9px}.category-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border:1px solid #e8ebf0;border-radius:12px;background:#fff}.category-info{display:flex;align-items:center;gap:11px}.category-icon{width:40px;height:40px;border-radius:10px;background:#f1f5ff;display:grid;place-items:center}.category-info b{display:block}.category-info small{color:#8a93a3;direction:ltr;display:block;margin-top:3px}.category-actions{display:flex;gap:7px}.category-actions button{border:0;border-radius:9px;padding:9px 11px;font-weight:700}.edit-cat{background:#eef6ff;color:#1769aa}.delete-cat{background:#fff0f0;color:#c62828}
@@ -349,27 +350,23 @@
    <div><label>التصنيف</label><select id="category"></select></div>
    <div><label>المخزون *</label><input id="stock" type="number" min="0" placeholder="20"></div>
    <div class="full"><div class="publish-row"><div><b>نشر المنتج في المتجر</b><small>يمكنك تغيير الحالة لاحقًا من قائمة خيارات المنتج ⋮</small></div><label class="switch"><input id="published" type="checkbox" checked><span></span></label></div></div>
-   <div><label>شركات التوصيل — باب الدار</label>
-     <div class="multi-select empty" id="shippingHomeSelect" data-value="">
-       <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
-       <div class="multi-select-menu" id="shippingHomeMenu"></div>
+   <div class="full"><label style="display:block;margin-bottom:8px">🚚 طريقة التوصيل *</label>
+     <div class="delivery-method-toggle">
+       <label class="delivery-method-opt"><input type="radio" name="deliveryMethod" id="deliveryMethodHome" value="home" checked onchange="window.updateDeliveryMethodUI()"><span>🏠 توصيل باب دار</span></label>
+       <label class="delivery-method-opt"><input type="radio" name="deliveryMethod" id="deliveryMethodOffice" value="office" onchange="window.updateDeliveryMethodUI()"><span>🏤 توصيل للمكتب</span></label>
      </div>
-   </div>
-   <div><label>شركات التوصيل — المكتب</label>
-     <div class="multi-select empty" id="shippingOfficeSelect" data-value="">
-       <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
-       <div class="multi-select-menu" id="shippingOfficeMenu"></div>
-     </div>
-   </div>
-   <div class="full"><label style="display:block;margin-bottom:8px">🚚 خيارات التوصيل</label>
-     <div class="grid" style="margin:0">
-       <div><label>طريقة توصيل باب الدار (اختر الولاية)</label>
-         <select id="deliveryHomeWilaya" onchange="updateDeliveryPricePreview('home')"><option value="">اختر الولاية...</option></select>
-         <small class="hint" id="deliveryHomePriceDisplay">سعر باب الدار: —</small>
+     <div id="deliveryMethodHomeFields" style="margin-top:12px">
+       <label>شركات التوصيل — باب الدار</label>
+       <div class="multi-select empty" id="shippingHomeSelect" data-value="">
+         <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
+         <div class="multi-select-menu" id="shippingHomeMenu"></div>
        </div>
-       <div><label>التوصيل إلى المكتب (اختر الولاية)</label>
-         <select id="deliveryOfficeWilaya" onchange="updateDeliveryPricePreview('office')"><option value="">اختر الولاية...</option></select>
-         <small class="hint" id="deliveryOfficePriceDisplay">سعر المكتب: —</small>
+     </div>
+     <div id="deliveryMethodOfficeFields" style="margin-top:12px;display:none">
+       <label>شركات التوصيل — المكتب</label>
+       <div class="multi-select empty" id="shippingOfficeSelect" data-value="">
+         <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
+         <div class="multi-select-menu" id="shippingOfficeMenu"></div>
        </div>
      </div>
    </div>
@@ -547,7 +544,6 @@ function showView(name, el, createNew=false, updateUrl=true){
   if(name==="product" && !createNew && window.bazarLoadProducts) window.bazarLoadProducts();
   if(name==="orders" && window.bazarLoadOrders) window.bazarLoadOrders();
   if(name==="shipping-rates" && window.bazarLoadShippingRates) window.bazarLoadShippingRates();
-  if(name==="product" && window.bazarLoadShippingRates) window.bazarLoadShippingRates().then(()=>{if(typeof refreshDeliveryPricePreviews==="function")refreshDeliveryPricePreviews();});
   if(name==="addons" && window.bazarLoadAddons) window.bazarLoadAddons();
   if(name==="footer") setTimeout(loadFooterSetting,0);
   try{sessionStorage.setItem("bazarAdminView",name);}catch(e){}
@@ -1365,48 +1361,27 @@ const shippingOfficeSelect=document.getElementById("shippingOfficeSelect");
   if(homeMenu) homeMenu.innerHTML=Object.entries(homeCompanyLabels).map(([v,l])=>carrierOptionHtml(v,l,false)).join("");
   if(officeMenu) officeMenu.innerHTML=Object.entries(officeCompanyLabels).map(([v,l])=>carrierOptionHtml(v,l,false)).join("");
 })();
-// ===== خيارات التوصيل حسب الولاية داخل "إنشاء منتج" — تُقرأ الأسعار مباشرة من جدول "أسعار التوصيل" (settings/shipping) =====
-const deliveryHomeWilayaSelect=document.getElementById("deliveryHomeWilaya");
-const deliveryOfficeWilayaSelect=document.getElementById("deliveryOfficeWilaya");
-(function initDeliveryWilayaSelects(){
-  const opts=wilayas.map((name,i)=>{const code=shippingRateCode(i);return `<option value="${code}">${code} - ${escapeAttr(name)}</option>`;}).join("");
-  if(deliveryHomeWilayaSelect) deliveryHomeWilayaSelect.insertAdjacentHTML("beforeend",opts);
-  if(deliveryOfficeWilayaSelect) deliveryOfficeWilayaSelect.insertAdjacentHTML("beforeend",opts);
-})();
-function deliveryRateFor(code){
-  if(!code) return null;
-  const r=shippingRatesData[code];
-  if(r) return r;
-  const defaults=buildDefaultShippingRates();
-  return defaults[code]||null;
-}
-window.updateDeliveryPricePreview=function(type){
-  const sel=type==="home"?deliveryHomeWilayaSelect:deliveryOfficeWilayaSelect;
-  const out=document.getElementById(type==="home"?"deliveryHomePriceDisplay":"deliveryOfficePriceDisplay");
-  const code=sel?.value||"";
-  const rate=deliveryRateFor(code);
-  const price=rate?(type==="home"?rate.home:rate.office):"";
-  if(out) out.textContent=(type==="home"?"سعر باب الدار: ":"سعر المكتب: ")+(price===""||price==null?"— (غير محدد لهذه الولاية)":Number(price).toLocaleString("ar-DZ")+" دج");
+// ===== طريقة التوصيل داخل "إنشاء منتج" — اختيار واحد فقط: باب الدار أو المكتب =====
+// عند اختيار "باب الدار" تظهر فقط شركات باب الدار، وعند اختيار "المكتب" تظهر فقط شركات المكتب.
+const deliveryMethodHomeRadio=document.getElementById("deliveryMethodHome");
+const deliveryMethodOfficeRadio=document.getElementById("deliveryMethodOffice");
+const deliveryMethodHomeFields=document.getElementById("deliveryMethodHomeFields");
+const deliveryMethodOfficeFields=document.getElementById("deliveryMethodOfficeFields");
+window.updateDeliveryMethodUI=function(){
+  const isOffice=!!(deliveryMethodOfficeRadio&&deliveryMethodOfficeRadio.checked);
+  if(deliveryMethodHomeFields) deliveryMethodHomeFields.style.display=isOffice?"none":"block";
+  if(deliveryMethodOfficeFields) deliveryMethodOfficeFields.style.display=isOffice?"block":"none";
 };
-function refreshDeliveryPricePreviews(){
-  updateDeliveryPricePreview("home");
-  updateDeliveryPricePreview("office");
+function currentDeliveryMethod(){
+  return (deliveryMethodOfficeRadio&&deliveryMethodOfficeRadio.checked)?"office":"home";
 }
-function currentDeliverySelection(type){
-  const sel=type==="home"?deliveryHomeWilayaSelect:deliveryOfficeWilayaSelect;
-  const code=sel?.value||"";
-  if(!code) return null;
-  const idx=Number(code)-1;
-  const name=wilayas[idx]||"";
-  const rate=deliveryRateFor(code);
-  const price=rate?(type==="home"?rate.home:rate.office):"";
-  return {wilayaCode:code,wilayaName:name,price:(price===""||price==null)?null:Number(price)};
+function setDeliveryMethod(method){
+  const isOffice=method==="office";
+  if(deliveryMethodHomeRadio) deliveryMethodHomeRadio.checked=!isOffice;
+  if(deliveryMethodOfficeRadio) deliveryMethodOfficeRadio.checked=isOffice;
+  window.updateDeliveryMethodUI();
 }
-function setDeliveryWilayaSelection(type,saved){
-  const sel=type==="home"?deliveryHomeWilayaSelect:deliveryOfficeWilayaSelect;
-  if(sel) sel.value=(saved&&saved.wilayaCode)||"";
-  updateDeliveryPricePreview(type);
-}
+window.updateDeliveryMethodUI();
 function setMultiSelectValue(wrap,val){
   if(!wrap)return;
   const codes=new Set(String(val||"").split(",").map(v=>v.trim()).filter(Boolean));
@@ -2103,10 +2078,9 @@ window.save=async()=>{
     published:publishedInput?.checked!==false,
     description:descriptionInput?.value.trim()||"",
     specifications,
-    shippingHome:shippingHomeSelect?.dataset.value||"",
-    shippingOffice:shippingOfficeSelect?.dataset.value||"",
-    deliveryHome:currentDeliverySelection("home"),
-    deliveryOffice:currentDeliverySelection("office"),
+    deliveryMethod:currentDeliveryMethod(),
+    shippingHome:currentDeliveryMethod()==="home"?(shippingHomeSelect?.dataset.value||""):"",
+    shippingOffice:currentDeliveryMethod()==="office"?(shippingOfficeSelect?.dataset.value||""):"",
     image:"",
     images:[],
     updatedAt:serverTimestamp()
@@ -2186,8 +2160,8 @@ window.editProduct=id=>{
  renderSelectedImages();
  setMultiSelectValue(shippingHomeSelect,p.shippingHome||"");
  setMultiSelectValue(shippingOfficeSelect,p.shippingOffice||"");
- setDeliveryWilayaSelection("home",p.deliveryHome||null);
- setDeliveryWilayaSelection("office",p.deliveryOffice||null);
+ // منتجات قديمة بدون طريقة توصيل محفوظة: نخمّن الطريقة من البيانات الموجودة حتى لا تتعطل عند التعديل.
+ setDeliveryMethod(p.deliveryMethod||((!p.shippingHome&&p.shippingOffice)?"office":"home"));
  try{sessionStorage.setItem("bazarAdminView","product");sessionStorage.setItem("bazarEditingProduct",id);}catch(e){}
  showView("product",null,false);
  try{
@@ -2230,8 +2204,7 @@ window.resetForm=()=>{
  selectedImages=[];
  setMultiSelectValue(shippingHomeSelect,"");
  setMultiSelectValue(shippingOfficeSelect,"");
- setDeliveryWilayaSelection("home",null);
- setDeliveryWilayaSelection("office",null);
+ setDeliveryMethod("home");
  try{sessionStorage.removeItem("bazarEditingProduct");}catch(e){}
  renderSelectedImages();
 };

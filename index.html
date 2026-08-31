@@ -315,6 +315,16 @@ function combinedProductCarriers(field){
   });
   return result===null?"":result.join(",");
 }
+function cartAllowedDeliveryMethods(){
+  // منتج له طريقة توصيل محفوظة (deliveryMethod) يسمح فقط بها. منتج قديم بدونها يسمح بالطريقتين.
+  // طريقة التوصيل النهائية للسلة هي تقاطع الطرق المسموحة لكل منتجات السلة.
+  let allowed=null;
+  cart.forEach(item=>{
+    const methods=item.deliveryMethod==="home"?["home"]:item.deliveryMethod==="office"?["office"]:["home","office"];
+    allowed=allowed===null?methods:allowed.filter(x=>methods.includes(x));
+  });
+  return allowed||["home","office"];
+}
 function computeAvail(prod,wil){
   const P=carrierCodes(prod),W=carrierCodes(wil);
   if(!P.length&&!W.length) return {available:true,codes:[]};
@@ -327,17 +337,18 @@ function computeDeliveryOptions(w){
   const opts={};
   if(!w)return opts;
   const rate=shippingRatesData[w];
+  const methods=cartAllowedDeliveryMethods();
   let homePrice=null,homeCompanyStr="";
   if(rate){homePrice=(rate.home===""||rate.home==null)?null:Number(rate.home);homeCompanyStr=rate.homeCompany||"";}
   else if(shippingPrices[w]!=null){homePrice=shippingPrices[w];}
-  if(homePrice!=null){
+  if(methods.includes("home") && homePrice!=null){
     const av=computeAvail(combinedProductCarriers("shippingHome"),homeCompanyStr);
     if(av.available) opts.home={price:homePrice,codes:av.codes};
   }
   let officePrice=null,officeCompanyStr="";
   if(rate){officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);officeCompanyStr=rate.officeCompany||"";}
   if(officePrice==null && legacyOfficeShippingPrices[w]!=null){officePrice=legacyOfficeShippingPrices[w];officeCompanyStr=officeCompanyStr||"dhd";}
-  if(officePrice!=null){
+  if(methods.includes("office") && officePrice!=null){
     const av=computeAvail(combinedProductCarriers("shippingOffice"),officeCompanyStr);
     if(av.available) opts.office={price:officePrice,codes:av.codes};
   }
@@ -420,7 +431,8 @@ function mapRestProduct(docSnap,index){
     description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
     category:data.category||"all",
     shippingHome:data.shippingHome||"",
-    shippingOffice:data.shippingOffice||""
+    shippingOffice:data.shippingOffice||"",
+    deliveryMethod:data.deliveryMethod||""
   };
 }
 
@@ -557,7 +569,8 @@ async function loadProductsFromFirestore(){
       published:data.published!==false,
       stock:Number(data.stock||0),
       shippingHome:data.shippingHome||"",
-      shippingOffice:data.shippingOffice||""
+      shippingOffice:data.shippingOffice||"",
+      deliveryMethod:data.deliveryMethod||""
     };
   }
   try{
