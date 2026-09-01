@@ -1006,8 +1006,15 @@ window.applyBulkShippingCompany=function(type){
 };
 window.saveShippingRates=async function(){
   const status=document.getElementById("shippingRatesStatus");
+  const btn=document.querySelector('button[onclick="saveShippingRates()"]');
+  const setStatus=(txt,cls)=>{if(status){status.textContent=txt;status.className="status "+cls;}};
   try{
-    if(!window.bazarDb||!window.bazarSetDoc||!window.bazarDoc) throw new Error("Firebase غير جاهز");
+    if(!window.bazarDb||!window.bazarSetDoc||!window.bazarDoc) throw new Error("Firebase غير جاهز، أعد تحميل الصفحة وحاول من جديد");
+    if(window.bazarAuth && !window.bazarAuth.currentUser){
+      setStatus("⚠️ جلسة الدخول انتهت. سجّل الدخول من جديد ثم أعد الحفظ.","err");
+      return;
+    }
+    if(btn){btn.disabled=true;btn.dataset.origText=btn.textContent;btn.textContent="⏳ جاري الحفظ...";}
     const rates={};
     const prices={};
     // قسم باب الدار: السعر + الشركة (DHD/NOEST/48HR) + المدة — لكل ولاية من الـ58
@@ -1035,12 +1042,31 @@ window.saveShippingRates=async function(){
         officeCompany
       };
     });
+    const payload={rates,prices,updatedAt:window.bazarServerTimestamp()};
+    await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","shipping"),payload,{merge:true});
+    // تحقّق فعلي: نعيد قراءة الوثيقة من القاعدة للتأكد أن التغييرات وصلت فعلاً وليست محجوبة بصمت
+    let verified=false;
+    try{
+      const snap=await window.bazarGetDoc(window.bazarDoc(window.bazarDb,"settings","shipping"));
+      const saved=snap.exists()?(snap.data().rates||{}):{};
+      const sampleCode=Object.keys(rates)[0];
+      verified = sampleCode ? JSON.stringify(saved[sampleCode]||{})===JSON.stringify(rates[sampleCode]||{}) : true;
+    }catch(verifyErr){console.error("verify failed",verifyErr);}
     shippingRatesData=rates;
-    await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","shipping"),{rates,prices,updatedAt:window.bazarServerTimestamp()},{merge:true});
-    if(status){status.textContent="تم حفظ أسعار التوصيل بنجاح ✅";status.className="status ok";}
+    if(verified){
+      setStatus("✅ تم حفظ أسعار التوصيل والتحقق من وصولها للقاعدة — ستظهر فورًا في المتجر.","ok");
+    }else{
+      setStatus("⚠️ تم إرسال الحفظ لكن التحقق فشل — تأكد أن قواعد Firestore (Rules) تسمح بالقراءة والكتابة لمجموعة settings، ثم أعد الحفظ.","err");
+    }
   }catch(e){
     console.error(e);
-    if(status){status.textContent="تعذر حفظ الأسعار: "+(e.message||"خطأ غير معروف");status.className="status err";}
+    let msg=e.message||"خطأ غير معروف";
+    if(e.code==="permission-denied"||/insufficient permissions/i.test(msg)){
+      msg="تم رفض الحفظ من Firestore (Permission denied). هذا يعني أن قواعد الأمان (Firestore Rules) في مشروعك على Firebase لا تسمح بالكتابة حاليًا. افتح Firebase Console → Firestore Database → Rules، وتأكد من نشر القاعدة الخاصة بـ settings (allow write: if request.auth != null) ثم اضغط Publish وحاول من جديد.";
+    }
+    setStatus("❌ تعذر حفظ الأسعار: "+msg,"err");
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=btn.dataset.origText||"💾 حفظ الأسعار";}
   }
 };
 
@@ -1374,7 +1400,7 @@ storageBucket:"bazar-dzair-33816.firebasestorage.app",
 messagingSenderId:"51073161969",
 appId:"1:51073161969:web:cb75a3224bdca11ea8e750"};
 const firebaseApp=initializeApp(config),db=getFirestore(firebaseApp),auth=getAuth(firebaseApp),storage=getStorage(firebaseApp);
-window.bazarDb=db;window.bazarDoc=doc;window.bazarSetDoc=setDoc;window.bazarGetDoc=getDoc;window.bazarServerTimestamp=serverTimestamp;window.bazarStorage=storage;window.bazarStorageRef=storageRef;window.bazarUploadBytes=uploadBytes;window.bazarGetDownloadURL=getDownloadURL;
+window.bazarDb=db;window.bazarDoc=doc;window.bazarSetDoc=setDoc;window.bazarGetDoc=getDoc;window.bazarServerTimestamp=serverTimestamp;window.bazarStorage=storage;window.bazarStorageRef=storageRef;window.bazarUploadBytes=uploadBytes;window.bazarGetDownloadURL=getDownloadURL;window.bazarAuth=auth;
 
 // ===== رفع الصور عبر ImgBB (مجاني 100%، بدون اشتراك أو بطاقة بنكية) =====
 // Firebase Storage يتطلب خطة Blaze (اشتراك) من Google، لذلك تم استبداله بـ ImgBB.
