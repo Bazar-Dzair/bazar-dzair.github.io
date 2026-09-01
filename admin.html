@@ -282,6 +282,41 @@
 .multi-select-menu input[type="checkbox"]{width:15px;height:15px;flex-shrink:0}
 .carrier-logo{width:20px;height:20px;border-radius:5px;object-fit:contain;flex-shrink:0;background:#fff;border:1px solid #eef0f3}
 .carrier-btn-logo{width:16px;height:16px;border-radius:4px;object-fit:contain;vertical-align:middle;margin-left:4px}
+
+/* ===== Redesign: premium "add product" section ===== */
+.product-form-hero{background:linear-gradient(135deg,#182536,#243654 60%,#2e4160);border-radius:18px;padding:26px 28px;display:flex;align-items:center;gap:18px;color:#fff;margin-bottom:16px;box-shadow:0 14px 34px #18253626}
+.pfh-icon{width:54px;height:54px;border-radius:14px;background:#ffffff1c;display:grid;place-items:center;font-size:26px;flex:none}
+.pfh-text h1{margin:0 0 6px;font-size:21px}
+.pfh-text p{margin:0;color:#c7d0dd;font-size:12.5px}
+.pf-grid{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start;margin-top:14px}
+.pf-main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.form-section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:0 2px 10px #00000005}
+.form-section-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #f0f2f5}
+.fs-icon{width:38px;height:38px;border-radius:10px;background:#fff2e9;color:var(--orange);display:grid;place-items:center;font-size:17px;flex:none}
+.form-section-head h3{margin:0 0 3px;font-size:14.5px;color:#1f2937}
+.form-section-head p{margin:0;color:#9aa3ae;font-size:11.5px}
+.form-section>.hint{margin-top:8px}
+.pf-side{position:sticky;top:80px}
+.pf-sticky-actions{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:9px;box-shadow:0 2px 10px #00000005}
+.pf-save{width:100%;font-size:14px;padding:13px}
+.pf-sticky-actions .gray{width:100%}
+.pf-tips{margin-top:8px;background:#fff8ef;border:1px solid #ffe6c9;border-radius:12px;padding:13px 14px}
+.pf-tips b{display:block;margin-bottom:8px;font-size:12px;color:#8a4b00}
+.pf-tips ul{margin:0;padding-inline-start:18px;display:flex;flex-direction:column;gap:6px;font-size:11.5px;color:#8a5b1c;line-height:1.6}
+@media(max-width:900px){.pf-grid{grid-template-columns:1fr}.pf-side{position:static}}
+
+/* ===== Redesign: rich text description editor ===== */
+.editor-field{display:flex;flex-direction:column;gap:8px}
+.editor-label-row{display:flex;justify-content:space-between;align-items:center}
+.editor-counter{font-size:11px;color:#9aa3ae}
+.rte-toolbar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;background:#f8fafc;border:1px solid #e6eaf0;border-radius:10px 10px 0 0;padding:7px 8px}
+.rte-toolbar button{width:32px;height:32px;border:1px solid transparent;background:transparent;border-radius:7px;color:#414955;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.rte-toolbar button:hover{background:#eef1f5}
+.rte-sep{width:1px;height:20px;background:#e2e6ec;margin:0 4px}
+.rte-editor{min-height:150px;max-height:340px;overflow:auto;border:1px solid #dfe3e8;border-top:0;border-radius:0 0 10px 10px;padding:13px 14px;outline:none;font-size:13.5px;line-height:1.9;background:#fff}
+.rte-editor:focus{border-color:var(--orange);box-shadow:0 0 0 3px #ff6a0012}
+.rte-editor:empty:before{content:attr(data-placeholder);color:#a9b0ba}
+.rte-editor ul,.rte-editor ol{padding-inline-start:22px;margin:6px 0}
 </style>
 </head>
 <body class="auth-check">
@@ -357,42 +392,133 @@
 </section>
 
 <section id="view-product" class="view hidden">
- <div class="page-head"><div><h1 id="title">＋ إضافة منتج</h1><p>أدخل معلومات المنتج الأساسية ثم احفظه مباشرة في Firestore.</p></div></div>
- <div class="panel"><div id="status" class="status hidden"></div><div class="grid">
-   <div><label>اسم المنتج *</label><input id="name" placeholder="مثال: Lantern LED"></div>
-   <div><label>السعر بالدج *</label><input id="price" type="number" min="0" placeholder="3500"></div>
-   <div><label>التصنيف</label><select id="category"></select></div>
-   <div><label>المخزون *</label><input id="stock" type="number" min="0" placeholder="20"></div>
-   <div class="full"><div class="publish-row"><div><b>نشر المنتج في المتجر</b><small>يمكنك تغيير الحالة لاحقًا من قائمة خيارات المنتج ⋮</small></div><label class="switch"><input id="published" type="checkbox" checked><span></span></label></div></div>
-   <div class="full"><label style="display:block;margin-bottom:8px">🚚 طريقة التوصيل *</label>
-     <div class="delivery-method-toggle">
-       <label class="delivery-method-opt"><input type="radio" name="deliveryMethod" id="deliveryMethodHome" value="home" checked onchange="window.updateDeliveryMethodUI()"><span>🏠 توصيل باب دار</span></label>
-       <label class="delivery-method-opt"><input type="radio" name="deliveryMethod" id="deliveryMethodOffice" value="office" onchange="window.updateDeliveryMethodUI()"><span>🏤 توصيل للمكتب</span></label>
-     </div>
-     <div id="deliveryMethodHomeFields" style="margin-top:12px">
-       <label>شركات التوصيل — باب الدار</label>
-       <div class="multi-select empty" id="shippingHomeSelect" data-value="">
-         <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
-         <div class="multi-select-menu" id="shippingHomeMenu"></div>
-       </div>
-     </div>
-     <div id="deliveryMethodOfficeFields" style="margin-top:12px;display:none">
-       <label>شركات التوصيل — المكتب</label>
-       <div class="multi-select empty" id="shippingOfficeSelect" data-value="">
-         <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
-         <div class="multi-select-menu" id="shippingOfficeMenu"></div>
-       </div>
+ <div class="product-form-hero">
+   <div class="pfh-icon">🛍️</div>
+   <div class="pfh-text"><h1 id="title">➕ إضافة منتج</h1><p>أدخل معلومات المنتج بعناية — كل التفاصيل تُحفظ مباشرة في متجرك عبر Firestore.</p></div>
+ </div>
+ <div id="status" class="status hidden"></div>
+
+ <div class="pf-grid">
+  <div class="pf-main">
+
+   <div class="form-section">
+    <div class="form-section-head"><span class="fs-icon">🧾</span><div><h3>المعلومات الأساسية</h3><p>اسم المنتج، السعر، التصنيف والمخزون المتوفر</p></div></div>
+    <div class="grid">
+      <div><label>اسم المنتج *</label><input id="name" placeholder="مثال: Lantern LED"></div>
+      <div><label>السعر بالدج *</label><input id="price" type="number" min="0" placeholder="3500"></div>
+      <div><label>التصنيف</label><select id="category"></select></div>
+      <div><label>المخزون *</label><input id="stock" type="number" min="0" placeholder="20"></div>
+    </div>
+   </div>
+
+   <div class="form-section">
+    <div class="form-section-head"><span class="fs-icon">🚚</span><div><h3>طريقة التوصيل</h3><p>حدد الطريقة المناسبة وشركات التوصيل المعتمدة</p></div></div>
+    <div class="delivery-method-toggle">
+      <label class="delivery-method-opt"><input type="radio" name="deliveryMethod" id="deliveryMethodHome" value="home" checked onchange="window.updateDeliveryMethodUI()"><span>🏠 توصيل باب دار</span></label>
+      <label class="delivery-method-opt"><input type="radio" name="deliveryMethod" id="deliveryMethodOffice" value="office" onchange="window.updateDeliveryMethodUI()"><span>🏤 توصيل للمكتب</span></label>
+    </div>
+    <div id="deliveryMethodHomeFields" style="margin-top:14px">
+      <label>شركات التوصيل — باب الدار</label>
+      <div class="multi-select empty" id="shippingHomeSelect" data-value="">
+        <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
+        <div class="multi-select-menu" id="shippingHomeMenu"></div>
+      </div>
+    </div>
+    <div id="deliveryMethodOfficeFields" style="margin-top:14px;display:none">
+      <label>شركات التوصيل — المكتب</label>
+      <div class="multi-select empty" id="shippingOfficeSelect" data-value="">
+        <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
+        <div class="multi-select-menu" id="shippingOfficeMenu"></div>
+      </div>
+    </div>
+   </div>
+
+   <div class="form-section">
+    <div class="form-section-head"><span class="fs-icon">📝</span><div><h3>وصف المنتج</h3><p>وصف احترافي وجذاب يزيد ثقة الزبون بالمنتج</p></div></div>
+    <div class="editor-field">
+      <div class="editor-label-row"><label style="margin:0">الوصف</label><span class="editor-counter" id="descCounter">0 حرف</span></div>
+      <div class="rte-toolbar" id="rteToolbar">
+        <button type="button" data-cmd="bold" title="عريض"><b>B</b></button>
+        <button type="button" data-cmd="italic" title="مائل"><i>I</i></button>
+        <button type="button" data-cmd="underline" title="تسطير"><u>U</u></button>
+        <button type="button" data-cmd="strikeThrough" title="يتوسطه خط"><s>S</s></button>
+        <span class="rte-sep"></span>
+        <button type="button" data-cmd="insertUnorderedList" title="قائمة نقطية">☰•</button>
+        <button type="button" data-cmd="insertOrderedList" title="قائمة مرقمة">☰1</button>
+        <span class="rte-sep"></span>
+        <button type="button" data-cmd="removeFormat" title="مسح التنسيق">Tx</button>
+      </div>
+      <div class="rte-editor" id="descriptionEditor" contenteditable="true" data-placeholder="اكتب وصفًا واضحًا واحترافيًا يبرز مميزات المنتج..."></div>
+      <textarea id="description" class="hidden"></textarea>
+    </div>
+   </div>
+
+   <div class="form-section">
+    <div class="form-section-head"><span class="fs-icon">📋</span><div><h3>المواصفات التقنية</h3><p>أضف تفاصيل دقيقة تساعد الزبون على المقارنة</p></div></div>
+    <textarea id="specificationsText" placeholder="القدرة: 600W&#10;اللون: أسود&#10;الضمان: 12 شهر"></textarea>
+    <small class="hint">اكتب كل مواصفة في سطر مستقل بالشكل: الاسم: القيمة</small>
+   </div>
+
+   <div class="form-section">
+    <div class="form-section-head"><span class="fs-icon">🖼️</span><div><h3>صور المنتج *</h3><p>حتى 10 صور — الصورة الأولى تصبح صورة الواجهة</p></div></div>
+    <div class="upload-card">
+      <input id="imageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
+      <button type="button" class="upload-drop" onclick="document.getElementById('imageFiles').click()"><span class="upload-icon">☁️</span><b>أضف صور المنتج</b><small>اختر الصور من الهاتف مباشرة — حتى 10 صور</small><span class="upload-hint">JPG, PNG, WEBP — ضغط تلقائي قبل الحفظ</span></button>
+      <div class="image-count" id="imageCount">0 / 10 صور</div><div id="imagePreview" class="image-preview"></div>
+    </div>
+    <small class="hint">الصورة الأولى تصبح صورة الواجهة. الصور الجديدة تُضغط لتقليل حجم مستند Firestore.</small>
+   </div>
+
+  </div>
+
+  <div class="pf-side">
+   <div class="pf-sticky-actions">
+     <button id="saveBtn" class="green pf-save" onclick="save()">💾 حفظ المنتج</button>
+     <button class="gray" onclick="resetForm()">مسح النموذج</button>
+     <button id="backToProductsBtn" class="gray hidden" type="button" onclick="window.backToProductsList()">↩️ رجوع إلى المنتجات</button>
+     <div class="pf-tips">
+       <b>💡 نصائح لعرض أفضل</b>
+       <ul>
+         <li>استخدم صورًا واضحة بإضاءة جيدة من عدة زوايا</li>
+         <li>اكتب وصفًا يبرز أهم فائدة للمنتج أولًا</li>
+         <li>حدّث المخزون بدقة لتفادي طلبات بلا رصيد</li>
+       </ul>
      </div>
    </div>
-   <div class="full"><label>الوصف</label><textarea id="description" placeholder="اكتب وصفًا واضحًا للمنتج..."></textarea></div>
-   <div class="full"><label>المواصفات</label><textarea id="specificationsText" placeholder="القدرة: 600W&#10;اللون: أسود&#10;الضمان: 12 شهر"></textarea><small class="hint">اكتب كل مواصفة في سطر مستقل بالشكل: الاسم: القيمة</small></div>
-   <div class="full"><label>صور المنتج *</label><div class="upload-card">
-     <input id="imageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
-     <button type="button" class="upload-drop" onclick="document.getElementById('imageFiles').click()"><span class="upload-icon">☁️</span><b>أضف صور المنتج</b><small>اختر الصور من الهاتف مباشرة — حتى 10 صور</small><span class="upload-hint">JPG, PNG, WEBP — ضغط تلقائي قبل الحفظ</span></button>
-     <div class="image-count" id="imageCount">0 / 10 صور</div><div id="imagePreview" class="image-preview"></div>
-   </div><small class="hint">الصورة الأولى تصبح صورة الواجهة. الصور الجديدة تُضغط لتقليل حجم مستند Firestore.</small></div>
- </div><div class="form-actions"><button id="saveBtn" class="green" onclick="save()">💾 حفظ المنتج</button><button class="gray" onclick="resetForm()">مسح النموذج</button><button id="backToProductsBtn" class="gray hidden" type="button" onclick="window.backToProductsList()">↩️ رجوع إلى المنتجات</button></div></div>
+  </div>
+ </div>
 </section>
+
+<script>
+(function(){
+  const editor=document.getElementById('descriptionEditor');
+  const hidden=document.getElementById('description');
+  const toolbar=document.getElementById('rteToolbar');
+  const counter=document.getElementById('descCounter');
+  if(!editor||!hidden)return;
+  function sync(){
+    const html=editor.innerHTML;
+    hidden.value=(html==='<br>'?'':html);
+    if(counter)counter.textContent=(editor.innerText||'').trim().length+' حرف';
+  }
+  editor.addEventListener('input',sync);
+  if(toolbar){
+    toolbar.addEventListener('mousedown',function(e){if(e.target.closest('button'))e.preventDefault();});
+    toolbar.addEventListener('click',function(e){
+      const btn=e.target.closest('button[data-cmd]');
+      if(!btn)return;
+      editor.focus();
+      document.execCommand(btn.dataset.cmd,false,null);
+      sync();
+    });
+  }
+  window.__setDescriptionEditorHTML=function(html){
+    editor.innerHTML=html||'';
+    sync();
+  };
+  sync();
+})();
+</script>
 
 <section id="view-products" class="view hidden">
  <div class="page-head"><div><h1>المنتجات</h1><p>إدارة احترافية وسريعة للمنتجات والمخزون والروابط، مع وصول مباشر لكل منتج.</p></div></div>
@@ -1450,7 +1576,6 @@ const nameInput=document.getElementById("name");
 const priceInput=document.getElementById("price");
 const categoryInput=document.getElementById("category");
 const stockInput=document.getElementById("stock");
-const publishedInput=document.getElementById("published");
 const descriptionInput=document.getElementById("description");
 const specificationsText=document.getElementById("specificationsText");
 const titleBox=document.getElementById("title");
@@ -2203,7 +2328,7 @@ window.save=async()=>{
     price:Number(priceInput?.value),
     category:categoryInput?.value||"tools",
     stock:Number(stockInput?.value),
-    published:publishedInput?.checked!==false,
+    published:true,
     description:descriptionInput?.value.trim()||"",
     specifications,
     deliveryMethod:currentDeliveryMethod(),
@@ -2283,7 +2408,7 @@ window.editProduct=id=>{
  priceInput.value=p.price??"";
  renderCategorySelect(p.category||categories[0]?.key||"tools");
  stockInput.value=p.stock??"";
- descriptionInput.value=p.description||"";
+ if(window.__setDescriptionEditorHTML)window.__setDescriptionEditorHTML(p.description||"");else descriptionInput.value=p.description||"";
  if(specificationsText){
    const specs=Array.isArray(p.specifications)?p.specifications:[];
    specificationsText.value=specs.map(x=>x&&x.key?`${x.key}: ${x.value??""}`:String(x||"")).join("\n");
@@ -2333,7 +2458,7 @@ window.resetForm=()=>{
  editing=null;
  titleBox.textContent="➕ إضافة منتج";
  nameInput.value="";priceInput.value="";
- renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";if(publishedInput)publishedInput.checked=true;descriptionInput.value="";
+ renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";if(window.__setDescriptionEditorHTML)window.__setDescriptionEditorHTML("");else descriptionInput.value="";
  if(specificationsText) specificationsText.value="";
  selectedImages=[];
  setMultiSelectValue(shippingHomeSelect,"");
