@@ -224,6 +224,20 @@
 .toast-msg.show{opacity:1;transform:translateX(50%) translateY(-6px)}
 .toast-msg.err{background:#c62828}
 .toast-msg.ok{background:#16a34a}
+.shipping-type-toggle{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.shipping-type-card{flex:1;min-width:230px;display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px solid #eceef2;border-radius:14px;padding:15px 18px;cursor:pointer;background:#fafbfc;transition:.15s;user-select:none}
+.shipping-type-card:hover{border-color:#d7dde6}
+.shipping-type-card .st-left{display:flex;align-items:center;gap:9px;font-weight:800;font-size:14.5px;color:#414955}
+.shipping-type-card .st-icon{font-size:18px}
+.shipping-type-card .st-count{background:#eef1f5;color:#586170;font-size:11.5px;font-weight:800;padding:4px 11px;border-radius:20px;white-space:nowrap}
+.shipping-type-card.active{border-color:#2f6fed;background:#f2f6ff}
+.shipping-type-card.active .st-left{color:#20242a}
+.shipping-type-card.active .st-icon{color:#2f6fed}
+.shipping-type-card.active .st-count{background:#dbe6ff;color:#2f6fed}
+.shipping-rate-row.row-more-hidden{display:none!important}
+.shipping-rate-row.row-search-hidden{display:none!important}
+.shipping-more-btn{display:block;width:100%;padding:12px;text-align:center;border:1px dashed #dfe3e8;border-radius:10px;background:#fff;color:#586170;font-weight:700;cursor:pointer;margin-top:10px;font-size:12.5px}
+.shipping-more-btn:hover{background:#f8fafc;border-color:#c9cfd8}
 .shipping-rates-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;justify-content:space-between}
 .shipping-rates-toolbar .search-wrap{flex:1;min-width:220px;position:relative}
 .shipping-rates-toolbar .search-wrap input{width:100%;padding:13px 42px 13px 14px;border:1px solid #dfe3e8;border-radius:10px;outline:none;font-size:13px}
@@ -455,12 +469,17 @@
 <section id="view-shipping-rates" class="view hidden">
   <div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر وشركة التوصيل لكل ولاية من ولايات الجزائر (58 ولاية المعتمدة في المتجر) — قسمان منفصلان: باب الدار والمكتب.</p></div><button class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button></div>
   <div class="panel">
+    <div class="shipping-type-toggle">
+      <div class="shipping-type-card" id="shippingTabOffice" onclick="window.switchShippingTab('office')"><span class="st-left"><span class="st-icon">🏢</span> توصيل للمكتب</span><span class="st-count">58 ولاية</span></div>
+      <div class="shipping-type-card active" id="shippingTabHome" onclick="window.switchShippingTab('home')"><span class="st-left"><span class="st-icon">🏠</span> توصيل باب دار</span><span class="st-count">58 ولاية</span></div>
+    </div>
+
     <div class="shipping-rates-toolbar">
       <div class="search-wrap"><span class="search-ic">🔎</span><input id="shippingRatesSearch" placeholder="ابحث عن ولاية بالاسم أو الرقم..." oninput="filterShippingRatesTable()"></div>
     </div>
     <div id="shippingRatesStatus" class="status hidden"></div>
 
-    <div class="shipping-rates-section">
+    <div class="shipping-rates-section" id="shippingSectionHome">
       <h2 class="shipping-rates-section-title">🚚 أسعار التوصيل – باب الدار <small style="font-weight:600;color:#8b94a1;font-size:11px">(DHD + NOEST + 48HR)</small></h2>
       <div class="shipping-rates-bulk" style="margin-bottom:10px">
         <span>تطبيق شركة على كل الولايات:</span>
@@ -478,9 +497,10 @@
         <div class="shipping-rates-head cols-home"><div>رقم</div><div>الولاية</div><div>السعر (دج)</div><div>الشركة</div><div>مدة التوصيل</div></div>
         <div id="shippingRatesBodyHome"><div class="empty-card">⏳ جاري تحميل الأسعار...</div></div>
       </div>
+      <button type="button" class="shipping-more-btn" id="shippingMoreHome" onclick="window.toggleShippingMore('home')" style="display:none">▼ عرض المزيد</button>
     </div>
 
-    <div class="shipping-rates-section">
+    <div class="shipping-rates-section hidden" id="shippingSectionOffice">
       <h2 class="shipping-rates-section-title">🏢 أسعار التوصيل – المكتب <small style="font-weight:600;color:#8b94a1;font-size:11px">(DHD EXPRESS)</small></h2>
       <div class="shipping-rates-bulk" style="margin-bottom:10px">
         <span>تطبيق شركة على كل الولايات:</span>
@@ -494,6 +514,7 @@
         <div class="shipping-rates-head cols-office"><div>رقم</div><div>الولاية</div><div>السعر (دج)</div><div>الشركة</div></div>
         <div id="shippingRatesBodyOffice"><div class="empty-card">⏳ جاري تحميل الأسعار...</div></div>
       </div>
+      <button type="button" class="shipping-more-btn" id="shippingMoreOffice" onclick="window.toggleShippingMore('office')" style="display:none">▼ عرض المزيد</button>
     </div>
   </div>
 </section>
@@ -842,6 +863,39 @@ document.addEventListener("click",e=>{
   if(menu) menu.innerHTML=Object.entries(homeCompanyLabels).map(([v,l])=>carrierOptionHtml(v,l,false)).join("");
 })();
 let shippingRatesLoaded=false;
+window.activeShippingTab="home";
+const shippingExpanded={home:false,office:false};
+const SHIPPING_COLLAPSE_COUNT=8;
+window.switchShippingTab=function(tab){
+  window.activeShippingTab=tab;
+  const tabHome=document.getElementById("shippingTabHome"),tabOffice=document.getElementById("shippingTabOffice");
+  const secHome=document.getElementById("shippingSectionHome"),secOffice=document.getElementById("shippingSectionOffice");
+  if(tabHome)tabHome.classList.toggle("active",tab==="home");
+  if(tabOffice)tabOffice.classList.toggle("active",tab==="office");
+  if(secHome)secHome.classList.toggle("hidden",tab!=="home");
+  if(secOffice)secOffice.classList.toggle("hidden",tab!=="office");
+  const search=document.getElementById("shippingRatesSearch");
+  if(search)search.value="";
+  window.filterShippingRatesTable();
+};
+function applyShippingCollapse(type){
+  const box=document.getElementById(type==="home"?"shippingRatesBodyHome":"shippingRatesBodyOffice");
+  const btn=document.getElementById(type==="home"?"shippingMoreHome":"shippingMoreOffice");
+  if(!box||!btn)return;
+  const rows=Array.from(box.querySelectorAll(".shipping-rate-row"));
+  const expanded=shippingExpanded[type];
+  rows.forEach((row,i)=>{row.classList.toggle("row-more-hidden",!expanded&&i>=SHIPPING_COLLAPSE_COUNT);});
+  if(rows.length>SHIPPING_COLLAPSE_COUNT){
+    btn.style.display="";
+    btn.textContent=expanded?"▲ عرض أقل":`▼ عرض المزيد (${rows.length-SHIPPING_COLLAPSE_COUNT} ولاية أخرى)`;
+  }else{
+    btn.style.display="none";
+  }
+}
+window.toggleShippingMore=function(type){
+  shippingExpanded[type]=!shippingExpanded[type];
+  applyShippingCollapse(type);
+};
 let shippingRatesData={};
 function shippingRateCode(i){return String(i+1).padStart(2,"0");}
 function buildDefaultShippingRates(){
@@ -916,13 +970,23 @@ function renderShippingRatesTable(){
       </select></div>
     </div>`;
   }).join("");
+  applyShippingCollapse("home");
+  applyShippingCollapse("office");
 }
 window.filterShippingRatesTable=function(){
   const q=(document.getElementById("shippingRatesSearch")?.value||"").trim().toLowerCase();
   document.querySelectorAll(".shipping-rate-row").forEach(el=>{
-    const match=el.dataset.name.toLowerCase().includes(q)||el.dataset.code.includes(q);
-    el.style.display=match?"":"none";
+    const match=!q||el.dataset.name.toLowerCase().includes(q)||el.dataset.code.includes(q);
+    el.classList.toggle("row-search-hidden",!match);
   });
+  if(q){
+    document.querySelectorAll(".shipping-rate-row").forEach(el=>el.classList.remove("row-more-hidden"));
+    document.getElementById("shippingMoreHome").style.display="none";
+    document.getElementById("shippingMoreOffice").style.display="none";
+  }else{
+    applyShippingCollapse("home");
+    applyShippingCollapse("office");
+  }
 };
 window.applyBulkShippingCompany=function(type){
   if(type==="home"){
