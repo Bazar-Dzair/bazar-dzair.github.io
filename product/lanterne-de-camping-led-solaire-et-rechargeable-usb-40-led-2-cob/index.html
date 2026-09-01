@@ -63,18 +63,52 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 .buy:hover{filter:brightness(1.04);transform:translateY(-1px);box-shadow:0 10px 24px rgba(22,163,74,.38)}
 .buy:active{transform:translateY(0)}
 
-.checkout{display:none;background:#fff;border:1px solid var(--border);border-radius:26px;box-shadow:var(--shadow);margin-top:22px;padding:28px}
+.checkout{display:none;background:#fff;border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow);margin-top:26px;padding:0;overflow:hidden}
 .checkout.show{display:block;animation:fadeUp .4s ease}
-.checkout h2{margin-top:0;color:var(--navy);font-size:22px}
+
+.checkout-head{background:linear-gradient(120deg,var(--navy),var(--navy-2));color:#fff;padding:22px 28px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden}
+.checkout-head:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 100% 0%,rgba(255,122,0,.25),transparent 60%)}
+.checkout-head .ic{width:46px;height:46px;flex:none;border-radius:14px;background:#ffffff1a;border:1px solid #ffffff30;display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;z-index:1}
+.checkout-head .tx{position:relative;z-index:1;min-width:0}
+.checkout-head h2{margin:0;font-size:18px;font-weight:800;color:#fff}
+.checkout-head p{margin:4px 0 0;font-size:12.5px;color:#cfd9e8;font-weight:600}
+
+.checkout-body{padding:24px 28px 28px}
+
+.order-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#f8fafc;border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px;font-size:13.5px;font-weight:700;color:var(--navy)}
+.order-summary .cod-pill{flex:none;background:#eafaf0;color:var(--green);border:1px solid #cdefd9;padding:5px 11px;border-radius:20px;font-size:11.5px;font-weight:800;white-space:nowrap}
+
+.sec-label{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;color:var(--navy);letter-spacing:.2px;margin:0 0 10px}
+.sec-label .num{width:20px;height:20px;border-radius:7px;background:var(--orange);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;flex:none}
+
+.field-group{margin-bottom:20px}
+.field-wrap{position:relative}
+.field-wrap .fic{position:absolute;top:50%;transform:translateY(-50%);right:14px;font-size:15px;opacity:.55;pointer-events:none}
 .checkout-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.field{width:100%;border:1px solid var(--border);border-radius:13px;padding:14px;outline:none;background:#fbfcfe;transition:.2s}
+.field{width:100%;border:1.5px solid var(--border);border-radius:13px;padding:14px 40px 14px 14px;outline:none;background:#fbfcfe;transition:.2s;font-size:14px;color:var(--text)}
+.field::placeholder{color:#a2adbd}
 .field:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,90,10,.12);background:#fff}
 .full{grid-column:1/-1}
-.shipping{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-top:12px;color:var(--muted);font-weight:600}
-.total{display:flex;justify-content:space-between;align-items:center;font-size:21px;font-weight:900;margin-top:16px;background:linear-gradient(120deg,#fff7f0,#fff);border:1px solid #ffe4d1;border-radius:14px;padding:14px 16px;color:var(--navy)}
-.confirm{width:100%;border:0;border-radius:14px;background:linear-gradient(120deg,var(--orange),var(--orange-2));color:#fff;padding:16px;margin-top:14px;font-weight:800;font-size:16.5px;box-shadow:0 8px 20px rgba(255,90,10,.28);transition:.2s}
-.confirm:hover{filter:brightness(1.04);transform:translateY(-1px)}
-.small{color:var(--muted);font-size:12px;margin-top:10px;text-align:center}
+
+.shipping{background:#f8fafc;border:1px dashed #c9d3e0;border-radius:14px;padding:13px 14px;margin-top:14px;color:var(--muted);font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px}
+
+.total{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:700;margin-top:16px;background:linear-gradient(120deg,#fff7f0,#fff);border:1.5px solid #ffe4d1;border-radius:16px;padding:16px 20px;color:var(--navy)}
+.total span:last-child{font-size:24px;font-weight:900;color:var(--orange)}
+
+.confirm{width:100%;border:0;border-radius:15px;background:linear-gradient(120deg,var(--green),#1fbf5c);color:#fff;padding:18px;margin-top:18px;font-weight:800;font-size:16.5px;box-shadow:0 10px 24px rgba(22,163,74,.32);transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.confirm:hover{filter:brightness(1.05);transform:translateY(-1px);box-shadow:0 12px 28px rgba(22,163,74,.4)}
+.confirm:active{transform:translateY(0)}
+
+.trust-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.trust-strip div{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;font-size:11px;font-weight:700;color:var(--muted);padding:10px 4px;border-radius:12px;background:#fafbfc;border:1px solid #eef1f6}
+.trust-strip div b{font-size:16px}
+
+.small{color:var(--muted);font-size:12px;margin-top:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
+
+@media(max-width:800px){
+  .checkout-head{padding:18px 18px}
+  .checkout-body{padding:18px 18px 22px}
+}
 .back{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--navy);color:var(--navy);padding:12px 18px;border-radius:12px;margin-top:14px;font-weight:700;transition:.2s;justify-content:center}
 .back:hover{background:var(--navy);color:#fff}
 .loading,.error{text-align:center;padding:60px 20px;background:#fff;border-radius:24px;box-shadow:var(--shadow);color:var(--navy);font-weight:700}
@@ -118,23 +152,53 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 <div class="crumb"><a href="/">الرئيسية</a> <span>/</span> <span>تفاصيل المنتج</span></div>
 <div id="product" class="product-card"><div class="loading">⏳ جاري تحميل المنتج...</div></div>
 <div id="checkout" class="checkout">
-  <h2>📦 تأكيد الطلب — الدفع عند الاستلام</h2>
-  <div id="checkoutProduct" class="small"></div>
-  <div class="checkout-grid" style="margin-top:14px">
-    <input class="field" id="customerName" placeholder="الاسم واللقب *">
-    <input class="field" id="customerPhone" type="tel" inputmode="tel" placeholder="رقم الهاتف *">
-    <select class="field" id="wilaya"><option value="">اختر الولاية *</option>
-<option value="01">01 - أدرار</option><option value="02">02 - الشلف</option><option value="03">03 - الأغواط</option><option value="04">04 - أم البواقي</option><option value="05">05 - باتنة</option><option value="06">06 - بجاية</option><option value="07">07 - بسكرة</option><option value="08">08 - بشار</option><option value="09">09 - البليدة</option><option value="10">10 - البويرة</option><option value="11">11 - تمنراست</option><option value="12">12 - تبسة</option><option value="13">13 - تلمسان</option><option value="14">14 - تيارت</option><option value="15">15 - تيزي وزو</option><option value="16">16 - الجزائر</option><option value="17">17 - الجلفة</option><option value="18">18 - جيجل</option><option value="19">19 - سطيف</option><option value="20">20 - سعيدة</option><option value="21">21 - سكيكدة</option><option value="22">22 - سيدي بلعباس</option><option value="23">23 - عنابة</option><option value="24">24 - قالمة</option><option value="25">25 - قسنطينة</option><option value="26">26 - المدية</option><option value="27">27 - مستغانم</option><option value="28">28 - المسيلة</option><option value="29">29 - معسكر</option><option value="30">30 - ورقلة</option><option value="31">31 - وهران</option><option value="32">32 - البيض</option><option value="33">33 - إليزي</option><option value="34">34 - برج بوعريريج</option><option value="35">35 - بومرداس</option><option value="36">36 - الطارف</option><option value="37">37 - تندوف</option><option value="38">38 - تيسمسيلت</option><option value="39">39 - الوادي</option><option value="40">40 - خنشلة</option><option value="41">41 - سوق أهراس</option><option value="42">42 - تيبازة</option><option value="43">43 - ميلة</option><option value="44">44 - عين الدفلى</option><option value="45">45 - النعامة</option><option value="46">46 - عين تموشنت</option><option value="47">47 - غرداية</option><option value="48">48 - غليزان</option><option value="49">49 - تيميمون</option><option value="50">50 - برج باجي مختار</option><option value="51">51 - أولاد جلال</option><option value="52">52 - بني عباس</option><option value="53">53 - إن صالح</option><option value="54">54 - إن قزام</option><option value="55">55 - تقرت</option><option value="56">56 - جانت</option><option value="57">57 - المغير</option><option value="58">58 - المنيعة</option></select>
-    <input class="field" id="address" placeholder="العنوان / البلدية *">
+  <div class="checkout-head">
+    <span class="ic">📦</span>
+    <div class="tx">
+      <h2>تأكيد الطلب — الدفع عند الاستلام</h2>
+      <p>لا تدفع شيئًا الآن، فقط أكمل بياناتك وسنتصل بك لتأكيد الطلب</p>
+    </div>
   </div>
-  <div class="full" id="deliveryTypeWrap" style="display:none;margin-top:10px">
-    <label style="display:block;margin-bottom:6px;font-weight:700;font-size:13px;color:var(--muted)">طريقة الاستلام</label>
-    <div id="deliveryTypeOptions" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+  <div class="checkout-body">
+
+  <div class="order-summary">
+    <span id="checkoutProduct"></span>
+    <span class="cod-pill">💵 الدفع عند الاستلام</span>
   </div>
-  <div id="shipping" class="shipping">اختر الولاية لمعرفة سعر التوصيل.</div>
-  <div class="total"><span>المجموع</span><span id="grandTotal">—</span></div>
-  <button class="confirm" onclick="submitOrder()">✅ تأكيد الطلب بالدفع عند الاستلام</button>
-  <div class="small">سيتم فتح واتساب لإرسال تفاصيل الطلب. لا تدفع أي مبلغ الآن.</div>
+
+  <div class="field-group">
+    <div class="sec-label"><span class="num">1</span> معلومات التواصل</div>
+    <div class="checkout-grid">
+      <div class="field-wrap"><input class="field" id="customerName" placeholder="الاسم واللقب *"><span class="fic">👤</span></div>
+      <div class="field-wrap"><input class="field" id="customerPhone" type="tel" inputmode="tel" placeholder="رقم الهاتف *"><span class="fic">📞</span></div>
+    </div>
+  </div>
+
+  <div class="field-group">
+    <div class="sec-label"><span class="num">2</span> عنوان التوصيل</div>
+    <div class="checkout-grid">
+    <div class="field-wrap"><select class="field" id="wilaya" style="padding-left:14px"><option value="">اختر الولاية *</option>
+<option value="01">01 - أدرار</option><option value="02">02 - الشلف</option><option value="03">03 - الأغواط</option><option value="04">04 - أم البواقي</option><option value="05">05 - باتنة</option><option value="06">06 - بجاية</option><option value="07">07 - بسكرة</option><option value="08">08 - بشار</option><option value="09">09 - البليدة</option><option value="10">10 - البويرة</option><option value="11">11 - تمنراست</option><option value="12">12 - تبسة</option><option value="13">13 - تلمسان</option><option value="14">14 - تيارت</option><option value="15">15 - تيزي وزو</option><option value="16">16 - الجزائر</option><option value="17">17 - الجلفة</option><option value="18">18 - جيجل</option><option value="19">19 - سطيف</option><option value="20">20 - سعيدة</option><option value="21">21 - سكيكدة</option><option value="22">22 - سيدي بلعباس</option><option value="23">23 - عنابة</option><option value="24">24 - قالمة</option><option value="25">25 - قسنطينة</option><option value="26">26 - المدية</option><option value="27">27 - مستغانم</option><option value="28">28 - المسيلة</option><option value="29">29 - معسكر</option><option value="30">30 - ورقلة</option><option value="31">31 - وهران</option><option value="32">32 - البيض</option><option value="33">33 - إليزي</option><option value="34">34 - برج بوعريريج</option><option value="35">35 - بومرداس</option><option value="36">36 - الطارف</option><option value="37">37 - تندوف</option><option value="38">38 - تيسمسيلت</option><option value="39">39 - الوادي</option><option value="40">40 - خنشلة</option><option value="41">41 - سوق أهراس</option><option value="42">42 - تيبازة</option><option value="43">43 - ميلة</option><option value="44">44 - عين الدفلى</option><option value="45">45 - النعامة</option><option value="46">46 - عين تموشنت</option><option value="47">47 - غرداية</option><option value="48">48 - غليزان</option><option value="49">49 - تيميمون</option><option value="50">50 - برج باجي مختار</option><option value="51">51 - أولاد جلال</option><option value="52">52 - بني عباس</option><option value="53">53 - إن صالح</option><option value="54">54 - إن قزام</option><option value="55">55 - تقرت</option><option value="56">56 - جانت</option><option value="57">57 - المغير</option><option value="58">58 - المنيعة</option></select><span class="fic">🗺️</span></div>
+    <div class="field-wrap"><input class="field" id="address" placeholder="العنوان / البلدية *"><span class="fic">🏠</span></div>
+    </div>
+    <div class="full" id="deliveryTypeWrap" style="display:none;margin-top:12px">
+      <label style="display:block;margin-bottom:6px;font-weight:700;font-size:13px;color:var(--muted)">طريقة الاستلام</label>
+      <div id="deliveryTypeOptions" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+    </div>
+    <div id="shipping" class="shipping">🚚 اختر الولاية لمعرفة سعر التوصيل.</div>
+  </div>
+
+  <div class="total"><span>💰 المجموع الكلي</span><span id="grandTotal">—</span></div>
+  <button class="confirm" onclick="submitOrder()"><span>✅</span> تأكيد الطلب بالدفع عند الاستلام</button>
+
+  <div class="trust-strip">
+    <div><b>🔒</b>دفع آمن 100%</div>
+    <div><b>🚚</b>توصيل لكل الولايات</div>
+    <div><b>💵</b>ادفع عند الاستلام</div>
+  </div>
+
+  <div class="small">📱 سيتم فتح واتساب لإرسال تفاصيل الطلب. لا تدفع أي مبلغ الآن.</div>
+  </div>
 </div>
 </main>
 <div id="stickyBuy" class="sticky-buy">
