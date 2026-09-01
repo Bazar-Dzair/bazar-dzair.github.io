@@ -6,33 +6,93 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>تم تأكيد الطلب | Bazar Dzair</title>
-<meta name="theme-color" content="#071b33">
+<meta name="theme-color" content="#061e3d">
 <style>
-:root{--navy:#071b33;--orange:#ff6a00;--green:#16a34a;--bg:#f5f7fa;--text:#172033;--muted:#667085;--border:#e4e7ec}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Tahoma,sans-serif;line-height:1.7}
-main{max-width:640px;width:92%;margin:9vh auto;background:#fff;border:1px solid var(--border);border-radius:26px;box-shadow:0 12px 40px #0000000f;padding:44px 30px;text-align:center}
-.icon{width:96px;height:96px;border-radius:50%;background:#eafbea;color:var(--green);display:grid;place-items:center;font-size:52px;margin:0 auto}
-h1{color:var(--navy);margin:18px 0 6px;font-size:26px}
-p{color:var(--muted);margin:0 0 4px;line-height:1.9}
-.note{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:18px;margin:18px 0;color:var(--text);font-size:15px;text-align:right}
+:root{--navy:#061e3d;--navy-2:#0b2c56;--orange:#ff5a0a;--orange-2:#ff7a00;--green:#16a34a;--bg:#f7f8fb;--text:#071d3b;--muted:#6f7d91;--border:#e5e9ef;--shadow:0 8px 26px rgba(7,29,59,.08);}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(#fff 0 160px,var(--bg) 320px,#fff 100%);color:var(--text);font-family:Tahoma,Arial,sans-serif;line-height:1.7;min-height:100vh}
+a{text-decoration:none;color:inherit}
+
+/* ===== Brand header ===== */
+header{background:linear-gradient(120deg,var(--navy),var(--navy-2));color:#fff}
+header .in{max-width:640px;width:92%;margin:auto;min-height:62px;display:flex;align-items:center;justify-content:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800}
+.brand-mark{width:28px;height:28px;border:4px solid var(--orange);border-radius:11px 11px 9px 9px;position:relative;flex:none}
+.brand-mark:before{content:"";position:absolute;width:14px;height:11px;border:3px solid var(--orange);border-bottom:0;border-radius:11px 11px 0 0;left:2px;top:-11px}
+.brand-txt{font-size:18px;letter-spacing:.2px}.brand-txt b{color:var(--orange-2)}
+
+main{max-width:560px;width:92%;margin:7vh auto 60px}
+
+.card{background:#fff;border:1px solid var(--border);border-radius:26px;box-shadow:var(--shadow);padding:38px 30px 32px;text-align:center;animation:fadeUp .5s ease;position:relative;overflow:hidden}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.card:before{content:"";position:absolute;top:-60px;right:-60px;width:180px;height:180px;background:radial-gradient(circle,rgba(255,90,10,.08),transparent 70%);border-radius:50%}
+
+.icon-wrap{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e9fbee,#dcf7e4);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;position:relative;box-shadow:0 8px 22px rgba(22,163,74,.18);animation:pop .5s cubic-bezier(.3,1.6,.5,1) .1s both}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.icon-wrap svg{width:46px;height:46px}
+
+h1{color:var(--navy);margin:20px 0 6px;font-size:24px;font-weight:800}
+.sub{color:var(--muted);margin:0 0 22px;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:6px}
+.sub b{color:var(--text)}
+
+.order-id{display:inline-flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid var(--border);border-radius:30px;padding:7px 16px;font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:26px}
+.order-id .dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:none}
+
+.note{background:linear-gradient(120deg,#f8fafc,#fff);border:1px solid var(--border);border-radius:16px;padding:18px 18px;margin:0 0 14px;color:var(--text);font-size:14.5px;text-align:right;display:flex;gap:12px;align-items:flex-start}
+.note .ic{font-size:20px;flex:none;margin-top:1px}
 .note b{color:var(--orange)}
-.btns{display:flex;flex-direction:column;gap:12px;margin-top:8px}
-.back,.back2{display:block;text-align:center;background:var(--navy);color:#fff;padding:15px;border-radius:12px;font-weight:800;text-decoration:none}
-.what{display:block;text-align:center;background:var(--green);color:#fff;padding:15px;border-radius:12px;font-weight:800;text-decoration:none;margin-bottom:6px}
+
+.phone-alert{background:linear-gradient(120deg,#fff7f0,#fff9f4);border:1.5px solid #ffd8b8;border-radius:16px;padding:18px;margin-bottom:26px;text-align:right;display:flex;gap:12px;align-items:flex-start}
+.phone-alert .ic{font-size:22px;flex:none;margin-top:1px}
+.phone-alert strong{display:block;color:var(--navy);font-size:14.5px;margin-bottom:3px;font-weight:800}
+.phone-alert span{color:var(--muted);font-size:13.5px}
+
+.btns{display:flex;flex-direction:column;gap:12px}
+.what{display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(120deg,var(--green),#1fbf5c);color:#fff;padding:16px;border-radius:14px;font-weight:800;font-size:15.5px;box-shadow:0 8px 20px rgba(22,163,74,.3);transition:.2s}
+.what:hover{filter:brightness(1.05);transform:translateY(-1px)}
+.back2{display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:1.5px solid var(--navy);color:var(--navy);padding:15px;border-radius:14px;font-weight:700;transition:.2s;font-size:14.5px}
+.back2:hover{background:var(--navy);color:#fff}
+
+@media(max-width:480px){
+  main{margin-top:5vh}
+  .card{padding:30px 20px 26px;border-radius:22px}
+  h1{font-size:21px}
+}
 </style>
 </head>
 <body>
+<header><div class="in">
+  <span class="brand"><span class="brand-mark"></span><span class="brand-txt">Bazar <b>Dzair</b></span></span>
+</div></header>
 <main>
-  <div class="icon">✅</div>
-  <h1>تم تسجيل طلبك بنجاح</h1>
-  <p>شكرًا لثقتك في متجر Bazar Dzair 🛍️</p>
-  <div class="note">
-    سنتصل بك قريبًا على رقم هاتفك لتأكيد الطلب وتحديد موعد التوصيل.<br>
-    <b>الدفع عند الاستلام</b> — لا تدفع أي مبلغ الآن.
-  </div>
-  <div class="btns">
-    <a class="what" href="https://wa.me/213500000000" target="_blank" rel="noopener">💬 أرسل تأكيدًا عبر واتساب</a>
-    <a class="back2" href="./">← العودة إلى المتجر</a>
+  <div class="card">
+    <div class="icon-wrap">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6L9 17l-5-5" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1>تم تسجيل طلبك بنجاح 🎉</h1>
+    <p class="sub">شكرًا لثقتك بنا يا بطل، تسوّقك معنا يسعدنا دائمًا 🛍️</p>
+
+    <div class="order-id"><span class="dot"></span> طلبك الآن قيد المعالجة</div>
+
+    <div class="phone-alert">
+      <span class="ic">📞</span>
+      <div>
+        <strong>يرجى إبقاء هاتفك بالقرب منك</strong>
+        <span>سيتصل بك أحد ممثلي المتجر خلال وقت قصير لتأكيد الطلب وتحديد موعد التوصيل. تأكد أن رقمك صحيح ومتاح للرد.</span>
+      </div>
+    </div>
+
+    <div class="note">
+      <span class="ic">💵</span>
+      <span><b>الدفع عند الاستلام</b> — لا تدفع أي مبلغ الآن. تدفع فقط عند استلام طلبك بين يديك.</span>
+    </div>
+
+    <div class="btns">
+      <a class="what" href="https://wa.me/213500000000" target="_blank" rel="noopener">💬 أرسل تأكيدًا عبر واتساب</a>
+      <a class="back2" href="./">← العودة إلى المتجر</a>
+    </div>
   </div>
 </main>
 </body>
