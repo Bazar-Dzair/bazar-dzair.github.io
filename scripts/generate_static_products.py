@@ -103,7 +103,7 @@ for c in categories:
     for pu,pn,p,pslug in matched:
         cards.append(f'<article class="card"><img src="{html.escape(image_of(p),quote=True)}" alt="{html.escape(pn,quote=True)}"><h2>{html.escape(pn)}</h2><p class="price">{html.escape(money(p.get("price")))}</p><a class="btn" href="{html.escape(pu,quote=True)}">مشاهدة المنتج</a></article>')
     body=f'<p><a href="/">Bazar Dzair</a> / {html.escape(name)}</p><h1>{html.escape(name)}</h1><p>{html.escape(desc)}</p><section class="grid">'+(''.join(cards) or '<div class="card">لا توجد منتجات منشورة في هذا التصنيف حالياً.</div>')+'</section>'
-    ld={'@context':'https://schema.org','@type':'CollectionPage','name':name,'description':desc,'url':url,'mainEntity':{'@type':'ItemList','itemListElement':[{'@type':'ListItem','position':i+1,'url':pu,'name':pn} for i,(pu,pn,_,_) in enumerate(matched)]}}
+    ld={'@context':'https://schema.org','@type':'CollectionPage','name':name,'description':desc,'url':url,'mainEntity':{'@type':'ItemList','itemListElement':[{'@type':'ListItem','position':i+1,'url':pu,'name':pn} for i,(pu,pn,_,_) in enumerate(matched)]},'breadcrumb':{'@type':'BreadcrumbList','itemListElement':[{'@type':'ListItem','position':1,'name':'الرئيسية','item':SITE},{'@type':'ListItem','position':2,'name':name,'item':url}]}}
     write_page(root/'product-category'/slug/'index.html',name+' | Bazar Dzair',desc,url,body,ld)
     cat_urls.append((url,name))
 
