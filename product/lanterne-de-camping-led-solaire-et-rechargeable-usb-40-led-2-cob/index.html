@@ -12,26 +12,113 @@
 <meta property="og:locale" content="ar_DZ"><meta property="og:site_name" content="Bazar Dzair">
 <link id="canonical" rel="canonical">
 <style>
-:root{--navy:#071b33;--orange:#ff6a00;--green:#16a34a;--bg:#f5f7fa;--text:#172033;--muted:#667085;--border:#e4e7ec}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Tahoma,sans-serif;line-height:1.6}
-button,input,select{font:inherit}button{cursor:pointer}a{text-decoration:none}
-header{background:var(--navy);color:#fff;position:sticky;top:0;z-index:20;box-shadow:0 3px 15px #0002}header .in{max-width:1180px;width:94%;margin:auto;min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:10px}header a{color:#fff;font-weight:800}header .backtop{border:1px solid #ffffff33;padding:8px 13px;border-radius:10px;font-size:13px}
-main{max-width:1180px;width:94%;margin:25px auto 60px}.crumb{color:var(--muted);font-size:13px;margin-bottom:12px}.crumb a{color:var(--navy);font-weight:700}
-.product-card{background:#fff;border:1px solid var(--border);border-radius:24px;box-shadow:0 8px 30px #0000000c;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:35px;padding:25px;overflow:hidden;align-items:stretch}
-.photo-wrap{background:#f8fafc;border-radius:18px;min-height:0;padding:12px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;min-width:0}.main-photo-box{width:100%;aspect-ratio:1 / 1;height:auto;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border-radius:16px;background:#fff}.photo{width:100%;height:100%;object-fit:contain;display:block}.gallery-arrow{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;border-radius:50%;background:#fff;color:#172033;font-size:28px;box-shadow:0 4px 16px #0002;z-index:2}.gallery-arrow.prev{left:12px}.gallery-arrow.next{right:12px}.gallery-count{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:#071b33dd;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px;z-index:2}.thumbs{width:100%;display:flex;gap:10px;overflow-x:auto;padding:12px 4px 4px;scrollbar-width:thin}.thumb{flex:0 0 78px;height:78px;aspect-ratio:1 / 1;border:2px solid transparent;border-radius:11px;background:#fff;padding:3px;overflow:hidden;cursor:pointer}.thumb.active{border-color:var(--green)}.thumb img{width:100%;height:100%;object-fit:contain;border-radius:8px}.badge{position:absolute;top:14px;right:14px;background:var(--orange);color:#fff;padding:5px 10px;border-radius:9px;font-size:12px;font-weight:700;z-index:3}
-.info{padding:15px 5px;min-width:0;overflow:hidden}.title{font-size:34px;line-height:1.25;margin:5px 0 15px;overflow-wrap:anywhere;word-break:normal}.price{font-size:31px;color:var(--orange);font-weight:900;margin-bottom:15px}.desc{color:var(--muted);font-size:16px;white-space:pre-line;margin-bottom:20px;overflow-wrap:anywhere}.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}.trust div{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;font-size:12px}.qty{display:flex;width:max-content;border:1px solid var(--border);border-radius:11px;overflow:hidden;margin:15px 0}.qty button{border:0;background:#fff;width:44px;height:44px;font-size:20px}.qty span{min-width:45px;text-align:center;padding-top:9px;font-weight:700}.buy{width:100%;border:0;border-radius:13px;background:var(--green);color:#fff;padding:15px;font-weight:800;font-size:18px;box-shadow:0 5px 15px #16a34a30}.buy:hover{filter:brightness(.96)}
-.checkout{display:none;background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:0 8px 30px #0000000c;margin-top:20px;padding:25px}.checkout.show{display:block}.checkout h2{margin-top:0}.checkout-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{width:100%;border:1px solid var(--border);border-radius:10px;padding:13px;outline:none;background:#fff}.field:focus{border-color:var(--orange);box-shadow:0 0 0 3px #ff6a0014}.full{grid-column:1/-1}.shipping{background:#f8fafc;border-radius:12px;padding:12px;margin-top:10px;color:var(--muted)}.total{display:flex;justify-content:space-between;font-size:20px;font-weight:800;margin-top:14px;border-top:1px solid var(--border);padding-top:14px}.confirm{width:100%;border:0;border-radius:12px;background:var(--orange);color:#fff;padding:15px;margin-top:12px;font-weight:800}.small{color:var(--muted);font-size:12px;margin-top:8px}.back{display:inline-block;background:var(--navy);color:#fff;padding:12px 17px;border-radius:10px;margin-top:12px}.loading,.error{text-align:center;padding:60px;background:#fff;border-radius:20px}.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,100px);background:var(--navy);color:#fff;padding:12px 20px;border-radius:12px;z-index:50;transition:.25s}.toast.show{transform:translate(-50%,0)}
-.delivery-opt{display:flex;align-items:center;gap:8px;border:2px solid var(--border);border-radius:12px;padding:10px 14px;cursor:pointer;background:#fff;font-size:13px;font-weight:700;color:var(--text)}.delivery-opt.active{border-color:var(--orange);background:#fff7f0}.delivery-opt .carrier-logos{display:flex;gap:4px}.delivery-opt img{width:20px;height:20px;border-radius:5px;object-fit:contain;background:#fff;border:1px solid #eef0f3}.delivery-opt.disabled{opacity:.45;cursor:not-allowed}
-@media(max-width:800px){main{margin-top:15px}.product-card{grid-template-columns:1fr;padding:12px;gap:10px;border-radius:18px}.photo-wrap{min-height:0}.main-photo-box{height:auto;aspect-ratio:1 / 1}.thumb{flex-basis:68px;height:68px}.gallery-arrow{width:38px;height:38px;font-size:24px}.info{padding:10px}.title{font-size:25px}.price{font-size:25px}.trust{grid-template-columns:1fr 1fr 1fr}.checkout-grid{grid-template-columns:1fr}.full{grid-column:auto}}
+:root{--navy:#061e3d;--navy-2:#0b2c56;--orange:#ff5a0a;--orange-2:#ff7a00;--green:#16a34a;--bg:#f7f8fb;--text:#071d3b;--muted:#6f7d91;--border:#e5e9ef;--shadow:0 8px 26px rgba(7,29,59,.08);--radius:24px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(#fff 0 170px,var(--bg) 360px,#fff 100%);color:var(--text);font-family:Tahoma,Arial,sans-serif;line-height:1.6}
+button,input,select{font:inherit}button{cursor:pointer}a{text-decoration:none;color:inherit}
+
+/* ===== Header (matches store identity) ===== */
+header{background:linear-gradient(120deg,var(--navy),var(--navy-2));color:#fff;position:sticky;top:0;z-index:30;box-shadow:0 3px 18px rgba(6,30,61,.18)}
+header .in{max-width:1180px;width:94%;margin:auto;min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800}
+.brand-mark{width:30px;height:30px;border:4px solid var(--orange);border-radius:11px 11px 9px 9px;position:relative;flex:none}
+.brand-mark:before{content:"";position:absolute;width:15px;height:12px;border:3px solid var(--orange);border-bottom:0;border-radius:11px 11px 0 0;left:3px;top:-12px}
+.brand-txt{font-size:19px;letter-spacing:.2px}.brand-txt b{color:var(--orange)}
+header .backtop{border:1px solid #ffffff30;padding:8px 15px;border-radius:30px;font-size:13px;font-weight:700;transition:.2s;background:#ffffff0d}
+header .backtop:hover{background:#ffffff1f;border-color:#ffffff55}
+
+main{max-width:1180px;width:94%;margin:22px auto 90px}
+.crumb{color:var(--muted);font-size:13px;margin-bottom:14px;display:flex;align-items:center;gap:6px}.crumb a{color:var(--navy);font-weight:700}
+
+/* ===== Product card ===== */
+.product-card{background:#fff;border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow);display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:38px;padding:28px;overflow:hidden;align-items:stretch;animation:fadeUp .45s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.photo-wrap{background:linear-gradient(180deg,#f8fafc,#f1f4f9);border-radius:20px;min-height:0;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;min-width:0;border:1px solid #eef1f6}
+.main-photo-box{width:100%;aspect-ratio:1 / 1;height:auto;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border-radius:18px;background:#fff;box-shadow:0 2px 10px rgba(7,29,59,.05)}
+.photo{width:100%;height:100%;object-fit:contain;display:block;transition:transform .35s ease}
+.main-photo-box:hover .photo{transform:scale(1.05)}
+.gallery-arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border:0;border-radius:50%;background:#ffffffe6;backdrop-filter:blur(4px);color:var(--navy);font-size:26px;box-shadow:0 4px 14px rgba(7,29,59,.15);z-index:2;transition:.2s}
+.gallery-arrow:hover{background:var(--orange);color:#fff}
+.gallery-arrow.prev{left:12px}.gallery-arrow.next{right:12px}
+.gallery-count{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:var(--navy)cc;background:rgba(6,30,61,.82);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;z-index:2;font-weight:600}
+.thumbs{width:100%;display:flex;gap:10px;overflow-x:auto;padding:14px 4px 4px;scrollbar-width:thin}
+.thumb{flex:0 0 76px;height:76px;aspect-ratio:1 / 1;border:2px solid var(--border);border-radius:13px;background:#fff;padding:4px;overflow:hidden;cursor:pointer;transition:.2s}
+.thumb:hover{border-color:#ffbe94}
+.thumb.active{border-color:var(--orange);box-shadow:0 3px 10px rgba(255,90,10,.25)}
+.thumb img{width:100%;height:100%;object-fit:contain;border-radius:9px}
+.badge{position:absolute;top:16px;right:16px;background:linear-gradient(120deg,var(--orange),var(--orange-2));color:#fff;padding:6px 13px;border-radius:11px;font-size:12.5px;font-weight:800;z-index:3;box-shadow:0 4px 12px rgba(255,90,10,.35)}
+
+.info{padding:12px 6px;min-width:0;overflow:hidden;display:flex;flex-direction:column}
+.title{font-size:32px;line-height:1.3;margin:2px 0 14px;overflow-wrap:anywhere;word-break:normal;font-weight:800;color:var(--navy)}
+.price{font-size:32px;background:linear-gradient(120deg,var(--orange),var(--orange-2));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:900;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.desc{color:var(--muted);font-size:15.5px;white-space:pre-line;margin-bottom:22px;overflow-wrap:anywhere}
+.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 22px}
+.trust div{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:12px 6px;text-align:center;font-size:12.5px;font-weight:600;color:var(--navy);transition:.2s}
+.trust div:hover{border-color:#ffd8bd;background:#fff8f3}
+.qty{display:flex;width:max-content;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:4px 0 18px;background:#fff;box-shadow:0 2px 8px rgba(7,29,59,.04)}
+.qty button{border:0;background:#fff;width:46px;height:46px;font-size:20px;color:var(--navy);transition:.2s}
+.qty button:hover{background:#f8fafc;color:var(--orange)}
+.qty span{min-width:48px;text-align:center;padding-top:11px;font-weight:800}
+.buy{width:100%;border:0;border-radius:15px;background:linear-gradient(120deg,var(--green),#1fbf5c);color:#fff;padding:17px;font-weight:800;font-size:18px;box-shadow:0 8px 20px rgba(22,163,74,.3);transition:.2s}
+.buy:hover{filter:brightness(1.04);transform:translateY(-1px);box-shadow:0 10px 24px rgba(22,163,74,.38)}
+.buy:active{transform:translateY(0)}
+
+.checkout{display:none;background:#fff;border:1px solid var(--border);border-radius:26px;box-shadow:var(--shadow);margin-top:22px;padding:28px}
+.checkout.show{display:block;animation:fadeUp .4s ease}
+.checkout h2{margin-top:0;color:var(--navy);font-size:22px}
+.checkout-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{width:100%;border:1px solid var(--border);border-radius:13px;padding:14px;outline:none;background:#fbfcfe;transition:.2s}
+.field:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,90,10,.12);background:#fff}
+.full{grid-column:1/-1}
+.shipping{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-top:12px;color:var(--muted);font-weight:600}
+.total{display:flex;justify-content:space-between;align-items:center;font-size:21px;font-weight:900;margin-top:16px;background:linear-gradient(120deg,#fff7f0,#fff);border:1px solid #ffe4d1;border-radius:14px;padding:14px 16px;color:var(--navy)}
+.confirm{width:100%;border:0;border-radius:14px;background:linear-gradient(120deg,var(--orange),var(--orange-2));color:#fff;padding:16px;margin-top:14px;font-weight:800;font-size:16.5px;box-shadow:0 8px 20px rgba(255,90,10,.28);transition:.2s}
+.confirm:hover{filter:brightness(1.04);transform:translateY(-1px)}
+.small{color:var(--muted);font-size:12px;margin-top:10px;text-align:center}
+.back{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--navy);color:var(--navy);padding:12px 18px;border-radius:12px;margin-top:14px;font-weight:700;transition:.2s;justify-content:center}
+.back:hover{background:var(--navy);color:#fff}
+.loading,.error{text-align:center;padding:60px 20px;background:#fff;border-radius:24px;box-shadow:var(--shadow);color:var(--navy);font-weight:700}
+.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,100px);background:var(--navy);color:#fff;padding:13px 22px;border-radius:14px;z-index:50;transition:.25s;box-shadow:0 8px 20px rgba(6,30,61,.3);font-weight:600}.toast.show{transform:translate(-50%,0)}
+
+.delivery-opt{display:flex;align-items:center;justify-content:space-between;gap:8px;border:2px solid var(--border);border-radius:13px;padding:11px 15px;cursor:pointer;background:#fff;font-size:13px;font-weight:700;color:var(--text);transition:.2s}
+.delivery-opt.active{border-color:var(--orange);background:#fff7f0;box-shadow:0 3px 10px rgba(255,90,10,.12)}
+.delivery-opt .carrier-logos{display:flex;gap:4px}
+.delivery-opt img{width:20px;height:20px;border-radius:5px;object-fit:contain;background:#fff;border:1px solid #eef0f3}
+.delivery-opt.disabled{opacity:.45;cursor:not-allowed}
+
+/* ===== Sticky mobile buy bar ===== */
+.sticky-buy{display:none;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--border);box-shadow:0 -8px 24px rgba(7,29,59,.12);padding:10px 14px;align-items:center;gap:12px}
+.sticky-buy .sb-price{flex:0 0 auto;font-weight:900;color:var(--orange);font-size:17px;white-space:nowrap}
+.sticky-buy .sb-btn{flex:1;border:0;border-radius:13px;background:linear-gradient(120deg,var(--green),#1fbf5c);color:#fff;padding:14px;font-weight:800;font-size:15.5px;box-shadow:0 6px 16px rgba(22,163,74,.3)}
+
+@media(max-width:800px){
+  main{margin-top:14px;margin-bottom:110px}
+  .product-card{grid-template-columns:1fr;padding:12px;gap:12px;border-radius:20px}
+  .photo-wrap{min-height:0}
+  .main-photo-box{height:auto;aspect-ratio:1 / 1}
+  .thumb{flex-basis:64px;height:64px}
+  .gallery-arrow{width:36px;height:36px;font-size:22px}
+  .info{padding:8px 6px 0}
+  .title{font-size:23px}
+  .price{font-size:24px}
+  .trust{grid-template-columns:1fr 1fr 1fr}
+  .checkout-grid{grid-template-columns:1fr}
+  .full{grid-column:auto}
+  .buy{display:none}
+  .sticky-buy{display:flex}
+}
 </style>
 </head>
 <body>
-<header><div class="in"><a href="/">🛍️ Bazar Dzair</a><a class="backtop" href="/">← المتجر</a></div></header>
+<header><div class="in">
+  <a class="brand" href="/"><span class="brand-mark"></span><span class="brand-txt">Bazar <b>Dzair</b></span></a>
+  <a class="backtop" href="/">← العودة للمتجر</a>
+</div></header>
 <main>
-<div class="crumb"><a href="/">الرئيسية</a> / تفاصيل المنتج</div>
-<div id="product" class="product-card"><div class="loading">جاري تحميل المنتج...</div></div>
+<div class="crumb"><a href="/">الرئيسية</a> <span>/</span> <span>تفاصيل المنتج</span></div>
+<div id="product" class="product-card"><div class="loading">⏳ جاري تحميل المنتج...</div></div>
 <div id="checkout" class="checkout">
-  <h2>📦 تأكيد الطلب</h2>
+  <h2>📦 تأكيد الطلب — الدفع عند الاستلام</h2>
   <div id="checkoutProduct" class="small"></div>
   <div class="checkout-grid" style="margin-top:14px">
     <input class="field" id="customerName" placeholder="الاسم واللقب *">
@@ -50,6 +137,10 @@ main{max-width:1180px;width:94%;margin:25px auto 60px}.crumb{color:var(--muted);
   <div class="small">سيتم فتح واتساب لإرسال تفاصيل الطلب. لا تدفع أي مبلغ الآن.</div>
 </div>
 </main>
+<div id="stickyBuy" class="sticky-buy">
+  <span class="sb-price" id="sbPrice">—</span>
+  <button class="sb-btn" onclick="showCheckout()">⚡ اشترِ الآن</button>
+</div>
 <div id="toast" class="toast"></div>
 <script type="module">
 let firebasePromise=null;
@@ -101,8 +192,8 @@ let galleryImages=[];let galleryIndex=0;function render(p){product=p;const name=
 document.title=name+" | Bazar Dzair";
 const md=document.getElementById("metaDescription");if(md)md.content=String(desc).slice(0,155);
 applyProductSEO(p,name,desc);
-if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:name,price:Number(p.price||0),category:p.category||""});const available=p.published!==false;const buyHtml=available?`<button class="buy" onclick="showCheckout()">⚡ اشترِ الآن</button>`:`<button class="buy" disabled style="opacity:.55;cursor:not-allowed">غير متوفر حاليًا</button>`;box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="الصورة السابقة">‹</button><img id="mainProductPhoto" class="photo" src="${esc(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="الصورة التالية">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${esc(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${available?(p.badge?`<span class="badge">${esc(p.badge)}</span>`:""):'<span class="badge" style="background:#9aa1ab">غير متوفر</span>'}</div><div class="info"><h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="trust"><div>💵<br><b>الدفع عند الاستلام</b></div><div>🚚<br><b>توصيل للولايات</b></div><div>🛡️<br><b>خدمة آمنة</b></div></div><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}<a class="back" href="/">← العودة للمتجر</a></div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=galleryImages[galleryIndex];const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
-window.changeQty=x=>{quantity=Math.max(1,quantity+x);document.getElementById("qty").textContent=quantity;document.getElementById("checkoutProduct").textContent=(product.name||product.product)+" × "+quantity+" — "+money(product.price*quantity);updateTotal()};
+if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:name,price:Number(p.price||0),category:p.category||""});const available=p.published!==false;const buyHtml=available?`<button class="buy" onclick="showCheckout()">⚡ اشترِ الآن</button>`:`<button class="buy" disabled style="opacity:.55;cursor:not-allowed">غير متوفر حاليًا</button>`;box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="الصورة السابقة">‹</button><img id="mainProductPhoto" class="photo" src="${esc(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="الصورة التالية">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${esc(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${available?(p.badge?`<span class="badge">${esc(p.badge)}</span>`:""):'<span class="badge" style="background:#9aa1ab">غير متوفر</span>'}</div><div class="info"><h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="trust"><div>💵<br><b>الدفع عند الاستلام</b></div><div>🚚<br><b>توصيل للولايات</b></div><div>🛡️<br><b>خدمة آمنة</b></div></div><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}<a class="back" href="/">← العودة للمتجر</a></div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);sb.querySelector(".sb-btn").disabled=!available;sb.querySelector(".sb-btn").style.opacity=available?"1":".55";sb.querySelector(".sb-btn").textContent=available?"⚡ اشترِ الآن":"غير متوفر";}}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=galleryImages[galleryIndex];const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
+window.changeQty=x=>{quantity=Math.max(1,quantity+x);document.getElementById("qty").textContent=quantity;document.getElementById("checkoutProduct").textContent=(product.name||product.product)+" × "+quantity+" — "+money(product.price*quantity);const sbp=document.getElementById("sbPrice");if(sbp)sbp.textContent=money(product.price*quantity);updateTotal()};
 window.showCheckout=()=>{const c=document.getElementById("checkout");c.classList.add("show");c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>document.getElementById("customerName").focus(),350)};
 let selectedDeliveryType=null;
 function computeAvail(prod,wil){
