@@ -44,6 +44,18 @@
   }
   function node() { return document.head; }
 
+  function scriptTextIncludes(sub) {
+    var list = document.getElementsByTagName("script");
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].textContent && list[i].textContent.indexOf(sub) !== -1) return true;
+    }
+    return false;
+  }
+  function scriptSrcIncludes(sub) {
+    return !!document.querySelector('script[src*="' + sub + '"]');
+  }
+
+
   function external(id, src, opt) {
     if (document.getElementById(id)) return false;
     var s = document.createElement("script");
@@ -73,6 +85,9 @@
     if (!(c.enabled === true)) return;
     var gid = (typeof c.id === "string" ? c.id.trim() : "");
     if (!/^(G|T|GT|AW)-[A-Za-z0-9-]{6,}$/.test(gid)) return; // صيغة غير صالحة → لا نحقن
+    // إن كان الكود موجودًا مسبقًا كحقن ثابت داخل مصدر HTML (الطريقة الرسمية
+    // المعتمدة لتحقق Google) لا نكرّر التحميل تفاديًا لعدّ مضاعف للزيارات.
+    if (scriptSrcIncludes("googletagmanager.com/gtag/js")) return;
     var s = document.createElement("script");
     s.id = "bazar_ga_script";
     s.async = true;
@@ -96,6 +111,7 @@
     var id = (typeof gtm.id === "string") ? gtm.id.trim() : "";
     if (!/^GTM-[A-Za-z0-9]+$/.test(id)) return;
     if (document.getElementById("bazar_gtm_js")) return;
+    if (scriptTextIncludes("gtm.start")) return; // موجود مسبقًا كحقن ثابت
 
     inline("bazar_gtm_script", [
       "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});",
@@ -130,6 +146,7 @@
     var id = (typeof mp.id === "string") ? mp.id.trim() : "";
     if (!/^[0-9]{8,20}$/.test(id)) return;
     if (document.getElementById("bazar_meta_script")) return;
+    if (scriptTextIncludes("fbq('init'")) return; // موجود مسبقًا كحقن ثابت
     external("bazar_meta_script", "https://connect.facebook.net/en_US/fbevents.js", { async: true });
     inline("bazar_meta_cfg", [
       "!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments);};",
@@ -149,6 +166,7 @@
     var id = (typeof tk.id === "string") ? tk.id.trim() : "";
     if (!/^[A-Za-z0-9]{9,25}$/.test(id)) return;
     if (document.getElementById("bazar_tt_script")) return;
+    if (scriptTextIncludes("ttq.load(")) return; // موجود مسبقًا كحقن ثابت
     inline("bazar_tt_base", [
       "!function (w, d, t) { w.TiktokAnalyticsObject=t; var ttq=w[t]=w[t]||[];",
       "ttq.methods=['page','track','identify','instances','debug','on','off','once','ready','alias','group','enableCookie','disableCookie','holdConsent','revokeConsent','grantConsent'];",

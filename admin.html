@@ -1209,8 +1209,8 @@ function openAddon(key){
   var c=localAddons[key]||{};
   var current=d?idValueOf(c,d):"";
   var hint= (d&&d.key==="searchConsole")
-    ? "ملاحظة صريحة: حقن <code>&lt;meta&gt;</code> عبر JavaScript لا يكفي — زاحف Google يقرأ ملف HTML المصدر ولا ينفّذ السكربتات عند التحقق من الملكية.\nالطريقة الموثوقة مع GitHub Pages هي ملف تحقق ثابت <code>googleXXXX.html</code> في جذر المستودع، أو سجل DNS TXT. استخدم زر «⬇ توليد ملف التحقق» بالأسفل وأنشره على GitHub مرة واحدة، وسيبقى التحقق ساريًا."
-    : "عند التفعيل يُحمَّل كود الخدمة في صفحات المتجر مرة واحدة فقط.";
+    ? "✅ الآن يعمل تلقائيًا: بعد الحفظ والتفعيل، رمز التحقق يُكتب مباشرة داخل مصدر HTML الحقيقي لصفحات متجرك (وليس عبر JavaScript فقط) خلال دقائق قليلة عبر أتمتة GitHub. اختر طريقة «Google Analytics» أو «الوسم HTML meta» عند التحقق في Search Console.\nإن كنت مستعجلًا أو فضّلت طريقة بديلة موثوقة 100%: استخدم زر «⬇ توليد ملف التحقق» بالأسفل وارفعه يدويًا إلى جذر المستودع."
+    : "✅ عند التفعيل والحفظ، الكود يُكتب مباشرة داخل مصدر HTML الحقيقي لكل صفحات المتجر تلقائيًا (خلال دقائق قليلة عبر أتمتة GitHub) — وليس فقط عبر JavaScript بعد التحميل، لذلك تعمل أدوات التحقق والزحف الخاصة بجوجل بشكل صحيح.";
   var checked=(c.enabled===true)?"checked":"";
   var gscHelp = (d&&d.key==="searchConsole")
     ? '<div class="gsc-help" style="margin-top:12px;border:1px solid #e4e7ec;border-radius:10px;padding:12px;background:#fafbfc">'+
