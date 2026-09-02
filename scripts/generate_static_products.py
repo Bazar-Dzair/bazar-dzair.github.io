@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, re, html, unicodedata, urllib.parse, urllib.request, shutil
+import json, re, html, unicodedata, urllib.parse, urllib.request
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -58,49 +58,40 @@ def is_published(p):
 
 def write_page(path, title, description, canonical, body, jsonld):
     path.parent.mkdir(parents=True,exist_ok=True)
-    ld=json.dumps(jsonld,ensure_ascii=False).replace('</script>','<\\/script>')
-    doc=f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title><meta name="description" content="{html.escape(description, quote=True)}"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="{html.escape(canonical,quote=True)}"><meta property="og:type" content="website"><meta property="og:title" content="{html.escape(title,quote=True)}"><meta property="og:description" content="{html.escape(description,quote=True)}"><meta property="og:url" content="{html.escape(canonical,quote=True)}"><link rel="icon" href="/logo.svg"><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:1000px;margin:auto;padding:24px;line-height:1.8;color:#172033}}a{{color:#e65c00;text-decoration:none}}.card{{border:1px solid #e5e7eb;border-radius:18px;padding:18px;margin:14px 0;background:#fff}}img{{max-width:100%;height:auto;object-fit:contain;max-height:420px}}.price{{font-size:24px;font-weight:800;color:#e65c00}}.btn{{display:inline-block;background:#16a34a;color:#fff;padding:12px 18px;border-radius:10px;font-weight:800}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}}body{{background:#f7f8fb}}</style><script type="application/ld+json">{ld}</script></head><body>{body}</body></html>'''
+    doc=f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title><meta name="description" content="{html.escape(description, quote=True)}"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="{html.escape(canonical,quote=True)}"><meta property="og:type" content="website"><meta property="og:title" content="{html.escape(title,quote=True)}"><meta property="og:description" content="{html.escape(description,quote=True)}"><meta property="og:url" content="{html.escape(canonical,quote=True)}"><link rel="icon" href="/logo.svg"><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:1000px;margin:auto;padding:24px;line-height:1.8;color:#172033}}a{{color:#e65c00;text-decoration:none}}.card{{border:1px solid #e5e7eb;border-radius:18px;padding:18px;margin:14px 0;background:#fff}}img{{max-width:100%;height:auto;object-fit:contain;max-height:420px}}.price{{font-size:24px;font-weight:800;color:#e65c00}}.btn{{display:inline-block;background:#16a34a;color:#fff;padding:12px 18px;border-radius:10px;font-weight:800}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}}body{{background:#f7f8fb}}</style><script type="application/ld+json">{json.dumps(jsonld,ensure_ascii=False)}</script></head><body>{body}</body></html>'''
     path.write_text(doc,encoding='utf-8')
 
 
-def inject_product_seo(template, name, description, canonical, image, price, jsonld):
-    # The page remains fully interactive, but real product content is present in the initial HTML.
-    title=f'{name} | Bazar Dzair'
-    safe_name=html.escape(name)
-    safe_desc=html.escape(description,quote=True)
-    safe_image=html.escape(image,quote=True)
-    price_text=html.escape(money(price))
-    static=f'''<article class="seo-product" style="background:#fff;border-radius:24px;padding:24px;box-shadow:0 8px 26px rgba(7,29,59,.08)">
-  <h1>{safe_name}</h1>
-  <img src="{safe_image}" alt="{html.escape(name,quote=True)}" width="800" height="800" loading="eager" decoding="async" style="max-width:100%;height:auto;object-fit:contain;max-height:520px">
-  <p class="price">{price_text}</p>
-  <p>{safe_desc}</p>
-  <p><a href="#checkout">اطلب الآن بالدفع عند الاستلام</a></p>
-</article>'''
-    replacements=[
-        ('<title>المنتج | Bazar Dzair</title>',f'<title>{html.escape(title)}</title>'),
-        ('<meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">',f'<meta id="metaDescription" name="description" content="{safe_desc}">'),
-        ('<link id="canonical" rel="canonical">',f'<link id="canonical" rel="canonical" href="{html.escape(canonical,quote=True)}">'),
-        ('<meta property="og:locale" content="ar_DZ"><meta property="og:site_name" content="Bazar Dzair">',f'<meta property="og:locale" content="ar_DZ"><meta property="og:site_name" content="Bazar Dzair"><meta property="og:type" content="product"><meta property="og:title" content="{html.escape(title,quote=True)}"><meta property="og:description" content="{safe_desc}"><meta property="og:url" content="{html.escape(canonical,quote=True)}"><meta property="og:image" content="{safe_image}">'),
-        ('<div id="product" class="product-card"><div class="loading">⏳ جاري تحميل المنتج...</div></div>',f'<div id="product" class="product-card">{static}</div>')
-    ]
-    for old,new in replacements:
-        if old not in template:
-            raise RuntimeError(f'Expected template marker not found: {old[:80]}')
-        template=template.replace(old,new,1)
-    ld=json.dumps(jsonld,ensure_ascii=False).replace('</script>','<\\/script>')
-    template=template.replace('</head>',f'<script type="application/ld+json">{ld}</script></head>',1)
-    return template
+def inject_product_seo(template, name, desc, url, price, img):
+    d155=(desc or '').strip()[:155]
+    title_tag=f'<title>{html.escape(name)} | Bazar Dzair</title>'
+    desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
+    canonical_tag=f'<link id="canonical" rel="canonical" href="{html.escape(url,quote=True)}">'
+    ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':(desc or '')[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':str(price),'availability':'https://schema.org/InStock'}}
+    bc={'@context':'https://schema.org','@type':'BreadcrumbList','itemListElement':[{'@type':'ListItem','position':1,'name':'الرئيسية','item':SITE},{'@type':'ListItem','position':2,'name':name,'item':url}]}
+    extra=(
+        f'<meta id="ogTitle" property="og:title" content="{html.escape(name,quote=True)}">'
+        f'<meta id="ogDescription" property="og:description" content="{html.escape(d155,quote=True)}">'
+        f'<meta id="ogUrl" property="og:url" content="{html.escape(url,quote=True)}">'
+        f'<meta id="ogImage" property="og:image" content="{html.escape(img,quote=True)}">'
+        f'<script type="application/ld+json" id="bazar_product_jsonld">{json.dumps(ld,ensure_ascii=False)}</script>'
+        f'<script type="application/ld+json" id="bazar_breadcrumb_jsonld">{json.dumps(bc,ensure_ascii=False)}</script>'
+    )
+    out=template.replace('<title>المنتج | Bazar Dzair</title>',title_tag,1)
+    out=out.replace('<meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">',desc_tag,1)
+    out=out.replace('<link id="canonical" rel="canonical">',canonical_tag+extra,1)
+    return out
 
 
 root=Path(__file__).resolve().parents[1]
 products=[p for p in collection('products') if is_published(p) and (p.get('name') or p.get('product'))]
 categories=[c for c in collection('categories') if c.get('name')]
 
+# Reset only generated SEO folders; never touch the live store files.
 for folder in (root/'product',root/'product-category'):
-    if folder.exists(): shutil.rmtree(folder)
+    if folder.exists():
+        import shutil; shutil.rmtree(folder)
 
-template=(root/'product.html').read_text(encoding='utf-8')
 seen={}; product_urls=[]
 for p in products:
     name=str(p.get('name') or p.get('product'))
@@ -111,13 +102,19 @@ for p in products:
     desc=str(p.get('description') or p.get('desc') or f'شراء {name} من متجر Bazar Dzair.')
     price=float(p.get('price') or 0)
     img=image_of(p)
+    cat_id=str(p.get('category') or '')
     ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':desc[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':str(price),'availability':'https://schema.org/InStock'}}
-    page=inject_product_seo(template,name,desc,url,img,price,ld)
-    path=root/'product'/slug/'index.html'
-    path.parent.mkdir(parents=True,exist_ok=True)
-    path.write_text(page,encoding='utf-8')
+    # Each pretty URL is a real static directory containing the functional product app.
+    # SEO tags (title/description/canonical/OG/JSON-LD) are injected server-side here so every
+    # product page has genuinely unique raw HTML — this is required so Google doesn't merge
+    # different products into one "duplicate" canonical before JS ever runs.
+    template=(root/'product.html').read_text(encoding='utf-8')
+    template=inject_product_seo(template,name,desc,url,price,img)
+    (root/'product'/slug).mkdir(parents=True,exist_ok=True)
+    (root/'product'/slug/'index.html').write_text(template,encoding='utf-8')
     product_urls.append((url,name,p,slug))
 
+# Category pages: match products by category document id first, then by category name.
 cat_seen={}; cat_urls=[]
 for c in categories:
     name=str(c['name']); base=slugify(name,'category'); n=cat_seen.get(base,0); cat_seen[base]=n+1
@@ -134,6 +131,7 @@ for c in categories:
     write_page(root/'product-category'/slug/'index.html',name+' | Bazar Dzair',desc,url,body,ld)
     cat_urls.append((url,name))
 
+# Sitemap index-like single sitemap with all public SEO URLs.
 today=datetime.now(timezone.utc).date().isoformat()
 urls=[(SITE,'daily','1.0')]+[(u,'weekly','0.9') for u,_,_,_ in product_urls]+[(u,'weekly','0.8') for u,_ in cat_urls]
 xml=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
