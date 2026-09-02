@@ -595,7 +595,7 @@ async function loadProductsFromFirestore(){
       const box=document.getElementById("storeCategories");
       const seen=new Set();
       storeCategories=snap.docs.map(d=>({key:d.id,...(d.data()||{})}))
-        .filter(c=>c.name&&!seen.has(c.key)&&seen.add(c.key))
+        .filter(c=>c.name&&!c.hidden&&!seen.has(c.key)&&seen.add(c.key))
         .sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));
       if(box) box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>جميع الفئات</div>'+(storeCategories.length?storeCategories.map(c=>`<div class="cat" onclick="filterCategory('${escapeHtml(c.key)}')"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(c.name)}</div>`).join(""):'<div class="cat"><i>📂</i>لا توجد فئات</div>');
       applyUrlCategory();
