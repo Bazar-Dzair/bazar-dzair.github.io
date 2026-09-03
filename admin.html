@@ -1209,8 +1209,8 @@ function openAddon(key){
   var c=localAddons[key]||{};
   var current=d?idValueOf(c,d):"";
   var hint= (d&&d.key==="searchConsole")
-    ? "✅ الآن يعمل تلقائيًا: بعد الحفظ والتفعيل، رمز التحقق يُكتب مباشرة داخل مصدر HTML الحقيقي لصفحات متجرك (وليس عبر JavaScript فقط) خلال دقائق قليلة عبر أتمتة GitHub. اختر طريقة «Google Analytics» أو «الوسم HTML meta» عند التحقق في Search Console.\nإن كنت مستعجلًا أو فضّلت طريقة بديلة موثوقة 100%: استخدم زر «⬇ توليد ملف التحقق» بالأسفل وارفعه يدويًا إلى جذر المستودع."
-    : "✅ عند التفعيل والحفظ، الكود يُكتب مباشرة داخل مصدر HTML الحقيقي لكل صفحات المتجر تلقائيًا (خلال دقائق قليلة عبر أتمتة GitHub) — وليس فقط عبر JavaScript بعد التحميل، لذلك تعمل أدوات التحقق والزحف الخاصة بجوجل بشكل صحيح.";
+    ? "الكود يُكتب تلقائيًا داخل مصدر HTML الحقيقي لصفحات متجرك خلال دقائق قليلة عبر أتمتة GitHub. إن كنت مستعجلًا، زر «⬇ توليد ملف التحقق» بالأسفل يوفّر طريقة بديلة فورية."
+    : "عند التفعيل والحفظ، الكود يُكتب تلقائيًا داخل مصدر HTML الحقيقي لكل صفحات المتجر (خلال دقائق قليلة عبر أتمتة GitHub).";
   var checked=(c.enabled===true)?"checked":"";
   var gscHelp = (d&&d.key==="searchConsole")
     ? '<div class="gsc-help" style="margin-top:12px;border:1px solid #e4e7ec;border-radius:10px;padding:12px;background:#fafbfc">'+
@@ -1282,9 +1282,9 @@ async function testAddon(key){
   }else{
     lines.push("؟ Firestore غير متصل — التأكيد النهائي غير متاح");
   }
-  // ملاحظة دقيقة لخدمة Search Console
+  // ملاحظة خفيفة لخدمة Search Console (معلومة، وليست تحذيرًا)
   if(d&&d.key==="searchConsole"){
-    lines.push("⚠ تحقق GSC يتطلب أيضًا: ملف googleXXXX.html ثابت في جذر GitHub Pages أو سجل DNS، أو الميتا في مصدر HTML الفعلي. حقن JavaScript وحده لا يؤكد الملكية لمعظم طرق التحقق.");
+    lines.push("ℹ الكود يُكتب تلقائيًا في مصدر HTML عبر أتمتة GitHub خلال دقائق. لو التحقق في Search Console نجح بالفعل — كل شيء تمام.");
   }
   setAddonStatus(lines.join(" — "),true);
 }
