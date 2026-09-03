@@ -1,44 +1,47 @@
-name: Rebuild static product pages and sitemap
+name: Generate SEO product pages
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '*/15 * * * *'
   push:
     branches: [main]
-    paths:
-      - 'product.html'
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  rebuild:
+  generate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Sync with latest main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: مزامنة مع آخر main قبل التوليد
         run: |
           git fetch origin main
           git rebase origin/main
 
-      - name: Regenerate static product/category pages and sitemaps
+      - name: توليد صفحات المنتجات والتصنيفات (محتوى فريد لكل صفحة)
         run: python3 scripts/generate_static_products.py
 
-      - name: Commit and push changes
+      - name: حقن أكواد الإضافات (Google Analytics / GTM / Meta / TikTok / Search Console) في مصدر HTML مباشرة
+        run: python3 scripts/inject_addons.py
+
+      - name: رفع التحديثات تلقائيًا
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add product product-category sitemap.xml sitemap-products.xml sitemap-categories.xml
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add product product-category sitemap.xml sitemap-products.xml sitemap-categories.xml index.html product.html
           if git diff --cached --quiet; then
             echo "No changes."
             exit 0
           fi
-          git commit -m "chore: rebuild static product pages and sitemap from Firestore"
+          git commit -m "chore: تحديث صفحات SEO وإضافات التتبع تلقائيًا [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main
-          
