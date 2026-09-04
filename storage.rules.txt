@@ -1,13 +1,11 @@
 rules_version = '2';
 
 // =====================================================================
-// Bazar Dzair — Firebase Storage Security Rules
+// Bazar Dzair — Firebase Storage Security Rules (نسخة معززة)
 // انسخ هذا الملف كاملاً إلى Firebase Console > Storage > Rules ثم انشر.
-// =====================================================================
-// المنطق:
-//   - صور المنتجات تُعرض لأي زائر في المتجر → القراءة عامة.
-//   - رفع/حذف الصور يتم فقط من لوحة التحكم بعد تسجيل الدخول.
-//   - الحد الأقصى لكل صورة 5MB ويجب أن تكون من نوع صورة فعلاً.
+//
+// ⚠️ قبل النشر: بدّلي القيمة 'ADMIN_EMAIL_HERE' بإيميل تسجيل الدخول
+//    الحقيقي تاعك (نفس القيمة المستعملة في firestore.rules).
 // =====================================================================
 
 service firebase.storage {
@@ -16,9 +14,11 @@ service firebase.storage {
     match /products/{productId}/{fileName} {
       allow read: if true;
       allow write: if request.auth != null
+                   && request.auth.token.email == 'ADMIN_EMAIL_HERE'
                    && request.resource.size < 5 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
-      allow delete: if request.auth != null;
+      allow delete: if request.auth != null
+                    && request.auth.token.email == 'ADMIN_EMAIL_HERE';
     }
 
     // أي مسار آخر مرفوض افتراضيًا.
