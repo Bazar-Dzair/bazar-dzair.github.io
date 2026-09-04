@@ -1,20 +1,23 @@
 rules_version = '2';
 
 // =====================================================================
-// Bazar Dzair — Firestore Security Rules (نسخة معززة)
+// Bazar Dzair — Firestore Security Rules (نسخة معززة v2)
 // انسخ هذا الملف كاملاً إلى Firebase Console > Firestore > Rules ثم انشر.
 //
-// ⚠️ قبل النشر: بدّلي القيمة 'ADMIN_EMAIL_HERE' بإيميل تسجيل الدخول
-//    الحقيقي تاعك في السطر أدناه (isAdmin function).
+// ⚠️ قبل النشر: بدّل القيمة 'ADMIN_UID_HERE' بـ UID حساب الأدمن الحقيقي.
+//    كيفية الحصول عليه: Firebase Console → Authentication → Users →
+//    عمود "User UID" لحسابك (وليس الإيميل).
+//    استخدام UID أكثر أمانًا من الإيميل لأنه غير قابل للتخمين ولا يكشف
+//    عنوان تسجيل الدخول الحقيقي في حال تسريب الكود.
 // =====================================================================
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // فقط صاحب هذا الإيميل يُعتبر أدمن — وليس أي حساب Firebase مسجل دخول.
+    // فقط صاحب هذا الـ UID يُعتبر أدمن — وليس أي حساب Firebase مسجل دخول.
     function isAdmin() {
       return request.auth != null
-             && request.auth.token.email == 'ADMIN_EMAIL_HERE';
+             && request.auth.uid == 'ADMIN_UID_HERE';
     }
 
     // المنتجات — تُعرض لأي زائر، الكتابة للأدمن فقط.
@@ -29,9 +32,12 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
-    // الإعدادات — تُقرأ من المتجر، الكتابة للأدمن فقط.
+    // الإعدادات — كل مستند settings/{id} قراءته عامة (اسم المتجر، الشعار،
+    // أسعار التوصيل...)، ما عدا settings/email الذي يحتوي بيانات SMTP
+    // الحساسة (smtpHost/smtpUser/smtpPassword) والذي يبقى Admin-only حتى
+    // في القراءة. الكتابة دائمًا Admin فقط.
     match /settings/{id} {
-      allow read: if true;
+      allow read: if id != 'email' || isAdmin();
       allow write: if isAdmin();
     }
 
@@ -43,8 +49,8 @@ service cloud.firestore {
 
     function isValidOrder(d) {
       return
-        // الحقول المسموحة فقط — أي حقل إضافي (مثل status مخصص أو adminNotes) يرفض الطلب
-        d.keys().hasOnly(['customerName','customerPhone','wilaya','address','product','quantity','price','shipping','deliveryType','shippingCompany','total','status','createdAt']) &&
+        // الحقول المسموحة فقط — أي حقل إضافي (adminNotes، role، isAdmin...) يرفض الطلب
+        d.keys().hasOnly(['customerName','customerPhone','wilaya','address','product','productId','quantity','price','shipping','deliveryType','shippingCompany','total','status','createdAt']) &&
         d.keys().hasAll(['customerName','customerPhone','wilaya','address','product','quantity','price','total','status']) &&
 
         // status يجب أن يكون قيمة البداية الثابتة فقط — لا يقدر الزبون يبعث طلب "مؤكد" مباشرة
@@ -56,13 +62,27 @@ service cloud.firestore {
         d.wilaya is string && d.wilaya.size() > 0 && d.wilaya.size() < 100 &&
         d.address is string && d.address.size() > 0 && d.address.size() < 300 &&
         d.product is string && d.product.size() > 0 && d.product.size() < 200 &&
+        (!('productId' in d) || (d.productId is string && d.productId.size() < 200)) &&
 
         // أرقام منطقية — يمنع كمية سالبة أو صفر أو كمية ضخمة (بوت)، وسعر/مجموع سالب
         d.quantity is int && d.quantity > 0 && d.quantity <= 50 &&
         d.price is number && d.price >= 0 &&
         d.total is number && d.total >= 0 &&
-        (!('shipping' in d) || (d.shipping is number && d.shipping >= 0));
+        (!('shipping' in d) || (d.shipping is number && d.shipping >= 0)) &&
+
+        // ✅ حماية من التلاعب بالمجموع: total يجب أن يساوي حسابيًا price×quantity + shipping
+        d.total == (d.price * d.quantity) + (('shipping' in d) ? d.shipping : 0) &&
+
+        // ✅ حماية من التلاعب بالسعر: إذا أرسل الموقع productId (الحالة الطبيعية)، يجب أن
+        // يطابق price السعر الحقيقي المخزّن فعليًا في المنتج — يمنع مهاجم يتواصل مباشرة مع
+        // Firestore (بدون المرور بواجهة الموقع) من إرسال سعر مزيف لمنتج حقيقي.
+        (!('productId' in d) ||
+          get(/databases/$(database)/documents/products/$(d.productId)).data.price == d.price);
     }
 
+    // Deny-by-default صريح: أي collection أو مستند غير معروف/غير مذكور أعلاه ممنوع تمامًا.
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

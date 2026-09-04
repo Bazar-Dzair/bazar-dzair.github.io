@@ -1,0 +1,43 @@
+rules_version = '2';
+
+// =====================================================================
+// Bazar Dzair — Firebase Storage Security Rules (نسخة معززة v2)
+// انسخ هذا الملف كاملاً إلى Firebase Console > Storage > Rules ثم انشر
+// (أو فعّل نشره التلقائي — راجع firebase.json و تعليمات_نشر التي بالأسفل).
+//
+// ⚠️ قبل النشر: بدّل القيمة 'ADMIN_UID_HERE' بنفس UID المستخدم في
+//    firestore.rules (Firebase Console → Authentication → Users → User UID).
+// =====================================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null
+             && request.auth.uid == 'ADMIN_UID_HERE';
+    }
+
+    // صور المنتجات — قراءة عامة، الرفع/الحذف/التعديل للأدمن فقط.
+    match /products/{productId}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin()
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/(jpeg|png|webp)');
+      allow delete: if isAdmin();
+    }
+
+    // شعار وبانر المتجر (يُرفعان من admin.html) — نفس القيود.
+    match /site/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin()
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/(jpeg|png|webp)');
+      allow delete: if isAdmin();
+    }
+
+    // أي مسار آخر (بما فيه /admin/, /system/, /private/ أو أي مسار غير معروف) مرفوض افتراضيًا.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
