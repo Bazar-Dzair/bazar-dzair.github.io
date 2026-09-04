@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- BAZAR_ADDONS_HEAD_START --><script async src="https://www.googletagmanager.com/gtag/js?id=G-Z535NX3E4V"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-Z535NX3E4V',{'send_page_view':true});</script><script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-WR2FK5WW');</script><meta name="google-site-verification" content="nBpuWTenFFLcOZNsMJDTMSoDyUSigItHwsubj3huHhg"><!-- BAZAR_ADDONS_HEAD_END -->
 <meta charset="UTF-8">
 <link rel="icon" href="/logo.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -151,7 +150,6 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 </style>
 </head>
 <body>
-<!-- BAZAR_ADDONS_BODY_START --><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WR2FK5WW" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript><!-- BAZAR_ADDONS_BODY_END -->
 <header><div class="in">
   <a class="brand" href="/"><span class="brand-mark"></span><span class="brand-txt">Bazar <b>Dzair</b></span></a>
   <a class="backtop" href="/">← العودة للمتجر</a>
@@ -365,7 +363,7 @@ try{
   }
 }catch(e){}
 if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:product.name,price:total,category:product.category||"",qty:quantity,id:product.id||""});
-location.href="/success.html";};
+alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="/success.html";},1000)};
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2400)}
 
 // ===== SEO حقيقي لكل منتج =====
