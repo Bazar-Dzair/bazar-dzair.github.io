@@ -327,10 +327,13 @@ function updateTotal(){
   document.getElementById("grandTotal").textContent=money(base+s);
 }
 document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliveryType=null;updateTotal();});
-window.submitOrder=async()=>{if(!product)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
+window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
+if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast("رقم الهاتف غير صحيح ⚠️");return}
 const opts=computeDeliveryOptions(w);
 const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
 if(!chosen){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
+const btn=document.querySelector(".confirm");window.__bazarSubmittingOrder=true;if(btn){btn.disabled=true;btn.style.opacity=".6";btn.style.pointerEvents="none"}
+try{
 const s=chosen.price;
 const deliveryTypeLabel=selectedDeliveryType==="office"?"المكتب":"المنزل";
 const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
@@ -349,7 +352,7 @@ await addDoc(collection(db, "orders"), {
   total: total,
   status: "جديد",
   createdAt: new Date()
-});fetch("https://api.telegram.org/bot8899974981:AAHJIh0varMd1ht-u1Q9rV8A8kPnf0cpmhE/sendMessage",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:"1636163793",text:`🛒 طلب جديد\n👤 الاسم: ${n}\n📞 الهاتف: ${ph}\n📍 الولاية: ${wn}\n🏠 العنوان: ${a}\n📦 المنتج: ${product.name}\n🔢 الكمية: ${quantity}\n🚚 التوصيل: ${deliveryTypeLabel}${carrierNames?" - "+carrierNames:""}\n💰 المجموع: ${total} دج`})});
+});fetch("https://api.telegram.org/bot8899974981:AAHJIh0varMd1ht-u1Q9rV8A8kPnf0cpmhE/sendMessage",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:"1636163793",text:`🛒 طلب جديد\n👤 الاسم: ${n}\n📞 الهاتف: ${ph}\n📍 الولاية: ${wn}\n🏠 العنوان: ${a}\n📦 المنتج: ${product.name}\n🔢 الكمية: ${quantity}\n🚚 التوصيل: ${deliveryTypeLabel}${carrierNames?" - "+carrierNames:""}\n💰 المجموع: ${total} دج`})}).catch(()=>{});
 try{
   const addonsCfg=window.__bazarAddons||{};
   const gs=addonsCfg.googleSheets||{};
@@ -363,7 +366,12 @@ try{
   }
 }catch(e){}
 if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:product.name,price:total,category:product.category||"",qty:quantity,id:product.id||""});
-alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="/success.html";},1000)};
+alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="/success.html";},1000)
+}catch(err){
+  console.error("order submit failed:",err);
+  toast("تعذر إرسال الطلب، تحقق من الاتصال وحاول مجددًا ⚠️");
+  window.__bazarSubmittingOrder=false;if(btn){btn.disabled=false;btn.style.opacity="";btn.style.pointerEvents=""}
+}};
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2400)}
 
 // ===== SEO حقيقي لكل منتج =====
