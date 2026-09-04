@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.">
@@ -632,6 +633,10 @@ loadFastSettings();
 
 const money=n=>Number(n).toLocaleString("ar-DZ")+" دج";
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+// حماية أمنية: أي رابط صورة قادم من بيانات المنتج (قد يكون مستوردًا من مصدر خارجي مثل Mayna)
+// يُعتبر غير موثوق. نسمح فقط بروابط http(s) أو مسارات محلية، ونمنع أي بروتوكول آخر
+// (javascript:, data:, vbscript:...) كما نهرب القيمة قبل إدراجها داخل HTML.
+const safeImg=u=>{const s=String(u??"").trim();if(!s)return"/logo.svg";if(/^https?:\/\//i.test(s)||s.startsWith("/")||s.startsWith("./"))return esc(s);return"/logo.svg";};
 
 function getUrlCategory(){
   try{
@@ -682,11 +687,11 @@ function displayProducts(list=products){
  if(!list.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">لم نجد المنتج 🔎</div>';return}
  g.innerHTML=list.map(p=>{
    const available=p.published!==false;
-   const badgeHtml=available?(p.badge?`<span class="new">${p.badge}</span>`:""):'<span class="new" style="background:#9aa1ab">غير متوفر</span>';
+   const badgeHtml=available?(p.badge?`<span class="new">${esc(p.badge)}</span>`:""):'<span class="new" style="background:#9aa1ab">غير متوفر</span>';
    const actionsHtml=available
      ?`<button class="btn cartbtn" onclick="addCart(${p.id})" aria-label="إضافة إلى السلة">🛒<span class="plus">+</span></button><button class="btn buybtn" onclick="buyNow(${p.id})">شراء <span class="buycart">🛒</span></button>`
      :`<button class="btn buybtn" disabled style="opacity:.55;cursor:not-allowed" onclick="return false">غير متوفر حاليًا</button>`;
-   return `<article class="product${available?"":" unavailable"}"><div class="pic" onclick="goToProduct(${p.id})">${badgeHtml}<img src="${p.image}" alt="${esc(p.name)}" loading="lazy" decoding="async" style="${available?"":"filter:grayscale(60%);opacity:.75"}"></div><div class="info"><div class="name" onclick="goToProduct(${p.id})">${esc(p.name)}</div><div class="price">${money(p.price)}</div><div class="buttons">${actionsHtml}</div></div></article>`;
+   return `<article class="product${available?"":" unavailable"}"><div class="pic" onclick="goToProduct(${p.id})">${badgeHtml}<img src="${safeImg(p.image)}" alt="${esc(p.name)}" loading="lazy" decoding="async" style="${available?"":"filter:grayscale(60%);opacity:.75"}"></div><div class="info"><div class="name" onclick="goToProduct(${p.id})">${esc(p.name)}</div><div class="price">${money(p.price)}</div><div class="buttons">${actionsHtml}</div></div></article>`;
  }).join("");
 }
 function productSlug(name){
@@ -773,7 +778,7 @@ function removeItem(id){cart=cart.filter(p=>p.id!==id);updateCount();renderCart(
 function productTotal(){return cart.reduce((s,x)=>s+x.price*x.quantity,0)}
 function renderCart(){
  if(!cart.length){document.getElementById("cartItems").innerHTML='<div class="empty">السلة فارغة 🛒<br>اضغط على أي منتج لمشاهدة التفاصيل.</div>';document.getElementById("summaryBox").innerHTML="";return}
- document.getElementById("cartItems").innerHTML=cart.map(x=>`<div class="cart-row"><img src="${x.image}"><div><h4>${esc(x.name)}</h4><span class="small">${money(x.price)} للقطعة</span></div><div class="cq"><button onclick="changeQty(${x.id},-1)">−</button><span>${x.quantity}</span><button onclick="changeQty(${x.id},1)">+</button></div><button class="remove" onclick="removeItem(${x.id})">🗑️</button></div>`).join("");
+ document.getElementById("cartItems").innerHTML=cart.map(x=>`<div class="cart-row"><img src="${safeImg(x.image)}"><div><h4>${esc(x.name)}</h4><span class="small">${money(x.price)} للقطعة</span></div><div class="cq"><button onclick="changeQty(${x.id},-1)">−</button><span>${x.quantity}</span><button onclick="changeQty(${x.id},1)">+</button></div><button class="remove" onclick="removeItem(${x.id})">🗑️</button></div>`).join("");
  document.getElementById("summaryBox").innerHTML=`<div class="summary"><div class="line"><span>مجموع المنتجات</span><b>${money(productTotal())}</b></div><div class="line"><span>التوصيل</span><b id="sumShip">—</b></div><div class="line total"><span>المجموع النهائي</span><b id="sumTotal">${money(productTotal())}</b></div></div>`;
  updateTotals();
 }

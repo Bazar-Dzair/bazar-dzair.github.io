@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -89,6 +90,14 @@ const db = getFirestore(app);
 
 const ordersDiv = document.getElementById("orders");
 
+// ⚠️ إصلاح أمني حرج (Stored XSS): بيانات الطلب (product, customerName, customerPhone,
+// wilaya, address, status) هي مدخلات يتحكم بها الزبون (أو أي شخص يرسل طلبًا مباشرة إلى
+// Firestore). كانت تُدرج سابقًا داخل innerHTML بدون أي تهريب (escaping)، مما يسمح لأي شخص
+// بإنشاء طلب باسم يحتوي كود HTML/JS ضار (مثل <img onerror=...>) يُنفَّذ في متصفح الأدمن
+// بمجرد فتح هذه الصفحة — وهذا قد يُستخدم لسرقة جلسة تسجيل دخول الأدمن بالكامل.
+// الحل: تهريب كل قيمة نصية قبل إدراجها في HTML.
+function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+
 const q = query(
     collection(db,"orders")
 );
@@ -109,20 +118,20 @@ onSnapshot(q,(snapshot)=>{
         ordersDiv.innerHTML += `
         <div class="card">
 
-        <h3>${order.product}</h3>
+        <h3>${esc(order.product)}</h3>
 
-        <p>👤 ${order.customerName}</p>
+        <p>👤 ${esc(order.customerName)}</p>
 
-        <p>📞 ${order.customerPhone}</p>
+        <p>📞 ${esc(order.customerPhone)}</p>
 
-        <p>📍 ${order.wilaya}</p>
+        <p>📍 ${esc(order.wilaya)}</p>
 
-        <p>🏠 ${order.address}</p>
+        <p>🏠 ${esc(order.address)}</p>
 
-        <p>💰 ${order.total} دج</p>
+        <p>💰 ${esc(order.total)} دج</p>
 
         <p>📦 الحالة :
-        <b>${order.status}</b>
+        <b>${esc(order.status)}</b>
         </p>
 
         <button class="accept"

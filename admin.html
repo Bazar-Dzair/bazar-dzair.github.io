@@ -1371,7 +1371,8 @@ function gscDownloadFile(){
   const code=(inp&&String(inp.value||"").trim())||"";
   if(!code){setAddonStatus("أدخل رمز التحقق أولًا لإنشاء الملف. 🟡",true);return;}
   const fileName="google"+code.replace(/[^A-Za-z0-9_-]/g,"")+".html";
-  const content='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Google verification</title></head><body><p>google-site-verification: '+code+'</p></body></html>';
+  const content='<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="referrer" content="strict-origin-when-cross-origin"><title>Google verification</title></head><body><p>google-site-verification: '+code+'</p></body></html>';
   const blob=new Blob([content],{type:"text/html;charset=utf-8"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
@@ -2395,12 +2396,20 @@ function maynaNum(v){
   const m=String(v??"").replace(/[, ]/g,"").match(/-?\d+(?:\.\d+)?/);
   return m ? Number(m[0]) : 0;
 }
+// حماية أمنية: Mayna / FreeVendor مصدر خارجي غير موثوق (Untrusted Input).
+// أي رابط صورة قادم منه يجب أن يكون http(s) فقط، وإلا نتجاهله بدل تخزينه في Firestore.
+function maynaSafeImageUrl(v){
+  const s=String(v??"").trim();
+  return /^https:\/\//i.test(s) ? s : (/^http:\/\//i.test(s) ? s : "");
+}
 function maynaImage(p){
   let v=maynaVal(p,"product_img_url","image","image_url","product_image");
-  if(v) return String(v);
+  if(v) return maynaSafeImageUrl(v);
   const n=maynaVal(p,"product_img_name","image_name");
-  return n ? "https://freevendor.space/uploads/product_img/"+String(n).replace(/^\/+/,"") : "";
+  return n ? maynaSafeImageUrl("https://freevendor.space/uploads/product_img/"+String(n).replace(/^\/+/,"")) : "";
 }
+// تقييد طول النصوص القادمة من المصدر الخارجي (حماية من payloads ضخمة أو محاولات إساءة استخدام)
+function maynaSafeText(v,maxLen){return String(v??"").trim().slice(0,maxLen);}
 window.importMayna=async()=>{
   const panel=document.getElementById("maynaPanel"), status=document.getElementById("maynaStatus");
   const preview=document.getElementById("maynaPreview"), save=document.getElementById("maynaSave");
@@ -2421,21 +2430,21 @@ window.importMayna=async()=>{
           const old=maynaNum(maynaVal(p,"product_price","price","selling_price"));
           const image=maynaImage(p);
           return {
-            name:String(maynaVal(p,"product_name","name","title")),
+            name:maynaSafeText(maynaVal(p,"product_name","name","title"),200),
             price:Math.round(old*1.15*100)/100,
             sourcePrice:old,
-            description:String(maynaVal(p,"product_about","description","about")),
-            category:maynaVal(p,"category_id","categoryId","category") || "offers",
+            description:maynaSafeText(maynaVal(p,"product_about","description","about"),2000),
+            category:maynaSafeText(maynaVal(p,"category_id","categoryId","category") || "offers",100),
             stock:maynaNum(maynaVal(p,"stock","quantity","product_stock")),
             image,
             images:image?[image]:[],
-            sourceProductId:maynaVal(p,"product_id","id")
+            sourceProductId:maynaSafeText(maynaVal(p,"product_id","id"),200)
           };
         });
         status.textContent="✅ تم جلب "+maynaProducts.length+" منتج. تمت إضافة 15% للسعر.";
         preview.innerHTML=maynaProducts.slice(0,10).map((p,i)=>
           `<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eee">
-            <img src="${p.image}" style="width:55px;height:55px;object-fit:contain;border-radius:8px;background:#f5f5f5">
+            <img src="${escapeAttr(/^https?:\/\//i.test(String(p.image||""))?p.image:"")}" style="width:55px;height:55px;object-fit:contain;border-radius:8px;background:#f5f5f5">
             <div><b>${esc(p.name)}</b><br><span>${p.sourcePrice} دج → <b>${p.price} دج</b></span></div>
           </div>`).join("")+
           (maynaProducts.length>10?`<small>عرض أول 10 فقط...</small>`:"");
