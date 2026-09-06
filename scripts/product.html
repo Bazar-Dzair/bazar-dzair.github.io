@@ -111,8 +111,20 @@ try{
     "https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/send-telegram",
     {
       method: "POST",
-      headers: {"Content-Type": "text/plain;charset=UTF-8"},
-      body: JSON.stringify({text: telegramText})
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        customerName: n,
+        customerPhone: ph,
+        wilaya: wn,
+        address: a,
+        product: product.name,
+        quantity: quantity,
+        price: Number(product.price || 0),
+        shipping: s,
+        total: total,
+        deliveryType: "",
+        shippingCompany: ""
+      })
     }
   );
 
