@@ -367,8 +367,20 @@ try{
   const telegramText="🛒 طلب جديد\n👤 الاسم: "+n+"\n📞 الهاتف: "+ph+"\n📍 الولاية: "+wn+"\n🏠 العنوان: "+a+"\n📦 المنتج: "+product.name+"\n🔢 الكمية: "+quantity+"\n💰 المجموع: "+total+" دج";
   fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/send-telegram",{
     method:"POST",
-    headers:{"Content-Type":"text/plain;charset=UTF-8"},
-    body:JSON.stringify({text:telegramText})
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      customerName:n,
+      customerPhone:ph,
+      wilaya:wn,
+      address:a,
+      product:product.name,
+      quantity:quantity,
+      price:Number(product.price||0),
+      shipping:s,
+      total:total,
+      deliveryType:deliveryTypeLabel,
+      shippingCompany:carrierNames
+    })
   }).then(r=>{if(!r.ok)console.error("Telegram HTTP error:",r.status);}).catch(e=>console.error("Telegram send error:",e));
 }catch(e){console.error("Telegram send error:",e);}
 try{
