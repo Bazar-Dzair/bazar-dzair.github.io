@@ -355,16 +355,15 @@ await addDoc(collection(db, "orders"), {
   status: "جديد",
   createdAt: new Date()
 });
-// ✅ إشعار Telegram يمرّ عبر Cloudflare Worker وسيط: التوكن مخزّن هناك فقط
-// (Environment Secret) ولا يظهر أبدًا في كود الموقع. استبدل الرابط أدناه برابط
-// الـ Worker الخاص بك بعد نشره (Settings → Variables and Secrets → أضف
-// TELEGRAM_BOT_TOKEN و TELEGRAM_CHAT_ID كـ Secret).
+// ✅ إشعار Telegram يمرّ عبر Google Apps Script وسيط: التوكن مخزّن هناك فقط
+// (Script Properties) ولا يظهر أبدًا في كود الموقع. استبدل الرابط أدناه برابط
+// الـ Web App الخاص بك بعد نشره من script.google.com.
 try{
-  const TELEGRAM_WORKER_URL="https://REPLACE-WITH-YOUR-WORKER.workers.dev";
-  if(TELEGRAM_WORKER_URL && !TELEGRAM_WORKER_URL.includes("REPLACE-WITH-YOUR-WORKER")){
+  const TELEGRAM_WORKER_URL="https://script.google.com/macros/s/REPLACE-WITH-YOUR-SCRIPT-ID/exec";
+  if(TELEGRAM_WORKER_URL && !TELEGRAM_WORKER_URL.includes("REPLACE-WITH-YOUR-SCRIPT-ID")){
     fetch(TELEGRAM_WORKER_URL,{
       method:"POST",
-      headers:{"Content-Type":"application/json"},
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
       body:JSON.stringify({customerName:n,customerPhone:ph,wilaya:wn,address:a,product:product.name,quantity:quantity,deliveryType:deliveryTypeLabel,shippingCompany:carrierNames,total:total})
     }).catch(()=>{});
   }
