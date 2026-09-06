@@ -96,7 +96,7 @@ await addDoc(collection(db, "orders"), {
   total: total,
   status: "جديد",
   createdAt: new Date()
- });fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/send-telegram",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:`🛒 طلب جديد\n👤 الاسم: ${n}\n📞 الهاتف: ${ph}\n📍 الولاية: ${wn}\n🏠 العنوان: ${a}\n📦 المنتج: ${product.name}\n🔢 الكمية: ${quantity}\n💰 المجموع: ${total} دج`})}).catch(e=>console.error("Telegram error:",e)); (fix: send orders through telegram worker)
+ });fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/send-telegram",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:`🛒 طلب جديد\n👤 الاسم: ${n}\n📞 الهاتف: ${ph}\n📍 الولاية: ${wn}\n🏠 العنوان: ${a}\n📦 المنتج: ${product.name}\n🔢 الكمية: ${quantity}\n💰 المجموع: ${total} دج`})}).catch(e=>console.error("Telegram error:",e));
 try{
   const addonsCfg=window.__bazarAddons||{};
   const gs=addonsCfg.googleSheets||{};
