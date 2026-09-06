@@ -96,7 +96,7 @@ await addDoc(collection(db, "orders"), {
   total: total,
   status: "جديد",
   createdAt: new Date()
-});fetch("https://api.telegram.org/bot8899974981:AAHJIh0varMd1ht-u1Q9rV8A8kPnf0cpmhE/sendMessage",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:"1636163793",text:`🛒 طلب جديد\n👤 الاسم: ${n}\n📞 الهاتف: ${ph}\n📍 الولاية: ${wn}\n🏠 العنوان: ${a}\n📦 المنتج: ${product.name}\n🔢 الكمية: ${quantity}\n💰 المجموع: ${total} دج`})});
+ });fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/send-telegram",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:`🛒 طلب جديد\n👤 الاسم: ${n}\n📞 الهاتف: ${ph}\n📍 الولاية: ${wn}\n🏠 العنوان: ${a}\n📦 المنتج: ${product.name}\n🔢 الكمية: ${quantity}\n💰 المجموع: ${total} دج`})}).catch(e=>console.error("Telegram error:",e)); (fix: send orders through telegram worker)
 try{
   const addonsCfg=window.__bazarAddons||{};
   const gs=addonsCfg.googleSheets||{};
