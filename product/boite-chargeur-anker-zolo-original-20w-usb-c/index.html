@@ -367,7 +367,7 @@ await addDoc(collection(db, "orders"), {
 // (noisy-lake-ace8.a-bazar-dzair-pro.workers.dev) — التوكن مخزّن هناك فقط.
 try{
   const telegramText="🛒 طلب جديد\n👤 الاسم: "+n+"\n📞 الهاتف: "+ph+"\n📍 الولاية: "+wn+"\n🏠 العنوان: "+a+"\n📦 المنتج: "+product.name+"\n🔢 الكمية: "+quantity+"\n💰 المجموع: "+total+" دج";
-  fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/send-telegram",{
+  const telegramResponse=await fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/send-telegram",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
@@ -384,7 +384,13 @@ try{
       shippingCompany:carrierNames,
       turnstileToken:turnstileToken
     })
-  }).then(r=>{if(!r.ok)console.error("Telegram HTTP error:",r.status);}).catch(e=>console.error("Telegram send error:",e));
+  });
+
+  const telegramBody=await telegramResponse.text();
+  if(!telegramResponse.ok){
+    console.error("Telegram Worker error:",telegramResponse.status,telegramBody);
+    throw new Error("Telegram Worker rejected the order");
+  }
 }catch(e){console.error("Telegram send error:",e);}
 try{
   const addonsCfg=window.__bazarAddons||{};
