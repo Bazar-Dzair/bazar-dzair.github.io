@@ -147,7 +147,6 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
   .sticky-buy{display:flex}
 }
 </style>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 <header><div class="in">
@@ -195,7 +194,6 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
   </div>
 
   <div class="total"><span>💰 المجموع الكلي</span><span id="grandTotal">—</span></div>
-  <div class="cf-turnstile" data-sitekey="0x4AAAAAAEr4LX8RrjqSPfbBP3hcQxYejK8"></div>
   <button class="confirm" onclick="submitOrder()"><span>✅</span> تأكيد الطلب بالدفع عند الاستلام</button>
 
   <div class="trust-strip">
@@ -375,8 +373,7 @@ try{
       shipping:s,
       total:total,
       deliveryType:deliveryTypeLabel,
-      shippingCompany:carrierNames,
-      turnstileToken:turnstileToken
+      shippingCompany:carrierNames
     })
   }).then(r=>{if(!r.ok)console.error("Telegram HTTP error:",r.status);}).catch(e=>console.error("Telegram send error:",e));
 }catch(e){console.error("Telegram send error:",e);}
