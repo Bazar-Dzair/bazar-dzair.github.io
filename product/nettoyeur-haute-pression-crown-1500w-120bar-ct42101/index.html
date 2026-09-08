@@ -160,18 +160,42 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 }
 </style>
   <script>
+window.__bazarTurnstileWidgetId=null;
 window.__bazarTurnstileToken="";
+
 window.onTurnstileSuccess=function(token){
   window.__bazarTurnstileToken=String(token||"");
 };
+
 window.onTurnstileExpired=function(){
   window.__bazarTurnstileToken="";
 };
+
 window.onTurnstileError=function(){
   window.__bazarTurnstileToken="";
 };
+
+window.onTurnstileLoad=function(){
+  const render=function(){
+    const el=document.getElementById("turnstile-widget");
+    if(!el || !window.turnstile || window.__bazarTurnstileWidgetId!==null) return;
+
+    window.__bazarTurnstileWidgetId=window.turnstile.render(el,{
+      sitekey:"0x4AAAAAAEr4LX8RrjqSPfbBP3hcQxYejK8",
+      callback:window.onTurnstileSuccess,
+      "expired-callback":window.onTurnstileExpired,
+      "error-callback":window.onTurnstileError
+    });
+  };
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",render,{once:true});
+  }else{
+    render();
+  }
+};
 </script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" async defer></script>
 </head>
 <body>
 <header><div class="in">
@@ -219,12 +243,7 @@ window.onTurnstileError=function(){
   </div>
 
   <div class="total"><span>💰 المجموع الكلي</span><span id="grandTotal">—</span></div>
-  <div id="turnstile-widget"
-     class="cf-turnstile"
-     data-sitekey="0x4AAAAAAEr4LX8RrjqSPfbBP3hcQxYejK8"
-     data-callback="onTurnstileSuccess"
-     data-expired-callback="onTurnstileExpired"
-     data-error-callback="onTurnstileError"></div>
+  <div id="turnstile-widget"></div>
   <button class="confirm" onclick="submitOrder()"><span>✅</span> تأكيد الطلب بالدفع عند الاستلام</button>
 
   <div class="trust-strip">
@@ -362,7 +381,16 @@ document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliver
 
 window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
 if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast("رقم الهاتف غير صحيح ⚠️");return}
-const turnstileToken=window.__bazarTurnstileToken||"";if(!turnstileToken){toast("أكد التحقق الأمني ثم حاول مجددًا ⚠️");return}
+let turnstileToken=window.__bazarTurnstileToken||"";
+if(window.turnstile && window.__bazarTurnstileWidgetId!==null){
+  try{
+    turnstileToken=turnstile.getResponse(window.__bazarTurnstileWidgetId)||turnstileToken;
+  }catch(e){}
+}
+if(!turnstileToken){
+  toast("أكد التحقق الأمني ثم حاول مجددًا ⚠️");
+  return;
+}
 const opts=computeDeliveryOptions(w);
 const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
 if(!chosen){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
