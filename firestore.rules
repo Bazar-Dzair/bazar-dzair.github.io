@@ -51,7 +51,9 @@ service cloud.firestore {
       return
         // الحقول المسموحة فقط — أي حقل إضافي (adminNotes، role، isAdmin...) يرفض الطلب
         d.keys().hasOnly(['customerName','customerPhone','wilaya','address','product','productId','quantity','price','shipping','deliveryType','shippingCompany','total','status','createdAt']) &&
-        d.keys().hasAll(['customerName','customerPhone','wilaya','address','product','quantity','price','total','status']) &&
+        // ✅ productId أصبح إجباريًا (وليس اختياريًا) لسد ثغرة كانت تسمح بتجاوز
+        // التحقق من السعر الحقيقي عبر إرسال طلب بدون productId.
+        d.keys().hasAll(['customerName','customerPhone','wilaya','address','product','productId','quantity','price','total','status']) &&
 
         // status يجب أن يكون قيمة البداية الثابتة فقط — لا يقدر الزبون يبعث طلب "مؤكد" مباشرة
         d.status == 'جديد' &&
@@ -62,7 +64,7 @@ service cloud.firestore {
         d.wilaya is string && d.wilaya.size() > 0 && d.wilaya.size() < 100 &&
         d.address is string && d.address.size() > 0 && d.address.size() < 300 &&
         d.product is string && d.product.size() > 0 && d.product.size() < 200 &&
-        (!('productId' in d) || (d.productId is string && d.productId.size() < 200)) &&
+        d.productId is string && d.productId.size() > 0 && d.productId.size() < 200 &&
         (!('deliveryType' in d) || (d.deliveryType is string && d.deliveryType.size() < 50)) &&
         (!('shippingCompany' in d) || (d.shippingCompany is string && d.shippingCompany.size() < 100)) &&
 
@@ -75,11 +77,10 @@ service cloud.firestore {
         // ✅ حماية من التلاعب بالمجموع: total يجب أن يساوي حسابيًا price×quantity + shipping
         d.total == (d.price * d.quantity) + (('shipping' in d) ? d.shipping : 0) &&
 
-        // ✅ حماية من التلاعب بالسعر: إذا أرسل الموقع productId (الحالة الطبيعية)، يجب أن
-        // يطابق price السعر الحقيقي المخزّن فعليًا في المنتج — يمنع مهاجم يتواصل مباشرة مع
-        // Firestore (بدون المرور بواجهة الموقع) من إرسال سعر مزيف لمنتج حقيقي.
-        (!('productId' in d) ||
-          get(/databases/$(database)/documents/products/$(d.productId)).data.price == d.price);
+        // ✅ حماية من التلاعب بالسعر: productId إجباري الآن، ويجب أن يطابق price
+        // السعر الحقيقي المخزّن فعليًا في المنتج — هذا يمنع مهاجم يتواصل مباشرة مع
+        // Firestore (بدون المرور بواجهة الموقع) من إرسال سعر مزيف أو منتج وهمي غير موجود.
+        get(/databases/$(database)/documents/products/$(d.productId)).data.price == d.price;
     }
 
     // Deny-by-default صريح: أي collection أو مستند غير معروف/غير مذكور أعلاه ممنوع تمامًا.
