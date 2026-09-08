@@ -63,6 +63,8 @@ service cloud.firestore {
         d.address is string && d.address.size() > 0 && d.address.size() < 300 &&
         d.product is string && d.product.size() > 0 && d.product.size() < 200 &&
         (!('productId' in d) || (d.productId is string && d.productId.size() < 200)) &&
+        (!('deliveryType' in d) || (d.deliveryType is string && d.deliveryType.size() < 50)) &&
+        (!('shippingCompany' in d) || (d.shippingCompany is string && d.shippingCompany.size() < 100)) &&
 
         // أرقام منطقية — يمنع كمية سالبة أو صفر أو كمية ضخمة (بوت)، وسعر/مجموع سالب
         d.quantity is int && d.quantity > 0 && d.quantity <= 50 &&
