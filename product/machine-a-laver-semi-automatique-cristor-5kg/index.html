@@ -119,12 +119,6 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 .trust-strip div b{font-size:16px}
 
 .small{color:var(--muted);font-size:12px;margin-top:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
-.turnstile-wrap{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:70px;justify-content:center}
-.turnstile-status{font-size:12px;font-weight:700;color:var(--muted);text-align:center;line-height:1.7}
-.turnstile-status.ok{color:var(--green)}
-.turnstile-status.err{color:#dc2626}
-.turnstile-retry{border:1.5px solid var(--navy);background:#fff;color:var(--navy);padding:7px 16px;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;transition:.2s;margin-top:4px}
-.turnstile-retry:hover{background:var(--navy);color:#fff}
 
 @media(max-width:800px){
   .checkout-head{padding:18px 18px}
@@ -211,10 +205,7 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
   </div>
 
   <div class="total"><span>💰 المجموع الكلي</span><span id="grandTotal">—</span></div>
-  <div class="turnstile-wrap" id="turnstileWrap">
-    <div class="cf-turnstile" id="turnstileBox"></div>
-    <div class="turnstile-status" id="turnstileStatus">⏳ جاري تحميل التحقق الأمني...</div>
-  </div>
+  <div class="cf-turnstile" data-sitekey="0x4AAAAAAEr4LX8RrjqSPfbBP3hcQxYejK8"></div>
   <button class="confirm" onclick="submitOrder()"><span>✅</span> تأكيد الطلب بالدفع عند الاستلام</button>
 
   <div class="trust-strip">
@@ -349,45 +340,9 @@ function updateTotal(){
   document.getElementById("grandTotal").textContent=money(base+s);
 }
 document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliveryType=null;updateTotal();});
-
-// ===== Cloudflare Turnstile: رندر صريح + إعادة محاولة تلقائية عند الفشل =====
-const TURNSTILE_SITEKEY="0x4AAAAAAEr4LX8RrjqSPfbBP3hcQxYejK8";
-let turnstileWidgetId=null,turnstileAttempts=0;
-function setTurnstileStatus(html,cls){const el=document.getElementById("turnstileStatus");if(!el)return;el.className="turnstile-status"+(cls?" "+cls:"");el.innerHTML=html;}
-function renderTurnstile(){
-  const box=document.getElementById("turnstileBox");
-  if(!box||typeof window.turnstile==="undefined")return;
-  try{
-    if(turnstileWidgetId!==null){try{window.turnstile.remove(turnstileWidgetId);}catch(_e){}}
-    turnstileWidgetId=window.turnstile.render(box,{
-      sitekey:TURNSTILE_SITEKEY,
-      callback:function(){turnstileAttempts=0;setTurnstileStatus("✅ تم التحقق الأمني","ok");},
-      "error-callback":function(){handleTurnstileFailure();},
-      "expired-callback":function(){setTurnstileStatus("⏳ انتهت صلاحية التحقق، جارٍ التجديد...");renderTurnstile();},
-      "timeout-callback":function(){handleTurnstileFailure();}
-    });
-    setTurnstileStatus("⏳ جاري تحميل التحقق الأمني...");
-  }catch(_e){handleTurnstileFailure();}
-}
-function handleTurnstileFailure(){
-  turnstileAttempts++;
-  if(turnstileAttempts<4){
-    setTurnstileStatus("⏳ إعادة محاولة تحميل التحقق الأمني...");
-    setTimeout(renderTurnstile,1000*turnstileAttempts);
-  }else{
-    setTurnstileStatus('⚠️ تعذر تحميل التحقق الأمني. تحقق من اتصال الإنترنت أو عطّل مانع الإعلانات ثم <button type="button" class="turnstile-retry" onclick="window.__bazarRetryTurnstile()">إعادة المحاولة</button>',"err");
-  }
-}
-window.__bazarRetryTurnstile=function(){turnstileAttempts=0;renderTurnstile();};
-(function waitForTurnstile(tries){
-  if(typeof window.turnstile!=="undefined"){renderTurnstile();return;}
-  if(tries<=0){handleTurnstileFailure();return;}
-  setTimeout(()=>waitForTurnstile(tries-1),400);
-})(20);
-
 window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
 if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast("رقم الهاتف غير صحيح ⚠️");return}
-const turnstileToken=document.querySelector('input[name="cf-turnstile-response"]')?.value||"";if(!turnstileToken){if(typeof window.turnstile!=="undefined"&&turnstileWidgetId!==null){try{window.turnstile.reset(turnstileWidgetId);}catch(_e){}}else{renderTurnstile();}toast("أكد التحقق الأمني (انتظر ظهور ✅) ثم حاول مجددًا ⚠️");return}
+const turnstileToken=document.querySelector('input[name="cf-turnstile-response"]')?.value||"";if(!turnstileToken){toast("أكد التحقق الأمني ثم حاول مجددًا ⚠️");return}
 const opts=computeDeliveryOptions(w);
 const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
 if(!chosen){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
