@@ -12,8 +12,12 @@
  * ⚠️ لم يتم تشغيل هذه الاختبارات فعليًا في بيئة التحليل هذه (لا يوجد اتصال إنترنت
  * لتنزيل حزم npm ولا Firebase CLI). هي جاهزة للتشغيل من طرفك للتحقق قبل النشر.
  *
- * ⚠️ استبدل ADMIN_UID أدناه بنفس UID المستخدم في firestore.rules الحقيقي إن أردت
- * اختبار سيناريوهات الأدمن بدقة أكبر (هنا نستخدم قيمة وهمية لأننا في المحاكي).
+ * ⚠️ محدَّثة بعد نقل إنشاء الطلبات إلى Cloudflare Worker (Service Account):
+ * "allow create" في orders أصبح Admin-only فقط. الكتابة الحقيقية من الزبون تتم
+ * الآن عبر Service Account في الـ Worker، وهذه تتجاوز Security Rules أصلاً —
+ * لذلك لا يمكن اختبارها بمحاكي rules-unit-testing (الذي يختبر عملاء Firebase
+ * العاديين فقط، لا Admin SDK). اختبر مسار /create-order يدويًا (Postman أو
+ * curl) بعد نشر الـ Worker للتأكد من أن Turnstile والتحقق من السعر يعملان.
  */
 const {
   initializeTestEnvironment,
@@ -32,7 +36,7 @@ before(async () => {
   const rules = fs
     .readFileSync(path.join(__dirname, "..", "firestore.rules"), "utf8")
     // في بيئة الاختبار فقط: نستبدل ثابت الأدمن الحقيقي بقيمة الاختبار حتى تعمل السيناريوهات
-    .replace(/ADMIN_UID_HERE/g, ADMIN_UID);
+    .replace(/GOBngnCP2eMTLZrJpf72GOmXvvO2/g, ADMIN_UID);
   testEnv = await initializeTestEnvironment({
     projectId: PROJECT_ID,
     firestore: { rules },
@@ -57,12 +61,21 @@ function admin() {
   return testEnv.authenticatedContext(ADMIN_UID).firestore();
 }
 
+// إدراج منتج حقيقي (بتجاوز القواعد) قبل اختبارات السعر، لأن isValidOrder
+// تستخدم get(products/$(productId)).data.price للمقارنة.
+async function seedProduct() {
+  await testEnv.withSecurityRulesDisabled(async (ctx) => {
+    await ctx.firestore().doc("products/p1").set({ name: "منتج", price: 1000 });
+  });
+}
+
 const validOrder = {
   customerName: "أحمد بن علي",
   customerPhone: "0551234567",
   wilaya: "16 - الجزائر",
   address: "شارع ديدوش مراد",
   product: "منتج تجريبي",
+  productId: "p1",
   quantity: 2,
   price: 1000,
   shipping: 500,
@@ -79,9 +92,12 @@ describe("Anonymous user (زائر غير مسجل)", () => {
     const db = anon();
     await assertSucceeds(db.doc("categories/c1").get());
   });
-  it("can create a valid order", async () => {
+  // ✅ محدَّث: إنشاء الطلبات مباشرة من عميل غير موثوق أصبح ممنوعًا نهائيًا.
+  // إنشاء الطلب الحقيقي يمر إجباريًا عبر Worker موثوق (Turnstile + Service Account).
+  it("cannot create an order directly from an untrusted client (even a valid-looking one)", async () => {
+    await seedProduct();
     const db = anon();
-    await assertSucceeds(db.collection("orders").add(validOrder));
+    await assertFails(db.collection("orders").add(validOrder));
   });
   it("cannot read orders", async () => {
     const db = anon();
@@ -108,27 +124,6 @@ describe("Anonymous user (زائر غير مسجل)", () => {
     const db = anon();
     await assertSucceeds(db.doc("settings/general").get());
   });
-  it("cannot inject extra fields into an order (privilege fields)", async () => {
-    const db = anon();
-    await assertFails(
-      db.collection("orders").add({ ...validOrder, isAdmin: true })
-    );
-    await assertFails(
-      db.collection("orders").add({ ...validOrder, adminNotes: "x" })
-    );
-  });
-  it("cannot create an order with a non-default status", async () => {
-    const db = anon();
-    await assertFails(
-      db.collection("orders").add({ ...validOrder, status: "مقبول" })
-    );
-  });
-  it("cannot create an order with a manipulated total (price mismatch)", async () => {
-    const db = anon();
-    await assertFails(
-      db.collection("orders").add({ ...validOrder, total: 1 })
-    );
-  });
   it("cannot write to an undeclared collection (deny-by-default)", async () => {
     const db = anon();
     await assertFails(db.doc("admins/whoever").set({ isAdmin: true }));
@@ -142,6 +137,12 @@ describe("Normal authenticated (non-admin) user", () => {
     await assertFails(db.collection("orders").get());
     await assertFails(db.doc("settings/email").get());
   });
+  // ✅ محدَّث: حساب عادي مسجّل دخول (وليس UID الأدمن) لا يقدر ينشئ طلب أيضًا.
+  it("cannot create an order either", async () => {
+    await seedProduct();
+    const db = user();
+    await assertFails(db.collection("orders").add(validOrder));
+  });
 });
 
 describe("Admin", () => {
@@ -151,7 +152,8 @@ describe("Admin", () => {
     await assertSucceeds(db.doc("products/p1").delete());
     await assertSucceeds(db.doc("categories/c1").set({ name: "فئة" }));
   });
-  it("can read/update/delete orders", async () => {
+  it("can create/read/update/delete orders", async () => {
+    await seedProduct();
     const db = admin();
     const ref = await db.collection("orders").add(validOrder);
     await assertSucceeds(db.doc(`orders/${ref.id}`).update({ status: "مقبول" }));
