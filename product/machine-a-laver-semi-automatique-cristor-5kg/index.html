@@ -160,9 +160,23 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
   <script>
 window.__bazarTurnstileWidgetId=null;
 window.__bazarTurnstileToken="";
+// إذا تعذّر تحميل أو التحقق من Turnstile (شبكة بطيئة/محجوبة، نطاق غير مصرّح به، إلخ)
+// لا نمنع الزبون الحقيقي من إتمام الطلب — نسمح بالإرسال بعد مهلة قصيرة.
+window.__bazarTurnstileFailOpen=false;
+window.__bazarTurnstileRetries=0;
+
+function bazarTurnstileFailOpenNow(){
+  if(window.__bazarTurnstileFailOpen) return;
+  window.__bazarTurnstileFailOpen=true;
+  const el=document.getElementById("turnstile-widget");
+  if(el) el.style.display="none";
+}
+// مهلة أمان: إن لم يتحقق الزبون خلال 8 ثوانٍ لأي سبب تقني، نسمح بالمتابعة
+window.__bazarTurnstileTimeout=setTimeout(bazarTurnstileFailOpenNow,8000);
 
 window.onTurnstileSuccess=function(token){
   window.__bazarTurnstileToken=String(token||"");
+  clearTimeout(window.__bazarTurnstileTimeout);
 };
 
 window.onTurnstileExpired=function(){
@@ -171,6 +185,12 @@ window.onTurnstileExpired=function(){
 
 window.onTurnstileError=function(){
   window.__bazarTurnstileToken="";
+  window.__bazarTurnstileRetries++;
+  if(window.__bazarTurnstileRetries>=2){
+    bazarTurnstileFailOpenNow();
+  }else if(window.turnstile && window.__bazarTurnstileWidgetId!==null){
+    try{turnstile.reset(window.__bazarTurnstileWidgetId);}catch(e){}
+  }
 };
 
 window.onTurnstileLoad=function(){
@@ -193,7 +213,7 @@ window.onTurnstileLoad=function(){
   }
 };
 </script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" async defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" async defer onerror="bazarTurnstileFailOpenNow()"></script>
 </head>
 <body>
 <header><div class="in">
@@ -385,7 +405,7 @@ if(window.turnstile && window.__bazarTurnstileWidgetId!==null){
     turnstileToken=turnstile.getResponse(window.__bazarTurnstileWidgetId)||turnstileToken;
   }catch(e){}
 }
-if(!turnstileToken){
+if(!turnstileToken && !window.__bazarTurnstileFailOpen){
   toast("أكد التحقق الأمني ثم حاول مجددًا ⚠️");
   return;
 }
@@ -412,6 +432,7 @@ await addDoc(collection(db, "orders"), {
   shippingCompany: carrierNames,
   total: total,
   status: "جديد",
+  turnstileVerified: !!turnstileToken,
   createdAt: new Date()
 });
 // ✅ إشعار Telegram يُرسل عبر Cloudflare Worker الأصلي الموجود مسبقًا
