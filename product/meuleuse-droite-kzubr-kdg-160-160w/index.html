@@ -426,7 +426,6 @@ await addDoc(collection(db, "orders"), {
   shippingCompany: carrierNames,
   total: total,
   status: "جديد",
-  turnstileVerified: !!turnstileToken,
   createdAt: new Date()
 });
 // ✅ إشعار Telegram يُرسل عبر Cloudflare Worker الأصلي الموجود مسبقًا
