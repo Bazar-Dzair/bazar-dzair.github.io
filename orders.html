@@ -77,6 +77,11 @@ updateDoc,
 deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+import {
+getAuth,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyBWdA_QIy_2gOBl-bP1S1tLaGIqaZjpar8",
   authDomain: "bazar-dzair-33816.firebaseapp.com",
@@ -88,8 +93,22 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 const ordersDiv = document.getElementById("orders");
+
+// ✅ بوابة تسجيل دخول من جهة الواجهة (طبقة حماية إضافية فوق Firestore Rules).
+// هذه الصفحة كانت تعتمد على القواعد فقط بدون أي تحقق هنا؛ الآن تُحوَّل لصفحة
+// تسجيل الدخول مباشرة إذا لم يكن هناك مستخدم مسجّل — بدل عرض شاشة "تعذر تحميل
+// الطلبات" التي تكشف مسار /orders.html كصفحة إدارية بدون توجيه واضح.
+ordersDiv.innerHTML = "<h2 style='text-align:center'>⏳ التحقق من تسجيل الدخول...</h2>";
+onAuthStateChanged(auth, (u) => {
+  if (!u) {
+    location.href = "/admin.html";
+    return;
+  }
+  startOrdersListener();
+});
 
 // ⚠️ إصلاح أمني حرج (Stored XSS): بيانات الطلب (product, customerName, customerPhone,
 // wilaya, address, status) هي مدخلات يتحكم بها الزبون (أو أي شخص يرسل طلبًا مباشرة إلى
@@ -99,6 +118,7 @@ const ordersDiv = document.getElementById("orders");
 // الحل: تهريب كل قيمة نصية قبل إدراجها في HTML.
 function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
 
+function startOrdersListener(){
 const q = query(
     collection(db,"orders")
 );
@@ -159,6 +179,7 @@ onSnapshot(q,(snapshot)=>{
   console.error("تعذر قراءة الطلبات",err);
   ordersDiv.innerHTML="<h2 style='text-align:center'>تعذر تحميل الطلبات</h2><p style='text-align:center'>تحقق من Firestore Rules ثم حدّث الصفحة.</p>";
 });
+} // نهاية startOrdersListener()
 
 window.acceptOrder = async(id)=>{
 try{

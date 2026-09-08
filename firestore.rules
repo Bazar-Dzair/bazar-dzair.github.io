@@ -41,12 +41,18 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // الطلبات — الزبون يُنشئ طلبًا بشروط تحقق صارمة، الأدمن فقط يقرأ/يعدّل/يحذف.
+    // ✅ الطلبات — لم يعد المتصفح يكتب هنا مباشرة إطلاقًا. كل طلب يمرّ إجباريًا عبر
+    // Cloudflare Worker (worker/create-order.js) الذي يتحقق من Turnstile من جهة السيرفر
+    // ثم يكتب الطلب بصلاحيات Service Account (تتجاوز هذه القواعد أصلاً، فهي غير خاضعة لها).
+    // بقاء "allow create: if isAdmin()" هنا هو فقط شبكة أمان تمنع أي عميل غير موثوق
+    // (متصفح، سكربت، Postman...) من الكتابة المباشرة في orders بأي حال.
     match /orders/{id} {
-      allow create: if isAdmin() || isValidOrder(request.resource.data);
+      allow create: if isAdmin();
       allow read, update, delete: if isAdmin();
     }
 
+    // محفوظة كمرجع فقط (تُستخدم فعليًا داخل الـ Worker لإعادة التحقق من نفس الشروط
+    // قبل الكتابة). لم تعد تُستدعى من allow create أعلاه.
     function isValidOrder(d) {
       return
         // الحقول المسموحة فقط — أي حقل إضافي (adminNotes، role، isAdmin...) يرفض الطلب
