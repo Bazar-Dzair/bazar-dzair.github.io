@@ -147,7 +147,19 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
   .sticky-buy{display:flex}
 }
 </style>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script>
+window.__bazarTurnstileToken="";
+window.onTurnstileSuccess=function(token){
+  window.__bazarTurnstileToken=String(token||"");
+};
+window.onTurnstileExpired=function(){
+  window.__bazarTurnstileToken="";
+};
+window.onTurnstileError=function(){
+  window.__bazarTurnstileToken="";
+};
+</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 <header><div class="in">
@@ -335,24 +347,6 @@ function updateTotal(){
   document.getElementById("grandTotal").textContent=money(base+s);
 }
 document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliveryType=null;updateTotal();});
-let __bazarTurnstileToken="";
-
-window.__bazarTurnstileToken="";
-
-window.onTurnstileSuccess=function(token){
-  __bazarTurnstileToken=String(token||"");
-  window.__bazarTurnstileToken=__bazarTurnstileToken;
-};
-
-window.onTurnstileExpired=function(){
-  __bazarTurnstileToken="";
-  window.__bazarTurnstileToken="";
-};
-
-window.onTurnstileError=function(){
-  __bazarTurnstileToken="";
-  window.__bazarTurnstileToken="";
-};
 
 window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
 if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast("رقم الهاتف غير صحيح ⚠️");return}
