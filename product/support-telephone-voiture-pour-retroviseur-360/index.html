@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.imgbb.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; frame-src https://challenges.cloudflare.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.imgbb.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <link rel="icon" href="/logo.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Support Téléphone Voiture pour Rétroviseur 360° | Bazar Dzair</title>
 <meta id="metaDescription" name="description" content="حامل هاتف عملي ومتعدد الاستخدامات يُثبت مباشرة على مرآة الرؤية الخلفية، ويوفر دورانًا بزاوية 360° مع ذراع طويل قابل للتعديل، مما يسمح بضبط الهاتف بسهولة لل">
 <meta name="theme-color" content="#071b33">
 <script src="addons.js" defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <!--SEO/OG تُحدّث ديناميكيًا حسب المنتج الحقيقي قبل إغلاق head--> 
 <meta property="og:locale" content="ar_DZ"><meta property="og:site_name" content="Bazar Dzair">
 <meta name="twitter:card" content="summary_large_image">
@@ -148,8 +149,6 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
   .sticky-buy{display:flex}
 }
 </style>
-<!-- ✅ Turnstile widget script (Site Key فقط، آمن للعرض العلني) -->
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 <header><div class="in">
@@ -197,11 +196,19 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
   </div>
 
   <div class="total"><span>💰 المجموع الكلي</span><span id="grandTotal">—</span></div>
-  <!-- ✅ Turnstile: يمنع البوتات من إرسال طلبات تلقائية. استبدل YOUR_TURNSTILE_SITE_KEY بالمفتاح
-       العلني (Site Key) من Cloudflare Dashboard > Turnstile. لا يوجد أي سر هنا؛ التحقق الحقيقي
-       يتم لاحقًا من جهة السيرفر (Cloudflare Worker) عبر المفتاح السري. -->
-  <div class="cf-turnstile" data-sitekey="0x4AAAAAAEr4LeYzqB2qvGsq" data-callback="onTurnstileOk" data-error-callback="onTurnstileErr" style="margin:10px 0"></div>
-  <button class="confirm" id="confirmBtn" onclick="submitOrder()" disabled><span>✅</span> تأكيد الطلب بالدفع عند الاستلام</button>
+
+  <div class="field-group">
+    <div id="turnstileWrap" style="display:flex;justify-content:center;margin:6px 0">
+      <div class="cf-turnstile"
+           data-sitekey="0x4AAAAAAA_REPLACE_WITH_YOUR_SITE_KEY"
+           data-callback="onTurnstileOk"
+           data-error-callback="onTurnstileErr"
+           data-expired-callback="onTurnstileErr"
+           data-language="ar"></div>
+    </div>
+  </div>
+
+  <button class="confirm" id="confirmBtn" onclick="submitOrder()" disabled style="opacity:.5;cursor:not-allowed"><span>✅</span> تأكيد الطلب بالدفع عند الاستلام</button>
 
   <div class="trust-strip">
     <div><b>🔒</b>دفع آمن 100%</div>
@@ -219,10 +226,6 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 </div>
 <div id="toast" class="toast"></div>
 <script type="module">
-// ✅ Turnstile: يُفعَّل زر التأكيد فقط بعد نجاح التحقق، ويُعاد تعطيله عند الانتهاء الصلاحية/الخطأ.
-let turnstileToken=null;
-window.onTurnstileOk=(token)=>{turnstileToken=token;const b=document.getElementById("confirmBtn");if(b)b.disabled=false;};
-window.onTurnstileErr=()=>{turnstileToken=null;const b=document.getElementById("confirmBtn");if(b)b.disabled=true;};
 let firebasePromise=null;
 async function getFirebase(){
   if(!firebasePromise){
@@ -340,10 +343,27 @@ function updateTotal(){
 }
 document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliveryType=null;updateTotal();});
 
-window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
+// ===== Cloudflare Turnstile =====
+// data-callback / data-error-callback / data-expired-callback (see widget above)
+// تفعّل/تعطّل زر التأكيد بحسب صلاحية رمز Turnstile. التحقق الحقيقي والملزم
+// يجب أن يتم من طرف السيرفر (الـ Worker) عبر siteverify، هذا الجانب هو فقط
+// تجربة مستخدم + خط دفاع أول ضد الزحف الآلي البسيط.
+window.__bazarTurnstileToken = null;
+window.onTurnstileOk = function (token) {
+  window.__bazarTurnstileToken = token;
+  const btn = document.getElementById("confirmBtn");
+  if (btn) { btn.disabled = false; btn.style.opacity = "1"; btn.style.cursor = "pointer"; }
+};
+window.onTurnstileErr = function () {
+  window.__bazarTurnstileToken = null;
+  const btn = document.getElementById("confirmBtn");
+  if (btn) { btn.disabled = true; btn.style.opacity = ".5"; btn.style.cursor = "not-allowed"; }
+};
+
+window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;
+if(!window.__bazarTurnstileToken){toast("الرجاء إكمال التحقق الأمني أعلاه ⚠️");return}
+const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
 if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast("رقم الهاتف غير صحيح ⚠️");return}
-// ✅ لا نتابع بدون تحقق Turnstile ناجح — يمنع أي بوت من إرسال الطلب حتى لو تجاوز الواجهة
-if(!turnstileToken){toast("أكمل التحقق الأمني (Turnstile) قبل الإرسال ⚠️");return}
 const opts=computeDeliveryOptions(w);
 const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
 if(!chosen){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
@@ -352,34 +372,46 @@ try{
 const s=chosen.price;
 const deliveryTypeLabel=selectedDeliveryType==="office"?"المكتب":"المنزل";
 const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
-const total=Number(product.price||0)*quantity+s;
-// ✅ لم يعد المتصفح يكتب في Firestore مباشرة. الطلب يُرسل إلى Cloudflare Worker الذي
-// يتحقق من Turnstile من جهة السيرفر (بالمفتاح السري)، يعيد التحقق من السعر الحقيقي،
-// ثم يكتب الطلب في Firestore بصلاحيات خدمة (Service Account) ويرسل إشعار Telegram —
-// كل ذلك في طلب واحد. راجع ملف worker/create-order.js المرفق لإعداد الـ Worker.
-const resp=await fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/create-order",{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({
-    turnstileToken: turnstileToken,
-    customerName: n,
-    customerPhone: ph,
-    wilaya: wn,
-    address: a,
-    product: product.name,
-    productId: product.firestoreId || product.id || "",
-    quantity: quantity,
-    price: product.price,
-    shipping: s,
-    deliveryType: deliveryTypeLabel,
-    shippingCompany: carrierNames,
-    total: total
-  })
+const {initializeApp,getFirestore,collection,addDoc}=await getFirebase();const app=initializeApp(firebaseConfig);const db=getFirestore(app);const total=Number(product.price||0)*quantity+s;
+await addDoc(collection(db, "orders"), {
+  customerName: n,
+  customerPhone: ph,
+  wilaya: wn,
+  address: a,
+  product: product.name,
+  productId: product.firestoreId || product.id || "",
+  quantity: quantity,
+  price: product.price,
+  shipping: s,
+  deliveryType: deliveryTypeLabel,
+  shippingCompany: carrierNames,
+  total: total,
+  status: "جديد",
+  createdAt: new Date()
 });
-if(!resp.ok){
-  const errBody=await resp.json().catch(()=>({}));
-  throw new Error(errBody.error||("HTTP "+resp.status));
-}
+// ✅ إشعار Telegram يُرسل عبر Cloudflare Worker الأصلي الموجود مسبقًا
+// (noisy-lake-ace8.a-bazar-dzair-pro.workers.dev) — التوكن مخزّن هناك فقط.
+try{
+  const telegramText="🛒 طلب جديد\n👤 الاسم: "+n+"\n📞 الهاتف: "+ph+"\n📍 الولاية: "+wn+"\n🏠 العنوان: "+a+"\n📦 المنتج: "+product.name+"\n🔢 الكمية: "+quantity+"\n💰 المجموع: "+total+" دج";
+  fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/send-telegram",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      customerName:n,
+      phone:ph,
+      wilaya:wn,
+      address:a,
+      product:product.name,
+      quantity:quantity,
+      price:Number(product.price||0),
+      shipping:s,
+      total:total,
+      deliveryType:deliveryTypeLabel,
+      shippingCompany:carrierNames,
+      cfTurnstileToken:window.__bazarTurnstileToken
+    })
+  }).then(r=>{if(!r.ok)console.error("Telegram HTTP error:",r.status);}).catch(e=>console.error("Telegram send error:",e));
+}catch(e){console.error("Telegram send error:",e);}
 try{
   const addonsCfg=window.__bazarAddons||{};
   const gs=addonsCfg.googleSheets||{};
@@ -398,9 +430,11 @@ alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="
 }catch(err){
   console.error("order submit failed:",err);
   toast("تعذر إرسال الطلب، تحقق من الاتصال وحاول مجددًا ⚠️");
-  window.__bazarSubmittingOrder=false;if(btn){btn.disabled=true;btn.style.opacity="";btn.style.pointerEvents=""}
-  // ✅ توكن Turnstile يُستخدم مرة واحدة فقط — يجب إعادة تعيينه بعد أي محاولة (نجاح أو فشل)
-  turnstileToken=null;if(window.turnstile)try{window.turnstile.reset()}catch(e){}
+  window.__bazarSubmittingOrder=false;
+  // الرمز يُستخدم مرة واحدة فقط، نطلب تحقق جديد قبل أي محاولة أخرى
+  window.__bazarTurnstileToken=null;
+  try{if(window.turnstile)window.turnstile.reset();}catch(e){}
+  if(btn){btn.disabled=true;btn.style.opacity=".5";btn.style.pointerEvents="";btn.style.cursor="not-allowed"}
 }};
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2400)}
 
