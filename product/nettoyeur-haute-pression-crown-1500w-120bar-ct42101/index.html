@@ -234,7 +234,7 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 // ✅ Turnstile: يُفعَّل زر التأكيد فقط بعد نجاح التحقق، ويُعاد تعطيله عند الانتهاء الصلاحية/الخطأ.
 let turnstileToken=null;
 window.onTurnstileOk=(token)=>{turnstileToken=token;const b=document.getElementById("confirmBtn");if(b)b.disabled=false;};
-window.onTurnstileErr=(errorCode)=>{alert("TURNSTILE ERROR CODE: "+errorCode);turnstileToken=null;const b=document.getElementById("confirmBtn");if(b)b.disabled=true;};
+window.onTurnstileErr=()=>{turnstileToken=null;const b=document.getElementById("confirmBtn");if(b)b.disabled=true;};
 let firebasePromise=null;
 async function getFirebase(){
   if(!firebasePromise){
