@@ -8,8 +8,9 @@
 // لو وُضع هناك سيُنشر كملف عام قابل للتحميل (حتى لو أسراره بأمان في env).
 //
 // ما يفعله هذا المسار:
-//   1) يتحقق من Turnstile token من جهة السيرفر (بالمفتاح السري — لا يمكن تزويره).
-//   2) يعيد نفس التحقق الموجود في firestore.rules (شكل البيانات، الهاتف، الكمية...).
+//   1) يعيد نفس التحقق الموجود في firestore.rules (شكل البيانات، الهاتف، الكمية...).
+//   2) يتحقق أن رقم هاتف الزبون غير موجود في قائمة الأرقام المحظورة (collection
+//      blockedPhones يديرها الأدمن من لوحة التحكم).
 //   3) يجلب السعر الحقيقي للمنتج من Firestore ويقارنه بالسعر المُرسل.
 //   4) يكتب الطلب في Firestore بصلاحيات Service Account (تتجاوز Security Rules
 //      تمامًا، وهذا مقصود ومتوقَّع لأي Admin SDK / Service Account).
@@ -17,7 +18,6 @@
 //
 // الأسرار المطلوبة (Cloudflare Dashboard > Workers > Settings > Variables,
 // أو عبر: npx wrangler secret put <NAME>):
-//   TURNSTILE_SECRET_KEY   — من Cloudflare Dashboard > Turnstile (سري، مختلف عن Site Key)
 //   FIREBASE_PROJECT_ID    — "bazar-dzair-33816"
 //   FIREBASE_CLIENT_EMAIL  — من ملف Service Account JSON (client_email)
 //   FIREBASE_PRIVATE_KEY   — من نفس الملف (private_key) — الصقه كاملاً بأسطره \n
@@ -52,7 +52,6 @@ export async function handleCreateOrder(request, env) {
   }
 
   const {
-    turnstileToken,
     customerName,
     customerPhone,
     wilaya,
@@ -67,14 +66,7 @@ export async function handleCreateOrder(request, env) {
     total,
   } = body || {};
 
-  // 1) Turnstile — التحقق الحقيقي والوحيد الموثوق، لأنه يستخدم المفتاح السري
-  const ip = request.headers.get("CF-Connecting-IP") || "";
-  const turnstileOk = await verifyTurnstile(env, turnstileToken, ip);
-  if (!turnstileOk) {
-    return json({ error: "فشل التحقق الأمني (Turnstile)" }, 400, cors);
-  }
-
-  // 2) نفس شروط isValidOrder() في firestore.rules، بالضبط
+  // 1) نفس شروط isValidOrder() في firestore.rules، بالضبط
   const validationError = validateOrder({
     customerName,
     customerPhone,
@@ -91,7 +83,26 @@ export async function handleCreateOrder(request, env) {
     return json({ error: validationError }, 400, cors);
   }
 
-  // 3) مطابقة السعر الحقيقي — نفس منطق get(...).data.price == d.price في القواعد
+  // 2) الحصول على توكن Service Account مبكرًا — يُستخدم لفحص الحظر ثم للكتابة لاحقًا
+  let accessToken;
+  try {
+    accessToken = await getGoogleAccessToken(env);
+  } catch (e) {
+    return json({ error: "تعذّر الاتصال بالخادم" }, 502, cors);
+  }
+
+  // 3) رفض الطلب إذا كان رقم الهاتف محظورًا من لوحة تحكم الأدمن
+  let phoneBlocked;
+  try {
+    phoneBlocked = await isPhoneBlocked(env, accessToken, customerPhone);
+  } catch (e) {
+    return json({ error: "تعذّر التحقق من رقم الهاتف" }, 502, cors);
+  }
+  if (phoneBlocked) {
+    return json({ error: "لا يمكن تسجيل الطلب بهذا الرقم" }, 403, cors);
+  }
+
+  // 4) مطابقة السعر الحقيقي — نفس منطق get(...).data.price == d.price في القواعد
   let realPrice;
   try {
     realPrice = await getProductPrice(env, productId);
@@ -107,10 +118,9 @@ export async function handleCreateOrder(request, env) {
     return json({ error: "المجموع غير صحيح" }, 400, cors);
   }
 
-  // 4) الكتابة في Firestore عبر Service Account
-  let accessToken, doc;
+  // 5) الكتابة في Firestore عبر Service Account
+  let doc;
   try {
-    accessToken = await getGoogleAccessToken(env);
     doc = await createOrderDoc(env, accessToken, {
       customerName,
       customerPhone,
@@ -131,7 +141,7 @@ export async function handleCreateOrder(request, env) {
     return json({ error: "تعذّر حفظ الطلب" }, 502, cors);
   }
 
-  // 5) إشعار Telegram — لا يفشل الطلب لو تعطّل الإشعار
+  // 6) إشعار Telegram — لا يفشل الطلب لو تعطّل الإشعار
   try {
     await sendTelegram(env, {
       customerName,
@@ -151,23 +161,22 @@ export async function handleCreateOrder(request, env) {
 }
 
 // ---------------------------------------------------------------------
-// تحقق Turnstile من جهة السيرفر
+// يتحقق هل رقم الهاتف موجود في collection "blockedPhones" (معرّف الوثيقة =
+// رقم الهاتف نفسه). القراءة تتم بصلاحيات Service Account حتى لو كانت
+// firestore.rules تمنع القراءة العامة لهذا الـ collection.
 // ---------------------------------------------------------------------
-async function verifyTurnstile(env, token, ip) {
-  if (!token || typeof token !== "string") return false;
-  const resp = await fetch(
-    "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body:
-        `secret=${encodeURIComponent(env.TURNSTILE_SECRET_KEY)}` +
-        `&response=${encodeURIComponent(token)}` +
-        `&remoteip=${encodeURIComponent(ip)}`,
-    }
-  );
-  const data = await resp.json().catch(() => ({}));
-  return data.success === true;
+async function isPhoneBlocked(env, accessToken, phone) {
+  if (!phone || typeof phone !== "string") return false;
+  const projectId = env.FIREBASE_PROJECT_ID;
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/blockedPhones/${encodeURIComponent(
+    phone
+  )}`;
+  const resp = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (resp.status === 404) return false;
+  if (!resp.ok) throw new Error("blockedPhones lookup failed: " + resp.status);
+  return true;
 }
 
 // ---------------------------------------------------------------------
