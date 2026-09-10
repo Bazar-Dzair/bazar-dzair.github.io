@@ -154,8 +154,6 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
   .sticky-buy{display:flex}
 }
 </style>
-<!-- ✅ Turnstile widget script (Site Key فقط، آمن للعرض العلني) -->
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 <header><div class="in">
@@ -203,11 +201,7 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
   </div>
 
   <div class="total"><span>💰 المجموع الكلي</span><span id="grandTotal">—</span></div>
-  <!-- ✅ Turnstile: يمنع البوتات من إرسال طلبات تلقائية. استبدل YOUR_TURNSTILE_SITE_KEY بالمفتاح
-       العلني (Site Key) من Cloudflare Dashboard > Turnstile. لا يوجد أي سر هنا؛ التحقق الحقيقي
-       يتم لاحقًا من جهة السيرفر (Cloudflare Worker) عبر المفتاح السري. -->
-  <div class="cf-turnstile" data-sitekey="0x4AAAAAAEuUmrMYhRc_xUF1" data-callback="onTurnstileOk" data-error-callback="onTurnstileErr" style="margin:10px 0"></div>
-  <button class="confirm" id="confirmBtn" onclick="submitOrder()" disabled><span>✅</span> تأكيد الطلب بالدفع عند الاستلام</button>
+  <button class="confirm" id="confirmBtn" onclick="submitOrder()"><span>✅</span> تأكيد الطلب بالدفع عند الاستلام</button>
 
   <div class="trust-strip">
     <div><b>🔒</b>دفع آمن 100%</div>
@@ -225,10 +219,6 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 </div>
 <div id="toast" class="toast"></div>
 <script type="module">
-// ✅ Turnstile: يُفعَّل زر التأكيد فقط بعد نجاح التحقق، ويُعاد تعطيله عند الانتهاء الصلاحية/الخطأ.
-let turnstileToken=null;
-window.onTurnstileOk=(token)=>{turnstileToken=token;const b=document.getElementById("confirmBtn");if(b)b.disabled=false;};
-window.onTurnstileErr=()=>{turnstileToken=null;const b=document.getElementById("confirmBtn");if(b)b.disabled=true;};
 let firebasePromise=null;
 async function getFirebase(){
   if(!firebasePromise){
@@ -348,8 +338,6 @@ document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliver
 
 window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
 if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast("رقم الهاتف غير صحيح ⚠️");return}
-// ✅ لا نتابع بدون تحقق Turnstile ناجح — يمنع أي بوت من إرسال الطلب حتى لو تجاوز الواجهة
-if(!turnstileToken){toast("أكمل التحقق الأمني (Turnstile) قبل الإرسال ⚠️");return}
 const opts=computeDeliveryOptions(w);
 const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
 if(!chosen){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
@@ -360,14 +348,12 @@ const deliveryTypeLabel=selectedDeliveryType==="office"?"المكتب":"المن
 const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
 const total=Number(product.price||0)*quantity+s;
 // ✅ لم يعد المتصفح يكتب في Firestore مباشرة. الطلب يُرسل إلى Cloudflare Worker الذي
-// يتحقق من Turnstile من جهة السيرفر (بالمفتاح السري)، يعيد التحقق من السعر الحقيقي،
-// ثم يكتب الطلب في Firestore بصلاحيات خدمة (Service Account) ويرسل إشعار Telegram —
-// كل ذلك في طلب واحد. راجع ملف worker/create-order.js المرفق لإعداد الـ Worker.
+// يعيد التحقق من السعر الحقيقي، ثم يكتب الطلب في Firestore بصلاحيات خدمة (Service Account)
+// ويرسل إشعار Telegram — كل ذلك في طلب واحد. راجع ملف worker/create-order.js المرفق لإعداد الـ Worker.
 const resp=await fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/create-order",{
   method:"POST",
   headers:{"Content-Type":"application/json"},
   body:JSON.stringify({
-    turnstileToken: turnstileToken,
     customerName: n,
     customerPhone: ph,
     wilaya: wn,
@@ -404,9 +390,7 @@ alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="
 }catch(err){
   console.error("order submit failed:",err);
   toast("تعذر إرسال الطلب، تحقق من الاتصال وحاول مجددًا ⚠️");
-  window.__bazarSubmittingOrder=false;if(btn){btn.disabled=true;btn.style.opacity="";btn.style.pointerEvents=""}
-  // ✅ توكن Turnstile يُستخدم مرة واحدة فقط — يجب إعادة تعيينه بعد أي محاولة (نجاح أو فشل)
-  turnstileToken=null;if(window.turnstile)try{window.turnstile.reset()}catch(e){}
+  window.__bazarSubmittingOrder=false;if(btn){btn.disabled=false;btn.style.opacity="";btn.style.pointerEvents=""}
 }};
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2400)}
 
