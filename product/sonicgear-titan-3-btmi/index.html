@@ -366,7 +366,9 @@ const resp=await fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/cr
 });
 if(!resp.ok){
   const errBody=await resp.json().catch(()=>({}));
-  throw new Error(errBody.error||("HTTP "+resp.status));
+  const e=new Error(errBody.error||("HTTP "+resp.status));
+  if(errBody.error)e.userMessage=errBody.error;
+  throw e;
 }
 try{
   const addonsCfg=window.__bazarAddons||{};
@@ -385,7 +387,7 @@ if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:produc
 alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="/success.html";},1000)
 }catch(err){
   console.error("order submit failed:",err);
-  toast("تعذر إرسال الطلب، تحقق من الاتصال وحاول مجددًا ⚠️");
+  toast(err&&err.userMessage?err.userMessage+" ⚠️":"تعذر إرسال الطلب، تحقق من الاتصال وحاول مجددًا ⚠️");
   window.__bazarSubmittingOrder=false;if(btn){btn.disabled=false;btn.style.opacity="";btn.style.pointerEvents=""}
 }};
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2400)}
