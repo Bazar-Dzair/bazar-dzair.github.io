@@ -839,21 +839,63 @@ function filterCategory(category,fromUrl=false){
 }
 
 function searchProducts(){const q=document.getElementById("search").value.trim().toLowerCase();displayProducts(products.filter(p=>p.name.toLowerCase().includes(q)))}
-function submitOrder(){
+window.submitOrder=async function(){
  if(!cart.length){toast("السلة فارغة ❌");return}
+ if(window.__bazarSubmittingOrder)return;
  const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),wn=document.getElementById("wilaya").options[document.getElementById("wilaya").selectedIndex]?.text||"";
  if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
+ if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast("رقم الهاتف غير صحيح ⚠️");return}
  const opts=computeDeliveryOptions(w);
  const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
  if(!chosen){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
  const s=chosen.price;
  const deliveryTypeLabel=selectedDeliveryType==="office"?"المكتب":"المنزل";
- let m="🛍️ طلب جديد - Bazar Dzair%0A%0A";
- m+="👤 الاسم: "+encodeURIComponent(n)+"%0A📞 الهاتف: "+encodeURIComponent(ph)+"%0A📍 الولاية: "+encodeURIComponent(wn)+"%0A🏠 العنوان: "+encodeURIComponent(a)+"%0A🚛 طريقة الاستلام: "+encodeURIComponent(deliveryTypeLabel)+"%0A%0A📦 المنتجات:%0A";
- cart.forEach(x=>m+="• "+encodeURIComponent(x.name)+" × "+x.quantity+" = "+encodeURIComponent(money(x.price*x.quantity))+"%0A");
- m+="%0A💰 المنتجات: "+encodeURIComponent(money(productTotal()))+"%0A🚚 التوصيل: "+encodeURIComponent(money(s))+"%0A💵 النهائي: "+encodeURIComponent(money(productTotal()+s))+"%0A💳 الدفع عند الاستلام";
- const whatsappNumber="213500000000"; // بدّل هذا الرقم برقم واتساب المتجر
- window.open("https://wa.me/"+whatsappNumber+"?text="+m,"_blank");
+ const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
+ const btn=document.querySelector("#cartOverlay .confirm");
+ window.__bazarSubmittingOrder=true;if(btn){btn.disabled=true;btn.style.opacity=".6";btn.style.pointerEvents="none"}
+ try{
+  // ✅ نفس آلية إنشاء الطلب المستخدمة في صفحة المنتج: كل عنصر في السلة يُرسل كطلب
+  // مستقل إلى Cloudflare Worker (الذي يتحقق من السعر الحقيقي ويكتب في Firestore)،
+  // لأن مخطط الطلب في الخادم (Worker + firestore.rules) يدعم منتجًا واحدًا لكل طلب.
+  // تُحسب رسوم التوصيل مرة واحدة فقط وتُضاف لأول طلب لتفادي احتسابها عدة مرات.
+  for(let i=0;i<cart.length;i++){
+   const item=cart[i];
+   const itemShipping=i===0?s:0;
+   const total=Number(item.price||0)*item.quantity+itemShipping;
+   const resp=await fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/create-order",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+     customerName:n,
+     customerPhone:ph,
+     wilaya:wn,
+     address:a,
+     product:item.name,
+     productId:item.firestoreId||"",
+     quantity:item.quantity,
+     price:item.price,
+     shipping:itemShipping,
+     deliveryType:deliveryTypeLabel,
+     shippingCompany:carrierNames,
+     total:total
+    })
+   });
+   if(!resp.ok){
+    const errBody=await resp.json().catch(()=>({}));
+    const e=new Error(errBody.error||("HTTP "+resp.status));
+    if(errBody.error)e.userMessage=errBody.error;
+    throw e;
+   }
+  }
+  if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:cart.map(x=>x.name).join(", "),price:productTotal()+s,category:"",qty:cart.reduce((sum,x)=>sum+x.quantity,0)});
+  cart=[];updateCount();renderCart();closeModal("cartOverlay");
+  alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="/success.html";},1000);
+ }catch(err){
+  console.error("order submit failed:",err);
+  toast(err&&err.userMessage?err.userMessage+" ⚠️":"تعذر إرسال الطلب، تحقق من الاتصال وحاول مجددًا ⚠️");
+ }finally{
+  window.__bazarSubmittingOrder=false;if(btn){btn.disabled=false;btn.style.opacity="";btn.style.pointerEvents=""}
+ }
 }
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2200)}
 </script>
