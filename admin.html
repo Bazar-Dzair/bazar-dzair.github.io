@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.imgbb.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.cloudinary.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#182536">
@@ -407,7 +407,7 @@
    </div>
    <div class="products-utility-row">
      <button type="button" onclick="migrateBase64Images()" class="util-btn">🔄 إصلاح صور المنتجات القديمة</button>
-     <button type="button" onclick="bazarResetImgbbKey()" title="إعداد/تغيير مفتاح رفع الصور (ImgBB)" class="util-btn util-btn-dark">🔑</button>
+     
    </div>
    <div id="migrateStatus" style="margin:6px 0 0;font-size:13px"></div>
    <div id="productsBulk" class="bulk-toolbar"><div class="bulk-left"><label class="select-all-label"><input id="selectAllProducts" type="checkbox" onchange="window.toggleAllProducts(this.checked)"> تحديد كل منتجات الصفحة</label><span id="productsSelectedCount" class="page-info">0 محدد</span></div><button id="bulkDeleteProducts" class="bulk-delete" type="button" onclick="bulkDeleteProducts()" disabled>🗑 حذف المحدد</button></div>
@@ -1407,43 +1407,31 @@ appId:"1:51073161969:web:cb75a3224bdca11ea8e750"};
 const firebaseApp=initializeApp(config),db=getFirestore(firebaseApp),auth=getAuth(firebaseApp),storage=getStorage(firebaseApp);
 window.bazarDb=db;window.bazarDoc=doc;window.bazarSetDoc=setDoc;window.bazarGetDoc=getDoc;window.bazarServerTimestamp=serverTimestamp;window.bazarStorage=storage;window.bazarStorageRef=storageRef;window.bazarUploadBytes=uploadBytes;window.bazarGetDownloadURL=getDownloadURL;window.bazarAuth=auth;
 
-// ===== رفع الصور عبر ImgBB (مجاني 100%، بدون اشتراك أو بطاقة بنكية) =====
-// Firebase Storage يتطلب خطة Blaze (اشتراك) من Google، لذلك تم استبداله بـ ImgBB.
-// المفتاح مجاني: سجّل حساب مجاني على https://api.imgbb.com/ وخذ الـ API Key من هناك.
-function getImgbbKey(){
-  let k=localStorage.getItem("bazarImgbbKey");
-  if(!k){
-    k=(prompt("أدخل مفتاح ImgBB API (مجاني 100% — سجّل في https://api.imgbb.com/ وانسخ المفتاح من هناك):")||"").trim();
-    if(k) localStorage.setItem("bazarImgbbKey",k);
-  }
-  return k;
-}
-window.bazarResetImgbbKey=function(){
-  localStorage.removeItem("bazarImgbbKey");
-  const k=getImgbbKey();
-  if(k) alert("تم حفظ المفتاح الجديد ✅");
-};
-async function uploadToImgbb(blob){
-  const key=getImgbbKey();
-  if(!key) throw new Error("لم يتم إدخال مفتاح ImgBB. اضغط 🔑 لإعداده.");
+// ===== رفع الصور عبر Cloudinary (خطة Free دائمة، بدون اشتراك أو بطاقة بنكية) =====
+// Firebase Storage يتطلب خطة Blaze (اشتراك مربوط ببطاقة) من Google منذ فبراير 2026، لذلك تم
+// استبداله بـ Cloudinary (Unsigned Upload Preset — لا حاجة لأي مفتاح سري في الكود).
+const CLOUDINARY_CLOUD_NAME="ehh5xqwc";
+const CLOUDINARY_UPLOAD_PRESET="bazar_dzair";
+async function uploadToCloudinary(blob){
   const fd=new FormData();
-  fd.append("image",blob);
+  fd.append("file",blob);
+  fd.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),25000);
   let res;
   try{
-    res=await fetch("https://api.imgbb.com/1/upload?key="+encodeURIComponent(key),{method:"POST",body:fd,signal:controller.signal});
+    res=await fetch("https://api.cloudinary.com/v1_1/"+CLOUDINARY_CLOUD_NAME+"/image/upload",{method:"POST",body:fd,signal:controller.signal});
   }catch(e){
     if(e.name==="AbortError") throw new Error("انتهت مهلة رفع الصورة (25 ثانية). تحقق من الاتصال بالإنترنت.");
     throw e;
   }finally{ clearTimeout(timeout); }
   let json;
   try{ json=await res.json(); }catch(_e){ throw new Error("رد غير صالح من خدمة رفع الصور."); }
-  if(!res.ok||!json||!json.success){
-    const msg=json&&json.error&&json.error.message?json.error.message:("فشل الرفع (HTTP "+res.status+"). تأكد من صحة مفتاح ImgBB.");
+  if(!res.ok||!json||!json.secure_url){
+    const msg=json&&json.error&&json.error.message?json.error.message:("فشل الرفع (HTTP "+res.status+"). تحقق من إعدادات Cloudinary (Cloud name / Upload preset).");
     throw new Error(msg);
   }
-  return json.data.url||json.data.display_url;
+  return json.secure_url;
 }
 
 const loginBox=document.getElementById("login");
@@ -1745,13 +1733,12 @@ let ordersLoading=null;
 let addonsLoaded=false;
 
 // يحوّل صور المنتجات القديمة المخزّنة كـ base64 داخل Firestore إلى صور حقيقية
-// مرفوعة على ImgBB (مجاني، بدون اشتراك)، تلقائيًا وبدون إعادة رفع يدوي.
+// مرفوعة على Cloudinary (مجاني، بدون اشتراك)، تلقائيًا وبدون إعادة رفع يدوي.
 // لا يمس أي منتج صوره أصلاً روابط حقيقية.
 window.migrateBase64Images=async function(){
   const statusEl=document.getElementById("migrateStatus");
   const setStatus=(t,c)=>{if(statusEl){statusEl.textContent=t;statusEl.style.color=c==="err"?"#dc2626":c==="ok"?"#16a34a":"#374151"}};
-  if(!confirm("سيتم فحص كل المنتجات وتحويل الصور القديمة (base64) إلى روابط حقيقية على ImgBB (مجاني). لن يتم المساس بالصور الجاهزة كروابط. متابعة؟"))return;
-  getImgbbKey(); // يطلب المفتاح مرة واحدة إذا لم يكن معدًا مسبقًا
+  if(!confirm("سيتم فحص كل المنتجات وتحويل الصور القديمة (base64) إلى روابط حقيقية على Cloudinary (مجاني). لن يتم المساس بالصور الجاهزة كروابط. متابعة؟"))return;
   setStatus("⏳ جاري فحص المنتجات...","");
   let snap;
   try{ snap=await getDocs(collection(db,"products")); }
@@ -1772,7 +1759,7 @@ window.migrateBase64Images=async function(){
       if(!isBase64(newImgs[i])) continue;
       try{
         const blob=await (await fetch(newImgs[i])).blob();
-        newImgs[i]=await uploadToImgbb(blob);
+        newImgs[i]=await uploadToCloudinary(blob);
         fixedImages++;
         consecutiveFailures=0;
       }catch(e){
@@ -1781,7 +1768,7 @@ window.migrateBase64Images=async function(){
         consecutiveFailures++;
         setStatus(`⚠️ فشل في "${p.name||p.product||d.id}": ${e?.message||"خطأ غير معروف"}`,"err");
         if(consecutiveFailures>=3){
-          setStatus(`⚠️ توقف الإصلاح: 3 محاولات رفع فشلت تباعًا (${e?.message||"خطأ غير معروف"}). تحقق من مفتاح ImgBB (اضغط 🔑) ثم أعد المحاولة.`,"err");
+          setStatus(`⚠️ توقف الإصلاح: 3 محاولات رفع فشلت تباعًا (${e?.message||"خطأ غير معروف"}). تحقق من إعدادات Cloudinary ثم أعد المحاولة.`,"err");
           return;
         }
       }
@@ -2274,7 +2261,7 @@ window.save=async()=>{
   }
 
   show("⏳ جاري رفع الصور...","ok");
-  // رفع حقيقي إلى ImgBB (مجاني، بلا اشتراك): كل صورة تُضغط ثم تُرفع وتُرجع رابط https حقيقي
+  // رفع حقيقي إلى Cloudinary (مجاني، بلا اشتراك): كل صورة تُضغط ثم تُرفع وتُرجع رابط https حقيقي
   // (بدل تخزين base64 داخل Firestore) — هذا ما يتطلبه Google Merchant/Product schema.
   const uploaded=new Array(selectedImages.length);
   const tasks=[];
@@ -2284,10 +2271,10 @@ window.save=async()=>{
     tasks.push({i,file:item.file});
   }
   try{
-    // الرفع بالتتابع (وليس بالتوازي) لتفادي رفض ImgBB للطلبات الكثيرة دفعة واحدة.
+    // الرفع بالتتابع (وليس بالتوازي) لتفادي رفض Cloudinary للطلبات الكثيرة دفعة واحدة.
     for(const t of tasks){
       const blob=await compressImageToBlob(t.file,1000,0.7);
-      uploaded[t.i]=await uploadToImgbb(blob);
+      uploaded[t.i]=await uploadToCloudinary(blob);
     }
   }catch(e){
     show("فشل رفع الصور: "+(e?.message||"خطأ غير معروف"),"err");
