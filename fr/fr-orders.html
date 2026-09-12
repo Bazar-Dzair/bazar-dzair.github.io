@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commandes</title>
+
+<style>
+body{
+    margin:0;
+    background:#f5f5f5;
+    font-family:Arial,sans-serif;
+}
+header{
+    background:#111827;
+    color:#fff;
+    padding:15px;
+    text-align:center;
+    font-size:22px;
+    font-weight:bold;
+}
+#orders{
+    padding:20px;
+}
+.card{
+    background:#fff;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:15px;
+    box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+.card h3{
+    margin:0 0 10px;
+}
+button{
+    border:none;
+    padding:10px 15px;
+    border-radius:8px;
+    cursor:pointer;
+    margin:5px;
+}
+.accept{
+    background:#16a34a;
+    color:white;
+}
+.reject{
+    background:#dc2626;
+    color:white;
+}
+.delete{
+    background:#000;
+    color:white;
+}
+.lang-switch{
+    position:fixed;
+    top:12px;
+    right:12px;
+    background:#fff;
+    color:#111827;
+    padding:6px 14px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:bold;
+    text-decoration:none;
+    z-index:50;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+</style>
+</head>
+
+<body>
+
+<a class="lang-switch" href="/orders.html" title="العربية">AR</a>
+<header>📦 Commandes</header>
+
+<div id="orders"></div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+query,
+orderBy,
+onSnapshot,
+doc,
+updateDoc,
+deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+import {
+getAuth,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBWdA_QIy_2gOBl-bP1S1tLaGIqaZjpar8",
+  authDomain: "bazar-dzair-33816.firebaseapp.com",
+  projectId: "bazar-dzair-33816",
+  storageBucket: "bazar-dzair-33816.firebasestorage.app",
+  messagingSenderId: "51073161969",
+  appId: "1:51073161969:web:cb75a3224bdca11ea8e750"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const ordersDiv = document.getElementById("orders");
+
+// ✅ Porte de connexion côté client (couche de protection supplémentaire au-dessus
+// des règles Firestore). Redirige directement vers la page de connexion si aucun
+// utilisateur n'est authentifié — au lieu d'afficher un écran "impossible de charger
+// les commandes" qui révèle /fr/orders.html comme page d'administration sans redirection claire.
+ordersDiv.innerHTML = "<h2 style='text-align:center'>⏳ Vérification de la connexion...</h2>";
+onAuthStateChanged(auth, (u) => {
+  if (!u) {
+    location.href = "/admin.html";
+    return;
+  }
+  startOrdersListener();
+});
+
+// ⚠️ Correction de sécurité critique (Stored XSS) : les données de la commande (product,
+// customerName, customerPhone, wilaya, address, status) sont des entrées contrôlées par le
+// client (ou toute personne envoyant une commande directement à Firestore). Elles étaient
+// auparavant insérées dans innerHTML sans échappement, ce qui permettait à quiconque de créer
+// une commande avec un nom contenant du code HTML/JS malveillant (ex: <img onerror=...>),
+// exécuté dans le navigateur de l'admin dès l'ouverture de cette page — pouvant servir à voler
+// la session de connexion de l'admin. Solution : échapper chaque valeur texte avant insertion dans le HTML.
+function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+
+// Les statuts sont enregistrés dans Firestore en arabe afin de rester compatibles avec
+// la page /orders.html — ils sont simplement traduits ici pour l'affichage.
+const STATUS_LABELS = { "مقبول":"Acceptée", "مرفوض":"Refusée" };
+function statusLabel(v){ const s=String(v??"").trim(); return STATUS_LABELS[s] || (s?esc(s):"En attente"); }
+
+function startOrdersListener(){
+const q = query(
+    collection(db,"orders")
+);
+
+onSnapshot(q,(snapshot)=>{
+
+    ordersDiv.innerHTML="";
+
+    if(snapshot.empty){
+        ordersDiv.innerHTML="<h2 style='text-align:center'>Aucune commande</h2>";
+        return;
+    }
+
+    snapshot.forEach((docSnap)=>{
+
+        const order=docSnap.data();
+
+        ordersDiv.innerHTML += `
+        <div class="card">
+
+        <h3>${esc(order.product)}</h3>
+
+        <p>👤 ${esc(order.customerName)}</p>
+
+        <p>📞 ${esc(order.customerPhone)}</p>
+
+        <p>📍 ${esc(order.wilaya)}</p>
+
+        <p>🏠 ${esc(order.address)}</p>
+
+        <p>💰 ${esc(order.total)} DA</p>
+
+        <p>📦 Statut :
+        <b>${statusLabel(order.status)}</b>
+        </p>
+
+        <button class="accept"
+        onclick="acceptOrder('${docSnap.id}')">
+        Accepter
+        </button>
+
+        <button class="reject"
+        onclick="rejectOrder('${docSnap.id}')">
+        Refuser
+        </button>
+
+        <button class="delete"
+        onclick="deleteOrder('${docSnap.id}')">
+        Supprimer
+        </button>
+
+        </div>
+        `;
+
+    });
+
+},(err)=>{
+  console.error("Impossible de lire les commandes",err);
+  ordersDiv.innerHTML="<h2 style='text-align:center'>Impossible de charger les commandes</h2><p style='text-align:center'>Vérifiez les règles Firestore puis actualisez la page.</p>";
+});
+} // fin de startOrdersListener()
+
+window.acceptOrder = async(id)=>{
+try{
+await updateDoc(doc(db,"orders",id),{
+status:"مقبول"
+});
+}catch(e){console.error(e);alert("Impossible d'accepter la commande : "+e.message)}
+}
+
+window.rejectOrder = async(id)=>{
+try{
+await updateDoc(doc(db,"orders",id),{
+status:"مرفوض"
+});
+}catch(e){console.error(e);alert("Impossible de refuser la commande : "+e.message)}
+}
+
+window.deleteOrder = async(id)=>{
+if(confirm("Supprimer la commande ?")){
+try{
+await deleteDoc(doc(db,"orders",id));
+}catch(e){console.error(e);alert("Impossible de supprimer la commande : "+e.message)}
+}
+}
+
+</script>
+
+</body>
+</html>
