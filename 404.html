@@ -1,5 +1,16 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,follow"><title>Bazar Dzair</title></head><body><p>جارٍ تحويل الصفحة...</p><script>
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,follow"><title>Bazar Dzair</title></head><body><p id="msg">جارٍ تحويل الصفحة...</p><script>
 (function(){
+ // الصفحة تُحوَّل فورًا ولا تبقى ظاهرة، لكن نطابق لغتها مع تفضيل الزبون المحفوظ
+ // (نفس مفتاح localStorage "bazarLang" الذي يستخدمه i18n.js) دون تحميل أي ملف إضافي،
+ // حتى لا نُبطئ التحويل. هذا لا يمس نظام الطلبات أو Telegram إطلاقًا.
+ try{
+   if(localStorage.getItem("bazarLang")==="fr"){
+     document.documentElement.setAttribute("lang","fr");
+     document.documentElement.setAttribute("dir","ltr");
+     var m=document.getElementById("msg");
+     if(m) m.textContent="Redirection en cours...";
+   }
+ }catch(_e){}
  const p=decodeURIComponent(location.pathname);
  const map={
   "/category/أدوات/":"/category/tools/",

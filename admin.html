@@ -363,6 +363,7 @@
  <div class="page-head"><div><h1 id="title">＋ إضافة منتج</h1><p>أدخل معلومات المنتج الأساسية ثم احفظه مباشرة في Firestore.</p></div></div>
  <div class="panel"><div id="status" class="status hidden"></div><div class="grid">
    <div><label>اسم المنتج *</label><input id="name" placeholder="مثال: Lantern LED"></div>
+   <div><label>اسم المنتج بالفرنسية (اختياري)</label><input id="name_fr" placeholder="مثال: Lanterne LED"><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا.</small></div>
    <div><label>السعر بالدج *</label><input id="price" type="number" min="0" placeholder="3500"></div>
    <div><label>التصنيف</label><select id="category"></select></div>
    <div><label>المخزون *</label><input id="stock" type="number" min="0" placeholder="20"></div>
@@ -388,6 +389,7 @@
      </div>
    </div>
    <div class="full"><label>الوصف</label><textarea id="description" placeholder="اكتب وصفًا واضحًا للمنتج..."></textarea></div>
+   <div class="full"><label>الوصف بالفرنسية (اختياري)</label><textarea id="description_fr" placeholder="Texte descriptif en français (facultatif)..."></textarea><small class="hint">إذا تركته فارغًا، يظهر الوصف العربي للزبون الفرنسي أيضًا.</small></div>
    <div class="full"><label>المواصفات</label><textarea id="specificationsText" placeholder="القدرة: 600W&#10;اللون: أسود&#10;الضمان: 12 شهر"></textarea><small class="hint">اكتب كل مواصفة في سطر مستقل بالشكل: الاسم: القيمة</small></div>
    <div class="full"><label>صور المنتج *</label><div class="upload-card">
      <input id="imageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
@@ -1440,11 +1442,13 @@ const emailInput=document.getElementById("email");
 const passwordInput=document.getElementById("password");
 const loginErrBox=document.getElementById("loginErr");
 const nameInput=document.getElementById("name");
+const nameFrInput=document.getElementById("name_fr");
 const priceInput=document.getElementById("price");
 const categoryInput=document.getElementById("category");
 const stockInput=document.getElementById("stock");
 const publishedInput=document.getElementById("published");
 const descriptionInput=document.getElementById("description");
+const descriptionFrInput=document.getElementById("description_fr");
 const specificationsText=document.getElementById("specificationsText");
 const titleBox=document.getElementById("title");
 const statusBox=document.getElementById("status");
@@ -2242,11 +2246,13 @@ window.save=async()=>{
   });
   let data={
     name:nameInput?.value.trim()||"",
+    name_fr:nameFrInput?.value.trim()||"",
     price:Number(priceInput?.value),
     category:categoryInput?.value||"tools",
     stock:Number(stockInput?.value),
     published:publishedInput?.checked!==false,
     description:descriptionInput?.value.trim()||"",
+    description_fr:descriptionFrInput?.value.trim()||"",
     specifications,
     deliveryMethod:currentDeliveryMethod(),
     shippingHome:currentDeliveryMethod()==="home"?(shippingHomeSelect?.dataset.value||""):"",
@@ -2322,10 +2328,12 @@ window.editProduct=id=>{
  editing=id;
  titleBox.textContent="✏️ تعديل المنتج";
  nameInput.value=p.name||"";
+ if(nameFrInput)nameFrInput.value=p.name_fr||"";
  priceInput.value=p.price??"";
  renderCategorySelect(p.category||categories[0]?.key||"tools");
  stockInput.value=p.stock??"";
  descriptionInput.value=p.description||"";
+ if(descriptionFrInput)descriptionFrInput.value=p.description_fr||"";
  if(specificationsText){
    const specs=Array.isArray(p.specifications)?p.specifications:[];
    specificationsText.value=specs.map(x=>x&&x.key?`${x.key}: ${x.value??""}`:String(x||"")).join("\n");
@@ -2374,8 +2382,8 @@ window.removeProduct=async id=>{
 window.resetForm=()=>{
  editing=null;
  titleBox.textContent="➕ إضافة منتج";
- nameInput.value="";priceInput.value="";
- renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";if(publishedInput)publishedInput.checked=true;descriptionInput.value="";
+ nameInput.value="";if(nameFrInput)nameFrInput.value="";priceInput.value="";
+ renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";if(publishedInput)publishedInput.checked=true;descriptionInput.value="";if(descriptionFrInput)descriptionFrInput.value="";
  if(specificationsText) specificationsText.value="";
  selectedImages=[];
  setMultiSelectValue(shippingHomeSelect,"");
