@@ -6,8 +6,9 @@
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>تم تأكيد الطلب | Bazar Dzair</title>
+<title id="pageTitle">تم تأكيد الطلب | Bazar Dzair</title>
 <meta name="theme-color" content="#061e3d">
+<script src="/i18n.js"></script>
 <style>
 :root{--navy:#061e3d;--navy-2:#0b2c56;--orange:#ff5a0a;--orange-2:#ff7a00;--green:#16a34a;--bg:#f7f8fb;--text:#071d3b;--muted:#6f7d91;--border:#e5e9ef;--shadow:0 8px 26px rgba(7,29,59,.08);}
 *{box-sizing:border-box}
@@ -15,12 +16,14 @@ body{margin:0;background:linear-gradient(#fff 0 160px,var(--bg) 320px,#fff 100%)
 a{text-decoration:none;color:inherit}
 
 /* ===== Brand header ===== */
-header{background:linear-gradient(120deg,var(--navy),var(--navy-2));color:#fff}
+header{background:linear-gradient(120deg,var(--navy),var(--navy-2));color:#fff;position:relative}
 header .in{max-width:640px;width:92%;margin:auto;min-height:62px;display:flex;align-items:center;justify-content:center;gap:10px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800}
 .brand-mark{width:28px;height:28px;border:4px solid var(--orange);border-radius:11px 11px 9px 9px;position:relative;flex:none}
 .brand-mark:before{content:"";position:absolute;width:14px;height:11px;border:3px solid var(--orange);border-bottom:0;border-radius:11px 11px 0 0;left:2px;top:-11px}
 .brand-txt{font-size:18px;letter-spacing:.2px}.brand-txt b{color:var(--orange-2)}
+#langToggleBtn{position:absolute;top:50%;inset-inline-end:16px;transform:translateY(-50%);border:1px solid #ffffff30;padding:7px 14px;border-radius:30px;font-size:12.5px;font-weight:900;background:#ffffff0d;color:#fff;cursor:pointer;font-family:inherit}
+#langToggleBtn:hover{background:#ffffff1f;border-color:#ffffff55}
 
 main{max-width:560px;width:92%;margin:7vh auto 60px}
 
@@ -62,7 +65,9 @@ h1{color:var(--navy);margin:20px 0 6px;font-size:24px;font-weight:800}
 </style>
 </head>
 <body>
-<header><div class="in">
+<header>
+  <button id="langToggleBtn" type="button" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية">FR</button>
+  <div class="in">
   <span class="brand"><span class="brand-mark"></span><span class="brand-txt">Bazar <b>Dzair</b></span></span>
 </div></header>
 <main>
@@ -72,28 +77,64 @@ h1{color:var(--navy);margin:20px 0 6px;font-size:24px;font-weight:800}
         <path d="M20 6L9 17l-5-5" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <h1>تم تسجيل طلبك بنجاح 🎉</h1>
-    <p class="sub">شكرًا لثقتك بنا يا بطل، تسوّقك معنا يسعدنا دائمًا 🛍️</p>
+    <h1 data-i18n="success_title">تم تسجيل طلبك بنجاح 🎉</h1>
+    <p class="sub" data-i18n="success_subtitle">شكرًا لثقتك بنا يا بطل، تسوّقك معنا يسعدنا دائمًا 🛍️</p>
 
-    <div class="order-id"><span class="dot"></span> طلبك الآن قيد المعالجة</div>
+    <div class="order-id"><span class="dot"></span> <span data-i18n="success_status">طلبك الآن قيد المعالجة</span></div>
 
     <div class="phone-alert">
       <span class="ic">📞</span>
       <div>
-        <strong>يرجى إبقاء هاتفك بالقرب منك</strong>
-        <span>سيتصل بك أحد ممثلي المتجر خلال وقت قصير لتأكيد الطلب وتحديد موعد التوصيل. تأكد أن رقمك صحيح ومتاح للرد.</span>
+        <strong data-i18n="phone_alert_title">يرجى إبقاء هاتفك بالقرب منك</strong>
+        <span data-i18n="phone_alert_text">سيتصل بك أحد ممثلي المتجر خلال وقت قصير لتأكيد الطلب وتحديد موعد التوصيل. تأكد أن رقمك صحيح ومتاح للرد.</span>
       </div>
     </div>
 
     <div class="note">
       <span class="ic">💵</span>
-      <span><b>الدفع عند الاستلام</b> — لا تدفع أي مبلغ الآن. تدفع فقط عند استلام طلبك بين يديك.</span>
+      <span><b data-i18n="cod_note_title">الدفع عند الاستلام</b> <span data-i18n="cod_note_text">— لا تدفع أي مبلغ الآن. تدفع فقط عند استلام طلبك بين يديك.</span></span>
     </div>
 
     <div class="btns">
-      <a class="back2" href="./">← العودة إلى المتجر</a>
+      <a class="back2" href="./" data-i18n="back_to_store">← العودة إلى المتجر</a>
     </div>
   </div>
 </main>
+<script>
+(function(){
+  // نصوص خاصة بهذه الصفحة فقط، بنفس أسلوب PAGE_DICT/pt() المستخدم في product.html.
+  // back_to_store هو المفتاح المشترك الوحيد المستخدم من قاموس i18n.js العام.
+  var PAGE_DICT={
+    page_title:{ar:"تم تأكيد الطلب | Bazar Dzair",fr:"Commande confirmée | Bazar Dzair"},
+    success_title:{ar:"تم تسجيل طلبك بنجاح 🎉",fr:"Votre commande a été enregistrée avec succès 🎉"},
+    success_subtitle:{ar:"شكرًا لثقتك بنا يا بطل، تسوّقك معنا يسعدنا دائمًا 🛍️",fr:"Merci pour votre confiance, nous sommes toujours ravis de vous servir 🛍️"},
+    success_status:{ar:"طلبك الآن قيد المعالجة",fr:"Votre commande est en cours de traitement"},
+    phone_alert_title:{ar:"يرجى إبقاء هاتفك بالقرب منك",fr:"Merci de garder votre téléphone à portée de main"},
+    phone_alert_text:{ar:"سيتصل بك أحد ممثلي المتجر خلال وقت قصير لتأكيد الطلب وتحديد موعد التوصيل. تأكد أن رقمك صحيح ومتاح للرد.",fr:"Un de nos représentants vous appellera bientôt pour confirmer la commande et fixer un rendez-vous de livraison. Assurez-vous que votre numéro est correct et joignable."},
+    cod_note_title:{ar:"الدفع عند الاستلام",fr:"Paiement à la livraison"},
+    cod_note_text:{ar:"— لا تدفع أي مبلغ الآن. تدفع فقط عند استلام طلبك بين يديك.",fr:"— Ne payez rien maintenant. Vous payez uniquement à la réception de votre commande."}
+  };
+  function lang(){return (window.BazarI18n&&BazarI18n.getLang)?BazarI18n.getLang():"ar";}
+  function pt(key){
+    var e=PAGE_DICT[key];
+    if(e) return e[lang()]||e.ar;
+    return (window.BazarI18n&&BazarI18n.t)?BazarI18n.t(key):key;
+  }
+  function applyPage(){
+    document.querySelectorAll("[data-i18n]").forEach(function(el){
+      var k=el.getAttribute("data-i18n");
+      if(k) el.textContent=pt(k);
+    });
+    var titleEl=document.getElementById("pageTitle");
+    if(titleEl) titleEl.textContent=pt("page_title");
+    var btn=document.getElementById("langToggleBtn");
+    var l=lang();
+    if(btn) btn.textContent=l==="ar"?"FR":"AR";
+    document.documentElement.setAttribute("lang",l==="fr"?"fr":"ar");
+    document.documentElement.setAttribute("dir",l==="fr"?"ltr":"rtl");
+  }
+  if(window.BazarI18n){applyPage();}else{document.addEventListener("DOMContentLoaded",applyPage);}
+})();
+</script>
 </body>
 </html>
