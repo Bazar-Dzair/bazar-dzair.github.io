@@ -10,6 +10,7 @@
 <meta id="metaDescription" name="description" content="cuisinière géant Italiano
 تحوس على كويزنيار ما تتصداش و ما تفسدش و فيها كامل المميزات بسعر رخيص ؟ جبنالك كويزنيار Géant italiano بضمان 24 شهر فيها ڨاع واش ">
 <meta name="theme-color" content="#071b33">
+<script src="/i18n.js"></script>
 <script src="/addons.js" defer></script>
 <!--SEO/OG تُحدّث ديناميكيًا حسب المنتج الحقيقي قبل إغلاق head--> 
 <meta property="og:locale" content="ar_DZ"><meta property="og:site_name" content="Bazar Dzair">
@@ -33,6 +34,9 @@ header .in{max-width:1180px;width:94%;margin:auto;min-height:66px;display:flex;a
 .brand-txt{font-size:19px;letter-spacing:.2px}.brand-txt b{color:var(--orange)}
 header .backtop{border:1px solid #ffffff30;padding:8px 15px;border-radius:30px;font-size:13px;font-weight:700;transition:.2s;background:#ffffff0d}
 header .backtop:hover{background:#ffffff1f;border-color:#ffffff55}
+header .header-right{display:flex;align-items:center;gap:10px}
+#langToggleBtn{border:1px solid #ffffff30;padding:8px 14px;border-radius:30px;font-size:13px;font-weight:900;transition:.2s;background:#ffffff0d;color:#fff}
+#langToggleBtn:hover{background:#ffffff1f;border-color:#ffffff55}
 
 main{max-width:1180px;width:94%;margin:22px auto 90px}
 .crumb{color:var(--muted);font-size:13px;margin-bottom:14px;display:flex;align-items:center;gap:6px}.crumb a{color:var(--navy);font-weight:700}
@@ -154,72 +158,67 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 <body>
 <header><div class="in">
   <a class="brand" href="/"><span class="brand-mark"></span><span class="brand-txt">Bazar <b>Dzair</b></span></a>
-  <a class="backtop" href="/">← العودة للمتجر</a>
+  <div class="header-right">
+    <button id="langToggleBtn" type="button" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية">FR</button>
+    <a class="backtop" href="/" data-i18n="back_to_store">← العودة للمتجر</a>
+  </div>
 </div></header>
 <main>
-<div class="crumb" id="crumb"><a href="/">الرئيسية</a> <span>/</span> <span>تفاصيل المنتج</span></div>
-<div id="product" class="product-card"><div class="photo-wrap"><div class="main-photo-box"><img id="mainProductPhoto" class="photo" src="https://i.ibb.co/XrrHr4pG/blob.jpg" alt="Cuisinière 4 Feux Inox Géant Italiano Ventiler"><span id="galleryCount" class="gallery-count">1 / 4</span></div><div id="productThumbs" class="thumbs"><button class="thumb active"><img src="https://i.ibb.co/XrrHr4pG/blob.jpg" alt="Cuisinière 4 Feux Inox Géant Italiano Ventiler 1" loading="lazy"></button><button class="thumb"><img src="https://i.ibb.co/C3mnsN0v/blob.jpg" alt="Cuisinière 4 Feux Inox Géant Italiano Ventiler 2" loading="lazy"></button><button class="thumb"><img src="https://i.ibb.co/GQZjQcB6/blob.jpg" alt="Cuisinière 4 Feux Inox Géant Italiano Ventiler 3" loading="lazy"></button><button class="thumb"><img src="https://i.ibb.co/Y4J8bjB8/blob.jpg" alt="Cuisinière 4 Feux Inox Géant Italiano Ventiler 4" loading="lazy"></button></div></div><div class="info"><h1 class="title">Cuisinière 4 Feux Inox Géant Italiano Ventiler</h1><div class="price">38٬500 دج</div><p class="desc">cuisinière géant Italiano
-تحوس على كويزنيار ما تتصداش و ما تفسدش و فيها كامل المميزات بسعر رخيص ؟ جبنالك كويزنيار Géant italiano بضمان 24 شهر فيها ڨاع واش تحتاج و ذات تصميم عصري يزيد اناقة لكوزينتك و فيها :
-✅تورن بوش اي تقدر تحمر الجاج فالفور
-✅فونتيلي
-✅العرض الخارجي: 600 مم
-✅العمق الخارجي: 600 مم
-✅الارتفاع الخارجي: 850 مم
-✅حجم الفرن: 65 لتر – 4 مواقد غاز – 1 طبق – 1 شبكة أمان
-✅ لف القصبات – مصباح واحد – إشعال إلكتروني</p><div class="trust"><div>💵<br><b>الدفع عند الاستلام</b></div><div>🚚<br><b>توصيل للولايات</b></div><div>🛡️<br><b>خدمة آمنة</b></div></div><button class="buy">⚡ اشترِ الآن</button><a class="back" href="/">← العودة للمتجر</a></div></div>
+<div class="crumb" id="crumb"><a href="/" data-i18n="nav_home">الرئيسية</a> <span>/</span> <span data-i18n="detail_alt">تفاصيل المنتج</span></div>
+<div id="product" class="product-card"><div class="loading" data-i18n="product_loading">⏳ جاري تحميل المنتج...</div></div>
 <div id="checkout" class="checkout">
   <div class="checkout-head">
     <span class="ic">📦</span>
     <div class="tx">
-      <h2>تأكيد الطلب — الدفع عند الاستلام</h2>
-      <p>لا تدفع شيئًا الآن، فقط أكمل بياناتك وسنتصل بك لتأكيد الطلب</p>
+      <h2 data-i18n="checkout_head_title">تأكيد الطلب — الدفع عند الاستلام</h2>
+      <p data-i18n="checkout_head_sub">لا تدفع شيئًا الآن، فقط أكمل بياناتك وسنتصل بك لتأكيد الطلب</p>
     </div>
   </div>
   <div class="checkout-body">
 
   <div class="order-summary">
     <span id="checkoutProduct"></span>
-    <span class="cod-pill">💵 الدفع عند الاستلام</span>
+    <span class="cod-pill" data-i18n="checkout_cod_pill">💵 الدفع عند الاستلام</span>
   </div>
 
   <div class="field-group">
-    <div class="sec-label"><span class="num">1</span> معلومات التواصل</div>
+    <div class="sec-label"><span class="num">1</span> <span data-i18n="sec_contact_info">معلومات التواصل</span></div>
     <div class="checkout-grid">
-      <div class="field-wrap"><input class="field" id="customerName" placeholder="الاسم واللقب *"><span class="fic">👤</span></div>
-      <div class="field-wrap"><input class="field" id="customerPhone" type="tel" inputmode="tel" placeholder="رقم الهاتف *"><span class="fic">📞</span></div>
+      <div class="field-wrap"><input class="field" id="customerName" placeholder="الاسم واللقب *" data-i18n-ph="placeholder_name"><span class="fic">👤</span></div>
+      <div class="field-wrap"><input class="field" id="customerPhone" type="tel" inputmode="tel" placeholder="رقم الهاتف *" data-i18n-ph="placeholder_phone"><span class="fic">📞</span></div>
     </div>
   </div>
 
   <div class="field-group">
-    <div class="sec-label"><span class="num">2</span> عنوان التوصيل</div>
+    <div class="sec-label"><span class="num">2</span> <span data-i18n="sec_delivery_address">عنوان التوصيل</span></div>
     <div class="checkout-grid">
-    <div class="field-wrap"><select class="field" id="wilaya" style="padding-left:14px"><option value="">اختر الولاية *</option>
+    <div class="field-wrap"><select class="field" id="wilaya" style="padding-left:14px"><option value="" data-i18n="placeholder_wilaya">اختر الولاية *</option>
 <option value="01">01 - أدرار</option><option value="02">02 - الشلف</option><option value="03">03 - الأغواط</option><option value="04">04 - أم البواقي</option><option value="05">05 - باتنة</option><option value="06">06 - بجاية</option><option value="07">07 - بسكرة</option><option value="08">08 - بشار</option><option value="09">09 - البليدة</option><option value="10">10 - البويرة</option><option value="11">11 - تمنراست</option><option value="12">12 - تبسة</option><option value="13">13 - تلمسان</option><option value="14">14 - تيارت</option><option value="15">15 - تيزي وزو</option><option value="16">16 - الجزائر</option><option value="17">17 - الجلفة</option><option value="18">18 - جيجل</option><option value="19">19 - سطيف</option><option value="20">20 - سعيدة</option><option value="21">21 - سكيكدة</option><option value="22">22 - سيدي بلعباس</option><option value="23">23 - عنابة</option><option value="24">24 - قالمة</option><option value="25">25 - قسنطينة</option><option value="26">26 - المدية</option><option value="27">27 - مستغانم</option><option value="28">28 - المسيلة</option><option value="29">29 - معسكر</option><option value="30">30 - ورقلة</option><option value="31">31 - وهران</option><option value="32">32 - البيض</option><option value="33">33 - إليزي</option><option value="34">34 - برج بوعريريج</option><option value="35">35 - بومرداس</option><option value="36">36 - الطارف</option><option value="37">37 - تندوف</option><option value="38">38 - تيسمسيلت</option><option value="39">39 - الوادي</option><option value="40">40 - خنشلة</option><option value="41">41 - سوق أهراس</option><option value="42">42 - تيبازة</option><option value="43">43 - ميلة</option><option value="44">44 - عين الدفلى</option><option value="45">45 - النعامة</option><option value="46">46 - عين تموشنت</option><option value="47">47 - غرداية</option><option value="48">48 - غليزان</option><option value="49">49 - تيميمون</option><option value="50">50 - برج باجي مختار</option><option value="51">51 - أولاد جلال</option><option value="52">52 - بني عباس</option><option value="53">53 - إن صالح</option><option value="54">54 - إن قزام</option><option value="55">55 - تقرت</option><option value="56">56 - جانت</option><option value="57">57 - المغير</option><option value="58">58 - المنيعة</option></select><span class="fic">🗺️</span></div>
-    <div class="field-wrap"><input class="field" id="address" placeholder="العنوان / البلدية *"><span class="fic">🏠</span></div>
+    <div class="field-wrap"><input class="field" id="address" placeholder="العنوان / البلدية *" data-i18n-ph="placeholder_address"><span class="fic">🏠</span></div>
     </div>
     <div class="full" id="deliveryTypeWrap" style="display:none;margin-top:12px">
-      <label style="display:block;margin-bottom:6px;font-weight:700;font-size:13px;color:var(--muted)">طريقة الاستلام</label>
+      <label style="display:block;margin-bottom:6px;font-weight:700;font-size:13px;color:var(--muted)" data-i18n="delivery_method_label">طريقة الاستلام</label>
       <div id="deliveryTypeOptions" style="display:flex;gap:10px;flex-wrap:wrap"></div>
     </div>
-    <div id="shipping" class="shipping">🚚 اختر الولاية لمعرفة سعر التوصيل.</div>
+    <div id="shipping" class="shipping" data-i18n="ship_note_default_emoji">🚚 اختر الولاية لمعرفة سعر التوصيل.</div>
   </div>
 
-  <div class="total"><span>💰 المجموع الكلي</span><span id="grandTotal">—</span></div>
-  <button class="confirm" id="confirmBtn" onclick="submitOrder()"><span>✅</span> تأكيد الطلب بالدفع عند الاستلام</button>
+  <div class="total"><span data-i18n="checkout_total_label">💰 المجموع الكلي</span><span id="grandTotal">—</span></div>
+  <button class="confirm" id="confirmBtn" onclick="submitOrder()" data-i18n="confirm_button">✅ تأكيد الطلب بالدفع عند الاستلام</button>
 
   <div class="trust-strip">
-    <div><b>🔒</b>دفع آمن 100%</div>
-    <div><b>🚚</b>توصيل لكل الولايات</div>
-    <div><b>💵</b>ادفع عند الاستلام</div>
+    <div><b>🔒</b><span data-i18n="trust_secure">دفع آمن 100%</span></div>
+    <div><b>🚚</b><span data-i18n="trust_delivery">توصيل لكل الولايات</span></div>
+    <div><b>💵</b><span data-i18n="trust_cod">ادفع عند الاستلام</span></div>
   </div>
 
-  <div class="small">📱 سيتم فتح واتساب لإرسال تفاصيل الطلب. لا تدفع أي مبلغ الآن.</div>
+  <div class="small" data-i18n="small_note">📱 سيتم فتح واتساب لإرسال تفاصيل الطلب. لا تدفع أي مبلغ الآن.</div>
   </div>
 </div>
 </main>
 <div id="stickyBuy" class="sticky-buy">
   <span class="sb-price" id="sbPrice">—</span>
-  <button class="sb-btn" onclick="showCheckout()">⚡ اشترِ الآن</button>
+  <button class="sb-btn" onclick="showCheckout()" data-i18n="detail_buy_now">⚡ اشترِ الآن</button>
 </div>
 <div id="toast" class="toast"></div>
 <script type="module">
@@ -257,7 +256,77 @@ const queryId=new URLSearchParams(location.search).get("id");
 const pathMatch=location.pathname.match(/\/product\/([^\/]+)\/?$/);
 const id=pathMatch ? decodeURIComponent(pathMatch[1]) : queryId;
 const box=document.getElementById("product");let product=null,quantity=1;
-const money=n=>Number(n||0).toLocaleString("ar-DZ")+" دج";const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+
+// ================= اللغة (عربي/فرنسي) =================
+// نصوص خاصة بهذه الصفحة فقط (غير موجودة في قاموس i18n.js المشترك). أي نص مشترك
+// مع باقي الموقع (placeholders، أزرار الولاية، رسائل التوصيل...) يُؤخذ من BazarI18n.t
+// مباشرة حتى يبقى مصدر الترجمة موحّدًا. هذا الكائن مستقل تمامًا عن نظام الطلبات.
+const PAGE_DICT={
+  product_loading:{ar:"⏳ جاري تحميل المنتج...",fr:"⏳ Chargement du produit..."},
+  checkout_head_title:{ar:"تأكيد الطلب — الدفع عند الاستلام",fr:"Confirmation de commande — Paiement à la livraison"},
+  checkout_head_sub:{ar:"لا تدفع شيئًا الآن، فقط أكمل بياناتك وسنتصل بك لتأكيد الطلب",fr:"Ne payez rien maintenant, complétez simplement vos informations et nous vous contacterons pour confirmer la commande"},
+  checkout_cod_pill:{ar:"💵 الدفع عند الاستلام",fr:"💵 Paiement à la livraison"},
+  sec_contact_info:{ar:"معلومات التواصل",fr:"Informations de contact"},
+  sec_delivery_address:{ar:"عنوان التوصيل",fr:"Adresse de livraison"},
+  ship_note_default_emoji:{ar:"🚚 اختر الولاية لمعرفة سعر التوصيل.",fr:"🚚 Choisissez la wilaya pour connaître le prix de livraison."},
+  checkout_total_label:{ar:"💰 المجموع الكلي",fr:"💰 Total à payer"},
+  trust_secure:{ar:"دفع آمن 100%",fr:"Paiement 100% sécurisé"},
+  trust_delivery:{ar:"توصيل لكل الولايات",fr:"Livraison dans toutes les wilayas"},
+  trust_cod:{ar:"ادفع عند الاستلام",fr:"Payez à la livraison"},
+  small_note:{ar:"📱 سيتم فتح واتساب لإرسال تفاصيل الطلب. لا تدفع أي مبلغ الآن.",fr:"📱 WhatsApp s'ouvrira pour envoyer les détails de la commande. Ne payez rien maintenant."},
+  detail_trust_cod:{ar:"الدفع عند الاستلام",fr:"Paiement à la livraison"},
+  detail_trust_delivery:{ar:"توصيل للولايات",fr:"Livraison vers les wilayas"},
+  detail_trust_secure:{ar:"خدمة آمنة",fr:"Service sécurisé"},
+  gallery_prev:{ar:"الصورة السابقة",fr:"Image précédente"},
+  gallery_next:{ar:"الصورة التالية",fr:"Image suivante"},
+  and_total_prefix:{ar:" — المجموع: ",fr:" — Total : "},
+  order_write_failed:{ar:"تعذر تسجيل الطلب",fr:"Échec de l'enregistrement de la commande"},
+  order_write_failed_detail:{ar:"تعذر تسجيل الطلب بهذه المعطيات، تحقق من رقم الهاتف أو تواصل معنا",fr:"Échec de l'enregistrement avec ces informations, vérifiez le numéro de téléphone ou contactez-nous"},
+  order_write_failed_generic:{ar:"تعذر تسجيل الطلب، تحقق من الاتصال وحاول مجددًا",fr:"Échec de l'enregistrement de la commande, vérifiez votre connexion et réessayez"},
+  product_not_found_title:{ar:"المنتج غير موجود",fr:"Produit introuvable"},
+  product_not_found_desc:{ar:"تأكد من اسم المنتج في الرابط.",fr:"Vérifiez le nom du produit dans le lien."},
+  product_load_failed_title:{ar:"تعذر تحميل المنتج",fr:"Échec du chargement du produit"},
+  product_load_failed_desc:{ar:"حاول تحديث الصفحة.",fr:"Veuillez actualiser la page."},
+  db_connect_error:{ar:"تعذر الاتصال بالخادم، أعد تحميل الصفحة",fr:"Connexion au serveur impossible, veuillez actualiser la page"}
+};
+// pt(key): يبحث أولاً في قاموس الصفحة الخاص، ثم في القاموس العام BazarI18n (i18n.js).
+// إن لم يوجد المفتاح في أي منهما يرجع المفتاح نفسه كحل أخير (لا يكسر شيئًا).
+function pt(key){
+  const lang=window.BazarI18n?BazarI18n.getLang():"ar";
+  const local=PAGE_DICT[key];
+  if(local) return local[lang]||local.ar||key;
+  if(window.BazarI18n) return BazarI18n.t(key);
+  return key;
+}
+function applyPageI18n(){
+  const lang=window.BazarI18n?BazarI18n.getLang():"ar";
+  document.documentElement.setAttribute("lang",lang==="fr"?"fr":"ar");
+  document.documentElement.setAttribute("dir","rtl"); // نفس منطق باقي الموقع: التصميم مبني على RTL حتى بالفرنسية
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const k=el.getAttribute("data-i18n");
+    if(k) el.textContent=pt(k);
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>{
+    const k=el.getAttribute("data-i18n-ph");
+    if(k) el.setAttribute("placeholder",pt(k));
+  });
+  const langBtn=document.getElementById("langToggleBtn");
+  if(langBtn) langBtn.textContent=lang==="ar"?"FR":"AR";
+}
+function translateWilayaSelect(){
+  const sel=document.getElementById("wilaya");
+  if(!sel||!window.BazarI18n)return;
+  const current=sel.value;
+  Array.from(sel.options).forEach(opt=>{
+    if(!opt.value)return; // خيار "اختر الولاية *" يُترجم عبر data-i18n
+    opt.textContent=BazarI18n.wilayaOptionLabel(opt.value,BazarI18n.getLang());
+  });
+  sel.value=current;
+}
+applyPageI18n();
+translateWilayaSelect();
+const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):(Number(n||0).toLocaleString("ar-DZ")+" دج");
 // يمنع بروتوكولات خطيرة (javascript:, data:, vbscript:) في روابط الصور القادمة من Firestore — يسمح فقط بـ https/http أو مسار نسبي.
 const safeImg=u=>{const s=String(u??"").trim();if(!s)return"/logo.svg";if(/^https?:\/\//i.test(s)||s.startsWith("/")||s.startsWith("./"))return esc(s);return"/logo.svg";};
 function productSlug(name){
@@ -269,13 +338,18 @@ function productSlug(name){
     .replace(/[^\p{L}\p{N}]+/gu,"-")
     .replace(/^-+|-+$/g,"");
 }
-let galleryImages=[];let galleryIndex=0;function render(p){product=p;const name=p.name||p.product||"منتج";const desc=p.description||p.desc||"منتج متوفر في متجر Bazar Dzair.";galleryImages=Array.isArray(p.images)&&p.images.length?p.images.filter(Boolean):[p.image||p.imageUrl||p.photo||"/logo.svg"];galleryIndex=0;
+let galleryImages=[];let galleryIndex=0;function render(p){product=p;
+// tp: الاسم والوصف المعروضان للزبون حسب اللغة الحالية (name_fr/description_fr إن توفرا).
+// هذا للعرض فقط؛ بيانات الطلب المرسلة لاحقًا (Telegram/Firestore) تستعمل دائمًا product.name الأصلي.
+const tp=window.BazarI18n?BazarI18n.translateProduct(p):{name:p.name||p.product||pt("default_product_name"),description:p.description||p.desc||pt("default_product_desc")};
+const name=tp.name;const desc=tp.description;
+galleryImages=Array.isArray(p.images)&&p.images.length?p.images.filter(Boolean):[p.image||p.imageUrl||p.photo||"/logo.svg"];galleryIndex=0;
 
 document.title=name+" | Bazar Dzair";
 const md=document.getElementById("metaDescription");if(md)md.content=String(desc).slice(0,155);
 applyProductSEO(p,name,desc);
-if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:name,price:Number(p.price||0),category:p.category||""});const available=p.published!==false;const buyHtml=available?`<button class="buy" onclick="showCheckout()">⚡ اشترِ الآن</button>`:`<button class="buy" disabled style="opacity:.55;cursor:not-allowed">غير متوفر حاليًا</button>`;box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="الصورة السابقة">‹</button><img id="mainProductPhoto" class="photo" src="${safeImg(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="الصورة التالية">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${safeImg(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${available?(p.badge?`<span class="badge">${esc(p.badge)}</span>`:""):'<span class="badge" style="background:#9aa1ab">غير متوفر</span>'}</div><div class="info"><h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="trust"><div>💵<br><b>الدفع عند الاستلام</b></div><div>🚚<br><b>توصيل للولايات</b></div><div>🛡️<br><b>خدمة آمنة</b></div></div><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}<a class="back" href="/">← العودة للمتجر</a></div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);sb.querySelector(".sb-btn").disabled=!available;sb.querySelector(".sb-btn").style.opacity=available?"1":".55";sb.querySelector(".sb-btn").textContent=available?"⚡ اشترِ الآن":"غير متوفر";}}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=safeImg(galleryImages[galleryIndex]);const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
-window.changeQty=x=>{quantity=Math.max(1,quantity+x);document.getElementById("qty").textContent=quantity;document.getElementById("checkoutProduct").textContent=(product.name||product.product)+" × "+quantity+" — "+money(product.price*quantity);const sbp=document.getElementById("sbPrice");if(sbp)sbp.textContent=money(product.price*quantity);updateTotal()};
+if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});const available=p.published!==false;const buyHtml=available?`<button class="buy" onclick="showCheckout()">${esc(pt("detail_buy_now"))}</button>`:`<button class="buy" disabled style="opacity:.55;cursor:not-allowed">${esc(pt("button_unavailable"))}</button>`;box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="${esc(pt("gallery_prev"))}">‹</button><img id="mainProductPhoto" class="photo" src="${safeImg(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="${esc(pt("gallery_next"))}">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${safeImg(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${available?(p.badge?`<span class="badge">${esc(p.badge)}</span>`:""):`<span class="badge" style="background:#9aa1ab">${esc(pt("badge_unavailable"))}</span>`}</div><div class="info"><h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="trust"><div>💵<br><b>${esc(pt("detail_trust_cod"))}</b></div><div>🚚<br><b>${esc(pt("detail_trust_delivery"))}</b></div><div>🛡️<br><b>${esc(pt("detail_trust_secure"))}</b></div></div><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}<a class="back" href="/" data-i18n="back_to_store">${esc(pt("back_to_store"))}</a></div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);sb.querySelector(".sb-btn").disabled=!available;sb.querySelector(".sb-btn").style.opacity=available?"1":".55";sb.querySelector(".sb-btn").textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=safeImg(galleryImages[galleryIndex]);const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
+window.changeQty=x=>{quantity=Math.max(1,quantity+x);document.getElementById("qty").textContent=quantity;const tp2=window.BazarI18n?BazarI18n.translateProduct(product):{name:product.name||product.product};document.getElementById("checkoutProduct").textContent=tp2.name+" × "+quantity+" — "+money(product.price*quantity);const sbp=document.getElementById("sbPrice");if(sbp)sbp.textContent=money(product.price*quantity);updateTotal()};
 window.showCheckout=()=>{const c=document.getElementById("checkout");c.classList.add("show");c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>document.getElementById("customerName").focus(),350)};
 let selectedDeliveryType=null;
 function computeAvail(prod,wil){
@@ -318,7 +392,7 @@ function renderDeliveryOptions(opts){
   if(!selectedDeliveryType||!opts[selectedDeliveryType]) selectedDeliveryType=keys.includes("home")?"home":keys[0];
   box.innerHTML=keys.map(k=>{
     const o=opts[k];
-    const label=k==="home"?"🏠 توصيل إلى المنزل":"🏤 استلام من المكتب";
+    const label=k==="home"?pt("delivery_home_label"):pt("delivery_office_label");
     const logos=o.codes.map(c=>carrierLogos[c]?`<img src="${carrierLogos[c]}" alt="${esc(carrierLabels[c]||c)}" title="${esc(carrierLabels[c]||c)}">`:"").join("");
     return `<div class="delivery-opt ${selectedDeliveryType===k?"active":""}" onclick="selectDeliveryType('${k}')"><span>${label} — ${money(o.price)}</span>${logos?`<span class="carrier-logos">${logos}</span>`:""}</div>`;
   }).join("");
@@ -331,20 +405,24 @@ function updateTotal(){
   renderDeliveryOptions(opts);
   const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
   const shippingEl=document.getElementById("shipping");
-  if(!w){shippingEl.textContent="اختر الولاية لمعرفة سعر التوصيل.";document.getElementById("grandTotal").textContent=money(base);return;}
-  if(!chosen){shippingEl.textContent="❌ التوصيل غير متوفر لهذه الولاية حالياً.";document.getElementById("grandTotal").textContent=money(base);return;}
+  if(!w){shippingEl.textContent=pt("ship_note_default");document.getElementById("grandTotal").textContent=money(base);return;}
+  if(!chosen){shippingEl.textContent=pt("ship_unavailable_now");document.getElementById("grandTotal").textContent=money(base);return;}
   const s=chosen.price;
   const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
-  shippingEl.textContent="🚚 سعر التوصيل: "+money(s)+(carrierNames?" ("+carrierNames+")":"")+" — المجموع: "+money(base+s);
+  shippingEl.textContent=pt("ship_price_prefix")+money(s)+(carrierNames?" ("+carrierNames+")":"")+pt("and_total_prefix")+money(base+s);
   document.getElementById("grandTotal").textContent=money(base+s);
 }
 document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliveryType=null;updateTotal();});
 
-window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),sel=document.getElementById("wilaya"),wn=sel.options[sel.selectedIndex]?.text||"";if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
-if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast("رقم الهاتف غير صحيح ⚠️");return}
+window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim();
+// ⚠️ مهم: اسم الولاية المُرسَل إلى Telegram/Firestore يجب أن يبقى دائمًا بالعربية،
+// بغض النظر عن لغة واجهة الزبون الحالية (نفس المنطق المستعمل في index.html).
+const wn=w&&window.BazarI18n?BazarI18n.wilayaOptionLabel(w,"ar"):"";
+if(!n||!ph||!w||!a){toast(pt("toast_incomplete"));return}
+if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast(pt("toast_invalid_phone"));return}
 const opts=computeDeliveryOptions(w);
 const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
-if(!chosen){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
+if(!chosen){toast(pt("toast_delivery_unavailable"));return}
 const btn=document.querySelector(".confirm");window.__bazarSubmittingOrder=true;if(btn){btn.disabled=true;btn.style.opacity=".6";btn.style.pointerEvents="none"}
 try{
 const s=chosen.price;
@@ -371,13 +449,13 @@ const orderPayload={
 // الكود من جهته) تجاوز هذه الشروط، لأنها مفروضة من جهة الخادم (Firestore) نفسها.
 const {addDoc,collection,serverTimestamp}=await getFirebase();
 const db=window.__bazarDb;
-if(!db){throw new Error("تعذر الاتصال بالخادم، أعد تحميل الصفحة")}
+if(!db){throw new Error(pt("db_connect_error"))}
 try{
   await addDoc(collection(db,"orders"),{...orderPayload,status:"جديد",createdAt:serverTimestamp()});
 }catch(fireErr){
   console.error("firestore order write failed:",fireErr);
-  const e=new Error("تعذر تسجيل الطلب");
-  e.userMessage=(fireErr&&fireErr.code==="permission-denied")?"تعذر تسجيل الطلب بهذه المعطيات، تحقق من رقم الهاتف أو تواصل معنا":"تعذر تسجيل الطلب، تحقق من الاتصال وحاول مجددًا";
+  const e=new Error(pt("order_write_failed"));
+  e.userMessage=(fireErr&&fireErr.code==="permission-denied")?pt("order_write_failed_detail"):pt("order_write_failed_generic");
   throw e;
 }
 // ✅ إشعار Telegram فقط — لا يفشل تسجيل الطلب لو تعطّل هذا الاستدعاء، لأن الطلب
@@ -401,10 +479,10 @@ try{
   }
 }catch(e){}
 if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:product.name,price:total,category:product.category||"",qty:quantity,id:product.id||""});
-alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="/success.html";},1000)
+alert(pt("alert_order_success"));setTimeout(()=>{location.href="/success.html";},1000)
 }catch(err){
   console.error("order submit failed:",err);
-  toast(err&&err.userMessage?err.userMessage+" ⚠️":"تعذر إرسال الطلب، تحقق من الاتصال وحاول مجددًا ⚠️");
+  toast(err&&err.userMessage?err.userMessage+" ⚠️":pt("toast_order_failed"));
   window.__bazarSubmittingOrder=false;if(btn){btn.disabled=false;btn.style.opacity="";btn.style.pointerEvents=""}
 }};
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2400)}
@@ -508,7 +586,7 @@ function applyProductSEO(p,name,desc){
   // يلزمه رابط URL خاص به، وما عندناش رابط مؤكد لصفحة الفئة داخل هذا القالب.
   const category=String(p.category||"").trim();
   const items=[
-    {"@type":"ListItem","position":1,"name":"الرئيسية","item":"https://bazar-dzair.github.io/"},
+    {"@type":"ListItem","position":1,"name":pt("nav_home"),"item":"https://bazar-dzair.github.io/"},
     {"@type":"ListItem","position":2,"name":name,"item":url}
   ];
   const breadcrumbLd={"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":items};
@@ -526,7 +604,7 @@ function applyProductSEO(p,name,desc){
   // نحدّث مسار التنقل الظاهر بصريًا ليطابق الـ Schema.
   const crumbEl=document.getElementById("crumb");
   if(crumbEl){
-    crumbEl.innerHTML=`<a href="/">الرئيسية</a> <span>/</span> `+(category?`<span>${esc(category)}</span> <span>/</span> `:``)+`<span>${esc(name)}</span>`;
+    crumbEl.innerHTML=`<a href="/">${esc(pt("nav_home"))}</a> <span>/</span> `+(category?`<span>${esc(category)}</span> <span>/</span> `:``)+`<span>${esc(name)}</span>`;
   }
 }
 async function load(){
@@ -568,11 +646,11 @@ async function load(){
       try{localStorage.setItem("bazar_selected_product",JSON.stringify(p));}catch(_e){}
       render(p);
     }else if(!cachedProduct){
-      box.innerHTML='<div class="error"><h2>المنتج غير موجود</h2><p>تأكد من اسم المنتج في الرابط.</p><a class="back" href="/">العودة للمتجر</a></div>';
+      box.innerHTML='<div class="error"><h2>'+esc(pt("product_not_found_title"))+'</h2><p>'+esc(pt("product_not_found_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
     }
   }catch(e){
     console.error(e);
-    if(!cachedProduct) box.innerHTML='<div class="error"><h2>تعذر تحميل المنتج</h2><p>حاول تحديث الصفحة.</p><a class="back" href="/">العودة للمتجر</a></div>';
+    if(!cachedProduct) box.innerHTML='<div class="error"><h2>'+esc(pt("product_load_failed_title"))+'</h2><p>'+esc(pt("product_load_failed_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
   }
 }
 load();
