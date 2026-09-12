@@ -8,9 +8,6 @@
   "/category/هاتف/":"/category/telephones/"
  };
  if(map[p]){location.replace(map[p]);return;}
- // مسارات فرنسية غير موجودة (fr/...)‏: نعيد التوجيه إلى الصفحة الرئيسية الفرنسية
- // بدل الصفحة العربية، حتى لا يفقد الزائر لغة التصفح التي كان فيها.
- if(p.indexOf("/fr/")===0){location.replace("/fr/");return;}
  location.replace("/");
 })();
 </script></body></html>
