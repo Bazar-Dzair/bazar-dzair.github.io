@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.cloudinary.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.cloudinary.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net https://challenges.cloudflare.com https://api.mymemory.translated.net; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <link rel="icon" href="/logo.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MULTIPRISE BOXU SC-03 | Bazar Dzair</title>
@@ -345,7 +345,58 @@ function productSlug(name){
     .replace(/[^\p{L}\p{N}]+/gu,"-")
     .replace(/^-+|-+$/g,"");
 }
-let galleryImages=[];let galleryIndex=0;function render(p){product=p;
+let galleryImages=[];let galleryIndex=0;
+// ===== ترجمة تلقائية احتياطية للوصف (MyMemory API، مجانية بلا مفتاح) =====
+// تُستعمل فقط إذا: اللغة الحالية فرنسية + المنتج ما عندوش description_fr يدوي في الأدمن.
+// إذا الأدمن عمّر description_fr يدويًا، هذا الكود ما يتدخلش إطلاقًا (الأولوية دائمًا لليدوي).
+// النتيجة تُخزّن في localStorage مرتبطة بنص المصدر العربي، حتى لا نُعيد نفس الطلب لنفس
+// الزبون في كل زيارة أو تبديل لغة (توفير حصة الطلبات اليومية المجانية).
+// عند فشل الطلب (شبكة/حد يومي عند MyMemory) نترك الوصف العربي ظاهرًا بدون أي خطأ للزبون.
+function autoFrCacheKey(id){return "bazarAutoFr:"+String(id||"");}
+function getCachedAutoFr(id,srcText){
+  try{
+    var raw=localStorage.getItem(autoFrCacheKey(id));
+    if(!raw) return null;
+    var data=JSON.parse(raw);
+    if(data&&data.src===srcText&&data.fr) return data.fr;
+  }catch(_e){}
+  return null;
+}
+function setCachedAutoFr(id,srcText,frText){
+  try{localStorage.setItem(autoFrCacheKey(id),JSON.stringify({src:srcText,fr:frText}));}catch(_e){}
+}
+async function translateLineMyMemory(line){
+  var text=line.trim();
+  if(!text) return line;
+  try{
+    var url="https://api.mymemory.translated.net/get?q="+encodeURIComponent(text)+"&langpair=ar|fr";
+    var res=await fetch(url);
+    if(!res.ok) return line;
+    var data=await res.json();
+    var out=data&&data.responseData&&data.responseData.translatedText;
+    return out?String(out):line;
+  }catch(_e){return line;}
+}
+async function maybeAutoTranslateDescription(p){
+  if(!(window.BazarI18n&&BazarI18n.getLang()==="fr")) return;
+  if(p.description_fr&&String(p.description_fr).trim()) return; // عندو ترجمة يدوية، ما نلمسوهاش
+  var arSrc=String(p.description||p.desc||"");
+  if(!arSrc.trim()) return;
+  var cached=getCachedAutoFr(p.id||p.firestoreId||"",arSrc);
+  var descEl=box.querySelector(".desc");
+  if(cached){if(descEl)descEl.textContent=cached;return;}
+  var lines=arSrc.split("\n");
+  var translatedLines=await Promise.all(lines.map(translateLineMyMemory));
+  var frText=translatedLines.join("\n");
+  // نتأكد أن الزبون مازال في نفس المنتج ونفس اللغة الفرنسية قبل التعديل (تفادي أي تعارض
+  // لو تغيّر المنتج أثناء انتظار الرد — تبديل اللغة نفسه يعيد تحميل الصفحة فلا خطر منه).
+  if(product===p&&window.BazarI18n&&BazarI18n.getLang()==="fr"){
+    var liveDescEl=box.querySelector(".desc");
+    if(liveDescEl) liveDescEl.textContent=frText;
+    setCachedAutoFr(p.id||p.firestoreId||"",arSrc,frText);
+  }
+}
+function render(p){product=p;
 // tp: الاسم والوصف المعروضان للزبون حسب اللغة الحالية (name_fr/description_fr إن توفرا).
 // هذا للعرض فقط؛ بيانات الطلب المرسلة لاحقًا (Telegram/Firestore) تستعمل دائمًا product.name الأصلي.
 const tp=window.BazarI18n?BazarI18n.translateProduct(p):{name:p.name||p.product||pt("default_product_name"),description:p.description||p.desc||pt("default_product_desc")};
@@ -355,7 +406,7 @@ galleryImages=Array.isArray(p.images)&&p.images.length?p.images.filter(Boolean):
 document.title=name+" | Bazar Dzair";
 const md=document.getElementById("metaDescription");if(md)md.content=String(desc).slice(0,155);
 applyProductSEO(p,name,desc);
-if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});const available=p.published!==false;const buyHtml=available?`<button class="buy" onclick="showCheckout()">${esc(pt("detail_buy_now"))}</button>`:`<button class="buy" disabled style="opacity:.55;cursor:not-allowed">${esc(pt("button_unavailable"))}</button>`;box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="${esc(pt("gallery_prev"))}">‹</button><img id="mainProductPhoto" class="photo" src="${safeImg(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="${esc(pt("gallery_next"))}">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${safeImg(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${available?(p.badge?`<span class="badge">${esc(p.badge)}</span>`:""):`<span class="badge" style="background:#9aa1ab">${esc(pt("badge_unavailable"))}</span>`}</div><div class="info"><h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="trust"><div>💵<br><b>${esc(pt("detail_trust_cod"))}</b></div><div>🚚<br><b>${esc(pt("detail_trust_delivery"))}</b></div><div>🛡️<br><b>${esc(pt("detail_trust_secure"))}</b></div></div><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}<a class="back" href="/" data-i18n="back_to_store">${esc(pt("back_to_store"))}</a></div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);sb.querySelector(".sb-btn").disabled=!available;sb.querySelector(".sb-btn").style.opacity=available?"1":".55";sb.querySelector(".sb-btn").textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=safeImg(galleryImages[galleryIndex]);const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
+if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});const available=p.published!==false;const buyHtml=available?`<button class="buy" onclick="showCheckout()">${esc(pt("detail_buy_now"))}</button>`:`<button class="buy" disabled style="opacity:.55;cursor:not-allowed">${esc(pt("button_unavailable"))}</button>`;box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="${esc(pt("gallery_prev"))}">‹</button><img id="mainProductPhoto" class="photo" src="${safeImg(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="${esc(pt("gallery_next"))}">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${safeImg(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${available?(p.badge?`<span class="badge">${esc(p.badge)}</span>`:""):`<span class="badge" style="background:#9aa1ab">${esc(pt("badge_unavailable"))}</span>`}</div><div class="info"><h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="trust"><div>💵<br><b>${esc(pt("detail_trust_cod"))}</b></div><div>🚚<br><b>${esc(pt("detail_trust_delivery"))}</b></div><div>🛡️<br><b>${esc(pt("detail_trust_secure"))}</b></div></div><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}<a class="back" href="/" data-i18n="back_to_store">${esc(pt("back_to_store"))}</a></div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);sb.querySelector(".sb-btn").disabled=!available;sb.querySelector(".sb-btn").style.opacity=available?"1":".55";sb.querySelector(".sb-btn").textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}maybeAutoTranslateDescription(p);}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=safeImg(galleryImages[galleryIndex]);const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
 window.changeQty=x=>{quantity=Math.max(1,quantity+x);document.getElementById("qty").textContent=quantity;const tp2=window.BazarI18n?BazarI18n.translateProduct(product):{name:product.name||product.product};document.getElementById("checkoutProduct").textContent=tp2.name+" × "+quantity+" — "+money(product.price*quantity);const sbp=document.getElementById("sbPrice");if(sbp)sbp.textContent=money(product.price*quantity);updateTotal()};
 window.showCheckout=()=>{const c=document.getElementById("checkout");c.classList.add("show");c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>document.getElementById("customerName").focus(),350)};
 let selectedDeliveryType=null;
