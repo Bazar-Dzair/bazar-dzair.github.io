@@ -679,7 +679,7 @@ async function loadProductsFromFirestore(){
         .filter(c=>c.name&&!seen.has(c.key)&&seen.add(c.key))
         .sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));
       const visibleCategories=storeCategories.filter(c=>c.hidden!==true);
-      if(box) box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>'+escapeHtml(BazarI18n.t("drawer_all"))+'</div>'+(visibleCategories.length?visibleCategories.map(c=>`<div class="cat" onclick="filterCategory('${escapeHtml(c.key)}')"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(c.name)}</div>`).join(""):'<div class="cat"><i>📂</i>'+escapeHtml(BazarI18n.t("drawer_none"))+'</div>');
+      if(box) box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>'+escapeHtml(BazarI18n.t("drawer_all"))+'</div>'+(visibleCategories.length?visibleCategories.map(c=>`<div class="cat" onclick="filterCategory('${escapeHtml(c.key)}')"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(catName(c))}</div>`).join(""):'<div class="cat"><i>📂</i>'+escapeHtml(BazarI18n.t("drawer_none"))+'</div>');
       applyUrlCategory();
     };
     onSnapshot(collection(db,"categories"),renderStoreCategories,error=>{const box=document.getElementById("storeCategories");if(box)box.innerHTML='<div class="cat"><i>⚠️</i>'+escapeHtml(BazarI18n.t("drawer_error"))+'</div>';});
@@ -706,6 +706,14 @@ function getUrlCategory(){
     return new URLSearchParams(window.location.search).get("category")||"all";
   }catch(_e){return "all";}
 }
+// اسم الفئة المعروض للزبون: نستعمل name_fr فقط إذا كانت اللغة الحالية فرنسية
+// وكان الحقل موجودًا في بيانات الفئة (لا نُخمّن أي ترجمة)، وإلا نعرض الاسم العربي كما هو.
+function catName(c){
+  if(!c) return "";
+  const lang=window.BazarI18n?BazarI18n.getLang():"ar";
+  if(lang==="fr" && c.name_fr) return String(c.name_fr).trim();
+  return String(c.name||"").trim();
+}
 function findCategory(key){
   const wanted=String(key||"").trim().toLowerCase();
   return storeCategories.find(c=>String(c.key).toLowerCase()===wanted || String(c.name).trim().toLowerCase()===wanted) || null;
@@ -726,7 +734,7 @@ function updateCategorySeo(category){
     return;
   }
   activeCategory=category;
-  const name=String(category.name).trim();
+  const name=catName(category);
   if(title) title.textContent=name;
   if(desc) desc.textContent=lang==="fr"?("Produits "+name+" disponibles sur Bazar Dzair"):("منتجات "+name+" المتوفرة في متجر Bazar Dzair");
   if(crumb){crumb.style.display="block";crumb.innerHTML='<a href="./" style="color:#ff5a0a;font-weight:700">'+esc(BazarI18n.t("nav_home"))+'</a> ← '+esc(name);}
