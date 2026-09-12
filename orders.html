@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>الطلبات</title>
-
+<script src="/i18n.js"></script>
 <style>
 body{
     margin:0;
@@ -22,7 +22,27 @@ header{
     text-align:center;
     font-size:22px;
     font-weight:bold;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
 }
+#langToggleBtn{
+    position:absolute;
+    inset-inline-end:15px;
+    top:50%;
+    transform:translateY(-50%);
+    border:1px solid #ffffff40;
+    background:#ffffff12;
+    color:#fff;
+    padding:6px 14px;
+    border-radius:20px;
+    font-size:12.5px;
+    font-weight:900;
+    cursor:pointer;
+    font-family:inherit;
+}
+#langToggleBtn:hover{background:#ffffff22}
 #orders{
     padding:20px;
 }
@@ -60,9 +80,26 @@ button{
 
 <body>
 
-<header>📦 الطلبات</header>
+<header>
+  <span>📦 الطلبات</span>
+  <button id="langToggleBtn" type="button" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية">FR</button>
+</header>
 
 <div id="orders"></div>
+<script>
+// هذه الصفحة لوحة تحكم داخلية للأدمن فقط (خلف تسجيل دخول)، فمحتواها يبقى بالعربية دائمًا.
+// الزر هنا فقط لتوحيد الشكل مع باقي صفحات الموقع ومزامنة تفضيل اللغة في localStorage
+// (bazarLang) حتى يبقى متجانسًا لو تصفح الأدمن نفسه صفحات الزبون. لا يترجم أي محتوى هنا.
+(function(){
+  function setBtnLabel(){
+    var btn=document.getElementById("langToggleBtn");
+    if(!btn) return;
+    var l=(window.BazarI18n&&BazarI18n.getLang)?BazarI18n.getLang():"ar";
+    btn.textContent=l==="ar"?"FR":"AR";
+  }
+  if(window.BazarI18n){setBtnLabel();}else{document.addEventListener("DOMContentLoaded",setBtnLabel);}
+})();
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
