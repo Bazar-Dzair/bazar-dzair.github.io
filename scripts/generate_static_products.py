@@ -47,6 +47,11 @@ def money(x):
     except: return 'السعر عند الطلب'
 
 
+def money_fr(x):
+    try: return f'{int(float(x or 0)):,} DA'.replace(',', ' ')
+    except: return 'Prix sur demande'
+
+
 def image_of(p):
     imgs=p.get('images') if isinstance(p.get('images'),list) else []
     return next((str(x) for x in imgs if x), str(p.get('image') or p.get('imageUrl') or p.get('photo') or SITE+'logo.svg'))
@@ -57,8 +62,56 @@ def is_published(p):
 
 
 def write_page(path, title, description, canonical, body, jsonld):
+    # هذه الدالة تُستخدم حالياً فقط لصفحات التصنيفات (product-category). هي صفحة SEO
+    # ثابتة بسيطة بدون Firebase وبدون أي علاقة بنظام الطلبات؛ التصفح الفعلي للزبون
+    # بين التصنيفات يتم داخل index.html (SPA). لذلك إضافة الفرنسية هنا لا تلمس
+    # الطلبات أو Telegram أو Firestore إطلاقًا — فقط نص العرض في هذه الصفحة الثابتة.
+    #
+    # اللغة الافتراضية عند التحميل الأول تبقى العربية (مهم لمحركات البحث)، ثم سكربت
+    # صغير في أسفل الصفحة يقرأ تفضيل اللغة المحفوظ (bazarLang في localStorage عبر
+    # BazarI18n) ويُبدّل النصوص القابلة للترجمة فوريًا دون إعادة تحميل الصفحة.
     path.parent.mkdir(parents=True,exist_ok=True)
-    doc=f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title><meta name="description" content="{html.escape(description, quote=True)}"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="{html.escape(canonical,quote=True)}"><meta property="og:type" content="website"><meta property="og:title" content="{html.escape(title,quote=True)}"><meta property="og:description" content="{html.escape(description,quote=True)}"><meta property="og:url" content="{html.escape(canonical,quote=True)}"><link rel="icon" href="/logo.svg"><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:1000px;margin:auto;padding:24px;line-height:1.8;color:#172033}}a{{color:#e65c00;text-decoration:none}}.card{{border:1px solid #e5e7eb;border-radius:18px;padding:18px;margin:14px 0;background:#fff}}img{{max-width:100%;height:auto;object-fit:contain;max-height:420px}}.price{{font-size:24px;font-weight:800;color:#e65c00}}.btn{{display:inline-block;background:#16a34a;color:#fff;padding:12px 18px;border-radius:10px;font-weight:800}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}}body{{background:#f7f8fb}}</style><script type="application/ld+json">{json.dumps(jsonld,ensure_ascii=False)}</script></head><body>{body}</body></html>'''
+    doc=f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title><meta name="description" content="{html.escape(description, quote=True)}"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="{html.escape(canonical,quote=True)}"><meta property="og:type" content="website"><meta property="og:title" content="{html.escape(title,quote=True)}"><meta property="og:description" content="{html.escape(description,quote=True)}"><meta property="og:url" content="{html.escape(canonical,quote=True)}"><link rel="icon" href="/logo.svg"><script src="/i18n.js"></script><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:1000px;margin:auto;padding:24px;line-height:1.8;color:#172033}}a{{color:#e65c00;text-decoration:none}}.card{{border:1px solid #e5e7eb;border-radius:18px;padding:18px;margin:14px 0;background:#fff}}img{{max-width:100%;height:auto;object-fit:contain;max-height:420px}}.price{{font-size:24px;font-weight:800;color:#e65c00}}.btn{{display:inline-block;background:#16a34a;color:#fff;padding:12px 18px;border-radius:10px;font-weight:800}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}}body{{background:#f7f8fb}}.top-bar{{display:flex;justify-content:flex-end;margin-bottom:10px}}#langToggleBtn{{border:1px solid #d8dee8;background:#fff;color:#172033;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit}}#langToggleBtn:hover{{background:#f1f4f9}}</style><script type="application/ld+json">{json.dumps(jsonld,ensure_ascii=False)}</script></head><body><div class="top-bar"><button id="langToggleBtn" type="button" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية">FR</button></div>{body}<script>
+(function(){{
+  // نصوص خاصة بهذه الصفحة فقط (غير موجودة في قاموس i18n.js المشترك)، بنفس أسلوب
+  // PAGE_DICT المُستخدم في product.html حتى لا نحتاج لتعديل i18n.js من هذا الملف.
+  var PAGE_DICT={{
+    view_product:{{ar:"مشاهدة المنتج",fr:"Voir le produit"}},
+    category_empty:{{ar:"لا توجد منتجات منشورة في هذا التصنيف حالياً.",fr:"Aucun produit publié dans cette catégorie pour le moment."}}
+  }};
+  function lang(){{return (window.BazarI18n&&BazarI18n.getLang)?BazarI18n.getLang():"ar";}}
+  function pt(key){{
+    var e=PAGE_DICT[key];
+    if(e) return e[lang()]||e.ar;
+    return (window.BazarI18n&&BazarI18n.t)?BazarI18n.t(key):key;
+  }}
+  function applyPage(){{
+    var l=lang();
+    document.querySelectorAll("[data-i18n]").forEach(function(el){{
+      var k=el.getAttribute("data-i18n");
+      if(k) el.textContent=pt(k);
+    }});
+    if(l==="fr"){{
+      document.querySelectorAll(".card,.cat-head").forEach(function(el){{
+        var nf=el.getAttribute("data-name-fr");
+        var nameEl=el.querySelector("h1,h2");
+        if(nameEl&&nf) nameEl.textContent=nf;
+        var pf=el.getAttribute("data-price-fr");
+        var priceEl=el.querySelector(".price");
+        if(priceEl&&pf) priceEl.textContent=pf;
+        var df=el.getAttribute("data-desc-fr");
+        var descEl=el.querySelector(".cat-desc");
+        if(descEl&&df) descEl.textContent=df;
+      }});
+    }}
+    var btn=document.getElementById("langToggleBtn");
+    if(btn) btn.textContent=l==="ar"?"FR":"AR";
+    document.documentElement.setAttribute("lang",l==="fr"?"fr":"ar");
+    document.documentElement.setAttribute("dir",l==="fr"?"ltr":"rtl");
+  }}
+  if(window.BazarI18n){{applyPage();}}else{{document.addEventListener("DOMContentLoaded",applyPage);}}
+}})();
+</script></body></html>'''
     path.write_text(doc,encoding='utf-8')
 
 
@@ -150,18 +203,42 @@ for p in products:
     product_urls.append((url,name,p,slug))
 
 # Category pages: match products by category document id first, then by category name.
+# ملاحظة الفرنسية: لا نُخمّن أي ترجمة. نستخدم name_fr/description_fr فقط إن كانت
+# موجودة فعلاً في مستند الفئة أو المنتج في Firestore، وإلا يبقى النص عربيًا كما هو —
+# نفس فلسفة translateProduct في i18n.js تمامًا.
 cat_seen={}; cat_urls=[]
 for c in categories:
     name=str(c['name']); base=slugify(name,'category'); n=cat_seen.get(base,0); cat_seen[base]=n+1
     slug=base if n==0 else f'{base}-{n+1}'
     cid=str(c['_id'])
+    name_fr=str(c.get('name_fr') or '').strip()
+    desc_fr=str(c.get('description_fr') or '').strip()
     matched=[x for x in product_urls if str(x[2].get('category') or '')==cid or str(x[2].get('category') or '').strip().lower()==name.strip().lower()]
     url=SITE+'product-category/'+urllib.parse.quote(slug,safe='-._~')+'/'
     desc=f'تصفح منتجات {name} المتوفرة في متجر Bazar Dzair.'
     cards=[]
     for pu,pn,p,pslug in matched:
-        cards.append(f'<article class="card"><img src="{html.escape(image_of(p),quote=True)}" alt="{html.escape(pn,quote=True)}"><h2>{html.escape(pn)}</h2><p class="price">{html.escape(money(p.get("price")))}</p><a class="btn" href="{html.escape(pu,quote=True)}">مشاهدة المنتج</a></article>')
-    body=f'<p><a href="/">Bazar Dzair</a> / {html.escape(name)}</p><h1>{html.escape(name)}</h1><p>{html.escape(desc)}</p><section class="grid">'+(''.join(cards) or '<div class="card">لا توجد منتجات منشورة في هذا التصنيف حالياً.</div>')+'</section>'
+        pn_fr=str(p.get('name_fr') or '').strip()
+        name_fr_attr=f' data-name-fr="{html.escape(pn_fr,quote=True)}"' if pn_fr else ''
+        price_fr_attr=f' data-price-fr="{html.escape(money_fr(p.get("price")),quote=True)}"'
+        cards.append(
+            f'<article class="card"{name_fr_attr}{price_fr_attr}>'
+            f'<img src="{html.escape(image_of(p),quote=True)}" alt="{html.escape(pn,quote=True)}">'
+            f'<h2>{html.escape(pn)}</h2>'
+            f'<p class="price">{html.escape(money(p.get("price")))}</p>'
+            f'<a class="btn" href="{html.escape(pu,quote=True)}" data-i18n="view_product">مشاهدة المنتج</a>'
+            f'</article>'
+        )
+    cat_head_attrs=''
+    if name_fr: cat_head_attrs+=f' data-name-fr="{html.escape(name_fr,quote=True)}"'
+    if desc_fr: cat_head_attrs+=f' data-desc-fr="{html.escape(desc_fr,quote=True)}"'
+    body=(
+        f'<p><a href="/">Bazar Dzair</a> / {html.escape(name)}</p>'
+        f'<div class="cat-head"{cat_head_attrs}><h1>{html.escape(name)}</h1><p class="cat-desc">{html.escape(desc)}</p></div>'
+        f'<section class="grid">'
+        + (''.join(cards) or '<div class="card" data-i18n="category_empty">لا توجد منتجات منشورة في هذا التصنيف حالياً.</div>')
+        + '</section>'
+    )
     ld={'@context':'https://schema.org','@type':'CollectionPage','name':name,'description':desc,'url':url,'mainEntity':{'@type':'ItemList','itemListElement':[{'@type':'ListItem','position':i+1,'url':pu,'name':pn} for i,(pu,pn,_,_) in enumerate(matched)]},'breadcrumb':{'@type':'BreadcrumbList','itemListElement':[{'@type':'ListItem','position':1,'name':'الرئيسية','item':SITE},{'@type':'ListItem','position':2,'name':name,'item':url}]}}
     write_page(root/'product-category'/slug/'index.html',name+' | Bazar Dzair',desc,url,body,ld)
     cat_urls.append((url,name))
