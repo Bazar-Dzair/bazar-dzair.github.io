@@ -108,7 +108,10 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
     out=out.replace('<meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">',desc_tag,1)
     out=out.replace('<link id="canonical" rel="canonical">',canonical_tag+extra,1)
     static_body=static_product_html(name, desc, price, images or [img], available)
-    out=out.replace('<div class="loading">⏳ جاري تحميل المنتج...</div>',static_body,1)
+    # ملاحظة: product.html أصبح يحتوي على data-i18n="product_loading" على هذا العنصر
+    # (بعد إضافة دعم اللغة الفرنسية للواجهة)، لذلك يجب مطابقة النص الجديد بالضبط هنا
+    # وإلا سيفشل الاستبدال بصمت ولن تُحقن صفحات SEO الثابتة بالمحتوى الحقيقي للمنتج.
+    out=out.replace('<div class="loading" data-i18n="product_loading">⏳ جاري تحميل المنتج...</div>',static_body,1)
     return out
 
 
