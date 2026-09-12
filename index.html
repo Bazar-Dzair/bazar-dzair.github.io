@@ -230,6 +230,7 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
 
 .footer-toggle{display:block;border:0;background:none;color:inherit;padding:0;margin:0;text-align:right;font:inherit;cursor:pointer;width:100%;line-height:1.8}.footer-toggle:hover{text-decoration:underline}.footer-link-text{display:none;font-size:12px;line-height:1.8;color:rgba(255,255,255,.78);margin:5px 0 10px;padding:8px 10px;border-right:2px solid rgba(255,255,255,.28);white-space:pre-line}.footer-link-text.open{display:block} 
 </style><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<script src="i18n.js"></script>
 <script src="addons.js" defer></script>
 <link rel="canonical" href="https://bazar-dzair.github.io/">
 <meta property="og:title" content="Bazar Dzair | متجر إلكتروني جزائري">
@@ -253,24 +254,25 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
     <div class="header-actions">
       <button class="circle-btn" id="cartBtn" onclick="openCart()" aria-label="السلة">🛒<span class="badge" id="cartCount">0</span></button>
       <button class="circle-btn" id="menuBtn" onclick="openCategoryMenu()" aria-label="القائمة"><span class="hamburger"><span></span><span></span><span></span></span></button>
+      <button class="circle-btn" id="langToggleBtn" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية" style="font-size:14px;font-weight:900">FR</button>
     </div>
-    <nav aria-label="التنقل"><a class="active" href="#home" onclick="showHome(event)">الرئيسية</a><a href="#products" onclick="showProductsOnly(event)">المنتجات</a></nav>
-    <a class="brand" href="#home" onclick="showHome(event)"><div class="brand-mark"></div><div><div class="brand-text"><b id="siteBrand">Bazar</b> <b>Dzair</b></div><div class="brand-sub" id="siteSubtitle">متجر إلكتروني</div></div></a>
+    <nav aria-label="التنقل"><a class="active" href="#home" onclick="showHome(event)" data-i18n="nav_home">الرئيسية</a><a href="#products" onclick="showProductsOnly(event)" data-i18n="nav_products">المنتجات</a></nav>
+    <a class="brand" href="#home" onclick="showHome(event)"><div class="brand-mark"></div><div><div class="brand-text"><b id="siteBrand">Bazar</b> <b>Dzair</b></div><div class="brand-sub" id="siteSubtitle" data-i18n="brand_subtitle">متجر إلكتروني</div></div></a>
   </div>
 </header>
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeCategoryMenu()"></div>
-<aside class="drawer" id="categoryDrawer" aria-hidden="true"><div class="drawer-head"><h2>🗂️ الفئات</h2><button class="drawer-close" type="button" onclick="closeCategoryMenu()">×</button></div><div class="drawer-cats" id="storeCategories"><div class="cat" onclick="filterCategory('all')"><i>▦</i>جميع الفئات</div><div class="cat"><i>⏳</i>جاري تحميل الفئات...</div></div></aside>
+<aside class="drawer" id="categoryDrawer" aria-hidden="true"><div class="drawer-head"><h2 data-i18n="drawer_title">🗂️ الفئات</h2><button class="drawer-close" type="button" onclick="closeCategoryMenu()">×</button></div><div class="drawer-cats" id="storeCategories"><div class="cat" onclick="filterCategory('all')"><i>▦</i><span data-i18n="drawer_all">جميع الفئات</span></div><div class="cat"><i>⏳</i><span data-i18n="drawer_loading">جاري تحميل الفئات...</span></div></div></aside>
 <main id="home">
 <section class="hero" aria-label="العرض الرئيسي"><picture><source srcset="/assets/hero.webp" type="image/webp"><img src="/assets/hero.jpg" alt="Bazar Dzair" width="964" height="295" fetchpriority="high"></picture></section>
 <section class="section" id="products">
-<div class="section-head"><div class="section-title"><h2 id="categoryPageTitle">منتجاتنا 🛍️</h2><p id="categoryPageDescription">أفضل العروض و أحدث المنتجات</p></div><button class="view-all" onclick="showProductsOnly(event)">عرض الكل ←</button></div>
+<div class="section-head"><div class="section-title"><h2 id="categoryPageTitle" data-i18n="products_title">منتجاتنا 🛍️</h2><p id="categoryPageDescription" data-i18n="products_subtitle">أفضل العروض و أحدث المنتجات</p></div><button class="view-all" onclick="showProductsOnly(event)" data-i18n="view_all">عرض الكل ←</button></div>
 <div id="categoryBreadcrumb" style="display:none;margin:-4px 0 14px;color:#6f7d91;font-size:14px"></div>
 <div class="products" id="productGrid"></div></section>
-<section class="benefits" aria-label="مزايا المتجر"><div class="benefit"><div class="big">🎧</div><strong>خدمة عملاء</strong><small>نحن في خدمتكم 7/7</small></div><div class="benefit"><div class="big">🛡️</div><strong>منتجات أصلية</strong><small>جودة مضمونة</small></div><div class="benefit"><div class="big">🚚</div><strong>توصيل سريع</strong><small>إلى جميع الولايات</small></div><div class="benefit"><div class="big">🤲</div><strong>الدفع عند الاستلام</strong><small>ادفع عند استلام طلبك</small></div></section>
+<section class="benefits" aria-label="مزايا المتجر"><div class="benefit"><div class="big">🎧</div><strong data-i18n="benefit_service_title">خدمة عملاء</strong><small data-i18n="benefit_service_desc">نحن في خدمتكم 7/7</small></div><div class="benefit"><div class="big">🛡️</div><strong data-i18n="benefit_genuine_title">منتجات أصلية</strong><small data-i18n="benefit_genuine_desc">جودة مضمونة</small></div><div class="benefit"><div class="big">🚚</div><strong data-i18n="benefit_delivery_title">توصيل سريع</strong><small data-i18n="benefit_delivery_desc">إلى جميع الولايات</small></div><div class="benefit"><div class="big">🤲</div><strong data-i18n="benefit_cod_title">الدفع عند الاستلام</strong><small data-i18n="benefit_cod_desc">ادفع عند استلام طلبك</small></div></section>
 </main>
-<footer id="footer"><div class="footer-grid"><div><div class="brand" style="justify-self:start;color:#fff;margin-bottom:12px"><div class="brand-mark"></div><div><div class="brand-text"><b style="color:#fff">Bazar</b> <b>Dzair</b></div><div class="brand-sub" style="color:#fff">متجر إلكتروني</div></div></div><p id="footerDescription">متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.</p></div><div><h4>روابط مهمة</h4><ul id="importantFooterList"><li><button type="button" class="footer-toggle">من نحن</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">سياسة الخصوصية</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">الشروط والأحكام</button><div class="footer-link-text"></div></li></ul></div><div><h4>خدمة الزبائن</h4><ul id="customerFooterList"><li><button type="button" class="footer-toggle">❓ أسئلة شائعة</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">📦 تتبع طلبي</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">🚚 سياسة التوصيل</button><div class="footer-link-text"></div></li></ul><ul><li>📞 <a id="footerPhone" href="tel:0550000000">0550 00 00 00</a></li><li><a id="footerWhatsapp" href="https://wa.me/213500000000" target="_blank" rel="noopener">💬 واتساب متوفر للطلبات</a></li></ul></div></div><div class="copyright" id="footerCopyright">© 2026 Bazar Dzair ❤️ — جميع الحقوق محفوظة</div></footer>
-<div class="overlay" id="productOverlay" onclick="overlayClose(event,'productOverlay')"><div class="modal"><button class="close" onclick="closeModal('productOverlay')">×</button><div class="detail"><div class="detail-pic"><img id="detailImage" alt="تفاصيل المنتج"></div><div><h2 id="detailName"></h2><div class="detail-price" id="detailPrice"></div><p class="desc" id="detailDesc"></p><div class="qty"><button onclick="detailQtyChange(-1)">−</button><span id="detailQty">1</span><button onclick="detailQtyChange(1)">+</button></div><div class="detail-actions"><button class="orange" onclick="buyDetail()">⚡ اشترِ الآن</button><button class="dark" onclick="cartDetail()">🛒 أضف إلى السلة</button></div></div></div></div></div>
-<div class="overlay" id="cartOverlay" onclick="overlayClose(event,'cartOverlay')"><div class="modal cart-modal"><button class="close" onclick="closeModal('cartOverlay')">×</button><h2>🛒 سلة المشتريات</h2><div class="cart-list" id="cartItems"></div><div id="summaryBox"></div><div class="order"><h3>📦 معلومات الطلب</h3><div class="grid"><input class="field" id="customerName" placeholder="الاسم واللقب *"><input class="field" id="customerPhone" type="tel" placeholder="رقم الهاتف *"><select class="field" id="wilaya" onchange="selectedDeliveryType=null;updateTotals()"><option value="">اختر الولاية *</option><option value="01">01 - أدرار</option><option value="02">02 - الشلف</option><option value="03">03 - الأغواط</option><option value="04">04 - أم البواقي</option><option value="05">05 - باتنة</option><option value="06">06 - بجاية</option><option value="07">07 - بسكرة</option><option value="08">08 - بشار</option><option value="09">09 - البليدة</option><option value="10">10 - البويرة</option><option value="11">11 - تمنراست</option><option value="12">12 - تبسة</option><option value="13">13 - تلمسان</option><option value="14">14 - تيارت</option><option value="15">15 - تيزي وزو</option><option value="16">16 - الجزائر</option><option value="17">17 - الجلفة</option><option value="18">18 - جيجل</option><option value="19">19 - سطيف</option><option value="20">20 - سعيدة</option><option value="21">21 - سكيكدة</option><option value="22">22 - سيدي بلعباس</option><option value="23">23 - عنابة</option><option value="24">24 - قالمة</option><option value="25">25 - قسنطينة</option><option value="26">26 - المدية</option><option value="27">27 - مستغانم</option><option value="28">28 - المسيلة</option><option value="29">29 - معسكر</option><option value="30">30 - ورقلة</option><option value="31">31 - وهران</option><option value="32">32 - البيض</option><option value="33">33 - إليزي</option><option value="34">34 - برج بوعريريج</option><option value="35">35 - بومرداس</option><option value="36">36 - الطارف</option><option value="37">37 - تندوف</option><option value="38">38 - تيسمسيلت</option><option value="39">39 - الوادي</option><option value="40">40 - خنشلة</option><option value="41">41 - سوق أهراس</option><option value="42">42 - تيبازة</option><option value="43">43 - ميلة</option><option value="44">44 - عين الدفلى</option><option value="45">45 - النعامة</option><option value="46">46 - عين تموشنت</option><option value="47">47 - غرداية</option><option value="48">48 - غليزان</option><option value="49">49 - تيميمون</option><option value="50">50 - برج باجي مختار</option><option value="51">51 - أولاد جلال</option><option value="52">52 - بني عباس</option><option value="53">53 - إن صالح</option><option value="54">54 - إن قزام</option><option value="55">55 - تقرت</option><option value="56">56 - جانت</option><option value="57">57 - المغير</option><option value="58">58 - المنيعة</option></select><input class="field full" id="address" placeholder="العنوان / البلدية *"><div class="full" id="deliveryTypeWrap" style="display:none"><label style="display:block;margin:2px 0 6px;font-weight:700;font-size:13px;color:var(--muted)">طريقة الاستلام</label><div id="deliveryTypeOptions" style="display:flex;gap:8px;flex-wrap:wrap"></div></div><div class="ship full" id="shipNote">اختر الولاية لمعرفة سعر التوصيل.</div></div><button class="confirm" onclick="submitOrder()">✅ تأكيد الطلب بالدفع عند الاستلام</button></div></div></div>
+<footer id="footer"><div class="footer-grid"><div><div class="brand" style="justify-self:start;color:#fff;margin-bottom:12px"><div class="brand-mark"></div><div><div class="brand-text"><b style="color:#fff">Bazar</b> <b>Dzair</b></div><div class="brand-sub" style="color:#fff" data-i18n="brand_subtitle">متجر إلكتروني</div></div></div><p id="footerDescription" data-i18n="footer_description">متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.</p></div><div><h4 data-i18n="footer_links_title">روابط مهمة</h4><ul id="importantFooterList"><li><button type="button" class="footer-toggle">من نحن</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">سياسة الخصوصية</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">الشروط والأحكام</button><div class="footer-link-text"></div></li></ul></div><div><h4 data-i18n="footer_customer_title">خدمة الزبائن</h4><ul id="customerFooterList"><li><button type="button" class="footer-toggle">❓ أسئلة شائعة</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">📦 تتبع طلبي</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">🚚 سياسة التوصيل</button><div class="footer-link-text"></div></li></ul><ul><li>📞 <a id="footerPhone" href="tel:0550000000">0550 00 00 00</a></li><li><a id="footerWhatsapp" href="https://wa.me/213500000000" target="_blank" rel="noopener">💬 واتساب متوفر للطلبات</a></li></ul></div></div><div class="copyright" id="footerCopyright">© 2026 Bazar Dzair ❤️ — جميع الحقوق محفوظة</div></footer>
+<div class="overlay" id="productOverlay" onclick="overlayClose(event,'productOverlay')"><div class="modal"><button class="close" onclick="closeModal('productOverlay')">×</button><div class="detail"><div class="detail-pic"><img id="detailImage" alt="تفاصيل المنتج"></div><div><h2 id="detailName"></h2><div class="detail-price" id="detailPrice"></div><p class="desc" id="detailDesc"></p><div class="qty"><button onclick="detailQtyChange(-1)">−</button><span id="detailQty">1</span><button onclick="detailQtyChange(1)">+</button></div><div class="detail-actions"><button class="orange" onclick="buyDetail()" data-i18n="detail_buy_now">⚡ اشترِ الآن</button><button class="dark" onclick="cartDetail()" data-i18n="detail_add_cart">🛒 أضف إلى السلة</button></div></div></div></div></div>
+<div class="overlay" id="cartOverlay" onclick="overlayClose(event,'cartOverlay')"><div class="modal cart-modal"><button class="close" onclick="closeModal('cartOverlay')">×</button><h2 data-i18n="cart_title">🛒 سلة المشتريات</h2><div class="cart-list" id="cartItems"></div><div id="summaryBox"></div><div class="order"><h3 data-i18n="order_info_title">📦 معلومات الطلب</h3><div class="grid"><input class="field" id="customerName" placeholder="الاسم واللقب *" data-i18n-ph="placeholder_name"><input class="field" id="customerPhone" type="tel" placeholder="رقم الهاتف *" data-i18n-ph="placeholder_phone"><select class="field" id="wilaya" onchange="selectedDeliveryType=null;updateTotals()"><option value="" data-i18n="placeholder_wilaya">اختر الولاية *</option><option value="01">01 - أدرار</option><option value="02">02 - الشلف</option><option value="03">03 - الأغواط</option><option value="04">04 - أم البواقي</option><option value="05">05 - باتنة</option><option value="06">06 - بجاية</option><option value="07">07 - بسكرة</option><option value="08">08 - بشار</option><option value="09">09 - البليدة</option><option value="10">10 - البويرة</option><option value="11">11 - تمنراست</option><option value="12">12 - تبسة</option><option value="13">13 - تلمسان</option><option value="14">14 - تيارت</option><option value="15">15 - تيزي وزو</option><option value="16">16 - الجزائر</option><option value="17">17 - الجلفة</option><option value="18">18 - جيجل</option><option value="19">19 - سطيف</option><option value="20">20 - سعيدة</option><option value="21">21 - سكيكدة</option><option value="22">22 - سيدي بلعباس</option><option value="23">23 - عنابة</option><option value="24">24 - قالمة</option><option value="25">25 - قسنطينة</option><option value="26">26 - المدية</option><option value="27">27 - مستغانم</option><option value="28">28 - المسيلة</option><option value="29">29 - معسكر</option><option value="30">30 - ورقلة</option><option value="31">31 - وهران</option><option value="32">32 - البيض</option><option value="33">33 - إليزي</option><option value="34">34 - برج بوعريريج</option><option value="35">35 - بومرداس</option><option value="36">36 - الطارف</option><option value="37">37 - تندوف</option><option value="38">38 - تيسمسيلت</option><option value="39">39 - الوادي</option><option value="40">40 - خنشلة</option><option value="41">41 - سوق أهراس</option><option value="42">42 - تيبازة</option><option value="43">43 - ميلة</option><option value="44">44 - عين الدفلى</option><option value="45">45 - النعامة</option><option value="46">46 - عين تموشنت</option><option value="47">47 - غرداية</option><option value="48">48 - غليزان</option><option value="49">49 - تيميمون</option><option value="50">50 - برج باجي مختار</option><option value="51">51 - أولاد جلال</option><option value="52">52 - بني عباس</option><option value="53">53 - إن صالح</option><option value="54">54 - إن قزام</option><option value="55">55 - تقرت</option><option value="56">56 - جانت</option><option value="57">57 - المغير</option><option value="58">58 - المنيعة</option></select><input class="field full" id="address" placeholder="العنوان / البلدية *" data-i18n-ph="placeholder_address"><div class="full" id="deliveryTypeWrap" style="display:none"><label style="display:block;margin:2px 0 6px;font-weight:700;font-size:13px;color:var(--muted)" data-i18n="delivery_method_label">طريقة الاستلام</label><div id="deliveryTypeOptions" style="display:flex;gap:8px;flex-wrap:wrap"></div></div><div class="ship full" id="shipNote" data-i18n="ship_note_default">اختر الولاية لمعرفة سعر التوصيل.</div></div><button class="confirm" onclick="submitOrder()" data-i18n="confirm_button">✅ تأكيد الطلب بالدفع عند الاستلام</button></div></div></div>
 <div class="toast" id="toast"></div>
 <script>
 function openCategoryMenu(){
@@ -292,6 +294,28 @@ document.addEventListener("click",function(e){
   if(cat){setTimeout(closeCategoryMenu,80);}
 });
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeCategoryMenu();});
+
+// ================= اللغة (عربي/فرنسي) =================
+// نطبّق ترجمة النصوص الثابتة فورًا، ونُبقي اتجاه الصفحة RTL دائمًا (حتى بالفرنسية)
+// لأن كل التصميم الحالي مبني على RTL (مواضع، هوامش...)، وتبديله بالكامل قد يكسر الواجهة.
+// نغيّر فقط lang لأغراض النطق/الوصولية والمحتوى المعروض.
+function translateWilayaSelect(){
+  const sel=document.getElementById("wilaya");
+  if(!sel||!window.BazarI18n)return;
+  const current=sel.value;
+  Array.from(sel.options).forEach(opt=>{
+    if(!opt.value)return; // خيار "اختر الولاية *" تتم ترجمته عبر data-i18n
+    opt.textContent=BazarI18n.wilayaOptionLabel(opt.value,BazarI18n.getLang());
+  });
+  sel.value=current;
+}
+if(window.BazarI18n){
+  BazarI18n.applyStatic();
+  document.documentElement.setAttribute("dir","rtl");
+  translateWilayaSelect();
+  const langBtn=document.getElementById("langToggleBtn");
+  if(langBtn) langBtn.textContent=BazarI18n.getLang()==="ar"?"FR":"AR";
+}
 
 // ================= FIREBASE =================
 // هذا الجزء ضروري حتى المنتجات التي تضيفها من قاعدة البيانات تظهر في المتجر.
@@ -379,7 +403,7 @@ function renderDeliveryOptions(opts){
   if(!selectedDeliveryType||!opts[selectedDeliveryType]) selectedDeliveryType=keys.includes("home")?"home":keys[0];
   box.innerHTML=keys.map(k=>{
     const o=opts[k];
-    const label=k==="home"?"🏠 توصيل إلى المنزل":"🏤 استلام من المكتب";
+    const label=k==="home"?BazarI18n.t("delivery_home_label"):BazarI18n.t("delivery_office_label");
     const carrierNames=o.codes.map(c=>carrierLabels[c]||c).join(" + ");
     return `<div class="delivery-opt ${selectedDeliveryType===k?"active":""}" onclick="selectDeliveryType('${k}')"><span>${label} — ${money(o.price)}</span>${carrierNames?`<span class="small">(${carrierNames})</span>`:""}</div>`;
   }).join("");
@@ -448,11 +472,13 @@ function mapRestProduct(docSnap,index){
     id:index+1,
     firestoreId:(docSnap.name||"").split("/").pop(),
     name:data.name||data.product||"منتج بدون اسم",
+    name_fr:data.name_fr||"",
     price:Number(data.price||0),
     image,
     images:imgs.length?imgs:[image],
     badge:data.badge||"جديد",
     description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
+    description_fr:data.description_fr||"",
     category:data.category||"all",
     shippingHome:data.shippingHome||"",
     shippingOffice:data.shippingOffice||"",
@@ -480,6 +506,19 @@ async function restGetProducts(){
 function applySiteData(d){
   d={...siteDefaults,...(d||{})};
   const setText=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value||""};
+  const lang=window.BazarI18n?BazarI18n.getLang():"ar";
+  if(lang==="fr"){
+    // نصوص الواجهة الثابتة (topbar/subtitle) لها ترجمة فرنسية جاهزة في القاموس.
+    // اسم العلامة التجارية (Bazar Dzair) والنصوص الحرة التي يكتبها الأدمن (heroTitle...)
+    // لا تملك بعد حقلاً فرنسيًا في لوحة التحكم، فتُعرض كما أدخلها الأدمن.
+    setText("topText1",BazarI18n.t("topbar_service"));
+    setText("topText2",BazarI18n.t("topbar_delivery"));
+    setText("topText3",BazarI18n.t("topbar_cod"));
+    setText("siteBrand",d.brand||siteDefaults.brand); setText("siteSubtitle",BazarI18n.t("brand_subtitle"));
+    setText("heroTitle1",d.heroTitle1||siteDefaults.heroTitle1); setText("heroTitle2",d.heroTitle2||siteDefaults.heroTitle2);
+    setText("heroDescription",d.heroDescription||siteDefaults.heroDescription); setText("heroButton",d.heroButton||siteDefaults.heroButton);
+    return;
+  }
   setText("topText1",d.topTexts?.[0]||siteDefaults.topTexts[0]);
   setText("topText2",d.topTexts?.[1]||siteDefaults.topTexts[1]);
   setText("topText3",d.topTexts?.[2]||siteDefaults.topTexts[2]);
@@ -490,8 +529,9 @@ function applySiteData(d){
 function escapeHtml(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 function applyFooterData(d){
   d={...footerDefaults,...(d||{})};
+  const lang=window.BazarI18n?BazarI18n.getLang():"ar";
   const fd=document.getElementById("footerDescription");
-  if(fd) fd.textContent=d.description||footerDefaults.description;
+  if(fd) fd.textContent = lang==="fr" ? BazarI18n.t("footer_description") : (d.description||footerDefaults.description);
 
   const renderList=(listId,type,titles,texts,defaults,defaultTexts)=>{
     const list=document.getElementById(listId); if(!list)return;
@@ -504,15 +544,31 @@ function applyFooterData(d){
     }).join("");
   };
 
-  renderList("importantFooterList","important",d.importantLinks,d.importantTexts,footerDefaults.importantLinks,footerDefaults.importantTexts);
-  renderList("customerFooterList","customer",d.customerLinks,d.customerTexts,footerDefaults.customerLinks,footerDefaults.customerTexts);
+  if(lang==="fr"){
+    // العناوين الافتراضية الثلاثة لكل قائمة لها ترجمة فرنسية جاهزة في القاموس.
+    // إذا خصّصت لوحة التحكم عناوين أو نصوصًا مختلفة بالعربية فلا يوجد لها بعد حقل فرنسي،
+    // لذلك نعرض هنا النسخة الفرنسية القياسية دائمًا حتى تبقى الواجهة الفرنسية متسقة.
+    document.getElementById("importantFooterList").innerHTML=[
+      [BazarI18n.t("footer_about"),BazarI18n.t("about_text")],
+      [BazarI18n.t("footer_privacy"),BazarI18n.t("privacy_text")],
+      [BazarI18n.t("footer_terms"),BazarI18n.t("terms_text")]
+    ].map((pair,i)=>`<li><button type="button" class="footer-toggle" data-footer-type="important" data-footer-index="${i}">${escapeHtml(pair[0])}</button><div class="footer-link-text">${escapeHtml(pair[1])}</div></li>`).join("");
+    document.getElementById("customerFooterList").innerHTML=[
+      [BazarI18n.t("footer_faq"),BazarI18n.t("faq_text")],
+      [BazarI18n.t("footer_track"),BazarI18n.t("track_text")],
+      [BazarI18n.t("footer_delivery_policy"),BazarI18n.t("delivery_policy_text")]
+    ].map((pair,i)=>`<li><button type="button" class="footer-toggle" data-footer-type="customer" data-footer-index="${i}">${escapeHtml(pair[0])}</button><div class="footer-link-text">${escapeHtml(pair[1])}</div></li>`).join("");
+  } else {
+    renderList("importantFooterList","important",d.importantLinks,d.importantTexts,footerDefaults.importantLinks,footerDefaults.importantTexts);
+    renderList("customerFooterList","customer",d.customerLinks,d.customerTexts,footerDefaults.customerLinks,footerDefaults.customerTexts);
+  }
 
   const phone=document.getElementById("footerPhone");
   if(phone){phone.textContent=d.phone||footerDefaults.phone;phone.href="tel:"+String(d.phone||footerDefaults.phone).replace(/[^0-9+]/g,"");}
   const wa=document.getElementById("footerWhatsapp");
-  if(wa){wa.textContent=d.whatsappText||footerDefaults.whatsappText;wa.href=d.whatsappUrl||footerDefaults.whatsappUrl;}
+  if(wa){wa.textContent = lang==="fr" ? BazarI18n.t("footer_whatsapp") : (d.whatsappText||footerDefaults.whatsappText); wa.href=d.whatsappUrl||footerDefaults.whatsappUrl;}
   const cp=document.getElementById("footerCopyright");
-  if(cp)cp.textContent=d.copyright||footerDefaults.copyright;
+  if(cp)cp.textContent = lang==="fr" ? BazarI18n.t("footer_copyright") : (d.copyright||footerDefaults.copyright);
 }
 
 function initFooterToggles(){
@@ -584,11 +640,13 @@ async function loadProductsFromFirestore(){
       id:i+1,
       firestoreId:d.id,
       name:data.name||data.product||"منتج بدون اسم",
+      name_fr:data.name_fr||"",
       price:Number(data.price||0),
       image,
       images:imgs.length?imgs:[image],
       badge:data.badge||"جديد",
       description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
+      description_fr:data.description_fr||"",
       category:data.category||"all",
       published:data.published!==false,
       stock:Number(data.stock||0),
@@ -621,10 +679,10 @@ async function loadProductsFromFirestore(){
         .filter(c=>c.name&&!seen.has(c.key)&&seen.add(c.key))
         .sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));
       const visibleCategories=storeCategories.filter(c=>c.hidden!==true);
-      if(box) box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>جميع الفئات</div>'+(visibleCategories.length?visibleCategories.map(c=>`<div class="cat" onclick="filterCategory('${escapeHtml(c.key)}')"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(c.name)}</div>`).join(""):'<div class="cat"><i>📂</i>لا توجد فئات</div>');
+      if(box) box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>'+escapeHtml(BazarI18n.t("drawer_all"))+'</div>'+(visibleCategories.length?visibleCategories.map(c=>`<div class="cat" onclick="filterCategory('${escapeHtml(c.key)}')"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(c.name)}</div>`).join(""):'<div class="cat"><i>📂</i>'+escapeHtml(BazarI18n.t("drawer_none"))+'</div>');
       applyUrlCategory();
     };
-    onSnapshot(collection(db,"categories"),renderStoreCategories,error=>{const box=document.getElementById("storeCategories");if(box)box.innerHTML='<div class="cat"><i>⚠️</i>تعذر تحميل الفئات</div>';});
+    onSnapshot(collection(db,"categories"),renderStoreCategories,error=>{const box=document.getElementById("storeCategories");if(box)box.innerHTML='<div class="cat"><i>⚠️</i>'+escapeHtml(BazarI18n.t("drawer_error"))+'</div>';});
   }catch(error){
     console.warn("Firebase SDK init failed; REST fallback",error);
     const ok=await loadProductsFromFirestore();
@@ -634,7 +692,7 @@ async function loadProductsFromFirestore(){
 
 loadFastSettings();
 
-const money=n=>Number(n).toLocaleString("ar-DZ")+" دج";
+const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):(Number(n).toLocaleString("ar-DZ")+" دج");
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 // حماية أمنية: أي رابط صورة قادم من بيانات المنتج (قد يكون مستوردًا من مصدر خارجي مثل Mayna)
 // يُعتبر غير موثوق. نسمح فقط بروابط http(s) أو مسارات محلية، ونمنع أي بروتوكول آخر
@@ -657,22 +715,23 @@ function updateCategorySeo(category){
   const desc=document.getElementById("categoryPageDescription");
   const crumb=document.getElementById("categoryBreadcrumb");
   const meta=document.querySelector('meta[name="description"]');
+  const lang=window.BazarI18n?BazarI18n.getLang():"ar";
   if(!category){
-    if(title) title.textContent="منتجاتنا 🛍️";
-    if(desc) desc.textContent="أفضل العروض و أحدث المنتجات";
+    if(title) title.textContent=BazarI18n.t("products_title");
+    if(desc) desc.textContent=BazarI18n.t("products_subtitle");
     if(crumb) crumb.style.display="none";
-    document.title="Bazar Dzair | متجر إلكتروني";
-    if(meta) meta.setAttribute("content","Bazar Dzair - متجر إلكتروني جزائري");
+    document.title=lang==="fr"?"Bazar Dzair | Boutique en ligne":"Bazar Dzair | متجر إلكتروني";
+    if(meta) meta.setAttribute("content",lang==="fr"?"Bazar Dzair - boutique en ligne algérienne":"Bazar Dzair - متجر إلكتروني جزائري");
     activeCategory=null;
     return;
   }
   activeCategory=category;
   const name=String(category.name).trim();
   if(title) title.textContent=name;
-  if(desc) desc.textContent="منتجات "+name+" المتوفرة في متجر Bazar Dzair";
-  if(crumb){crumb.style.display="block";crumb.innerHTML='<a href="./" style="color:#ff5a0a;font-weight:700">الرئيسية</a> ← '+esc(name);}
+  if(desc) desc.textContent=lang==="fr"?("Produits "+name+" disponibles sur Bazar Dzair"):("منتجات "+name+" المتوفرة في متجر Bazar Dzair");
+  if(crumb){crumb.style.display="block";crumb.innerHTML='<a href="./" style="color:#ff5a0a;font-weight:700">'+esc(BazarI18n.t("nav_home"))+'</a> ← '+esc(name);}
   document.title=name+" | Bazar Dzair";
-  if(meta) meta.setAttribute("content","تصفح منتجات "+name+" في متجر Bazar Dzair. اكتشف المنتجات والأسعار والعروض المتوفرة.");
+  if(meta) meta.setAttribute("content",lang==="fr"?("Découvrez les produits "+name+" sur Bazar Dzair, avec prix et offres disponibles."):("تصفح منتجات "+name+" في متجر Bazar Dzair. اكتشف المنتجات والأسعار والعروض المتوفرة."));
 }
 function applyUrlCategory(){
   const key=getUrlCategory();
@@ -687,14 +746,17 @@ function applyUrlCategory(){
 }
 function displayProducts(list=products){
  const g=document.getElementById("productGrid");
- if(!list.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">لم نجد المنتج 🔎</div>';return}
+ if(!list.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">'+esc(BazarI18n.t("empty_products"))+'</div>';return}
  g.innerHTML=list.map(p=>{
    const available=p.published!==false;
-   const badgeHtml=available?(p.badge?`<span class="new">${esc(p.badge)}</span>`:""):'<span class="new" style="background:#9aa1ab">غير متوفر</span>';
+   const tp=BazarI18n.translateProduct(p);
+   // شارة "جديد" الافتراضية تُترجم تلقائيًا؛ أي شارة مخصّصة كتبها الأدمن تبقى كما هي (لا ترجمة آلية للمحتوى الحر)
+   const badgeText=p.badge&&p.badge!=="جديد"?p.badge:(p.badge?(BazarI18n.getLang()==="fr"?"Nouveau":"جديد"):"");
+   const badgeHtml=available?(badgeText?`<span class="new">${esc(badgeText)}</span>`:""):`<span class="new" style="background:#9aa1ab">${esc(BazarI18n.t("badge_unavailable"))}</span>`;
    const actionsHtml=available
-     ?`<button class="btn cartbtn" onclick="addCart(${p.id})" aria-label="إضافة إلى السلة">🛒<span class="plus">+</span></button><button class="btn buybtn" onclick="buyNow(${p.id})">شراء <span class="buycart">🛒</span></button>`
-     :`<button class="btn buybtn" disabled style="opacity:.55;cursor:not-allowed" onclick="return false">غير متوفر حاليًا</button>`;
-   return `<article class="product${available?"":" unavailable"}"><div class="pic" onclick="goToProduct(${p.id})">${badgeHtml}<img src="${safeImg(p.image)}" alt="${esc(p.name)}" loading="lazy" decoding="async" style="${available?"":"filter:grayscale(60%);opacity:.75"}"></div><div class="info"><div class="name" onclick="goToProduct(${p.id})">${esc(p.name)}</div><div class="price">${money(p.price)}</div><div class="buttons">${actionsHtml}</div></div></article>`;
+     ?`<button class="btn cartbtn" onclick="addCart(${p.id})" aria-label="${esc(BazarI18n.t("aria_add_to_cart"))}">🛒<span class="plus">+</span></button><button class="btn buybtn" onclick="buyNow(${p.id})">${esc(BazarI18n.t("buy_button"))} <span class="buycart">🛒</span></button>`
+     :`<button class="btn buybtn" disabled style="opacity:.55;cursor:not-allowed" onclick="return false">${esc(BazarI18n.t("button_unavailable"))}</button>`;
+   return `<article class="product${available?"":" unavailable"}"><div class="pic" onclick="goToProduct(${p.id})">${badgeHtml}<img src="${safeImg(p.image)}" alt="${esc(tp.name)}" loading="lazy" decoding="async" style="${available?"":"filter:grayscale(60%);opacity:.75"}"></div><div class="info"><div class="name" onclick="goToProduct(${p.id})">${esc(tp.name)}</div><div class="price">${money(p.price)}</div><div class="buttons">${actionsHtml}</div></div></article>`;
  }).join("");
 }
 function productSlug(name){
@@ -733,7 +795,7 @@ function productSlug(name){
 async function goToProduct(id){
   const product = products.find(p => String(p.id) === String(id));
   if(!product){
-    showToast("المنتج غير موجود");
+    toast(BazarI18n.t("toast_product_not_found"));
     return;
   }
 
@@ -756,7 +818,8 @@ async function goToProduct(id){
 
 function openProduct(id){
  selected=products.find(p=>p.id===id);if(!selected)return;dQty=1;
- document.getElementById("detailImage").src=selected.image;document.getElementById("detailName").textContent=selected.name;document.getElementById("detailPrice").textContent=money(selected.price);document.getElementById("detailDesc").textContent=selected.description;document.getElementById("detailQty").textContent=1;
+ const tp=BazarI18n.translateProduct(selected);
+ document.getElementById("detailImage").src=selected.image;document.getElementById("detailName").textContent=tp.name;document.getElementById("detailPrice").textContent=money(selected.price);document.getElementById("detailDesc").textContent=tp.description;document.getElementById("detailQty").textContent=1;
  document.getElementById("productOverlay").style.display="block";document.body.style.overflow="hidden";
  if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:selected.id,content_name:selected.name,price:selected.price,category:selected.category});
 }
@@ -765,7 +828,7 @@ function cartDetail(){addCart(selected.id,dQty);closeModal("productOverlay")}
 function buyDetail(){addCart(selected.id,dQty);closeModal("productOverlay");openCart()}
 function addCart(id,q=1){
  const p=products.find(x=>x.id===id);if(!p)return;const e=cart.find(x=>x.id===id);
- e?e.quantity+=q:cart.push({...p,quantity:q});updateCount();renderCart();toast("تمت إضافة المنتج إلى السلة ✅");
+ e?e.quantity+=q:cart.push({...p,quantity:q});updateCount();renderCart();toast(BazarI18n.t("toast_added_cart"));
  if(window.bazarTrackEvent)window.bazarTrackEvent("AddToCart",{id:p.id,content_name:p.name,price:p.price,qty:q,category:p.category});
 }
 function buyNow(id){
@@ -780,9 +843,9 @@ function changeQty(id,x){const e=cart.find(p=>p.id===id);if(!e)return;e.quantity
 function removeItem(id){cart=cart.filter(p=>p.id!==id);updateCount();renderCart()}
 function productTotal(){return cart.reduce((s,x)=>s+x.price*x.quantity,0)}
 function renderCart(){
- if(!cart.length){document.getElementById("cartItems").innerHTML='<div class="empty">السلة فارغة 🛒<br>اضغط على أي منتج لمشاهدة التفاصيل.</div>';document.getElementById("summaryBox").innerHTML="";return}
- document.getElementById("cartItems").innerHTML=cart.map(x=>`<div class="cart-row"><img src="${safeImg(x.image)}"><div><h4>${esc(x.name)}</h4><span class="small">${money(x.price)} للقطعة</span></div><div class="cq"><button onclick="changeQty(${x.id},-1)">−</button><span>${x.quantity}</span><button onclick="changeQty(${x.id},1)">+</button></div><button class="remove" onclick="removeItem(${x.id})">🗑️</button></div>`).join("");
- document.getElementById("summaryBox").innerHTML=`<div class="summary"><div class="line"><span>مجموع المنتجات</span><b>${money(productTotal())}</b></div><div class="line"><span>التوصيل</span><b id="sumShip">—</b></div><div class="line total"><span>المجموع النهائي</span><b id="sumTotal">${money(productTotal())}</b></div></div>`;
+ if(!cart.length){document.getElementById("cartItems").innerHTML='<div class="empty">'+esc(BazarI18n.t("cart_empty_title"))+'<br>'+esc(BazarI18n.t("cart_empty_sub"))+'</div>';document.getElementById("summaryBox").innerHTML="";return}
+ document.getElementById("cartItems").innerHTML=cart.map(x=>`<div class="cart-row"><img src="${safeImg(x.image)}"><div><h4>${esc(BazarI18n.translateProduct(x).name)}</h4><span class="small">${money(x.price)} ${esc(BazarI18n.t("cart_per_unit"))}</span></div><div class="cq"><button onclick="changeQty(${x.id},-1)">−</button><span>${x.quantity}</span><button onclick="changeQty(${x.id},1)">+</button></div><button class="remove" onclick="removeItem(${x.id})">🗑️</button></div>`).join("");
+ document.getElementById("summaryBox").innerHTML=`<div class="summary"><div class="line"><span>${esc(BazarI18n.t("summary_products"))}</span><b>${money(productTotal())}</b></div><div class="line"><span>${esc(BazarI18n.t("summary_delivery"))}</span><b id="sumShip">—</b></div><div class="line total"><span>${esc(BazarI18n.t("summary_total"))}</span><b id="sumTotal">${money(productTotal())}</b></div></div>`;
  updateTotals();
 }
 function updateTotals(){
@@ -792,11 +855,11 @@ function updateTotals(){
  if(document.getElementById("sumTotal"))document.getElementById("sumTotal").textContent=money(t);
  const opts=computeDeliveryOptions(w);
  renderDeliveryOptions(opts);
- if(!w){document.getElementById("shipNote").textContent="اختر الولاية لمعرفة سعر التوصيل.";return}
+ if(!w){document.getElementById("shipNote").textContent=BazarI18n.t("ship_note_default");return}
  const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
- if(!chosen){document.getElementById("shipNote").textContent="❌ التوصيل غير متوفر لهذه الولاية حالياً.";return}
+ if(!chosen){document.getElementById("shipNote").textContent=BazarI18n.t("ship_unavailable_now");return}
  const s=chosen.price;
- document.getElementById("shipNote").textContent="🚚 سعر التوصيل: "+money(s);document.getElementById("sumShip").textContent=money(s);document.getElementById("sumTotal").textContent=money(t+s);
+ document.getElementById("shipNote").textContent=BazarI18n.t("ship_price_prefix")+money(s);document.getElementById("sumShip").textContent=money(s);document.getElementById("sumTotal").textContent=money(t+s);
 }
 function showHome(e){
   if(e)e.preventDefault();
@@ -826,7 +889,7 @@ function filterCategory(category,fromUrl=false){
   }
   const resolved=findCategory(category);
   if(!resolved){
-    toast("التصنيف غير موجود");
+    toast(BazarI18n.t("toast_category_not_found"));
     return;
   }
   updateCategorySeo(resolved);
@@ -842,14 +905,18 @@ function filterCategory(category,fromUrl=false){
 
 function searchProducts(){const q=document.getElementById("search").value.trim().toLowerCase();displayProducts(products.filter(p=>p.name.toLowerCase().includes(q)))}
 window.submitOrder=async function(){
- if(!cart.length){toast("السلة فارغة ❌");return}
+ if(!cart.length){toast(BazarI18n.t("toast_cart_empty"));return}
  if(window.__bazarSubmittingOrder)return;
- const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim(),wn=document.getElementById("wilaya").options[document.getElementById("wilaya").selectedIndex]?.text||"";
- if(!n||!ph||!w||!a){toast("أكمل معلومات الطلب ⚠️");return}
- if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast("رقم الهاتف غير صحيح ⚠️");return}
+ const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim();
+ // ⚠️ مهم: اسم الولاية المُرسَل إلى Telegram/Firestore يجب أن يبقى دائمًا بالعربية
+ // وبنفس صيغة "كود - اسم" الأصلية، بغض النظر عن لغة واجهة الزبون الحالية.
+ // لهذا لا نأخذه من نص الخيار المعروض (الذي يتغير بصريًا بالفرنسية) بل نبنيه دائمًا بالعربية.
+ const wn=w?BazarI18n.wilayaOptionLabel(w,"ar"):"";
+ if(!n||!ph||!w||!a){toast(BazarI18n.t("toast_incomplete"));return}
+ if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast(BazarI18n.t("toast_invalid_phone"));return}
  const opts=computeDeliveryOptions(w);
  const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
- if(!chosen){toast("التوصيل غير متوفر لهذه الولاية ❌");return}
+ if(!chosen){toast(BazarI18n.t("toast_delivery_unavailable"));return}
  const s=chosen.price;
  const deliveryTypeLabel=selectedDeliveryType==="office"?"المكتب":"المنزل";
  const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
@@ -891,10 +958,10 @@ window.submitOrder=async function(){
   }
   if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:cart.map(x=>x.name).join(", "),price:productTotal()+s,category:"",qty:cart.reduce((sum,x)=>sum+x.quantity,0)});
   cart=[];updateCount();renderCart();closeModal("cartOverlay");
-  alert("✅ تم تسجيل طلبك بنجاح");setTimeout(()=>{location.href="/success.html";},1000);
+  alert(BazarI18n.t("alert_order_success"));setTimeout(()=>{location.href="/success.html";},1000);
  }catch(err){
   console.error("order submit failed:",err);
-  toast(err&&err.userMessage?err.userMessage+" ⚠️":"تعذر إرسال الطلب، تحقق من الاتصال وحاول مجددًا ⚠️");
+  toast(err&&err.userMessage?err.userMessage+" ⚠️":BazarI18n.t("toast_order_failed"));
  }finally{
   window.__bazarSubmittingOrder=false;if(btn){btn.disabled=false;btn.style.opacity="";btn.style.pointerEvents=""}
  }
