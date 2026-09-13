@@ -28,21 +28,24 @@
 button,input,select{font:inherit}button{cursor:pointer}a{text-decoration:none;color:inherit}
 
 /* ===== Top bar ===== */
-header.topbar{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:30}
+header.topbar{background:var(--navy);border-bottom:0;position:sticky;top:0;z-index:30;box-shadow:0 2px 12px rgba(7,26,51,.12)}
 header.topbar .topbar-in{max-width:1180px;width:94%;margin:auto;min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800}
 .brand-mark{width:28px;height:28px;border:4px solid var(--orange);border-radius:11px 11px 9px 9px;position:relative;flex:none}
 .brand-mark:before{content:"";position:absolute;width:14px;height:11px;border:3px solid var(--orange);border-bottom:0;border-radius:11px 11px 0 0;left:2px;top:-11px}
-.brand-txt{font-size:19px;letter-spacing:.2px;color:var(--navy)}.brand-txt b{color:var(--orange)}
+.brand-txt{font-size:19px;letter-spacing:.2px;color:#fff}.brand-txt b{color:var(--orange)}
 header.topbar .header-right{display:flex;align-items:center;gap:8px}
-header.topbar .backtop{border:1px solid var(--border);padding:8px 15px;border-radius:30px;font-size:13px;font-weight:700;transition:.2s;background:#f5f7fa;color:var(--navy)}
-header.topbar .backtop:hover{background:#eef1f6}
-#langToggleBtn{border:1px solid var(--border);padding:8px 14px;border-radius:30px;font-size:13px;font-weight:900;transition:.2s;background:#f5f7fa;color:var(--navy)}
-#langToggleBtn:hover{background:#eef1f6}
+header.topbar .backtop{border:1px solid rgba(255,255,255,.18);padding:8px 15px;border-radius:30px;font-size:13px;font-weight:700;transition:.2s;background:rgba(255,255,255,.08);color:#fff}
+header.topbar .backtop:hover{background:rgba(255,255,255,.15)}
+#langToggleBtn{border:1px solid rgba(255,255,255,.18);padding:8px 14px;border-radius:30px;font-size:13px;font-weight:900;transition:.2s;background:rgba(255,255,255,.08);color:#fff}
+#langToggleBtn:hover{background:rgba(255,255,255,.15)}
 
-.crumb-bar{background:#fff}
-.crumb{max-width:1180px;width:94%;margin:auto;color:var(--muted);font-size:13px;padding:14px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.crumb a{color:var(--navy);font-weight:700}
+.crumb-bar{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(7,26,51,.04)}
+.crumb{max-width:1180px;width:94%;min-height:52px;margin:auto;color:#7b8798;font-size:13.5px;padding:11px 0;display:flex;align-items:center;gap:10px;flex-wrap:nowrap;white-space:nowrap;overflow:hidden}
+.crumb a{color:var(--navy);font-weight:800}
+.crumb .crumb-link{color:#667386;font-weight:700}
+.crumb .crumb-sep{color:#9aa4b2;font-weight:700}
+.crumb .crumb-current{color:var(--navy);font-weight:800}
 
 main{max-width:1180px;width:94%;margin:6px auto 60px}
 
@@ -551,7 +554,7 @@ main{max-width:1180px;width:94%;margin:6px auto 60px}
     <button id="langToggleBtn" type="button" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية">FR</button>
   </div>
 </div></header>
-<div class="crumb-bar"><div class="crumb" id="crumb"><a href="/" data-i18n="nav_home">🏠 الرئيسية</a> <span>/</span> <span data-i18n="detail_alt">تفاصيل المنتج</span></div></div>
+<div class="crumb-bar"><nav class="crumb" id="crumb" aria-label="Breadcrumb"><a href="/" data-i18n="nav_home">🏠 الرئيسية</a><span class="crumb-sep">›</span><span class="crumb-link" data-i18n="detail_alt">تفاصيل المنتج</span></nav></div>
 <main>
 <div id="product" class="product-card"><div class="photo-wrap"><div class="main-photo-box"><img id="mainProductPhoto" class="photo" src="https://i.ibb.co/RpTBppqz/blob.jpg" alt="Meuleuse droite Kzubr KDG-160 – 160W"><span id="galleryCount" class="gallery-count">1 / 2</span></div><div id="productThumbs" class="thumbs"><button class="thumb active"><img src="https://i.ibb.co/RpTBppqz/blob.jpg" alt="Meuleuse droite Kzubr KDG-160 – 160W 1" loading="lazy"></button><button class="thumb"><img src="https://i.ibb.co/fYP1dcx2/blob.jpg" alt="Meuleuse droite Kzubr KDG-160 – 160W 2" loading="lazy"></button></div></div><div class="info"><h1 class="title">Meuleuse droite Kzubr KDG-160 – 160W</h1><div class="price">6٬200 دج</div><p class="desc">جلاخة مستقيمة Kzubr KDG-160 – صغيرة الحجم، كبيرة في الأداء! ⚙️
 
@@ -1205,10 +1208,37 @@ function applyProductSEO(p,name,desc){
     document.head.appendChild(sb);
   }
 
-  // نحدّث مسار التنقل الظاهر بصريًا ليطابق الـ Schema.
+  // شريط التنقل الظاهر: الرئيسية ← القسم ← الفئة الفرعية.
+  // نحافظ على اسم المنتج في الصفحة نفسها ولا نضعه داخل الشريط حتى يبقى
+  // الشريط نظيفًا مثل تصميم المتجر المرجعي.
   const crumbEl=document.getElementById("crumb");
   if(crumbEl){
-    crumbEl.innerHTML=`<a href="/">🏠 ${esc(pt("nav_home"))}</a> <span>/</span> `+(category?`<span>${esc(category)}</span> <span>/</span> `:``)+`<span>${esc(name)}</span>`;
+    const catMap={
+      tools:{parent:"أدوات وملحقاتها",sub:/(clavier|keyboard|لوحة|مفتاح|gaming)/i.test(name)?"لوحات المفاتيح":"أدوات"},
+      home:{parent:"المنزل والمطبخ",sub:"المنزل والمطبخ"},
+      electronics:{parent:"أدوات وملحقاتها",sub:"أكسسوارات وإلكترونيات"},
+      phones:{parent:"هواتف",sub:"هواتف وإكسسواراتها"},
+      laptops:{parent:"حاسوب محمول",sub:"حاسوب محمول"},
+      clothes:{parent:"ملابس وأحذية",sub:"ملابس وأحذية"},
+      beauty:{parent:"صحة وجمال",sub:"صحة وجمال"},
+      women:{parent:"معدات نسوية",sub:"معدات نسوية"},
+      jewelry:{parent:"مجوهرات وإكسسوارات نسائية",sub:"مجوهرات وإكسسوارات نسائية"},
+      baby:{parent:"مستلزمات الأطفال والرضع",sub:"مستلزمات الأطفال والرضع"},
+      medical:{parent:"أدوات طبية",sub:"أدوات طبية"},
+      carparts:{parent:"قطع غيار السيارات",sub:"قطع غيار السيارات"},
+      summer:{parent:"منتجات الصيف",sub:"منتجات الصيف"},
+      shaving:{parent:"آلات الحلاقة",sub:"آلات الحلاقة"},
+      gifts:{parent:"هدايا متنوعة",sub:"هدايا متنوعة"},
+      library:{parent:"مكتبة",sub:"مكتبة"},
+      realestate:{parent:"عقارات وأراضي",sub:"عقارات وأراضي"},
+      clearance:{parent:"تصفية مخزون",sub:"تصفية مخزون"},
+      misc:{parent:"منتجات متنوعة",sub:"منتجات متنوعة"}
+    };
+    const info=catMap[category]||{parent:category,sub:""};
+    const parts=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`];
+    if(info.parent) parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(info.parent)}</span>`);
+    if(info.sub && info.sub!==info.parent) parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(info.sub)}</span>`);
+    crumbEl.innerHTML=parts.join("");
   }
 }
 async function load(){
