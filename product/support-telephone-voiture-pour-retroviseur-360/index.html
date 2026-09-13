@@ -1086,7 +1086,7 @@ try{
   }
 }catch(e){}
 if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:product.name,price:total,category:product.category||"",qty:quantity,id:product.id||""});
-alert(pt("alert_order_success"));setTimeout(()=>{location.href="/success.html";},1000)
+
 }catch(err){
   console.error("order submit failed:",err);
   toast(err&&err.userMessage?err.userMessage+" ⚠️":pt("toast_order_failed"));
