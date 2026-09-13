@@ -195,8 +195,9 @@ main{max-width:1180px;width:94%;margin:6px auto 60px}
 .review-date{color:var(--muted);font-size:11.5px}
 
 /* ===== Footer ===== */
-.site-footer{background:var(--navy);color:#fff;margin-top:40px}
-.footer-in{max-width:1180px;width:94%;margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:32px 0}
+.site-footer{background:var(--navy);color:#fff;margin-top:40px;position:fixed;left:0;right:0;bottom:0;width:100%;z-index:9999;box-shadow:0 -4px 18px rgba(0,0,0,.12)}
+.footer-in{max-width:1180px;width:94%;margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:18px 0}
+body{padding-bottom:96px}
 .footer-item{display:flex;align-items:center;gap:12px}
 .footer-item .fi-ic{width:44px;height:44px;border-radius:12px;background:rgba(255,106,0,.15);color:var(--orange);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
 .footer-item b{display:block;font-size:14.5px;margin-bottom:2px}
@@ -294,7 +295,7 @@ main{max-width:1180px;width:94%;margin:6px auto 60px}
  .details-shell{margin-top:12px;border-radius:17px}.details-tabs{position:sticky;top:56px;z-index:8}.details-tab{flex:1;padding:12px 8px;font-size:12px}.details-tab.active:after{left:12px;right:12px}
  .details-pane{padding:15px 14px}.detail-intro{font-size:12.5px;line-height:1.9}.feature-list{gap:6px}.feature-list li{font-size:12px;line-height:1.7}.review-layout{grid-template-columns:1fr;gap:12px}
  .rating-summary{padding:14px}.rs-value{font-size:30px}.review-card{padding:11px 12px}.review-text{font-size:12px}
- .site-footer{margin-top:14px}.footer-in{padding:20px 0;gap:11px}.footer-item .fi-ic{width:38px;height:38px;font-size:17px}.footer-item b{font-size:12.5px}.footer-item span{font-size:10.5px}
+ .site-footer{margin-top:0}.footer-in{padding:10px 0;gap:9px}.footer-item .fi-ic{width:36px;height:36px;font-size:16px}.footer-item b{font-size:12px}.footer-item span{font-size:10px}body{padding-bottom:78px}
  .sticky-buy{padding:8px 10px;gap:8px}.sticky-buy .sb-price{font-size:15px}.sticky-buy .sb-btn{padding:12px;font-size:13.5px;border-radius:11px}
 }
 @media(max-width:380px){.brand-txt{font-size:15px}header.topbar .backtop{display:none}.title{font-size:19px}.price-current{font-size:24px}.trust-card{font-size:9.5px}.btn-cart,.btn-buy{font-size:12px}}
