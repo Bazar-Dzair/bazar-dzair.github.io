@@ -806,9 +806,12 @@ if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.fires
 const available=p.published!==false;
 // ===== تقييم المنتج: لا نعرض أي شيء إلا إذا توفرت بيانات تقييم حقيقية في المنتج (لا نختلق أرقامًا). =====
 function getRatingInfo(prod){
-  const rating=prod.aggregateRating||prod.rating;
-  const value=Number(rating&&(rating.ratingValue??rating.value));
-  const count=Number(rating&&(rating.reviewCount??rating.count));
+  // دعم كل الصيغ التي تستعملها لوحة التحكم والبيانات القديمة.
+  const rating=prod.aggregateRating||prod.rating||{};
+  const rawValue=rating.ratingValue??rating.value??prod.reviewRating??prod.ratingValue;
+  const rawCount=rating.reviewCount??rating.count??prod.reviewCount??prod.ratingCount;
+  const value=Number(rawValue);
+  const count=Number(rawCount);
   if(Number.isFinite(value)&&value>=1&&value<=5&&Number.isFinite(count)&&count>0) return {value:value,count:count};
   return null;
 }
@@ -875,14 +878,14 @@ const featureLines=rawSpecs.map(x=>{
 const reviewsCard=document.getElementById("reviewsCard");
 const descCard=document.getElementById("descCard");
 const allReviews=Array.isArray(p.reviews)?p.reviews:[];
-const validReviewsForUI=allReviews.filter(r=>r&&String(r.text||r.reviewBody||"").trim()&&String(r.author||r.authorName||"").trim()&&r.datePublished);
+const validReviewsForUI=allReviews.filter(r=>r&&String(r.text||r.reviewBody||r.comment||"").trim()&&String(r.author||r.authorName||r.name||"").trim());
 if(descCard){
   const counts={5:0,4:0,3:0,2:0,1:0};
   validReviewsForUI.forEach(r=>{const v=Math.round(Number(r.ratingValue));if(v>=1&&v<=5)counts[v]++;});
   const maxCount=Math.max(1,...Object.values(counts));
   const barsHtml=[5,4,3,2,1].map(n=>`<div class="bar-row"><span class="bar-n">${n}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(counts[n]/maxCount*100)}%"></div></div><span class="bar-label">${n} ★</span></div>`).join("");
   const summaryHtml=ratingInfo?`<div class="rating-summary"><div class="rs-value">${ratingInfo.value}</div><div class="rs-outof">${esc(pt("out_of_5"))}</div><div class="rs-stars">${starsHtml(ratingInfo.value)}</div>${barsHtml}</div>`:"";
-  const reviewCardHtml=r=>{const rv=Number(r.ratingValue);return `<div class="review-card"><div class="review-head"><span class="review-avatar">👤</span><span class="review-name">${esc(String(r.author||r.authorName))}</span>${Number.isFinite(rv)?`<span class="review-stars">${starsHtml(rv)}</span>`:""}</div><p class="review-text">${esc(String(r.text||r.reviewBody))}</p><span class="review-date">${esc(String(r.datePublished))}</span></div>`};
+  const reviewCardHtml=r=>{const rv=Number(r.ratingValue??r.rating??r.stars);const date=r.datePublished||r.date||r.createdAt||r.created_at||"";return `<div class="review-card"><div class="review-head"><span class="review-avatar">👤</span><span class="review-name">${esc(String(r.author||r.authorName||r.name))}</span>${Number.isFinite(rv)&&rv>=1&&rv<=5?`<span class="review-stars">${starsHtml(rv)}</span>`:""}</div><p class="review-text">${esc(String(r.text||r.reviewBody||r.comment))}</p>${date?`<span class="review-date">${esc(String(date))}</span>`:""}</div>`};
   const shownReviews=validReviewsForUI.slice(0,3), restReviews=validReviewsForUI.slice(3);
   const reviewsPane=(ratingInfo||validReviewsForUI.length)?`<div id="reviewsPane" class="review-panel"><div class="review-layout">${summaryHtml}<div class="review-list">${shownReviews.map(reviewCardHtml).join("")}<div id="moreReviews" style="display:none">${restReviews.map(reviewCardHtml).join("")}</div>${restReviews.length?`<button type="button" class="reviews-more" id="toggleAllReviewsBtn" onclick="toggleAllReviews()">${esc(pt("view_all_reviews"))} (${validReviewsForUI.length})</button>`:""}</div></div></div>`:`<div id="reviewsPane" class="review-panel"><div class="reviews-empty">⭐ ${esc(pt("reviews_tab_label"))}<br><span style="font-size:12px">لا توجد تقييمات منشورة لهذا المنتج بعد.</span></div></div>`;
   const intro=descLines.length?descLines[0]:desc;
@@ -1121,9 +1124,9 @@ function applyProductSEO(p,name,desc){
   if(Number(p.stock)===0)ld.offers.availability="https://schema.org/OutOfStock";
 
   // نضيف aggregateRating فقط إذا كانت بيانات التقييم الحقيقية موجودة في المنتج.
-  const rating = p.aggregateRating || p.rating;
-  const ratingValue = Number(rating?.ratingValue ?? rating?.value);
-  const reviewCount = Number(rating?.reviewCount ?? rating?.count);
+  const rating = p.aggregateRating || p.rating || {};
+  const ratingValue = Number(rating?.ratingValue ?? rating?.value ?? p.reviewRating ?? p.ratingValue);
+  const reviewCount = Number(rating?.reviewCount ?? rating?.count ?? p.reviewCount ?? p.ratingCount);
 
   if(
     Number.isFinite(ratingValue) &&
@@ -1143,9 +1146,8 @@ function applyProductSEO(p,name,desc){
   const reviews = Array.isArray(p.reviews) ? p.reviews : [];
   const validReviews = reviews.filter(r =>
     r &&
-    String(r.text || r.reviewBody || "").trim() &&
-    String(r.author || r.authorName || "").trim() &&
-    r.datePublished
+    String(r.text || r.reviewBody || r.comment || "").trim() &&
+    String(r.author || r.authorName || r.name || "").trim()
   );
 
   if(validReviews.length){
