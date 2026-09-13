@@ -137,8 +137,7 @@ def static_product_html(name, desc, price, images, available=True):
         f'<div class="info"><h1 class="title">{html.escape(name)}</h1>'
         f'<div class="price">{html.escape(money(price))}</div>'
         f'<p class="desc">{html.escape(desc)}</p>'
-        f'<div class="trust"><div>💵<br><b>الدفع عند الاستلام</b></div><div>🚚<br><b>توصيل للولايات</b></div><div>🛡️<br><b>خدمة آمنة</b></div></div>'
-        f'{buy}<a class="back" href="/">← العودة للمتجر</a></div>'
+        f'{buy}</div>'
     )
 
 
