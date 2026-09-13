@@ -392,6 +392,153 @@ main{max-width:1180px;width:94%;margin:6px auto 60px}
   }
 }
 
+
+/* ===== Professional mobile polish v2 ===== */
+.purchase-controls{
+  grid-template-columns:118px minmax(0,1fr);
+  gap:9px;
+}
+.purchase-controls .qty{
+  border:1px solid #dfe5ec;
+  border-radius:12px;
+  box-shadow:0 3px 10px rgba(7,29,59,.05);
+  overflow:hidden;
+}
+.purchase-controls .qty button{
+  font-weight:800;
+}
+.purchase-controls .qty span{
+  color:var(--navy);
+  background:#fbfcfe;
+  border-inline:1px solid #edf0f4;
+}
+.purchase-controls .btn-cart{
+  box-shadow:0 5px 14px rgba(7,26,51,.12);
+}
+.purchase-controls .btn-buy{
+  box-shadow:0 8px 18px rgba(255,106,0,.24);
+}
+.trust-card{
+  border-color:#e6ebf1;
+  background:linear-gradient(180deg,#fff,#fafbfd);
+}
+.trust-card .ic{
+  line-height:1;
+}
+.desc-more{
+  display:none;
+}
+.sticky-buy{
+  padding:9px 10px calc(9px + env(safe-area-inset-bottom));
+  gap:8px;
+  background:rgba(255,255,255,.97);
+  backdrop-filter:blur(10px);
+}
+.sticky-buy .sb-price{
+  min-width:74px;
+  text-align:center;
+  font-size:14px;
+}
+.sticky-buy .sb-cart{
+  width:45px;
+  height:45px;
+  flex:0 0 45px;
+  border:1px solid #dfe5ec;
+  border-radius:12px;
+  background:#fff;
+  color:var(--navy);
+  font-size:18px;
+  box-shadow:0 3px 10px rgba(7,29,59,.08);
+}
+.sticky-buy .sb-btn{
+  min-height:45px;
+  padding:12px 13px;
+}
+
+@media(max-width:800px){
+  .info{padding-top:12px}
+  .price-current{font-size:28px;letter-spacing:-.3px}
+  .delivery-strip{
+    border:1px solid #d8eee3;
+    box-shadow:0 3px 10px rgba(23,128,58,.06);
+  }
+  .trust-grid{
+    grid-template-columns:repeat(4,1fr);
+    gap:5px;
+  }
+  .trust-card{
+    min-height:67px;
+    padding:7px 3px;
+    font-size:9px;
+    line-height:1.35;
+  }
+  .trust-card .ic{font-size:17px;margin-bottom:3px}
+  .product-highlights{
+    background:#fbfcfe;
+    border:1px solid #edf0f4;
+    border-radius:12px;
+    padding:10px 11px;
+    margin-top:8px;
+  }
+  .product-highlights-list li{
+    font-size:10.8px;
+  }
+  .purchase-controls{
+    margin-top:10px;
+    grid-template-columns:112px minmax(0,1fr);
+  }
+  .purchase-controls .btn-cart{
+    min-height:44px;
+  }
+  .purchase-controls .btn-buy{
+    min-height:46px;
+  }
+
+  /* وصف مختصر في البداية، مع فتحه عند الطلب */
+  #descriptionPane{
+    position:relative;
+  }
+  #descriptionPane.collapsed #descriptionContent{
+    max-height:155px;
+    overflow:hidden;
+    position:relative;
+  }
+  #descriptionPane.collapsed #descriptionContent:after{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:55px;
+    background:linear-gradient(to bottom,rgba(255,255,255,0),#fff);
+    pointer-events:none;
+  }
+  .desc-more{
+    display:flex;
+    width:100%;
+    margin-top:9px;
+    padding:9px 12px;
+    border:1px solid #e1e6ed;
+    border-radius:11px;
+    background:#f8fafc;
+    color:var(--navy);
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    font-weight:900;
+    font-size:12px;
+    cursor:pointer;
+  }
+  .desc-more span{font-size:16px;line-height:10px;color:var(--orange)}
+}
+
+@media(max-width:380px){
+  .trust-card{font-size:8.5px;min-height:64px}
+  .trust-card .ic{font-size:16px}
+  .purchase-controls{grid-template-columns:102px minmax(0,1fr)}
+  .sticky-buy .sb-price{min-width:66px;font-size:13px}
+}
+
 </style>
 </head>
 <body>
@@ -465,7 +612,8 @@ main{max-width:1180px;width:94%;margin:6px auto 60px}
 </div></footer>
 <div id="stickyBuy" class="sticky-buy">
   <span class="sb-price" id="sbPrice">—</span>
-  <button class="sb-btn" onclick="showCheckout()" data-i18n="detail_buy_now">⚡ اشترِ الآن</button>
+  <button type="button" class="sb-cart" onclick="addToCartUI()" aria-label="إضافة إلى السلة">🛒</button>
+  <button type="button" class="sb-btn" onclick="showCheckout()" data-i18n="detail_buy_now">⚡ اشترِ الآن</button>
 </div>
 <div id="imageLightbox" class="image-lightbox" onclick="if(event.target===this)closeImageLightbox()"><button type="button" class="lightbox-close" onclick="closeImageLightbox()">×</button><img id="lightboxImg" src="" alt=""><button type="button" class="lightbox-prev" onclick="galleryMove(-1);syncLightbox()">‹</button><button type="button" class="lightbox-next" onclick="galleryMove(1);syncLightbox()">›</button></div><div id="toast" class="toast"></div>
 <script type="module">
@@ -714,9 +862,14 @@ const stockValue=Number(p.stock);
 const stockNoteHtml=Number.isFinite(stockValue)?(stockValue<=0?`<div class="stock-note out">⛔ ${esc(pt("badge_unavailable"))}</div>`:`<div class="stock-note">✓ متوفر في المخزون${stockValue<=5?` — ${stockValue} قطع فقط`:``}</div>`):"";
 const infoFeatures=Array.isArray(p.specifications)?p.specifications.map(x=>{if(x&&typeof x==='object'&&x.key)return String(x.value??"").trim()?`${x.key}: ${x.value}`:String(x.key);return String(x||"").trim()}).filter(Boolean).slice(0,4):[];
 const highlightsHtml=infoFeatures.length?`<div class="product-highlights"><div class="product-highlights-title">✨ أبرز المميزات</div><ul class="product-highlights-list">${infoFeatures.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:"";
-document.getElementById("infoContent").innerHTML=`${badgeHtml}<h1 class="title">${esc(name)}</h1>${ratingRowHtml}${priceRowHtml}<div class="delivery-strip"><span aria-hidden="true">🚚</span> <span>${esc(pt("delivery_strip_text"))}</span></div><div class="trust-grid"><div class="trust-card"><span class="ic">🛡️</span><span>${esc(pt("trust_cod_card"))}</span></div><div class="trust-card"><span class="ic">🚚</span><span>${esc(pt("trust_delivery_card"))}</span></div><div class="trust-card"><span class="ic">✅</span><span>${esc(pt("trust_original_card"))}</span></div><div class="trust-card"><span class="ic">🎧</span><span>${esc(pt("trust_support_card"))}</span></div></div>${stockNoteHtml}${highlightsHtml}<div class="purchase-controls"><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}</div>`;
+document.getElementById("infoContent").innerHTML=`${badgeHtml}<h1 class="title">${esc(name)}</h1>${ratingRowHtml}${priceRowHtml}<div class="delivery-strip"><span aria-hidden="true">🚚</span> <span>${esc(pt("delivery_strip_text"))}</span></div><div class="trust-grid">
+  <div class="trust-card"><span class="ic">🛡️</span><span>${esc(pt("trust_original_card"))}</span></div>
+  <div class="trust-card"><span class="ic">🚚</span><span>${esc(pt("trust_delivery_card"))}</span></div>
+  <div class="trust-card"><span class="ic">🎧</span><span>${esc(pt("trust_support_card"))}</span></div>
+  <div class="trust-card"><span class="ic">💵</span><span>${esc(pt("trust_cod_card"))}</span></div>
+</div>${stockNoteHtml}${highlightsHtml}<div class="purchase-controls"><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}</div>`;
 
-document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);sb.querySelector(".sb-btn").disabled=!available;sb.querySelector(".sb-btn").style.opacity=available?"1":".55";sb.querySelector(".sb-btn").textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}
+document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);const sbBtn=sb.querySelector(".sb-btn");const sbCart=sb.querySelector(".sb-cart");if(sbBtn){sbBtn.disabled=!available;sbBtn.style.opacity=available?"1":".55";sbBtn.textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}if(sbCart){sbCart.disabled=!available;sbCart.style.opacity=available?"1":".55";}}
 
 // ===== بطاقة التفاصيل والتقييمات الموحدة =====
 const descLines=String(desc||"").split("\n").map(l=>l.trim()).filter(Boolean);
@@ -741,9 +894,15 @@ if(descCard){
   const intro=descLines.length?descLines[0]:desc;
   const remaining=descLines.length>1?descLines.slice(1):[];
   const featureHtml=featureLines.length?`<div class="product-highlights" style="margin-top:14px"><div class="product-highlights-title">✨ أبرز المميزات</div><ul class="feature-list">${featureLines.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:"";
-  const descriptionPane=`<div id="descriptionPane" class="description-panel details-pane"><p class="detail-intro">${esc(intro||"")}</p>${remaining.length?`<ul class="feature-list">${remaining.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}${featureHtml}</div>`;
+  const descriptionContent=`<div id="descriptionContent"><p class="detail-intro">${esc(intro||"")}</p>${remaining.length?`<ul class="feature-list">${remaining.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}${featureHtml}</div>`;
+  const descriptionToggle=(remaining.length||featureLines.length)?`<button type="button" class="desc-more" id="descMoreBtn" onclick="toggleDescription()">عرض المزيد <span>⌄</span></button>`:"";
+  const descriptionPane=`<div id="descriptionPane" class="description-panel details-pane">${descriptionContent}${descriptionToggle}</div>`;
   const reviewTabLabel=`★ ${esc(pt("reviews_tab_label"))}${ratingInfo?` (${ratingInfo.count})`:validReviewsForUI.length?` (${validReviewsForUI.length})`:""}`;
   descCard.innerHTML=`<div class="details-shell"><div class="details-tabs"><button type="button" id="descTabBtn" class="details-tab active" onclick="switchDetailsTab('description')">📄 ${esc(pt("desc_tab_label"))}</button><button type="button" id="reviewsTabBtn" class="details-tab" onclick="switchDetailsTab('reviews')">${reviewTabLabel}</button></div>${descriptionPane}${reviewsPane}</div>`;
+  if(window.innerWidth<=800 && (remaining.length||featureLines.length)){
+    const dp=document.getElementById("descriptionPane");
+    if(dp) dp.classList.add("collapsed");
+  }
 }
 if(reviewsCard) reviewsCard.innerHTML="";
 window.switchDetailsTab=tab=>{
@@ -759,6 +918,13 @@ window.toggleAllReviews=()=>{
   if(!more||!btn)return;
   const isHidden=more.style.display==="none";
   more.style.display=isHidden?"block":"none";
+};
+window.toggleDescription=()=>{
+  const pane=document.getElementById("descriptionPane");
+  const btn=document.getElementById("descMoreBtn");
+  if(!pane||!btn)return;
+  const collapsed=pane.classList.toggle("collapsed");
+  btn.innerHTML=collapsed?'عرض المزيد <span>⌄</span>':'عرض أقل <span>⌃</span>';
 };
 window.addToCartUI=()=>{toast(pt("added_to_cart_toast"));};
 window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=safeImg(galleryImages[galleryIndex]);const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));if(document.getElementById('imageLightbox')?.classList.contains('open'))window.syncLightbox();};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
