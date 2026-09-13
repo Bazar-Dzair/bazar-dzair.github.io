@@ -76,20 +76,25 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 .buy:hover{filter:brightness(1.04);transform:translateY(-1px);box-shadow:0 10px 24px rgba(22,163,74,.38)}
 .buy:active{transform:translateY(0)}
 
-.checkout{display:none;background:#fff;border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow);margin-top:26px;padding:0;overflow:hidden}
+.checkout{display:none;padding:0}
 .checkout.show{display:block;animation:fadeUp .4s ease}
 
-.checkout-head{background:linear-gradient(120deg,var(--navy),var(--navy-2));color:#fff;padding:22px 28px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden}
-.checkout-head:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 100% 0%,rgba(255,122,0,.25),transparent 60%)}
-.checkout-head .ic{width:46px;height:46px;flex:none;border-radius:14px;background:#ffffff1a;border:1px solid #ffffff30;display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;z-index:1}
-.checkout-head .tx{position:relative;z-index:1;min-width:0}
-.checkout-head h2{margin:0;font-size:18px;font-weight:800;color:#fff}
-.checkout-head p{margin:4px 0 0;font-size:12.5px;color:#cfd9e8;font-weight:600}
+.checkout-back{display:inline-flex;align-items:center;gap:6px;background:transparent;border:0;color:var(--navy);font-weight:800;font-size:14.5px;padding:4px 0;margin-bottom:16px;cursor:pointer;transition:.2s}
+.checkout-back:hover{color:var(--orange);gap:9px}
 
-.checkout-body{padding:24px 28px 28px}
+.checkout-body{padding:0}
 
-.order-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#f8fafc;border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px;font-size:13.5px;font-weight:700;color:var(--navy)}
-.order-summary .cod-pill{flex:none;background:#eafaf0;color:var(--green);border:1px solid #cdefd9;padding:5px 11px;border-radius:20px;font-size:11.5px;font-weight:800;white-space:nowrap}
+.order-card{background:#f8fafc;border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin:6px 0 16px}
+.order-card-title{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--navy);margin:0 0 10px;font-size:13.5px}
+.order-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;color:var(--muted);font-weight:700;font-size:14px}
+.order-row.total-row{border-top:1px dashed #d8dee7;margin-top:6px;padding-top:12px;font-weight:800;color:var(--navy);font-size:15px}
+.order-row.total-row span:last-child{font-size:23px;font-weight:900;color:var(--orange)}
+
+.cod-card{display:flex;align-items:center;gap:12px;background:#fff7ee;border:1px solid #ffe1c2;border-radius:16px;padding:14px 16px;margin-top:16px}
+.cod-card .cod-card-icon{width:42px;height:42px;flex:none;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 8px rgba(7,29,59,.08)}
+.cod-card .cod-card-tx{min-width:0}
+.cod-card b{display:block;font-size:14px;color:var(--navy);margin-bottom:2px}
+.cod-card .cod-card-desc{font-size:12px;color:var(--muted);font-weight:600}
 
 .sec-label{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;color:var(--navy);letter-spacing:.2px;margin:0 0 10px}
 .sec-label .num{width:20px;height:20px;border-radius:7px;background:var(--orange);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;flex:none}
@@ -119,8 +124,7 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 .small{color:var(--muted);font-size:12px;margin-top:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
 
 @media(max-width:800px){
-  .checkout-head{padding:18px 18px}
-  .checkout-body{padding:18px 18px 22px}
+  .order-card{padding:14px 14px}
 }
 .back{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--navy);color:var(--navy);padding:12px 18px;border-radius:12px;margin-top:14px;font-weight:700;transition:.2s;justify-content:center}
 .back:hover{background:var(--navy);color:#fff}
@@ -181,19 +185,11 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 - الوضعيات: 4 أوضاع
 - الاستخدام: التخييم، الرحلات، الصيد، الطوارئ وانقطاع الكهرباء.</p><button class="buy">⚡ اشترِ الآن</button></div></div>
 <div id="checkout" class="checkout">
-  <div class="checkout-head">
-    <span class="ic">📦</span>
-    <div class="tx">
-      <h2 data-i18n="checkout_head_title">تأكيد الطلب — الدفع عند الاستلام</h2>
-      <p data-i18n="checkout_head_sub">لا تدفع شيئًا الآن، فقط أكمل بياناتك وسنتصل بك لتأكيد الطلب</p>
-    </div>
-  </div>
   <div class="checkout-body">
 
-  <div class="order-summary">
-    <span id="checkoutProduct"></span>
-    <span class="cod-pill" data-i18n="checkout_cod_pill">💵 الدفع عند الاستلام</span>
-  </div>
+  <button type="button" class="checkout-back" onclick="backToProduct()">
+    <span aria-hidden="true">←</span> <span data-i18n="back_to_product">الرجوع للمنتج</span>
+  </button>
 
   <div class="field-group">
     <div class="sec-label"><span class="num">1</span> <span data-i18n="sec_contact_info">معلومات التواصل</span></div>
@@ -217,8 +213,23 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
     <div id="shipping" class="shipping" data-i18n="ship_note_default_emoji">🚚 اختر الولاية لمعرفة سعر التوصيل.</div>
   </div>
 
-  <div class="total"><span data-i18n="checkout_total_label">💰 المجموع الكلي</span><span id="grandTotal">—</span></div>
+  <div class="order-card">
+    <div class="order-card-title">📋 <span data-i18n="checkout_summary_title">ملخص الطلب</span></div>
+    <div class="order-row"><span id="checkoutProduct"></span></div>
+    <div class="order-row"><span data-i18n="summary_price_label">سعر المنتج</span><span id="summaryPrice">—</span></div>
+    <div class="order-row"><span data-i18n="summary_shipping_label">تكلفة التوصيل</span><span id="summaryShipping">—</span></div>
+    <div class="order-row total-row"><span data-i18n="checkout_total_label">المبلغ الإجمالي للتسديد</span><span id="grandTotal">—</span></div>
+  </div>
+
   <button class="confirm" id="confirmBtn" onclick="submitOrder()" data-i18n="confirm_button">✅ تأكيد الطلب بالدفع عند الاستلام</button>
+
+  <div class="cod-card">
+    <span class="cod-card-icon">💵</span>
+    <div class="cod-card-tx">
+      <b data-i18n="checkout_cod_pill">💵 الدفع عند الاستلام</b>
+      <span class="cod-card-desc" data-i18n="cod_card_desc">ادفع بعد استلام المنتج والتأكد من جودته</span>
+    </div>
+  </div>
 
   <div class="trust-strip">
     <div><b>🔒</b><span data-i18n="trust_secure">دفع آمن 100%</span></div>
@@ -280,6 +291,11 @@ const PAGE_DICT={
   checkout_head_title:{ar:"تأكيد الطلب — الدفع عند الاستلام",fr:"Confirmation de commande — Paiement à la livraison"},
   checkout_head_sub:{ar:"لا تدفع شيئًا الآن، فقط أكمل بياناتك وسنتصل بك لتأكيد الطلب",fr:"Ne payez rien maintenant, complétez simplement vos informations et nous vous contacterons pour confirmer la commande"},
   checkout_cod_pill:{ar:"💵 الدفع عند الاستلام",fr:"💵 Paiement à la livraison"},
+  back_to_product:{ar:"الرجوع للمنتج",fr:"Retour au produit"},
+  checkout_summary_title:{ar:"ملخص الطلب",fr:"Résumé de la commande"},
+  summary_price_label:{ar:"سعر المنتج",fr:"Prix du produit"},
+  summary_shipping_label:{ar:"تكلفة التوصيل",fr:"Frais de livraison"},
+  cod_card_desc:{ar:"ادفع بعد استلام المنتج والتأكد من جودته",fr:"Payez après réception et vérification du produit"},
   sec_contact_info:{ar:"معلومات التواصل",fr:"Informations de contact"},
   sec_delivery_address:{ar:"عنوان التوصيل",fr:"Adresse de livraison"},
   ship_note_default_emoji:{ar:"🚚 اختر الولاية لمعرفة سعر التوصيل.",fr:"🚚 Choisissez la wilaya pour connaître le prix de livraison."},
@@ -408,9 +424,42 @@ galleryImages=Array.isArray(p.images)&&p.images.length?p.images.filter(Boolean):
 document.title=name+" | Bazar Dzair";
 const md=document.getElementById("metaDescription");if(md)md.content=String(desc).slice(0,155);
 applyProductSEO(p,name,desc);
-if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});const available=p.published!==false;const buyHtml=available?`<button class="buy" onclick="showCheckout()">${esc(pt("detail_buy_now"))}</button>`:`<button class="buy" disabled style="opacity:.55;cursor:not-allowed">${esc(pt("button_unavailable"))}</button>`;box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="${esc(pt("gallery_prev"))}">‹</button><img id="mainProductPhoto" class="photo" src="${safeImg(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="${esc(pt("gallery_next"))}">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${safeImg(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${available?(p.badge?`<span class="badge">${esc(p.badge)}</span>`:""):`<span class="badge" style="background:#9aa1ab">${esc(pt("badge_unavailable"))}</span>`}</div><div class="info"><h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}</div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);sb.querySelector(".sb-btn").disabled=!available;sb.querySelector(".sb-btn").style.opacity=available?"1":".55";sb.querySelector(".sb-btn").textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}maybeAutoTranslateDescription(p);}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=safeImg(galleryImages[galleryIndex]);const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
+if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});const available=p.published!==false;const buyHtml=available?`<button class="buy" onclick="showCheckout()">${esc(pt("detail_buy_now"))}</button>`:`<button class="buy" disabled style="opacity:.55;cursor:not-allowed">${esc(pt("button_unavailable"))}</button>`;
+// ensureSkeleton(): يبني هيكل photo-wrap/info مرة واحدة فقط وينقل #checkout (العنصر الثابت
+// خارج box) ليصبح طفلًا داخل عمود .info، مباشرة بعد infoContent. بعد هذه المرة الأولى، box.innerHTML
+// ما يُستعملش أبدًا من جديد على المستوى الكامل — فقط #photoWrap و#infoContent يتحدّثان بمحتواهما — حتى لا يُحذف
+// #checkout من DOM في كل مرة يُعاد فيها render() (مثلاً بعد وصول بيانات Firestore الحقيقية بعد النسخة المخزّنة محليًا).
+function ensureSkeleton(){
+  if(document.getElementById("infoContent")) return;
+  box.innerHTML=`<div class="photo-wrap" id="photoWrap"></div><div class="info" id="infoCol"><div id="infoContent"></div></div>`;
+  const infoCol=document.getElementById("infoCol");
+  const checkoutEl=document.getElementById("checkout");
+  if(infoCol&&checkoutEl) infoCol.appendChild(checkoutEl);
+}
+ensureSkeleton();
+document.getElementById("photoWrap").innerHTML=`<div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="${esc(pt("gallery_prev"))}">‹</button><img id="mainProductPhoto" class="photo" src="${safeImg(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="${esc(pt("gallery_next"))}">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${safeImg(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${available?(p.badge?`<span class="badge">${esc(p.badge)}</span>`:""):`<span class="badge" style="background:#9aa1ab">${esc(pt("badge_unavailable"))}</span>`}`;
+document.getElementById("infoContent").innerHTML=`<h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}`;
+document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);sb.querySelector(".sb-btn").disabled=!available;sb.querySelector(".sb-btn").style.opacity=available?"1":".55";sb.querySelector(".sb-btn").textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}maybeAutoTranslateDescription(p);}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=safeImg(galleryImages[galleryIndex]);const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
 window.changeQty=x=>{quantity=Math.max(1,quantity+x);document.getElementById("qty").textContent=quantity;const tp2=window.BazarI18n?BazarI18n.translateProduct(product):{name:product.name||product.product};document.getElementById("checkoutProduct").textContent=tp2.name+" × "+quantity+" — "+money(product.price*quantity);const sbp=document.getElementById("sbPrice");if(sbp)sbp.textContent=money(product.price*quantity);updateTotal()};
-window.showCheckout=()=>{const c=document.getElementById("checkout");c.classList.add("show");c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>document.getElementById("customerName").focus(),350)};
+// ===== التبديل بين معلومات المنتج ونموذج COD داخل نفس عمود .info =====
+// hideProductInfo/showProductInfo: يُخفيان أو يُظهران محتوى المنتج (العنوان/السعر/الكمية/الأزرار) فقط،
+// دون لمس عمود الصور أو الوصف أو التقييمات في الأسفل.
+function hideProductInfo(){
+  const ic=document.getElementById("infoContent");if(ic)ic.style.display="none";
+  const sb=document.getElementById("stickyBuy");if(sb)sb.style.display="none";
+}
+function showProductInfo(){
+  const ic=document.getElementById("infoContent");if(ic)ic.style.display="";
+  const sb=document.getElementById("stickyBuy");if(sb)sb.style.display="";
+}
+function showCODCheckout(){
+  const c=document.getElementById("checkout");c.classList.add("show");
+  c.scrollIntoView({behavior:"smooth",block:"start"});
+  setTimeout(()=>document.getElementById("customerName").focus(),350);
+}
+function hideCODCheckout(){document.getElementById("checkout").classList.remove("show");}
+window.showCheckout=()=>{hideProductInfo();showCODCheckout();};
+window.backToProduct=()=>{hideCODCheckout();showProductInfo();document.getElementById("product").scrollIntoView({behavior:"smooth",block:"start"});};
 let selectedDeliveryType=null;
 function computeAvail(prod,wil){
   const P=carrierCodes(prod),W=carrierCodes(wil);
@@ -465,11 +514,15 @@ function updateTotal(){
   renderDeliveryOptions(opts);
   const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
   const shippingEl=document.getElementById("shipping");
-  if(!w){shippingEl.textContent=pt("ship_note_default");document.getElementById("grandTotal").textContent=money(base);return;}
-  if(!chosen){shippingEl.textContent=pt("ship_unavailable_now");document.getElementById("grandTotal").textContent=money(base);return;}
+  const spEl=document.getElementById("summaryPrice");
+  const ssEl=document.getElementById("summaryShipping");
+  if(spEl) spEl.textContent=money(base);
+  if(!w){shippingEl.textContent=pt("ship_note_default");if(ssEl)ssEl.textContent="—";document.getElementById("grandTotal").textContent=money(base);return;}
+  if(!chosen){shippingEl.textContent=pt("ship_unavailable_now");if(ssEl)ssEl.textContent="—";document.getElementById("grandTotal").textContent=money(base);return;}
   const s=chosen.price;
   const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
   shippingEl.textContent=pt("ship_price_prefix")+money(s)+(carrierNames?" ("+carrierNames+")":"")+pt("and_total_prefix")+money(base+s);
+  if(ssEl) ssEl.textContent=money(s);
   document.getElementById("grandTotal").textContent=money(base+s);
 }
 document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliveryType=null;updateTotal();});
