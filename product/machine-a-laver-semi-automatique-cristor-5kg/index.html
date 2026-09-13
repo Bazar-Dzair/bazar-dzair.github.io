@@ -60,7 +60,7 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 .gallery-arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border:0;border-radius:50%;background:#ffffffe6;backdrop-filter:blur(4px);color:var(--navy);font-size:26px;box-shadow:0 4px 14px rgba(7,29,59,.15);z-index:2;transition:.2s}
 .gallery-arrow:hover{background:var(--orange);color:#fff}
 .gallery-arrow.prev{left:12px}.gallery-arrow.next{right:12px}
-.gallery-count{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:var(--navy)cc;background:rgba(6,30,61,.82);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;z-index:2;font-weight:600}
+.gallery-count{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:var(--navy)cc;background:rgba(6,30,61,.82);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;z-index:2;font-weight:600;direction:ltr;unicode-bidi:isolate}
 .thumbs{width:100%;display:flex;gap:10px;overflow-x:auto;padding:14px 4px 4px;scrollbar-width:thin}
 .thumb{flex:0 0 76px;height:76px;aspect-ratio:1 / 1;border:2px solid var(--border);border-radius:13px;background:#fff;padding:4px;overflow:hidden;cursor:pointer;transition:.2s}
 .thumb:hover{border-color:#ffbe94}
@@ -79,8 +79,8 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 .qty button{border:0;background:#fff;width:46px;height:46px;font-size:20px;color:var(--navy);transition:.2s}
 .qty button:hover{background:#f8fafc;color:var(--orange)}
 .qty span{min-width:48px;text-align:center;padding-top:11px;font-weight:800}
-.buy{width:100%;border:0;border-radius:15px;background:linear-gradient(120deg,var(--green),#1fbf5c);color:#fff;padding:17px;font-weight:800;font-size:18px;box-shadow:0 8px 20px rgba(22,163,74,.3);transition:.2s}
-.buy:hover{filter:brightness(1.04);transform:translateY(-1px);box-shadow:0 10px 24px rgba(22,163,74,.38)}
+.buy{width:100%;border:0;border-radius:15px;background:linear-gradient(120deg,var(--orange),var(--orange-2));color:#fff;padding:17px;font-weight:800;font-size:18px;box-shadow:0 8px 20px rgba(255,90,10,.32);transition:.2s}
+.buy:hover{filter:brightness(1.04);transform:translateY(-1px);box-shadow:0 10px 24px rgba(255,90,10,.4)}
 .buy:active{transform:translateY(0)}
 
 .checkout{display:none;background:#fff;border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow);margin-top:26px;padding:0;overflow:hidden}
@@ -143,7 +143,7 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 /* ===== Sticky mobile buy bar ===== */
 .sticky-buy{display:none;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--border);box-shadow:0 -8px 24px rgba(7,29,59,.12);padding:10px 14px;align-items:center;gap:12px}
 .sticky-buy .sb-price{flex:0 0 auto;font-weight:900;color:var(--orange);font-size:17px;white-space:nowrap}
-.sticky-buy .sb-btn{flex:1;border:0;border-radius:13px;background:linear-gradient(120deg,var(--green),#1fbf5c);color:#fff;padding:14px;font-weight:800;font-size:15.5px;box-shadow:0 6px 16px rgba(22,163,74,.3)}
+.sticky-buy .sb-btn{flex:1;border:0;border-radius:13px;background:linear-gradient(120deg,var(--orange),var(--orange-2));color:#fff;padding:14px;font-weight:800;font-size:15.5px;box-shadow:0 6px 16px rgba(255,90,10,.32)}
 
 @media(max-width:800px){
   main{margin-top:14px;margin-bottom:110px}
@@ -161,6 +161,66 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
   .buy{display:none}
   .sticky-buy{display:flex}
 }
+
+/* ===== Rating stars ===== */
+.rating-row{display:flex;align-items:center;gap:8px;margin:2px 0 14px;flex-wrap:wrap}
+.rating-stars{color:#ffb400;font-size:15px;letter-spacing:1px}
+.rating-num{font-weight:800;color:var(--navy);font-size:14px}
+.rating-count{color:var(--muted);font-size:13px}
+
+/* ===== Price with discount ===== */
+.price-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.old-price{color:#b9c2cf;font-size:16px;text-decoration:line-through;font-weight:700}
+.discount-badge{background:#e9fbef;color:var(--green);font-size:12.5px;font-weight:800;padding:3px 9px;border-radius:8px;border:1px solid #cdefd9}
+
+/* ===== Shipping banner ===== */
+.ship-banner{display:flex;align-items:center;gap:8px;background:#eefaf1;color:#158a45;border:1px solid #cdefd9;border-radius:13px;padding:10px 14px;font-size:13px;font-weight:700;margin-bottom:16px}
+
+
+/* ===== Add-to-cart (secondary) button ===== */
+.add-cart{width:100%;border:1.5px solid var(--navy);border-radius:15px;background:var(--navy);color:#fff;padding:16px;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s;margin-bottom:12px}
+.add-cart:hover{filter:brightness(1.15)}
+
+/* ===== Tabs (description / reviews) ===== */
+.tabs-card{background:#fff;border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow);margin-top:26px;overflow:hidden}
+.tabs-nav{display:flex;border-bottom:1px solid var(--border)}
+.tab-btn{flex:1;border:0;background:#fbfcfe;padding:18px 12px;font-weight:800;font-size:14.5px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s;border-bottom:3px solid transparent}
+.tab-btn.active{color:var(--orange);background:#fff;border-bottom-color:var(--orange)}
+.tab-panels{padding:26px 28px}
+.tab-panel{display:none;animation:fadeUp .35s ease}
+.tab-panel.active{display:block}
+
+.desc-text{color:var(--muted);font-size:15px;white-space:pre-line;margin-bottom:14px;overflow-wrap:anywhere}
+.desc-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.desc-list li{display:flex;gap:10px;font-size:14.5px;color:var(--text)}
+.desc-list li:before{content:"✔";color:var(--green);font-weight:900;flex:none}
+
+/* ===== Reviews tab ===== */
+.reviews-head{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.reviews-score{display:flex;align-items:center;gap:12px}
+.reviews-score .num{font-size:26px;font-weight:900;color:var(--navy)}
+.reviews-score .stars{color:#ffb400;font-size:18px}
+.reviews-score .of5{color:var(--muted);font-size:13px}
+.rating-bars{display:flex;flex-direction:column;gap:6px;min-width:220px}
+.rating-bars .row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-weight:700}
+.rating-bars .track{flex:1;height:8px;border-radius:6px;background:#eef1f6;overflow:hidden}
+.rating-bars .fill{height:100%;background:linear-gradient(120deg,var(--orange),var(--orange-2));border-radius:6px}
+.review-card{border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:14px;display:flex;gap:12px}
+.review-card .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(120deg,var(--navy),var(--navy-2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}
+.review-card .body{min-width:0}
+.review-card .name{font-weight:800;color:var(--navy);font-size:14px}
+.review-card .stars{color:#ffb400;font-size:13px;margin:3px 0}
+.review-card .text{color:var(--text);font-size:13.5px;margin:2px 0 4px}
+.review-card .date{color:var(--muted);font-size:11.5px}
+.reviews-empty{color:var(--muted);font-size:14px;text-align:center;padding:20px}
+
+/* ===== Bottom trust strip (page-level) ===== */
+.page-benefits{max-width:1180px;width:94%;margin:30px auto 0;background:linear-gradient(120deg,var(--navy),var(--navy-2));border-radius:22px;padding:22px 30px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;color:#fff}
+.page-benefits div{display:flex;align-items:center;gap:12px}
+.page-benefits .ic{width:44px;height:44px;flex:none;border-radius:12px;background:#ffffff1a;display:flex;align-items:center;justify-content:center;font-size:20px}
+.page-benefits b{display:block;font-size:14px}
+.page-benefits small{color:#cfd9e8;font-size:12px}
+@media(max-width:800px){.page-benefits{grid-template-columns:1fr;margin-top:20px;padding:18px 20px}}
 </style>
 </head>
 <body>
@@ -184,6 +244,16 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
 ✅5kg
 ✅هيكل بلاستيكي.
 ✅القوة: w180</p><div class="trust"><div>💵<br><b>الدفع عند الاستلام</b></div><div>🚚<br><b>توصيل للولايات</b></div><div>🛡️<br><b>خدمة آمنة</b></div></div><button class="buy">⚡ اشترِ الآن</button><a class="back" href="/">← العودة للمتجر</a></div></div>
+<div id="productTabs" class="tabs-card" style="display:none">
+  <div class="tabs-nav">
+    <button type="button" class="tab-btn active" id="tabBtnDesc" onclick="showProductTab('desc')"><span>📄</span><span data-i18n="tab_description">الوصف</span></button>
+    <button type="button" class="tab-btn" id="tabBtnReviews" onclick="showProductTab('reviews')"><span>⭐</span><span id="tabReviewsLabel"></span></button>
+  </div>
+  <div class="tab-panels">
+    <div class="tab-panel active" id="tabPanelDesc"></div>
+    <div class="tab-panel" id="tabPanelReviews"></div>
+  </div>
+</div>
 <div id="checkout" class="checkout">
   <div class="checkout-head">
     <span class="ic">📦</span>
@@ -234,6 +304,11 @@ main{max-width:1180px;width:94%;margin:22px auto 90px}
   </div>
 </div>
 </main>
+<div class="page-benefits" aria-label="مزايا المتجر">
+  <div><span class="ic">🛡️</span><span><b data-i18n="pb_quality_title">جودة مضمونة</b><small data-i18n="pb_quality_desc">منتجات أصلية ومختارة بعناية</small></span></div>
+  <div><span class="ic">👥</span><span><b data-i18n="pb_clients_title">ألف الزبائن الراضين</b><small data-i18n="pb_clients_desc">لقد صنعوا سر نجاحنا</small></span></div>
+  <div><span class="ic">🚚</span><span><b data-i18n="pb_delivery_title">توصيل سريع</b><small data-i18n="pb_delivery_desc">إلى جميع ولايات الوطن</small></span></div>
+</div>
 <div id="stickyBuy" class="sticky-buy">
   <span class="sb-price" id="sbPrice">—</span>
   <button class="sb-btn" onclick="showCheckout()" data-i18n="detail_buy_now">⚡ اشترِ الآن</button>
@@ -306,7 +381,23 @@ const PAGE_DICT={
   product_not_found_desc:{ar:"تأكد من اسم المنتج في الرابط.",fr:"Vérifiez le nom du produit dans le lien."},
   product_load_failed_title:{ar:"تعذر تحميل المنتج",fr:"Échec du chargement du produit"},
   product_load_failed_desc:{ar:"حاول تحديث الصفحة.",fr:"Veuillez actualiser la page."},
-  db_connect_error:{ar:"تعذر الاتصال بالخادم، أعد تحميل الصفحة",fr:"Connexion au serveur impossible, veuillez actualiser la page"}
+  db_connect_error:{ar:"تعذر الاتصال بالخادم، أعد تحميل الصفحة",fr:"Connexion au serveur impossible, veuillez actualiser la page"},
+  ship_banner_default:{ar:"توصيل سريع لجميع الولايات",fr:"Livraison rapide vers toutes les wilayas"},
+  trust4_delivery:{ar:"توصيل سريع لجميع الولايات",fr:"Livraison rapide partout"},
+  trust4_genuine:{ar:"منتج أصلي ومضمون",fr:"Produit authentique garanti"},
+  trust4_support:{ar:"خدمة ما بعد البيع",fr:"Service après-vente"},
+  add_to_cart:{ar:"إضافة إلى السلة",fr:"Ajouter au panier"},
+  reviews_count_label:{ar:"تقييم",fr:"avis"},
+  tab_description:{ar:"الوصف",fr:"Description"},
+  tab_reviews:{ar:"التقييمات",fr:"Avis"},
+  out_of_5:{ar:"من 5",fr:"sur 5"},
+  reviews_none:{ar:"لا توجد تقييمات بعد لهذا المنتج.",fr:"Aucun avis pour ce produit pour le moment."},
+  pb_quality_title:{ar:"جودة مضمونة",fr:"Qualité garantie"},
+  pb_quality_desc:{ar:"منتجات أصلية ومختارة بعناية",fr:"Produits authentiques et sélectionnés avec soin"},
+  pb_clients_title:{ar:"ألف الزبائن الراضين",fr:"Des milliers de clients satisfaits"},
+  pb_clients_desc:{ar:"لقد صنعوا سر نجاحنا",fr:"Ils ont fait notre succès"},
+  pb_delivery_title:{ar:"توصيل سريع",fr:"Livraison rapide"},
+  pb_delivery_desc:{ar:"إلى جميع ولايات الوطن",fr:"Vers toutes les wilayas du pays"}
 };
 // pt(key): يبحث أولاً في قاموس الصفحة الخاص، ثم في القاموس العام BazarI18n (i18n.js).
 // إن لم يوجد المفتاح في أي منهما يرجع المفتاح نفسه كحل أخير (لا يكسر شيئًا).
@@ -417,7 +508,58 @@ galleryImages=Array.isArray(p.images)&&p.images.length?p.images.filter(Boolean):
 document.title=name+" | Bazar Dzair";
 const md=document.getElementById("metaDescription");if(md)md.content=String(desc).slice(0,155);
 applyProductSEO(p,name,desc);
-if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});const available=p.published!==false;const buyHtml=available?`<button class="buy" onclick="showCheckout()">${esc(pt("detail_buy_now"))}</button>`:`<button class="buy" disabled style="opacity:.55;cursor:not-allowed">${esc(pt("button_unavailable"))}</button>`;box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="${esc(pt("gallery_prev"))}">‹</button><img id="mainProductPhoto" class="photo" src="${safeImg(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="${esc(pt("gallery_next"))}">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${safeImg(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${available?(p.badge?`<span class="badge">${esc(p.badge)}</span>`:""):`<span class="badge" style="background:#9aa1ab">${esc(pt("badge_unavailable"))}</span>`}</div><div class="info"><h1 class="title">${esc(name)}</h1><div class="price">${money(p.price)}</div><p class="desc">${esc(desc)}</p><div class="trust"><div>💵<br><b>${esc(pt("detail_trust_cod"))}</b></div><div>🚚<br><b>${esc(pt("detail_trust_delivery"))}</b></div><div>🛡️<br><b>${esc(pt("detail_trust_secure"))}</b></div></div><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}<a class="back" href="/" data-i18n="back_to_store">${esc(pt("back_to_store"))}</a></div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);sb.querySelector(".sb-btn").disabled=!available;sb.querySelector(".sb-btn").style.opacity=available?"1":".55";sb.querySelector(".sb-btn").textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}maybeAutoTranslateDescription(p);}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=safeImg(galleryImages[galleryIndex]);const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
+if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});const available=p.published!==false;const buyHtml=available?`<button class="buy" onclick="showCheckout()">${esc(pt("detail_buy_now"))}</button>`:`<button class="buy" disabled style="opacity:.55;cursor:not-allowed">${esc(pt("button_unavailable"))}</button>`;box.innerHTML=`<div class="photo-wrap"><div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="${esc(pt("gallery_prev"))}">‹</button><img id="mainProductPhoto" class="photo" src="${safeImg(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="${esc(pt("gallery_next"))}">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${safeImg(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>${available?(p.badge?`<span class="badge">${esc(p.badge)}</span>`:""):`<span class="badge" style="background:#9aa1ab">${esc(pt("badge_unavailable"))}</span>`}</div><div class="info"><h1 class="title">${esc(name)}</h1>${(function(){const validRevs=Array.isArray(p.reviews)?p.reviews.filter(r=>r&&Number(r.rating||r.ratingValue)>0):[];const computedAvg=validRevs.length?validRevs.reduce((s,r)=>s+Number(r.rating||r.ratingValue),0)/validRevs.length:0;const rv=Number(p.rating??p.ratingValue??computedAvg??0);const rc=Number(p.reviewCount??validRevs.length);if(!(rv>0))return"";const full=Math.round(rv);const starsStr="★★★★★☆☆☆☆☆".slice(5-full,10-full);return `<div class="rating-row"><span class="rating-stars">${starsStr}</span><span class="rating-num">${rv.toFixed(1)}</span><span class="rating-count">(${rc} ${esc(pt("reviews_count_label"))})</span></div>`;})()}<div class="price-row"><div class="price">${money(p.price)}</div>${(function(){const op=Number(p.oldPrice??p.compareAtPrice??0);if(!(op>Number(p.price||0)))return"";const pct=Math.round(100-(Number(p.price||0)/op*100));return `<span class="old-price">${money(op)}</span><span class="discount-badge">-${pct}%</span>`;})()}</div><div class="ship-banner">🚚 <span data-i18n="ship_banner_default">${esc(pt("ship_banner_default"))}</span></div><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${available?`<button class="add-cart" onclick="showCheckout()">🛒 ${esc(pt("add_to_cart"))}</button>`:""}${buyHtml}</div>`;document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);sb.querySelector(".sb-btn").disabled=!available;sb.querySelector(".sb-btn").style.opacity=available?"1":".55";sb.querySelector(".sb-btn").textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}renderProductTabs(p,name,desc);function renderProductTabs(p,name,desc){
+  const tabsBox=document.getElementById("productTabs");
+  if(!tabsBox)return;
+  tabsBox.style.display="block";
+  // ----- الوصف -----
+  const lines=String(desc||"").split("\n").map(l=>l.trim()).filter(Boolean);
+  const bulletRe=/^[✔✓•\-\u2022]/;
+  const paras=lines.filter(l=>!bulletRe.test(l));
+  const bullets=lines.filter(l=>bulletRe.test(l)).map(l=>l.replace(bulletRe,"").trim());
+  let descHtml="";
+  if(paras.length) descHtml+=`<p class="desc-text">${esc(paras.join(" "))}</p>`;
+  if(bullets.length) descHtml+=`<ul class="desc-list">${bullets.map(b=>`<li>${esc(b)}</li>`).join("")}</ul>`;
+  if(!descHtml) descHtml=`<p class="desc-text">${esc(desc)}</p>`;
+  document.getElementById("tabPanelDesc").innerHTML=descHtml;
+  // ----- التقييمات -----
+  const reviews=Array.isArray(p.reviews)?p.reviews.filter(r=>r&&(r.text||r.reviewBody)):[];
+  const reviewCount=Number(p.reviewCount??reviews.length);
+  document.getElementById("tabReviewsLabel").textContent=pt("tab_reviews")+" ("+reviewCount+")";
+  const avg=Number(p.rating??p.ratingValue??(reviews.length?reviews.reduce((s,r)=>s+Number(r.ratingValue||r.rating||5),0)/reviews.length:0));
+  const counts=[0,0,0,0,0];
+  reviews.forEach(r=>{const v=Math.max(1,Math.min(5,Math.round(Number(r.ratingValue||r.rating||5))));counts[v-1]++;});
+  const maxCount=Math.max(1,...counts);
+  const barsHtml=[5,4,3,2,1].map(star=>{
+    const c=counts[star-1];
+    const pctW=Math.round((c/maxCount)*100);
+    return `<div class="row"><span>${c}</span><div class="track"><div class="fill" style="width:${pctW}%"></div></div><span>${star} ★</span></div>`;
+  }).join("");
+  const fullStars=Math.round(avg);
+  const starsStr=avg>0?"★★★★★☆☆☆☆☆".slice(5-fullStars,10-fullStars):"";
+  let reviewsHtml=`<div class="reviews-head"><div class="reviews-score"><span class="num">${avg?avg.toFixed(1):"—"}</span><span><span class="stars">${starsStr}</span><br><span class="of5">${esc(pt("out_of_5"))}</span></span></div><div class="rating-bars">${barsHtml}</div></div>`;
+  if(reviews.length){
+    reviewsHtml+=reviews.slice(0,20).map(r=>{
+      const rn=String(r.author||r.authorName||"—").trim();
+      const initial=rn.charAt(0)||"?";
+      const rv=Math.max(1,Math.min(5,Math.round(Number(r.ratingValue||r.rating||5))));
+      const rs="★★★★★☆☆☆☆☆".slice(5-rv,10-rv);
+      const rt=String(r.text||r.reviewBody||"").trim();
+      const rd=String(r.date||r.datePublished||"").trim();
+      return `<div class="review-card"><div class="avatar">${esc(initial)}</div><div class="body"><div class="name">${esc(rn)}</div><div class="stars">${rs}</div><div class="text">${esc(rt)}</div><div class="date">${esc(rd)}</div></div></div>`;
+    }).join("");
+  }else{
+    reviewsHtml+=`<div class="reviews-empty">${esc(pt("reviews_none"))}</div>`;
+  }
+  document.getElementById("tabPanelReviews").innerHTML=reviewsHtml;
+}
+window.showProductTab=function(tab){
+  document.getElementById("tabBtnDesc").classList.toggle("active",tab==="desc");
+  document.getElementById("tabBtnReviews").classList.toggle("active",tab==="reviews");
+  document.getElementById("tabPanelDesc").classList.toggle("active",tab==="desc");
+  document.getElementById("tabPanelReviews").classList.toggle("active",tab==="reviews");
+};
+maybeAutoTranslateDescription(p);}window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=safeImg(galleryImages[galleryIndex]);const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
 window.changeQty=x=>{quantity=Math.max(1,quantity+x);document.getElementById("qty").textContent=quantity;const tp2=window.BazarI18n?BazarI18n.translateProduct(product):{name:product.name||product.product};document.getElementById("checkoutProduct").textContent=tp2.name+" × "+quantity+" — "+money(product.price*quantity);const sbp=document.getElementById("sbPrice");if(sbp)sbp.textContent=money(product.price*quantity);updateTotal()};
 window.showCheckout=()=>{const c=document.getElementById("checkout");c.classList.add("show");c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>document.getElementById("customerName").focus(),350)};
 let selectedDeliveryType=null;
