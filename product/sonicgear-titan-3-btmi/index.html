@@ -1199,17 +1199,17 @@ function applyProductSEO(p,name,desc){
     document.head.appendChild(sb);
   }
 
-  // شريط التنقل الظاهر: الرئيسية ← القسم ← الفئة الفرعية.
-  // نحافظ على اسم المنتج في الصفحة نفسها ولا نضعه داخل الشريط حتى يبقى
-  // الشريط نظيفًا مثل تصميم المتجر المرجعي.
+  // شريط التنقل: الرئيسية ← القسم ← التصنيف الحقيقي للمنتج.
+  // مهم: قيمة p.category هي مفتاح التصنيف في Firestore، وقد تكون مختلفة
+  // عن اسم التصنيف الظاهر للزبون. لذلك لا نعتمد على اسم المنتج لتحديد الفئة.
   const crumbEl=document.getElementById("crumb");
   if(crumbEl){
     const catMap={
       tools:{parent:"أدوات وملحقاتها",sub:/(clavier|keyboard|لوحة|مفتاح|gaming)/i.test(name)?"لوحات المفاتيح":"أدوات"},
       home:{parent:"المنزل والمطبخ",sub:"المنزل والمطبخ"},
       electronics:{parent:"أدوات وملحقاتها",sub:"أكسسوارات وإلكترونيات"},
-      phones:{parent:"هواتف",sub:"هواتف وإكسسواراتها"},
-      laptops:{parent:"حاسوب محمول",sub:"حاسوب محمول"},
+      phones:{parent:"أدوات وملحقاتها",sub:"هواتف وإكسسواراتها"},
+      laptops:{parent:"أدوات وملحقاتها",sub:"حاسوب محمول"},
       clothes:{parent:"ملابس وأحذية",sub:"ملابس وأحذية"},
       beauty:{parent:"صحة وجمال",sub:"صحة وجمال"},
       women:{parent:"معدات نسوية",sub:"معدات نسوية"},
@@ -1225,10 +1225,20 @@ function applyProductSEO(p,name,desc){
       clearance:{parent:"تصفية مخزون",sub:"تصفية مخزون"},
       misc:{parent:"منتجات متنوعة",sub:"منتجات متنوعة"}
     };
-    const info=catMap[category]||{parent:category,sub:""};
+    const normalized=category.toLowerCase().trim();
+    const aliases={
+      "أكسسوارات وإلكترونيات":"electronics",
+      "اكسسوارات وإلكترونيات":"electronics",
+      "إكسسوارات وإلكترونيات":"electronics",
+      "accessoires et electronique":"electronics",
+      "accessoires et électronique":"electronics",
+      "electronics":"electronics"
+    };
+    const resolvedKey=catMap[normalized]?normalized:(aliases[category]||aliases[normalized]||normalized);
+    const info=catMap[resolvedKey]||{parent:"",sub:category};
     const parts=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`];
     if(info.parent) parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(info.parent)}</span>`);
-    if(info.sub && info.sub!==info.parent) parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(info.sub)}</span>`);
+    if(info.sub) parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(info.sub)}</span>`);
     crumbEl.innerHTML=parts.join("");
   }
 }
@@ -1270,6 +1280,36 @@ async function load(){
     if(p){
       try{localStorage.setItem("bazar_selected_product",JSON.stringify(p));}catch(_e){}
       render(p);
+      // جلب التصنيف من Firestore حتى يظهر اسم التصنيف الصحيح حتى لو كان
+      // المفتاح مختلفًا عن الاسم (أو إذا كان التصنيف مخصصًا من لوحة التحكم).
+      try{
+        const catValue=String(p.category||"").trim();
+        if(catValue){
+          const catSnap=await getDoc(doc(db,"categories",catValue));
+          if(catSnap.exists()){
+            const cd=catSnap.data()||{};
+            const catName=String(cd.name||"").trim();
+            const catFr=String(cd.name_fr||"").trim();
+            const catKey=catSnap.id;
+            const aliasKey=catKey||catValue;
+            const crumb=document.getElementById("crumb");
+            if(crumb && catName){
+              const parentMap={
+                electronics:"أدوات وملحقاتها", phones:"أدوات وملحقاتها", laptops:"أدوات وملحقاتها",
+                tools:"أدوات وملحقاتها", home:"المنزل والمطبخ", clothes:"ملابس وأحذية", beauty:"صحة وجمال",
+                women:"معدات نسوية", jewelry:"مجوهرات وإكسسوارات نسائية", baby:"مستلزمات الأطفال والرضع",
+                medical:"أدوات طبية", carparts:"قطع غيار السيارات", summer:"منتجات الصيف", shaving:"آلات الحلاقة",
+                gifts:"هدايا متنوعة", library:"مكتبة", realestate:"عقارات وأراضي", clearance:"تصفية مخزون", misc:"منتجات متنوعة"
+              };
+              const parent=parentMap[aliasKey]||"";
+              const parts=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`];
+              if(parent) parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(parent)}</span>`);
+              parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(catName)}</span>`);
+              crumb.innerHTML=parts.join("");
+            }
+          }
+        }
+      }catch(_catErr){ /* يبقى التصنيف الاحتياطي الظاهر */ }
     }else if(!cachedProduct){
       box.innerHTML='<div class="error"><h2>'+esc(pt("product_not_found_title"))+'</h2><p>'+esc(pt("product_not_found_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
     }
