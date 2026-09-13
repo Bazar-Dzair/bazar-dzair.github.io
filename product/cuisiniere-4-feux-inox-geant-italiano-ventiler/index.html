@@ -296,6 +296,102 @@ main{max-width:1180px;width:94%;margin:6px auto 60px}
 
 
 .image-lightbox{display:none;position:fixed;inset:0;background:rgba(3,10,20,.9);z-index:1000;align-items:center;justify-content:center;padding:30px}.image-lightbox.open{display:flex}.image-lightbox img{max-width:min(92vw,1100px);max-height:88vh;object-fit:contain;border-radius:12px}.lightbox-close,.lightbox-prev,.lightbox-next{position:absolute;border:0;border-radius:50%;width:44px;height:44px;background:#fff;color:#071a33;font-size:28px;font-weight:800;cursor:pointer}.lightbox-close{top:18px;left:18px}.lightbox-prev{left:20px;top:50%;transform:translateY(-50%)}.lightbox-next{right:20px;top:50%;transform:translateY(-50%)}@media(max-width:800px){.image-lightbox{padding:12px}.lightbox-prev{left:10px}.lightbox-next{right:10px}.lightbox-close{left:10px;top:10px}}
+
+/* ===== Purchase controls — ترتيب احترافي مطابق للمرجع ===== */
+.purchase-controls{
+  display:grid;
+  grid-template-columns:minmax(112px,auto) minmax(0,1fr);
+  grid-template-rows:auto auto;
+  gap:8px;
+  align-items:stretch;
+  margin-top:2px;
+}
+.purchase-controls .qty{
+  grid-column:1;
+  grid-row:1;
+  width:100%;
+  height:44px;
+  margin:0;
+  justify-self:stretch;
+  display:flex;
+  align-items:center;
+}
+.purchase-controls .qty button{
+  flex:1 1 42px;
+  width:auto;
+  height:44px;
+}
+.purchase-controls .qty span{
+  flex:0 0 46px;
+  min-width:46px;
+  padding-top:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:44px;
+}
+.purchase-controls .action-row{
+  display:contents;
+}
+.purchase-controls .btn-cart{
+  grid-column:2;
+  grid-row:1;
+  width:100%;
+  min-height:44px;
+  padding:10px 12px;
+  border-radius:12px;
+  font-size:14px;
+}
+.purchase-controls .btn-buy{
+  grid-column:1 / -1;
+  grid-row:2;
+  width:100%;
+  min-height:48px;
+  padding:13px 14px;
+  border-radius:12px;
+  font-size:15px;
+}
+
+/* الهاتف: نفس الترتيب، مع أحجام مضغوطة حتى يبقى كل شيء واضحاً */
+@media(max-width:800px){
+  .purchase-controls{
+    grid-template-columns:104px minmax(0,1fr);
+    gap:7px;
+    margin-top:2px;
+  }
+  .purchase-controls .qty,
+  .purchase-controls .qty button,
+  .purchase-controls .qty span{
+    height:42px;
+  }
+  .purchase-controls .qty span{
+    flex-basis:42px;
+    min-width:42px;
+  }
+  .purchase-controls .btn-cart{
+    min-height:42px;
+    padding:9px 8px;
+    font-size:13px;
+  }
+  .purchase-controls .btn-buy{
+    min-height:45px;
+    padding:11px 10px;
+    font-size:14px;
+  }
+}
+
+@media(max-width:380px){
+  .purchase-controls{
+    grid-template-columns:96px minmax(0,1fr);
+  }
+  .purchase-controls .btn-cart{
+    font-size:12px;
+  }
+  .purchase-controls .btn-buy{
+    font-size:13px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -636,7 +732,7 @@ const stockValue=Number(p.stock);
 const stockNoteHtml=Number.isFinite(stockValue)?(stockValue<=0?`<div class="stock-note out">⛔ ${esc(pt("badge_unavailable"))}</div>`:`<div class="stock-note">✓ متوفر في المخزون${stockValue<=5?` — ${stockValue} قطع فقط`:``}</div>`):"";
 const infoFeatures=Array.isArray(p.specifications)?p.specifications.map(x=>{if(x&&typeof x==='object'&&x.key)return String(x.value??"").trim()?`${x.key}: ${x.value}`:String(x.key);return String(x||"").trim()}).filter(Boolean).slice(0,4):[];
 const highlightsHtml=infoFeatures.length?`<div class="product-highlights"><div class="product-highlights-title">✨ أبرز المميزات</div><ul class="product-highlights-list">${infoFeatures.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:"";
-document.getElementById("infoContent").innerHTML=`${badgeHtml}<h1 class="title">${esc(name)}</h1>${ratingRowHtml}${priceRowHtml}<div class="delivery-strip"><span aria-hidden="true">🚚</span> <span>${esc(pt("delivery_strip_text"))}</span></div><div class="trust-grid"><div class="trust-card"><span class="ic">🛡️</span><span>${esc(pt("trust_cod_card"))}</span></div><div class="trust-card"><span class="ic">🚚</span><span>${esc(pt("trust_delivery_card"))}</span></div><div class="trust-card"><span class="ic">✅</span><span>${esc(pt("trust_original_card"))}</span></div><div class="trust-card"><span class="ic">🎧</span><span>${esc(pt("trust_support_card"))}</span></div></div>${stockNoteHtml}${highlightsHtml}<div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}`;
+document.getElementById("infoContent").innerHTML=`${badgeHtml}<h1 class="title">${esc(name)}</h1>${ratingRowHtml}${priceRowHtml}<div class="delivery-strip"><span aria-hidden="true">🚚</span> <span>${esc(pt("delivery_strip_text"))}</span></div><div class="trust-grid"><div class="trust-card"><span class="ic">🛡️</span><span>${esc(pt("trust_cod_card"))}</span></div><div class="trust-card"><span class="ic">🚚</span><span>${esc(pt("trust_delivery_card"))}</span></div><div class="trust-card"><span class="ic">✅</span><span>${esc(pt("trust_original_card"))}</span></div><div class="trust-card"><span class="ic">🎧</span><span>${esc(pt("trust_support_card"))}</span></div></div>${stockNoteHtml}${highlightsHtml}<div class="purchase-controls"><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}</div>`;
 
 document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);sb.querySelector(".sb-btn").disabled=!available;sb.querySelector(".sb-btn").style.opacity=available?"1":".55";sb.querySelector(".sb-btn").textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}
 
