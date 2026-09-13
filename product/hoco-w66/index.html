@@ -1085,6 +1085,7 @@ try{
   }
 }catch(e){}
 if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:product.name,price:total,category:product.category||"",qty:quantity,id:product.id||""});
+window.location.href="/success.html";
 
 }catch(err){
   console.error("order submit failed:",err);
