@@ -506,7 +506,7 @@
 </section>
 
 <section id="view-blocked" class="view hidden"><div class="page-head"><div><h1>أرقام محظورة</h1><p>هذه الأرقام لا يمكنها تسجيل أي طلب جديد فالمتجر.</p></div></div><div class="panel"><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>رقم الهاتف<input id="blockPhoneInput" placeholder="مثال: 0551234567" inputmode="tel"></label></div><div class="form-actions"><button class="green" type="button" onclick="window.blockPhoneManual()">🚫 حظر هذا الرقم</button></div></div><div id="blockedList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الأرقام المحظورة...</div></div></div></section>
-<section id="view-categories" class="view hidden"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><div style="display:flex;gap:8px"><button class="gray" type="button" onclick="window.mergeDuplicateCategoriesNow()">🧹 دمج التصنيفات المكررة</button><button class="orange-btn" type="button" onclick="openCategoryForm()">＋ إضافة فئة</button></div></div><div class="panel"><div id="categoryMergeStatus" class="status hidden" style="margin-bottom:12px"></div><div id="categoryForm" class="category-form hidden"><input id="categoryId" type="hidden"><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"></label><label>اسم الفئة بالفرنسية (اختياري)<input id="categoryNameFr" placeholder="مثال: Outils"></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"></label><label>الأيقونة<input id="categoryIcon" placeholder="🔧" maxlength="4"></label></div><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا.</small><div class="form-actions"><button class="green" type="button" onclick="saveCategory()">💾 حفظ الفئة</button><button class="gray" type="button" onclick="closeCategoryForm()">إلغاء</button></div><div id="categoryStatus" class="status hidden"></div></div><div id="categoriesList" class="categories-list"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
+<section id="view-categories" class="view hidden"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><div style="display:flex;gap:8px"><button class="gray" type="button" onclick="window.mergeDuplicateCategoriesNow()">🗑️ حذف التصنيفات المكررة نهائيًا</button><button class="orange-btn" type="button" onclick="openCategoryForm()">＋ إضافة فئة</button></div></div><div class="panel"><div id="categoryMergeStatus" class="status hidden" style="margin-bottom:12px"></div><div id="categoryForm" class="category-form hidden"><input id="categoryId" type="hidden"><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"></label><label>اسم الفئة بالفرنسية (اختياري)<input id="categoryNameFr" placeholder="مثال: Outils"></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"></label><label>الأيقونة<input id="categoryIcon" placeholder="🔧" maxlength="4"></label></div><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا.</small><div class="form-actions"><button class="green" type="button" onclick="saveCategory()">💾 حفظ الفئة</button><button class="gray" type="button" onclick="closeCategoryForm()">إلغاء</button></div><div id="categoryStatus" class="status hidden"></div></div><div id="categoriesList" class="categories-list"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
 
 <section id="view-shipping-rates" class="view hidden">
   <div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر وشركة التوصيل لكل ولاية من ولايات الجزائر (58 ولاية المعتمدة في المتجر) — قسمان منفصلان: باب الدار والمكتب.</p></div><button class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button></div>
@@ -1694,9 +1694,12 @@ async function consolidateDuplicateCategories(snap){
     try{
       const ps=await getDocs(collection(db,"products"));
       for(const dup of duplicates){
+        // حذف نهائي فعلي للتصنيف القديم من جذوره — بلا أي دمج أو نقل بياناته
+        // إلى التصنيف الآخر. المنتجات التي كانت مرتبطة به تُفرَغ خانة تصنيفها
+        // فقط (مثل زر «🗑️ حذف» اليدوي بالضبط)، حتى لا تبقى تشير لتصنيف محذوف.
         await Promise.all(ps.docs
           .filter(d=>String(d.data()?.category||"")===dup.key)
-          .map(d=>updateDoc(d.ref,{category:canonical.key,updatedAt:serverTimestamp()})));
+          .map(d=>updateDoc(d.ref,{category:"",updatedAt:serverTimestamp()})));
         await deleteDoc(doc(db,"categories",dup.key));
         changed=true;
       }
@@ -1736,7 +1739,7 @@ window.mergeDuplicateCategoriesNow=async()=>{
     renderCategories();
     if(status){
       status.textContent=afterCount<beforeCount
-        ? `✅ تم حذف ${beforeCount-afterCount} تصنيف مكرر (احتُفظ بالأحدث)، ونُقلت منتجاتها للتصنيف الباقي.`
+        ? `✅ تم حذف ${beforeCount-afterCount} تصنيف مكرر نهائيًا من قاعدة البيانات (بقي التصنيف الأحدث فقط).`
         : "لا توجد تصنيفات مكررة حاليًا.";
       status.className="status ok";
     }
