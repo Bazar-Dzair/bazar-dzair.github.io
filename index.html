@@ -6,10 +6,13 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.cloudinary.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preload" as="image" href="/assets/hero.webp" type="image/webp" fetchpriority="high">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.">
-<meta name="keywords" content="متجر إلكتروني جزائري, Bazar Dzair, تسوق أونلاين الجزائر, دفع عند الاستلام">
-<title>Bazar Dzair | متجر إلكتروني</title>
+<meta name="description" content="Bazar Dzair متجر إلكتروني جزائري للتسوق أونلاين. منتجات متنوعة، أسعار مناسبة، دفع عند الاستلام وتوصيل إلى 58 ولاية.">
+<meta name="keywords" content="Bazar Dzair, متجر إلكتروني الجزائر, التسوق أونلاين الجزائر, شراء أونلاين الجزائر, الدفع عند الاستلام, توصيل 58 ولاية">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<meta name="theme-color" content="#061e3d">
+<title>Bazar Dzair | متجر إلكتروني جزائري - تسوق أونلاين</title>
 <style>
   :root {
     --navy:#061e3d;
@@ -232,21 +235,44 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
 .product .pic:hover img{transform:scale(1.02)}
 
 .footer-toggle{display:block;border:0;background:none;color:inherit;padding:0;margin:0;text-align:right;font:inherit;cursor:pointer;width:100%;line-height:1.8}.footer-toggle:hover{text-decoration:underline}.footer-link-text{display:none;font-size:12px;line-height:1.8;color:rgba(255,255,255,.78);margin:5px 0 10px;padding:8px 10px;border-right:2px solid rgba(255,255,255,.28);white-space:pre-line}.footer-link-text.open{display:block} 
+
+/* --- Bazar Dzair visual polish / accessibility --- */
+:root{--orange:#ff5a0a;--orange-2:#ff7a00;--navy:#061e3d;--navy-2:#0b2c56;--ring:rgba(255,90,10,.18)}
+body{background:linear-gradient(180deg,#fff 0,#f7f9fc 360px,#fff 100%);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.topbar{background:linear-gradient(90deg,var(--navy),var(--navy-2));box-shadow:0 1px 0 rgba(255,255,255,.06)}
+.header{position:sticky;top:0;z-index:50;border-bottom:1px solid rgba(7,29,59,.06);box-shadow:0 5px 24px rgba(7,29,59,.04);backdrop-filter:saturate(150%) blur(8px)}
+.brand-mark{box-shadow:0 8px 22px rgba(255,90,10,.12)}
+.circle-btn{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.circle-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(7,29,59,.09);border-color:#d7dde6}.circle-btn:focus-visible,.view-all:focus-visible,.buybtn:focus-visible,.cartbtn:focus-visible,.search input:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
+.search{transition:box-shadow .2s ease,border-color .2s ease}.search:focus-within{border-color:#ffc5a7;box-shadow:0 0 0 4px rgba(255,90,10,.08),0 8px 26px rgba(7,29,59,.07)}
+.hero{box-shadow:0 14px 36px rgba(7,29,59,.10)}
+.section-head{margin-top:38px}.section-title h2{letter-spacing:-.3px}.view-all{transition:.18s ease}.view-all:hover{background:#fff5ef;transform:translateY(-1px)}
+.product{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}.product:hover{transform:translateY(-5px);box-shadow:0 14px 32px rgba(7,29,59,.11);border-color:#e1e6ed}.pic{background:linear-gradient(180deg,#fbfcfe,#f5f7fa)}
+.buybtn{box-shadow:0 8px 16px rgba(255,90,10,.16);transition:transform .16s ease,box-shadow .16s ease}.buybtn:hover{transform:translateY(-1px);box-shadow:0 11px 22px rgba(255,90,10,.22)}.cartbtn{transition:.16s ease}.cartbtn:hover{background:#f6f8fb;transform:translateY(-1px)}
+.benefit{transition:transform .18s ease,box-shadow .18s ease}.benefit:hover{transform:translateY(-3px);box-shadow:0 10px 25px rgba(7,29,59,.08)}
+.footer{background:linear-gradient(135deg,#061e3d,#0b2c56)}
+@media(max-width:560px){.topbar{height:46px}.header{position:sticky;top:0;padding-top:10px;padding-bottom:8px}.hero{border-radius:20px}.section-head{margin-top:28px}.product{border-radius:17px}.pic{height:215px}.buybtn{box-shadow:0 5px 13px rgba(255,90,10,.14)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <script src="i18n.js"></script>
 <script src="addons.js" defer></script>
 <link rel="canonical" href="https://bazar-dzair.github.io/">
-<meta property="og:title" content="Bazar Dzair | متجر إلكتروني جزائري">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_DZ">
+<meta property="og:site_name" content="Bazar Dzair">
+<meta property="og:title" content="Bazar Dzair | متجر إلكتروني جزائري - تسوق أونلاين">
 <meta property="og:description" content="متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.">
-<meta property="og:image" content="https://bazar-dzair.github.io/logo.svg">
+<meta property="og:url" content="https://bazar-dzair.github.io/">
+<meta property="og:image" content="https://bazar-dzair.github.io/assets/hero.jpg">
+<meta property="og:image:alt" content="Bazar Dzair - متجر إلكتروني جزائري">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Bazar Dzair | متجر إلكتروني جزائري">
+<meta name="twitter:title" content="Bazar Dzair | متجر إلكتروني جزائري - تسوق أونلاين">
 <meta name="twitter:description" content="متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.">
-<meta name="twitter:image" content="https://bazar-dzair.github.io/logo.svg">
+<meta name="twitter:image" content="https://bazar-dzair.github.io/assets/hero.jpg">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Bazar Dzair","url":"https://bazar-dzair.github.io/","inLanguage":"ar-DZ"}</script>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Bazar Dzair","alternateName":"Bazar Dzair | متجر إلكتروني","url":"https://bazar-dzair.github.io/","logo":"https://bazar-dzair.github.io/logo.svg","description":"متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.","contactPoint":{"@type":"ContactPoint","telephone":"+213550000000","contactType":"customer service","areaServed":"DZ","availableLanguage":["ar"]}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Bazar Dzair | متجر إلكتروني جزائري","url":"https://bazar-dzair.github.io/","description":"متجر إلكتروني جزائري للتسوق أونلاين مع الدفع عند الاستلام والتوصيل إلى 58 ولاية.","inLanguage":"ar-DZ","isPartOf":{"@type":"WebSite","name":"Bazar Dzair","url":"https://bazar-dzair.github.io/"}}</script>
 
 <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
 </head>
