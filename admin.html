@@ -114,6 +114,15 @@
 .funnel-btn.active{background:var(--orange);border-color:var(--orange);color:#fff}
 .total-badge{flex:none;display:inline-flex;align-items:center;gap:6px;background:#eef5ff;color:#1d64d8;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:700;white-space:nowrap}
 .total-badge b{font-size:14px}
+
+.admin-toolbar-extra{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.admin-mini-btn{border:1px solid #e1e6ed;background:#fff;color:#46515f;border-radius:9px;padding:9px 12px;font-size:12px;font-weight:800}
+.admin-mini-btn:hover{background:#f7f9fb;border-color:#cfd6df}
+.admin-mini-btn:disabled{opacity:.55;cursor:not-allowed}
+.admin-cache-status{font-size:11px;color:#8a94a2}
+.save-progress{margin-top:10px;height:7px;background:#edf0f4;border-radius:99px;overflow:hidden;display:none}
+.save-progress.show{display:block}
+.save-progress span{display:block;height:100%;width:0;background:var(--orange);transition:width .2s}
 .products-utility-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .util-btn{white-space:nowrap;background:#fff7ee;color:#c65a00;border:1px solid #ffe2bd;border-radius:9px;padding:9px 13px;font-weight:700;font-size:12px}
 .util-btn-dark{background:#374151;color:#fff;border-color:#374151;padding:9px 12px}
@@ -420,6 +429,7 @@
      <input id="imageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
      <button type="button" class="upload-drop" onclick="document.getElementById('imageFiles').click()"><span class="upload-icon">☁️</span><b>أضف صور المنتج</b><small>اختر الصور من الهاتف مباشرة — حتى 10 صور</small><span class="upload-hint">JPG, PNG, WEBP — ضغط تلقائي قبل الحفظ</span></button>
      <div class="image-count" id="imageCount">0 / 10 صور</div><div id="imagePreview" class="image-preview"></div>
+     <div id="saveProgress" class="save-progress"><span></span></div>
    </div><small class="hint">الصورة الأولى تصبح صورة الواجهة. الصور الجديدة تُضغط لتقليل حجم مستند Firestore.</small></div>
  </div><div class="form-actions"><button id="saveBtn" class="green" onclick="save()">💾 حفظ المنتج</button><button class="gray" onclick="resetForm()">مسح النموذج</button><button id="backToProductsBtn" class="gray hidden" type="button" onclick="window.backToProductsList()">↩️ رجوع إلى المنتجات</button></div></div>
 </section>
@@ -434,8 +444,9 @@
    </div>
    <div class="products-utility-row">
      <button type="button" onclick="migrateBase64Images()" class="util-btn">🔄 إصلاح صور المنتجات القديمة</button>
-     
+     <button type="button" onclick="window.refreshAdminProducts()" class="util-btn" id="refreshProductsBtn">↻ تحديث المنتجات</button>
    </div>
+   <div class="admin-toolbar-extra"><span id="adminProductsCacheStatus" class="admin-cache-status">جاهز</span><span id="adminProductsLastUpdate" class="admin-cache-status"></span></div>
    <div id="migrateStatus" style="margin:6px 0 0;font-size:13px"></div>
    <div id="productsBulk" class="bulk-toolbar"><div class="bulk-left"><label class="select-all-label"><input id="selectAllProducts" type="checkbox" onchange="window.toggleAllProducts(this.checked)"> تحديد كل منتجات الصفحة</label><span id="productsSelectedCount" class="page-info">0 محدد</span></div><button id="bulkDeleteProducts" class="bulk-delete" type="button" onclick="bulkDeleteProducts()" disabled>🗑 حذف المحدد</button></div>
    <div id="list" class="products"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div>
@@ -1829,7 +1840,25 @@ window.bazarLoadProducts=async function(force=false){
   if(productsLoading)return productsLoading;
   if(productsLoaded&&!force){ render(); return; }
   const box=listBox;
-  if(box && !productsLoaded){box.innerHTML='<div class="empty-card"><span class="empty-icon">⏳</span><b>جاري تحميل المنتجات...</b><span>يتم تحميل البيانات عند فتح قسم المنتجات فقط.</span></div>';}
+  const cacheKey="bazarAdminProductsCacheV2";
+  const statusEl=document.getElementById("adminProductsCacheStatus");
+  const refreshBtn=document.getElementById("refreshProductsBtn");
+  const setStatus=t=>{if(statusEl)statusEl.textContent=t;};
+
+  // عرض نسخة محلية فورًا حتى لا تبقى لوحة التحكم فارغة عند بطء الشبكة.
+  if(!productsLoaded && !force){
+    try{
+      const cached=JSON.parse(localStorage.getItem(cacheKey)||"null");
+      if(Array.isArray(cached?.items) && cached.items.length){
+        products=cached.items;
+        productsLoaded=true;
+        setStatus("تم عرض نسخة محفوظة — جارِ التحديث…");
+        render();updateStats();
+      }
+    }catch(e){console.warn("admin product cache",e)}
+  }
+  if(box && !productsLoaded){box.innerHTML='<div class="empty-card"><span class="empty-icon">⏳</span><b>جاري تحميل المنتجات...</b><span>يتم تحميل البيانات من المتجر بأمان.</span></div>';}
+  if(refreshBtn)refreshBtn.disabled=true;
   productsLoading=(async()=>{
     try{
       const snap=await getDocs(collection(db,"products"));
@@ -1839,8 +1868,13 @@ window.bazarLoadProducts=async function(force=false){
       if(productCounter)productCounter.textContent=snap.size.toLocaleString("ar-DZ");
       render();updateStats();
       try{
+        localStorage.setItem(cacheKey,JSON.stringify({items:products,updatedAt:Date.now()}));
         localStorage.setItem("bazarProductsCount",String(snap.size));
-      }catch(e){}
+      }catch(e){console.warn("admin product cache write",e)}
+      const stamp=new Date();
+      const last=document.getElementById("adminProductsLastUpdate");
+      if(last)last.textContent=`آخر تحديث: ${stamp.toLocaleTimeString("ar-DZ",{hour:"2-digit",minute:"2-digit"})}`;
+      setStatus("تم التحديث من Firestore ✓");
       try{
         const editId=sessionStorage.getItem("bazarEditingProduct");
         const view=sessionStorage.getItem("bazarAdminView");
@@ -1851,10 +1885,21 @@ window.bazarLoadProducts=async function(force=false){
       }catch(e){}
     }catch(e){
       console.error("products load",e);
-      if(box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل المنتجات. تحقق من اتصال Firebase والصلاحيات.</div>';
-    }finally{productsLoading=null;}
+      if(!productsLoaded && box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل المنتجات. تحقق من اتصال Firebase والصلاحيات.</div>';
+      setStatus(productsLoaded?"تعذر التحديث — يتم استعمال النسخة المحفوظة":"تعذر تحميل المنتجات");
+      if(productsLoaded){show("تعذر تحديث المنتجات من الخادم؛ تم الاحتفاظ بالنسخة الأخيرة.","err");}
+    }finally{
+      if(refreshBtn)refreshBtn.disabled=false;
+      productsLoading=null;
+    }
   })();
   return productsLoading;
+};
+
+window.refreshAdminProducts=async function(){
+  productsLoaded=false;
+  await window.bazarLoadProducts(true);
+  show("تم تحديث قائمة المنتجات من الخادم ✅","ok");
 };
 
 window.bazarLoadOrders=async function(force=false){
@@ -2325,12 +2370,25 @@ window.save=async()=>{
     tasks.push({i,file:item.file});
   }
   try{
-    // الرفع بالتتابع (وليس بالتوازي) لتفادي رفض Cloudinary للطلبات الكثيرة دفعة واحدة.
-    for(const t of tasks){
-      const blob=await compressImageToBlob(t.file,1000,0.7);
-      uploaded[t.i]=await uploadToCloudinary(blob);
-    }
+    const progress=document.getElementById("saveProgress");
+    const progressBar=progress?.querySelector("span");
+    if(progress){progress.classList.add("show");if(progressBar)progressBar.style.width="0%";}
+    let done=0;
+    const worker=async()=>{
+      while(tasks.length){
+        const t=tasks.shift();
+        const blob=await compressImageToBlob(t.file,1000,0.7);
+        uploaded[t.i]=await uploadToCloudinary(blob);
+        done++;
+        if(progressBar)progressBar.style.width=Math.round(done/Math.max(1,done+tasks.length)*100)+"%";
+      }
+    };
+    // ثلاث عمليات فقط في نفس الوقت: أسرع بكثير من الرفع المتتابع، بدون ضغط Cloudinary.
+    await Promise.all(Array.from({length:Math.min(3,tasks.length)},()=>worker()));
+    if(progressBar)progressBar.style.width="100%";
+    setTimeout(()=>progress?.classList.remove("show"),500);
   }catch(e){
+    document.getElementById("saveProgress")?.classList.remove("show");
     show("فشل رفع الصور: "+(e?.message||"خطأ غير معروف"),"err");
     return;
   }
@@ -2486,6 +2544,10 @@ renderSelectedImages();
 function show(t,c){statusBox.textContent=t;statusBox.className="status "+c;setTimeout(()=>statusBox.className="status hidden",3500)}
 function esc(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 
+
+window.addEventListener("beforeunload",e=>{
+  if(saving){e.preventDefault();e.returnValue="";}
+});
 </script>
 </body>
 </html>
