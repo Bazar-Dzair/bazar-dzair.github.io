@@ -633,67 +633,115 @@ async function loadProductsFromFirestore(){
   try{const local=JSON.parse(localStorage.getItem("bazarFooterSettings")||"null");if(local)applyFooterData(local);}catch(_e){}
 })();
 
-// ===== المصدر الوحيد للمنتجات: Firestore (Realtime onSnapshot) =====
-// المنتجات تُقرأ مباشرة من Firestore في الوقت الحقيقي. لا يوجد LocalStorage للمنتجات،
-// ولا بيانات ثابتة، ولا إخفاء بالـ CSS. أي حذف في Firestore يعكسه هذا الـ listener فورًا.
-// إذا فشل تحميل SDK Firebase تُستخدم الواجهة REST كخطة احتياطية مباشرة (بدون كاش قديم).
-(async function initStoreFirestore(){
-  function mapSnap(d,i){
-    const data=d.data()||{};
-    const imgs=Array.isArray(data.images)?data.images.filter(Boolean):[];
-    const image=data.image||data.imageUrl||data.photo||imgs[0]||"./logo.svg";
-    return {
-      id:i+1,
-      firestoreId:d.id,
-      name:data.name||data.product||"منتج بدون اسم",
-      name_fr:data.name_fr||"",
-      price:Number(data.price||0),
-      image,
-      images:imgs.length?imgs:[image],
-      badge:data.badge||"جديد",
-      description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
-      description_fr:data.description_fr||"",
-      category:data.category||"all",
-      published:data.published!==false,
-      stock:Number(data.stock||0),
-      shippingHome:data.shippingHome||"",
-      shippingOffice:data.shippingOffice||"",
-      deliveryMethod:data.deliveryMethod||""
-    };
+// ===== تحميل المنتجات بسرعة + مزامنة Firestore في الوقت الحقيقي =====
+// الهدف: عرض آخر نسخة محفوظة فورًا، ثم جلب نسخة حديثة عبر REST بالتوازي مع Firebase،
+// وبعدها يظل onSnapshot هو المصدر النهائي للتحديثات الحية. لا نعتمد على Firebase SDK
+// حتى يبدأ المستخدم برؤية المنتجات.
+(function initFastProducts(){
+  const PRODUCTS_CACHE_KEY = "bazarProductsCache_v2";
+  const PRODUCTS_CACHE_TTL = 30 * 60 * 1000; // الكاش مؤقت فقط؛ Firestore يصححه لاحقًا.
+  let realtimeStarted = false;
+
+  function showProducts(list){
+    if(!Array.isArray(list) || !list.length) return;
+    products=list;
+    const key=getUrlCategory();
+    if(key!=="all" && storeCategories.length) applyUrlCategory();
+    else displayProducts();
   }
+
+  // 1) اعرض الكاش فورًا إن وُجد، حتى لا ينتظر الزبون الشبكة.
   try{
-    const {initializeApp}=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
-    const firestore=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
-    const {getFirestore,initializeFirestore,persistentLocalCache,collection,onSnapshot,getDocs}=firestore;
-    const app=initializeApp(firebaseConfig);
-    try{db=initializeFirestore(app,{localCache:persistentLocalCache({})});}catch(_e){db=getFirestore(app)}
-    firestoreReady=true;
-    onSnapshot(collection(db,"products"),snap=>{
-      products=snap.docs.map(mapSnap);
-      const key=getUrlCategory();
-      if(key!=="all" && storeCategories.length) applyUrlCategory();
-      else displayProducts();
-    },async error=>{
-      console.warn("Realtime products sync failed; REST fallback",error);
-      const ok=await loadProductsFromFirestore();
-      if(!ok){products=[];displayProducts();}
-    });
-    const renderStoreCategories=(snap)=>{
-      const box=document.getElementById("storeCategories");
-      const seen=new Set();
-      storeCategories=snap.docs.map(d=>({key:d.id,...(d.data()||{})}))
-        .filter(c=>c.name&&!seen.has(c.key)&&seen.add(c.key))
-        .sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));
-      const visibleCategories=storeCategories.filter(c=>c.hidden!==true);
-      if(box) box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>'+escapeHtml(BazarI18n.t("drawer_all"))+'</div>'+(visibleCategories.length?visibleCategories.map(c=>`<div class="cat" onclick="filterCategory('${escapeHtml(c.key)}')"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(catName(c))}</div>`).join(""):'<div class="cat"><i>📂</i>'+escapeHtml(BazarI18n.t("drawer_none"))+'</div>');
-      applyUrlCategory();
-    };
-    onSnapshot(collection(db,"categories"),renderStoreCategories,error=>{const box=document.getElementById("storeCategories");if(box)box.innerHTML='<div class="cat"><i>⚠️</i>'+escapeHtml(BazarI18n.t("drawer_error"))+'</div>';});
-  }catch(error){
-    console.warn("Firebase SDK init failed; REST fallback",error);
-    const ok=await loadProductsFromFirestore();
-    if(!ok){products=[];displayProducts();}
-  }
+    const cached=JSON.parse(localStorage.getItem(PRODUCTS_CACHE_KEY)||"null");
+    if(cached && Array.isArray(cached.products) && cached.products.length &&
+       (!cached.savedAt || (Date.now()-cached.savedAt)<PRODUCTS_CACHE_TTL)){
+      showProducts(cached.products);
+    }
+  }catch(e){ console.warn("Products cache read failed",e); }
+
+  // 2) ابدأ REST مباشرة، بدون انتظار Firebase SDK.
+  //    إذا وصل أولاً يعرض المنتجات؛ وإذا وصل onSnapshot بعده، تصبح بيانات Firebase هي النهائية.
+  const restPromise=loadProductsFromFirestore();
+  restPromise.then(ok=>{
+    if(ok && products.length){
+      try{
+        localStorage.setItem(PRODUCTS_CACHE_KEY,JSON.stringify({savedAt:Date.now(),products}));
+      }catch(e){ console.warn("Products cache write failed",e); }
+    }
+  }).catch(()=>{});
+
+  // 3) Firebase يبدأ بالتوازي للمزامنة الحية.
+  (async function initRealtime(){
+    function mapSnap(d,i){
+      const data=d.data()||{};
+      const imgs=Array.isArray(data.images)?data.images.filter(Boolean):[];
+      const image=data.image||data.imageUrl||data.photo||imgs[0]||"./logo.svg";
+      return {
+        id:i+1,
+        firestoreId:d.id,
+        name:data.name||data.product||"منتج بدون اسم",
+        name_fr:data.name_fr||"",
+        price:Number(data.price||0),
+        image,
+        images:imgs.length?imgs:[image],
+        badge:data.badge||"جديد",
+        description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
+        description_fr:data.description_fr||"",
+        category:data.category||"all",
+        published:data.published!==false,
+        stock:Number(data.stock||0),
+        shippingHome:data.shippingHome||"",
+        shippingOffice:data.shippingOffice||"",
+        deliveryMethod:data.deliveryMethod||""
+      };
+    }
+    try{
+      const {initializeApp}=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
+      const firestore=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
+      const {getFirestore,initializeFirestore,persistentLocalCache,collection,onSnapshot}=firestore;
+      const app=initializeApp(firebaseConfig);
+      try{db=initializeFirestore(app,{localCache:persistentLocalCache({})});}catch(_e){db=getFirestore(app)}
+      firestoreReady=true;
+      realtimeStarted=true;
+      onSnapshot(collection(db,"products"),snap=>{
+        // Firebase هو المصدر النهائي؛ أي إضافة/تعديل/حذف يظهر تلقائيًا ويصحح الكاش.
+        products=snap.docs.map(mapSnap);
+        try{
+          localStorage.setItem(PRODUCTS_CACHE_KEY,JSON.stringify({savedAt:Date.now(),products}));
+        }catch(e){}
+        const key=getUrlCategory();
+        if(key!=="all" && storeCategories.length) applyUrlCategory();
+        else displayProducts();
+      },async error=>{
+        console.warn("Realtime products sync failed; REST remains active",error);
+        if(!products.length){
+          const ok=await restPromise;
+          if(!ok){products=[];displayProducts();}
+        }
+      });
+
+      const renderStoreCategories=(snap)=>{
+        const box=document.getElementById("storeCategories");
+        const seen=new Set();
+        storeCategories=snap.docs.map(d=>({key:d.id,...(d.data()||{})}))
+          .filter(c=>c.name&&!seen.has(c.key)&&seen.add(c.key))
+          .sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));
+        const visibleCategories=storeCategories.filter(c=>c.hidden!==true);
+        if(box) box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>'+escapeHtml(BazarI18n.t("drawer_all"))+'</div>'+(visibleCategories.length?visibleCategories.map(c=>`<div class="cat" onclick="filterCategory('${escapeHtml(c.key)}')"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(catName(c))}</div>`).join(""):'<div class="cat"><i>📂</i>'+escapeHtml(BazarI18n.t("drawer_none"))+'</div>');
+        applyUrlCategory();
+      };
+      onSnapshot(collection(db,"categories"),renderStoreCategories,error=>{
+        const box=document.getElementById("storeCategories");
+        if(box) box.innerHTML='<div class="cat"><i>⚠️</i>'+escapeHtml(BazarI18n.t("drawer_error"))+'</div>';
+      });
+    }catch(error){
+      console.warn("Firebase SDK init failed; REST/cache remain active",error);
+      if(!products.length){
+        const ok=await restPromise;
+        if(!ok){products=[];displayProducts();}
+      }
+    }
+  })();
 })();
 
 loadFastSettings();
