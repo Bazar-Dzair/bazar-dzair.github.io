@@ -1631,7 +1631,25 @@ window.bazarLoadDashboardStats=async function(force=false){
 };
 
 const defaultCategories=[
-  {key:"tools",name:"أدوات",icon:"🔧"},{key:"home",name:"المطبخ والمنزل",icon:"🏠"},{key:"electronics",name:"أكسسوارات وإلكترونيات",icon:"⚡"},{key:"phones",name:"هواتف",icon:"📱"},{key:"laptops",name:"حاسوب محمول",icon:"💻"},{key:"clothes",name:"ملابس وأحذية",icon:"👕"},{key:"beauty",name:"صحة وجمال",icon:"✨"},{key:"women",name:"معدات نسوية",icon:"👩"},{key:"jewelry",name:"مجوهرات وإكسسوارات نسائية",icon:"💎"},{key:"baby",name:"مستلزمات الأطفال والرضع",icon:"🧸"},{key:"medical",name:"أدوات طبية",icon:"🩺"},{key:"carparts",name:"قطع غيار السيارات",icon:"🚗"},{key:"summer",name:"منتجات الصيف",icon:"☀️"},{key:"shaving",name:"آلات الحلاقة",icon:"🪒"},{key:"gifts",name:"هدايا متنوعة",icon:"🎁"},{key:"library",name:"مكتبة",icon:"📚"},{key:"realestate",name:"عقارات وأراضي",icon:"🏡"},{key:"clearance",name:"تصفية مخزون",icon:"🏷️"},{key:"misc",name:"منتجات متنوعة",icon:"🛍️"}
+  {key:"tools",name:"أدوات",name_fr:"Outils",icon:"🔧"},
+  {key:"home",name:"المطبخ والمنزل",name_fr:"Maison et Cuisine",icon:"🏠"},
+  {key:"electronics",name:"أكسسوارات وإلكترونيات",name_fr:"Accessoires et Électronique",icon:"⚡"},
+  {key:"phones",name:"هواتف",name_fr:"Téléphones",icon:"📱"},
+  {key:"laptops",name:"حاسوب محمول",name_fr:"Ordinateurs portables",icon:"💻"},
+  {key:"clothes",name:"ملابس وأحذية",name_fr:"Vêtements et Chaussures",icon:"👕"},
+  {key:"beauty",name:"صحة وجمال",name_fr:"Santé et Beauté",icon:"✨"},
+  {key:"women",name:"معدات نسوية",name_fr:"Équipements pour Femmes",icon:"👩"},
+  {key:"jewelry",name:"مجوهرات وإكسسوارات نسائية",name_fr:"Bijoux et Accessoires pour Femmes",icon:"💎"},
+  {key:"baby",name:"مستلزمات الأطفال والرضع",name_fr:"Articles pour Bébés et Enfants",icon:"🧸"},
+  {key:"medical",name:"أدوات طبية",name_fr:"Matériel Médical",icon:"🩺"},
+  {key:"carparts",name:"قطع غيار السيارات",name_fr:"Pièces Auto",icon:"🚗"},
+  {key:"summer",name:"منتجات الصيف",name_fr:"Produits d'Été",icon:"☀️"},
+  {key:"shaving",name:"آلات الحلاقة",name_fr:"Machines à Raser",icon:"🪒"},
+  {key:"gifts",name:"هدايا متنوعة",name_fr:"Cadeaux Divers",icon:"🎁"},
+  {key:"library",name:"مكتبة",name_fr:"Librairie",icon:"📚"},
+  {key:"realestate",name:"عقارات وأراضي",name_fr:"Immobilier et Terrains",icon:"🏡"},
+  {key:"clearance",name:"تصفية مخزون",name_fr:"Déstockage",icon:"🏷️"},
+  {key:"misc",name:"منتجات متنوعة",name_fr:"Produits Divers",icon:"🛍️"}
 ];
 let categories=[];
 function categoryIconFor(name){
@@ -1639,64 +1657,86 @@ function categoryIconFor(name){
   const rules=[[/سيارات|قطع غيار|auto|car/,'🚗'],[/هاتف|هواتف|mobile|phone/,'📱'],[/حاسوب|كمبيوتر|لابتوب|laptop|computer/,'💻'],[/إلكترون|الكترون|accessor/,'⚡'],[/أدوات|tool/,'🔧'],[/منزل|مطبخ|home|kitchen/,'🏠'],[/ملابس|أحذية|clothes|shoes/,'👕'],[/جمال|صحة|beauty/,'✨'],[/نساء|نسوية|woman|women/,'👩'],[/مجوهر|jewelry/,'💎'],[/أطفال|رضع|baby|kids/,'🧸'],[/طبية|medical/,'🩺'],[/صيف|summer/,'☀️'],[/حلاقة|shav/,'🪒'],[/هدايا|gift/,'🎁'],[/مكتبة|كتب|book/,'📚'],[/عقار|أراضي|real estate|land/,'🏡'],[/تصفية|clearance/,'🏷️']];
   for(const [re,ic] of rules)if(re.test(n))return ic; return '🛍️';
 }
-function normalizeCategoryList(list){const map=new Map();(Array.isArray(list)?list:[]).forEach(c=>{const key=String(c.key||"").trim(),name=String(c.name||"").trim();if(!key||!name||map.has(key))return;map.set(key,{key,name,icon:String(c.icon||categoryIconFor(name)),hidden:c.hidden===true});});return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name,"ar"));}
-
-/* توحيد التصنيفات المكررة مثل: أدوات / أدوات-2 / هواتف / هواتف-2،
-   وكذلك التصنيفات المكررة بنفس الاسم مع اختلاف حالة الأحرف أو المسافات
-   الزائدة (Tools / tools / "  Tools  "). يتم الاحتفاظ بنسخة واحدة فقط
-   (التصنيف الأساسي)، ونقل المنتجات المرتبطة بالنسخ المكررة إلى التصنيف
-   الأساسي قبل حذف النسخ المكررة فعليًا من مصدر البيانات (Firestore). */
-function categoryCollapseSpaces(s){
-  return String(s||"").trim().replace(/\s+/g," ");
-}
-function categoryBaseName(name){
-  return categoryCollapseSpaces(name)
-    .replace(/(?:\s*[-–—]\s*|\s*_\s*|\s*\()([2-9]\d*)\)?$/u,"")
-    .trim();
-}
-function categoryBaseKey(key){
-  return String(key||"").trim().toLowerCase().replace(/(?:[-_]\d+)$/,"");
-}
-// مقارنة "منطقية" للاسم تتجاهل المسافات الزائدة واختلاف حالة الأحرف،
-// تُستخدم لاكتشاف التكرار سواء عند الحفظ أو عند توحيد التصنيفات القديمة.
-function categoryNameSignature(name){
-  return categoryCollapseSpaces(categoryBaseName(name)).toLowerCase();
-}
-async function consolidateDuplicateCategories(snap){
-  const raw=(snap?.docs||[]).map(d=>({key:d.id,name:categoryCollapseSpaces(d.data()?.name||""),icon:String(d.data()?.icon||"")}))
-    .filter(c=>c.key&&c.name);
-  const byName=new Map();
-  raw.forEach(c=>{
-    const sig=categoryNameSignature(c.name);
-    if(!byName.has(sig))byName.set(sig,[]);
-    byName.get(sig).push(c);
+function categoryCollapseSpaces(s){return String(s||"").trim().replace(/\s+/g," ");}
+function categoryBaseName(name){return categoryCollapseSpaces(name).replace(/(?:\s*[-–—]\s*|\s*_\s*|\s*\()([2-9]\d*)\)?$/u,"").trim();}
+function categoryBaseKey(key){return String(key||"").trim().toLowerCase().replace(/(?:[-_]\d+)$/i,"");}
+function categoryNameSignature(name){return categoryBaseName(name).toLowerCase();}
+function normalizeCategoryList(list){
+  const map=new Map();
+  (Array.isArray(list)?list:[]).forEach(c=>{
+    const key=String(c.key||"").trim(), name=categoryCollapseSpaces(c.name||"");
+    if(!key||!name||map.has(key))return;
+    map.set(key,{key,name,name_fr:categoryCollapseSpaces(c.name_fr||""),icon:String(c.icon||categoryIconFor(name)),hidden:c.hidden===true});
   });
+  return [...map.values()].sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));
+}
+
+/*
+ * إصلاح نهائي للتصنيفات:
+ * - التصنيف الأساسي يعتمد على key ثابت، وليس على نسخة موجودة في الملف.
+ * - أي نسخة مثل tools-2 أو "أدوات-2" أو نفس الاسم مع مسافات زائدة تُدمج.
+ * - المنتجات المرتبطة بالنسخ المكررة تُنقل للتصنيف الأساسي قبل حذف النسخة.
+ * - يتم استرجاع التصنيفات الأساسية العربية + الفرنسية في Firestore حتى لا تختفي
+ *   عند تعديل admin.html أو إعادة نشر الموقع.
+ */
+async function consolidateDuplicateCategories(snap){
+  let docs=(snap?.docs||[]).map(d=>({key:d.id,name:categoryCollapseSpaces(d.data()?.name||""),name_fr:categoryCollapseSpaces(d.data()?.name_fr||""),icon:String(d.data()?.icon||""),hidden:d.data()?.hidden===true})).filter(c=>c.key&&c.name);
   let changed=false;
-  for(const [sig,items] of byName){
-    if(items.length<2)continue;
-    // اختيار نسخة أساسية ثابتة دائمًا (لا نتخطى أي مجموعة مكررة): نُفضّل
-    // اسمًا بلا لاحقة رقمية ومعرّفًا بلا لاحقة رقمية، وإلا نأخذ الأقدم أبجديًا.
-    const sorted=[...items].sort((a,b)=>a.key.localeCompare(b.key));
-    const canonical=sorted.find(c=>categoryBaseName(c.name)===c.name && categoryBaseKey(c.key)===c.key.toLowerCase())
-      ||sorted.find(c=>categoryBaseName(c.name)===c.name)
-      ||sorted.find(c=>categoryBaseKey(c.key)===c.key.toLowerCase())
-      ||sorted[0];
-    const duplicates=items.filter(c=>c.key!==canonical.key);
-    if(!duplicates.length)continue;
-    try{
-      const ps=await getDocs(collection(db,"products"));
-      for(const dup of duplicates){
-        await Promise.all(ps.docs
-          .filter(d=>String(d.data()?.category||"")===dup.key)
-          .map(d=>updateDoc(d.ref,{category:canonical.key,updatedAt:serverTimestamp()})));
-        await deleteDoc(doc(db,"categories",dup.key));
-        changed=true;
-      }
-    }catch(e){
-      console.error("category duplicate migration",e);
+  const canonicalByKey=new Map(defaultCategories.map(c=>[c.key,c]));
+
+  // 1) ثبّت التصنيفات الأساسية وأكمل الترجمة الفرنسية الناقصة.
+  for(const base of defaultCategories){
+    const exact=docs.find(c=>c.key===base.key);
+    if(!exact){
+      await setDoc(doc(db,"categories",base.key),{name:base.name,name_fr:base.name_fr,icon:base.icon,createdAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:false});
+      docs.push({...base}); changed=true;
+    }else{
+      const patch={};
+      if(!exact.name_fr)patch.name_fr=base.name_fr;
+      if(!exact.icon)patch.icon=base.icon;
+      if(!exact.name)patch.name=base.name;
+      if(Object.keys(patch).length){patch.updatedAt=serverTimestamp();await setDoc(doc(db,"categories",base.key),patch,{merge:true});Object.assign(exact,patch);changed=true;}
     }
   }
-  return changed ? await getDocs(collection(db,"categories")) : snap;
+
+  // 2) تحديد النسخ المكررة بالـ key أو الاسم العربي/الفرنسي.
+  const groups=new Map();
+  docs.forEach(c=>{
+    const keyBase=categoryBaseKey(c.key);
+    const arSig=categoryNameSignature(c.name);
+    const frSig=categoryNameSignature(c.name_fr);
+    const groupKey=canonicalByKey.has(keyBase)?`key:${keyBase}`:(frSig?`fr:${frSig}`:`ar:${arSig}`);
+    if(!groups.has(groupKey))groups.set(groupKey,[]);
+    groups.get(groupKey).push(c);
+  });
+
+  for(const [groupKey,items] of groups){
+    if(items.length<2)continue;
+    const keyBase=groupKey.startsWith("key:")?groupKey.slice(4):null;
+    const preferred=keyBase&&canonicalByKey.get(keyBase);
+    const sorted=[...items].sort((a,b)=>a.key.localeCompare(b.key));
+    const canonical=(preferred&&items.find(c=>c.key===preferred.key))||
+      sorted.find(c=>categoryBaseKey(c.key)===c.key.toLowerCase())||sorted[0];
+    for(const dup of items){
+      if(dup.key===canonical.key)continue;
+      const ps=await getDocs(collection(db,"products"));
+      const updates=ps.docs.filter(d=>String(d.data()?.category||"")===dup.key)
+        .map(d=>updateDoc(d.ref,{category:canonical.key,updatedAt:serverTimestamp()}));
+      if(updates.length)await Promise.all(updates);
+      await deleteDoc(doc(db,"categories",dup.key));
+      changed=true;
+    }
+  }
+  return {snap:changed?await getDocs(collection(db,"categories")):snap,changed};
+}
+
+async function seedAndRepairCategories(){
+  let snap=await getDocs(collection(db,"categories"));
+  const result=await consolidateDuplicateCategories(snap);
+  snap=result.snap;
+  // تحديث القائمة النهائية بعد الدمج/الحذف، مع إزالة أي key مكرر محليًا أيضًا.
+  categories=normalizeCategoryList(snap.docs.map(d=>({key:d.id,...(d.data()||{})})));
+  return categories;
 }
 
 imageFilesInput?.addEventListener("change",()=>{
@@ -1715,16 +1755,27 @@ function renderCategorySelect(selectedValue){if(!categoryInput)return;const curr
 function renderCategories(){const box=document.getElementById("categoriesList");if(!box)return;if(!categories.length){box.innerHTML='<div class="empty-card">لا توجد فئات حاليًا. أضف فئة جديدة.</div>';renderCategorySelect("");return}box.innerHTML=categories.map(c=>`<div class="category-row"${c.hidden?' style="opacity:.55"':''}><div class="category-info"><span class="category-icon">${esc(c.icon||"🛍️")}</span><div><b>${esc(c.name)}${c.hidden?' <span style="font-weight:400;font-size:11px;color:#c62828">(مخفية)</span>':''}</b>${c.name_fr?`<small style="display:block;color:#888">FR: ${esc(c.name_fr)}</small>`:''}<small>${esc(c.key)}</small></div></div><div class="category-actions"><button class="edit-cat" type="button" style="${c.hidden?'background:#eafaf0;color:#1a7d3c':'background:#fff7e6;color:#a15c00'}" onclick="toggleCategoryVisibility('${esc(c.key)}')">${c.hidden?'👁️ إظهار':'🙈 إخفاء'}</button><button class="edit-cat" type="button" onclick="editCategory('${esc(c.key)}')">✏️ تعديل</button><button class="delete-cat" type="button" onclick="deleteCategory('${esc(c.key)}')">🗑️ حذف</button></div></div>`).join("");renderCategorySelect(categoryInput?.value||"");}
 window.toggleCategoryVisibility=async key=>{const c=categories.find(x=>String(x.key)===String(key));if(!c)return;const newHidden=!c.hidden;try{await setDoc(doc(db,"categories",key),{hidden:newHidden,updatedAt:serverTimestamp()},{merge:true});await loadCategories()}catch(e){console.error(e);alert("تعذر تحديث حالة الفئة: "+(e.message||"خطأ غير معروف"))}};
 async function seedDefaultCategoriesIfNeeded(snap){if(!snap.empty){try{await setDoc(doc(db,"settings","categories"),{initialized:true,updatedAt:serverTimestamp()},{merge:true})}catch(_e){}return snap}let initialized=false;try{initialized=(await getDoc(doc(db,"settings","categories"))).data()?.initialized===true}catch(_e){}if(initialized)return snap;for(const c of defaultCategories)await setDoc(doc(db,"categories",c.key),{name:c.name,icon:c.icon,createdAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:false});try{await setDoc(doc(db,"settings","categories"),{initialized:true,updatedAt:serverTimestamp()},{merge:true})}catch(_e){}return await getDocs(collection(db,"categories"));}
-async function loadCategories(){const box=document.getElementById("categoriesList");try{let snap=await getDocs(collection(db,"categories"));snap=await seedDefaultCategoriesIfNeeded(snap);snap=await consolidateDuplicateCategories(snap);categories=normalizeCategoryList(snap.docs.map(d=>({key:d.id,...(d.data()||{})})));renderCategories()}catch(e){console.error("categories load",e);categories=[];if(box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل التصنيفات. تحقق من اتصال Firebase والصلاحيات.</div>'}}
+async function loadCategories(){
+  const box=document.getElementById("categoriesList");
+  try{
+    await seedAndRepairCategories();
+    renderCategories();
+  }catch(e){
+    console.error("categories load",e);
+    categories=[];
+    if(box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل التصنيفات. تحقق من اتصال Firebase والصلاحيات.</div>';
+  }
+}
 window.openCategoryForm=()=>{document.getElementById("categoryForm")?.classList.remove("hidden");document.getElementById("categoryId").value="";document.getElementById("categoryName").value="";document.getElementById("categoryNameFr").value="";document.getElementById("categoryKey").value="";document.getElementById("categoryIcon").value="🛍️";document.getElementById("categoryName").focus()};
 window.closeCategoryForm=()=>document.getElementById("categoryForm")?.classList.add("hidden");
 window.editCategory=key=>{const c=categories.find(x=>String(x.key)===String(key));if(!c)return;document.getElementById("categoryForm")?.classList.remove("hidden");document.getElementById("categoryId").value=c.key;document.getElementById("categoryName").value=c.name||"";document.getElementById("categoryNameFr").value=c.name_fr||"";document.getElementById("categoryKey").value=c.key||"";document.getElementById("categoryIcon").value=c.icon||categoryIconFor(c.name);document.getElementById("categoryName").focus()};
 window.saveCategory=async()=>{const oldKey=document.getElementById("categoryId").value.trim(),name=document.getElementById("categoryName").value.trim(),name_fr=document.getElementById("categoryNameFr").value.trim(),key=categoryKeySafe(document.getElementById("categoryKey").value.trim()||name),icon=document.getElementById("categoryIcon").value.trim()||categoryIconFor(name),status=document.getElementById("categoryStatus");if(!name||!key){if(status){status.textContent="اكتب اسم الفئة والمعرّف.";status.className="status err"}return}try{const existing=await getDoc(doc(db,"categories",key));if(existing.exists()&&key!==oldKey){if(status){status.textContent="هذا المعرّف موجود مسبقًا. اختر معرّفًا آخر.";status.className="status err"}return}
   const all=await getDocs(collection(db,"categories"));
-  const sig=categoryNameSignature(name);
-  const duplicate=all.docs.map(d=>({key:d.id,name:String(d.data()?.name||"").trim()}))
-    .find(c=>c.key!==oldKey&&categoryNameSignature(c.name)===sig&&c.name);
-  if(duplicate){if(status){status.textContent=`يوجد تصنيف بنفس الاسم: «${duplicate.name}». تم منع التكرار.`;status.className="status err"}return}
+  const arSig=categoryNameSignature(name);
+  const frSig=categoryNameSignature(name_fr);
+  const duplicate=all.docs.map(d=>({key:d.id,name:String(d.data()?.name||"").trim(),name_fr:String(d.data()?.name_fr||"").trim()}))
+    .find(c=>c.key!==oldKey && ((c.name && categoryNameSignature(c.name)===arSig) || (name_fr && c.name_fr && categoryNameSignature(c.name_fr)===frSig)));
+  if(duplicate){if(status){status.textContent=`يوجد تصنيف مكرر: «${duplicate.name}». تم منع التكرار.`;status.className="status err"}return}
   if(oldKey&&oldKey!==key){await setDoc(doc(db,"categories",key),{name,name_fr,icon,updatedAt:serverTimestamp()},{merge:false});const ps=await getDocs(collection(db,"products"));await Promise.all(ps.docs.filter(d=>String(d.data()?.category||"")===oldKey).map(d=>updateDoc(d.ref,{category:key,updatedAt:serverTimestamp()})));await deleteDoc(doc(db,"categories",oldKey))}else await setDoc(doc(db,"categories",key),{name,name_fr,icon,updatedAt:serverTimestamp()},{merge:true});await loadCategories();closeCategoryForm();if(status){status.textContent="تم حفظ الفئة بنجاح ✅";status.className="status ok"}}catch(e){console.error(e);if(status){status.textContent="تعذر حفظ الفئة: "+(e.message||"خطأ غير معروف");status.className="status err"}}};
 window.deleteCategory=async key=>{const c=categories.find(x=>String(x.key)===String(key));if(!c||!confirm("حذف الفئة «"+c.name+"»؟\nلن يتم حذف المنتجات التابعة لها."))return;try{await deleteDoc(doc(db,"categories",key));const ps=await getDocs(collection(db,"products"));await Promise.all(ps.docs.filter(d=>String(d.data()?.category||"")===String(key)).map(d=>updateDoc(d.ref,{category:"",updatedAt:serverTimestamp()})));await loadCategories()}catch(e){console.error(e);alert("تعذر حذف الفئة: "+(e.message||"خطأ غير معروف"))}};
 
