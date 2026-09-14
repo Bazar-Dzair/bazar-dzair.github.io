@@ -1067,28 +1067,21 @@ const orderPayload={
   shippingCompany: carrierNames,
   total: total
 };
-// ✅ الكتابة تتم من المتصفح مباشرة فـ Firestore، لكن firestore.rules هي من تتحقق
-// فعليًا وتفرض كل الشروط (شكل البيانات، صحة رقم الهاتف، أن الرقم غير محظور، وأن
-// السعر يطابق سعر المنتج الحقيقي المخزّن فعليًا) — لا يمكن لأي عميل (حتى لو عدّل
-// الكود من جهته) تجاوز هذه الشروط، لأنها مفروضة من جهة الخادم (Firestore) نفسها.
-const {addDoc,collection,serverTimestamp}=await getFirebase();
-const db=window.__bazarDb;
-if(!db){throw new Error(pt("db_connect_error"))}
-try{
-  await addDoc(collection(db,"orders"),{...orderPayload,status:"جديد",createdAt:serverTimestamp()});
-}catch(fireErr){
-  console.error("firestore order write failed:",fireErr);
-  const e=new Error(pt("order_write_failed"));
-  e.userMessage=(fireErr&&fireErr.code==="permission-denied")?pt("order_write_failed_detail"):pt("order_write_failed_generic");
-  throw e;
-}
-// ✅ إشعار Telegram فقط — لا يفشل تسجيل الطلب لو تعطّل هذا الاستدعاء، لأن الطلب
-// سُجّل فعليًا فـ Firestore أعلاه (وهذا ما يظهره لوحة التحكم).
-fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/create-order",{
+// ✅ تسجيل الطلب يتم عبر Cloudflare Worker فقط.
+// لا نكتب من المتصفح مباشرة إلى Firestore حتى لا نصطدم بصلاحيات Firestore
+// ولمنع العميل من تجاوز التحقق الموجود في Worker.
+const workerResponse=await fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/create-order",{
   method:"POST",
   headers:{"Content-Type":"application/json"},
   body:JSON.stringify(orderPayload)
-}).catch(()=>{});
+});
+let workerData=null;
+try{workerData=await workerResponse.json();}catch(_e){}
+if(!workerResponse.ok || !workerData || workerData.ok!==true){
+  const e=new Error(pt("order_write_failed"));
+  e.userMessage=workerData&&workerData.error?String(workerData.error):pt("order_write_failed_generic");
+  throw e;
+}
 try{
   const addonsCfg=window.__bazarAddons||{};
   const gs=addonsCfg.googleSheets||{};
@@ -1281,6 +1274,33 @@ async function load(){
     const app=initializeApp(firebaseConfig);
     const db=getFirestore(app);
     window.__bazarDb=db;
+
+    // تحميل المنتج مباشرة بالـ slug أولاً بدل تنزيل كل Collection products.
+    // هذا يقلل زمن فتح صفحة المنتج ويمنع المشكلة من التفاقم مع زيادة عدد المنتجات.
+    async function restFindProductByField(field, value){
+      const url=`https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents:runQuery`;
+      const body={structuredQuery:{from:[{collectionId:"products"}],where:{fieldFilter:{field:{fieldPath:field},op:"EQUAL",value:{stringValue:String(value)}}},limit:1}};
+      const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),cache:"no-store"});
+      if(!r.ok) throw new Error("REST product query failed");
+      const rows=await r.json();
+      const found=Array.isArray(rows)?rows.find(x=>x&&x.document):null;
+      if(!found) return null;
+      const d=found.document;
+      const fields=d.fields||{};
+      const decodeValue=v=>{
+        if(!v) return null;
+        if(v.stringValue!==undefined)return v.stringValue;
+        if(v.integerValue!==undefined)return Number(v.integerValue);
+        if(v.doubleValue!==undefined)return Number(v.doubleValue);
+        if(v.booleanValue!==undefined)return v.booleanValue;
+        if(v.timestampValue!==undefined)return v.timestampValue;
+        if(v.arrayValue)return (v.arrayValue.values||[]).map(decodeValue);
+        if(v.mapValue)return Object.fromEntries(Object.entries(v.mapValue.fields||{}).map(([k,val])=>[k,decodeValue(val)]));
+        return null;
+      };
+      const data=Object.fromEntries(Object.entries(fields).map(([k,v])=>[k,decodeValue(v)]));
+      return {...data,firestoreId:(d.name||"").split("/").pop()};
+    }
     loadShippingRatesData(db).then(()=>{ if(document.getElementById("wilaya").value) updateTotal(); });
     let p=null;
     if(id){
@@ -1295,12 +1315,24 @@ async function load(){
       }
       if(!p){
         const wanted=decodeURIComponent(id);
-        const all=await getDocs(collection(db,"products"));
-        all.forEach(snap=>{
-          if(p)return;
-          const data=snap.data();
-          if(productSlug(data.name||data.product)===wanted || String(data.name||data.product||"").toLowerCase()===wanted.toLowerCase()) p={...data,firestoreId:snap.id};
-        });
+        // معظم الروابط مبنية من اسم المنتج؛ نجرب استعلامًا مباشرًا بدل تنزيل كل المنتجات.
+        const candidates=[wanted.replace(/-/g," "),wanted];
+        for(const candidate of candidates){
+          try{ p=await restFindProductByField("name",candidate); }catch(_e){}
+          if(p) break;
+          try{ p=await restFindProductByField("product",candidate); }catch(_e){}
+          if(p) break;
+        }
+        // توافق مع المنتجات القديمة التي لا يمكن مطابقة slug الخاص بها مباشرة.
+        // لا نستخدم هذا المسار إلا كحل أخير.
+        if(!p){
+          const all=await getDocs(collection(db,"products"));
+          all.forEach(snap=>{
+            if(p)return;
+            const data=snap.data();
+            if(productSlug(data.name||data.product)===wanted || String(data.name||data.product||"").toLowerCase()===wanted.toLowerCase()) p={...data,firestoreId:snap.id};
+          });
+        }
       }
     }
     if(p){
