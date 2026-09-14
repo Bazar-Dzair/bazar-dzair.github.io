@@ -809,20 +809,27 @@ if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.fires
 const available=p.published!==false;
 // ===== تقييم المنتج: لا نعرض أي شيء إلا إذا توفرت بيانات تقييم حقيقية في المنتج (لا نختلق أرقامًا). =====
 function getRatingInfo(prod){
-  // دعم كل الصيغ التي تستعملها لوحة التحكم والبيانات القديمة.
+  // التقييمات الحقيقية داخل reviews لها الأولوية، ثم حقول التقييم المجمّع من لوحة التحكم.
+  const reviews=Array.isArray(prod.reviews)?prod.reviews:[];
+  const ratedReviews=reviews.map(r=>Number(r?.ratingValue??r?.rating??r?.stars)).filter(v=>Number.isFinite(v)&&v>=1&&v<=5);
+  if(ratedReviews.length){
+    const avg=ratedReviews.reduce((a,b)=>a+b,0)/ratedReviews.length;
+    return {value:Math.round(avg*10)/10,count:reviews.length||ratedReviews.length};
+  }
   const rating=prod.aggregateRating||prod.rating||{};
   const rawValue=rating.ratingValue??rating.value??prod.reviewRating??prod.ratingValue;
   const rawCount=rating.reviewCount??rating.count??prod.reviewCount??prod.ratingCount;
   const value=Number(rawValue);
   const count=Number(rawCount);
-  if(Number.isFinite(value)&&value>=1&&value<=5&&Number.isFinite(count)&&count>0) return {value:value,count:count};
+  if(Number.isFinite(value)&&value>=1&&value<=5&&Number.isFinite(count)&&count>0) return {value:Math.round(value*10)/10,count:Math.floor(count)};
   return null;
 }
 function starsHtml(value){
   const filled=Math.max(0,Math.min(5,Math.round(Number(value)||0)));
   return "★".repeat(filled)+"☆".repeat(5-filled);
 }
-const ratingInfo=getRatingInfo(p);
+const showReviews = p.showReviews !== false;
+const ratingInfo=showReviews?getRatingInfo(p):null;
 
 // ===== السعر القديم ونسبة التخفيض: تُعرض فقط إذا كانت موجودة فعليًا في بيانات المنتج. =====
 const oldPriceRaw=p.oldPrice??p.old_price??p.compareAtPrice??p.compare_at_price??null;
@@ -881,14 +888,19 @@ const featureLines=rawSpecs.map(x=>{
 const reviewsCard=document.getElementById("reviewsCard");
 const descCard=document.getElementById("descCard");
 const allReviews=Array.isArray(p.reviews)?p.reviews:[];
-const validReviewsForUI=allReviews.filter(r=>r&&String(r.text||r.reviewBody||r.comment||"").trim()&&String(r.author||r.authorName||r.name||"").trim());
+const validReviewsForUI=showReviews?allReviews.filter(r=>{
+  if(!r) return false;
+  const text=String(r.text??r.reviewBody??r.comment??r.content??"").trim();
+  const author=String(r.author??r.authorName??r.name??r.customerName??r.displayName??r.userName??"").trim();
+  return !!(text||author);
+}):[];
 if(descCard){
   const counts={5:0,4:0,3:0,2:0,1:0};
-  validReviewsForUI.forEach(r=>{const v=Math.round(Number(r.ratingValue));if(v>=1&&v<=5)counts[v]++;});
+  validReviewsForUI.forEach(r=>{const v=Math.round(Number(r.ratingValue??r.rating??r.stars));if(v>=1&&v<=5)counts[v]++;});
   const maxCount=Math.max(1,...Object.values(counts));
   const barsHtml=[5,4,3,2,1].map(n=>`<div class="bar-row"><span class="bar-n">${n}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(counts[n]/maxCount*100)}%"></div></div><span class="bar-label">${n} ★</span></div>`).join("");
   const summaryHtml=ratingInfo?`<div class="rating-summary"><div class="rs-value">${ratingInfo.value}</div><div class="rs-outof">${esc(pt("out_of_5"))}</div><div class="rs-stars">${starsHtml(ratingInfo.value)}</div>${barsHtml}</div>`:"";
-  const reviewCardHtml=r=>{const rv=Number(r.ratingValue??r.rating??r.stars);const date=r.datePublished||r.date||r.createdAt||r.created_at||"";return `<div class="review-card"><div class="review-head"><span class="review-avatar">👤</span><span class="review-name">${esc(String(r.author||r.authorName||r.name))}</span>${Number.isFinite(rv)&&rv>=1&&rv<=5?`<span class="review-stars">${starsHtml(rv)}</span>`:""}</div><p class="review-text">${esc(String(r.text||r.reviewBody||r.comment))}</p>${date?`<span class="review-date">${esc(String(date))}</span>`:""}</div>`};
+  const reviewCardHtml=r=>{const rv=Number(r.ratingValue??r.rating??r.stars);const date=r.datePublished||r.date||r.createdAt||r.created_at||"";const author=String(r.author??r.authorName??r.name??r.customerName??r.displayName??r.userName??"زبون").trim()||"زبون";const text=String(r.text??r.reviewBody??r.comment??r.content??"").trim();return `<div class="review-card"><div class="review-head"><span class="review-avatar">👤</span><span class="review-name">${esc(author)}</span>${Number.isFinite(rv)&&rv>=1&&rv<=5?`<span class="review-stars">${starsHtml(rv)}</span>`:""}</div>${text?`<p class="review-text">${esc(text)}</p>`:""}${date?`<span class="review-date">${esc(String(date))}</span>`:""}</div>`};
   const shownReviews=validReviewsForUI.slice(0,3), restReviews=validReviewsForUI.slice(3);
   const reviewsPane=(ratingInfo||validReviewsForUI.length)?`<div id="reviewsPane" class="review-panel"><div class="review-layout">${summaryHtml}<div class="review-list">${shownReviews.map(reviewCardHtml).join("")}<div id="moreReviews" style="display:none">${restReviews.map(reviewCardHtml).join("")}</div>${restReviews.length?`<button type="button" class="reviews-more" id="toggleAllReviewsBtn" onclick="toggleAllReviews()">${esc(pt("view_all_reviews"))} (${validReviewsForUI.length})</button>`:""}</div></div></div>`:`<div id="reviewsPane" class="review-panel"><div class="reviews-empty">⭐ ${esc(pt("reviews_tab_label"))}<br><span style="font-size:12px">لا توجد تقييمات منشورة لهذا المنتج بعد.</span></div></div>`;
   const intro=descLines.length?descLines[0]:desc;
@@ -912,13 +924,6 @@ window.switchDetailsTab=tab=>{
 };
 window.toggleAllReviews=()=>{const more=document.getElementById("moreReviews"),btn=document.getElementById("toggleAllReviewsBtn");if(!more||!btn)return;const hidden=more.style.display==="none";more.style.display=hidden?"block":"none";btn.textContent=hidden?"إخفاء التقييمات":pt("view_all_reviews")+" ("+validReviewsForUI.length+")";};
 maybeAutoTranslateDescription(p);}
-window.toggleAllReviews=()=>{
-  const more=document.getElementById("moreReviews");
-  const btn=document.getElementById("toggleAllReviewsBtn");
-  if(!more||!btn)return;
-  const isHidden=more.style.display==="none";
-  more.style.display=isHidden?"block":"none";
-};
 window.toggleDescription=()=>{
   const pane=document.getElementById("descriptionPane");
   const btn=document.getElementById("descMoreBtn");
@@ -1147,10 +1152,10 @@ function applyProductSEO(p,name,desc){
 
   // نضيف review فقط إذا كان المنتج يحتوي على مراجعة حقيقية محفوظة.
   const reviews = Array.isArray(p.reviews) ? p.reviews : [];
-  const validReviews = reviews.filter(r =>
+  const validReviews = (p.showReviews !== false ? reviews : []).filter(r =>
     r &&
-    String(r.text || r.reviewBody || r.comment || "").trim() &&
-    String(r.author || r.authorName || r.name || "").trim()
+    String(r.text || r.reviewBody || r.comment || r.content || "").trim() &&
+    String(r.author || r.authorName || r.name || r.customerName || r.displayName || r.userName || "").trim()
   );
 
   if(validReviews.length){
@@ -1158,9 +1163,9 @@ function applyProductSEO(p,name,desc){
       "@type":"Review",
       "author":{
         "@type":"Person",
-        "name":String(r.author || r.authorName).trim()
+        "name":String(r.author || r.authorName || r.name || r.customerName || r.displayName || r.userName).trim()
       },
-      "datePublished":String(r.datePublished),
+      ...(r.datePublished ? {"datePublished":String(r.datePublished)} : {}),
       "reviewBody":String(r.text || r.reviewBody).trim(),
       ...(Number.isFinite(Number(r.ratingValue)) ? {
         "reviewRating":{
