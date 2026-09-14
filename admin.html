@@ -1451,25 +1451,27 @@ window.bazarDb=db;window.bazarDoc=doc;window.bazarSetDoc=setDoc;window.bazarGetD
 const CLOUDINARY_CLOUD_NAME="ehh5xqwc";
 const CLOUDINARY_UPLOAD_PRESET="bazar_dzair";
 async function uploadToCloudinary(blob){
-  const fd=new FormData();
-  fd.append("file",blob);
-  fd.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
-  const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),25000);
-  let res;
-  try{
-    res=await fetch("https://api.cloudinary.com/v1_1/"+CLOUDINARY_CLOUD_NAME+"/image/upload",{method:"POST",body:fd,signal:controller.signal});
-  }catch(e){
-    if(e.name==="AbortError") throw new Error("انتهت مهلة رفع الصورة (25 ثانية). تحقق من الاتصال بالإنترنت.");
-    throw e;
-  }finally{ clearTimeout(timeout); }
-  let json;
-  try{ json=await res.json(); }catch(_e){ throw new Error("رد غير صالح من خدمة رفع الصور."); }
-  if(!res.ok||!json||!json.secure_url){
-    const msg=json&&json.error&&json.error.message?json.error.message:("فشل الرفع (HTTP "+res.status+"). تحقق من إعدادات Cloudinary (Cloud name / Upload preset).");
-    throw new Error(msg);
+  // رفع أكثر تحملاً لشبكات الهاتف: مهلة 60 ثانية + محاولتان تلقائيتان عند انقطاع الشبكة.
+  let lastError=null;
+  for(let attempt=1;attempt<=2;attempt++){
+    const fd=new FormData();
+    fd.append("file",blob, "product-image.jpg");
+    fd.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),60000);
+    try{
+      const res=await fetch("https://api.cloudinary.com/v1_1/"+CLOUDINARY_CLOUD_NAME+"/image/upload",{method:"POST",body:fd,signal:controller.signal});
+      let json=null;
+      try{ json=await res.json(); }catch(_e){}
+      if(res.ok&&json&&json.secure_url) return json.secure_url;
+      const msg=json&&json.error&&json.error.message?json.error.message:("فشل الرفع (HTTP "+res.status+")");
+      lastError=new Error(msg);
+    }catch(e){
+      lastError=e.name==="AbortError"?new Error("انتهت مهلة رفع الصورة (60 ثانية). تحقق من الاتصال بالإنترنت."):e;
+    }finally{ clearTimeout(timeout); }
+    if(attempt<2) await new Promise(r=>setTimeout(r,1200));
   }
-  return json.secure_url;
+  throw lastError||new Error("فشل رفع الصورة.");
 }
 
 const loginBox=document.getElementById("login");
@@ -2377,14 +2379,14 @@ window.save=async()=>{
     const worker=async()=>{
       while(tasks.length){
         const t=tasks.shift();
-        const blob=await compressImageToBlob(t.file,1000,0.7);
+        const blob=await compressImageToBlob(t.file,900,0.62);
         uploaded[t.i]=await uploadToCloudinary(blob);
         done++;
         if(progressBar)progressBar.style.width=Math.round(done/Math.max(1,done+tasks.length)*100)+"%";
       }
     };
-    // ثلاث عمليات فقط في نفس الوقت: أسرع بكثير من الرفع المتتابع، بدون ضغط Cloudinary.
-    await Promise.all(Array.from({length:Math.min(3,tasks.length)},()=>worker()));
+    // عمليتان فقط بالتوازي: أفضل على الهاتف والاتصال الضعيف، مع إعادة المحاولة تلقائياً.
+    await Promise.all(Array.from({length:Math.min(2,tasks.length)},()=>worker()));
     if(progressBar)progressBar.style.width="100%";
     setTimeout(()=>progress?.classList.remove("show"),500);
   }catch(e){
