@@ -1254,83 +1254,93 @@ function applyProductSEO(p,name,desc){
 }
 async function load(){
   let cachedProduct=null;
+  let firestoreVerified=false;
+  const wantedId=decodeURIComponent(id||"").trim();
+  const slugValue=productSlug(wantedId.replace(/-/g," "))||wantedId;
+
+  // 1) اعرض النسخة المخزنة فورًا إذا كانت مطابقة للرابط.
   try{
     const cp=JSON.parse(localStorage.getItem("bazar_selected_product")||"null");
-    if(cp && (!id || productSlug(cp.name||cp.product)===decodeURIComponent(id) || cp.firestoreId===id)) cachedProduct=cp;
+    if(cp && (!wantedId || productSlug(cp.name||cp.product)===wantedId || cp.firestoreId===wantedId)) cachedProduct=cp;
   }catch(_e){}
   if(cachedProduct) render(cachedProduct);
 
+  // 2) fallback سريع من صفحة SEO الثابتة. هذا يمنع بقاء صفحة المنتج فارغة
+  // إذا تأخر Firebase أو فشل اتصال Firestore مؤقتًا. لا نعتبره مصدرًا موثوقًا
+  // لتأكيد الطلب؛ التفعيل الكامل للطلب ينتظر التحقق من Firestore.
+  async function loadSeoSnapshot(){
+    if(!wantedId) return null;
+    try{
+      const basePath=location.pathname.includes('/product/')?location.pathname.split('/product/')[0]+'/':'/';
+      const url=basePath+'product/'+encodeURIComponent(wantedId)+'/';
+      const r=await fetch(url,{cache:'no-store'});
+      if(!r.ok) return null;
+      const html=await r.text();
+      const docHtml=new DOMParser().parseFromString(html,'text/html');
+      const jsonEl=docHtml.querySelector('#bazar_product_jsonld');
+      let json=null;
+      try{json=jsonEl?JSON.parse(jsonEl.textContent||'{}'):null}catch(_e){}
+      const name=json?.name || docHtml.querySelector('h1.title')?.textContent?.trim();
+      if(!name) return null;
+      const price=Number(json?.offers?.price || (docHtml.querySelector('.price')?.textContent||'').replace(/[^0-9.]/g,''));
+      const desc=json?.description || docHtml.querySelector('.desc')?.textContent?.trim() || '';
+      const images=[...docHtml.querySelectorAll('#productThumbs img,#mainProductPhoto')].map(x=>x.getAttribute('src')).filter(Boolean);
+      const first=images[0] || json?.image?.[0] || '';
+      const p={name,price:Number.isFinite(price)?price:0,description:desc,image:first,images:[...new Set(images.length?images:[first].filter(Boolean))],published:true,stock:1,showReviews:false,firestoreId:'',__seoSnapshot:true};
+      return p;
+    }catch(_e){return null;}
+  }
+
+  // 3) ابدأ fallback وFirestore معًا بدل انتظار مصدر واحد.
+  const seoPromise=loadSeoSnapshot();
+  let seoShown=false;
+  seoPromise.then(p=>{
+    if(p && !firestoreVerified){seoShown=true;render(p);}
+  }).catch(()=>{});
+
   try{
-    const {initializeApp,getFirestore,doc,getDoc,collection,getDocs}=await getFirebase();
+    const {initializeApp,getFirestore,doc,getDoc,collection,getDocs,query,where,limit}=await getFirebase();
     const app=initializeApp(firebaseConfig);
     const db=getFirestore(app);
     window.__bazarDb=db;
+    loadShippingRatesData(db).then(()=>{ if(document.getElementById("wilaya").value) updateTotal(); }).catch(()=>{});
 
-    // تحميل المنتج مباشرة بالـ slug أولاً بدل تنزيل كل Collection products.
-    // هذا يقلل زمن فتح صفحة المنتج ويمنع المشكلة من التفاقم مع زيادة عدد المنتجات.
-    async function restFindProductByField(field, value){
-      const url=`https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents:runQuery`;
-      const body={structuredQuery:{from:[{collectionId:"products"}],where:{fieldFilter:{field:{fieldPath:field},op:"EQUAL",value:{stringValue:String(value)}}},limit:1}};
-      const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),cache:"no-store"});
-      if(!r.ok) throw new Error("REST product query failed");
-      const rows=await r.json();
-      const found=Array.isArray(rows)?rows.find(x=>x&&x.document):null;
-      if(!found) return null;
-      const d=found.document;
-      const fields=d.fields||{};
-      const decodeValue=v=>{
-        if(!v) return null;
-        if(v.stringValue!==undefined)return v.stringValue;
-        if(v.integerValue!==undefined)return Number(v.integerValue);
-        if(v.doubleValue!==undefined)return Number(v.doubleValue);
-        if(v.booleanValue!==undefined)return v.booleanValue;
-        if(v.timestampValue!==undefined)return v.timestampValue;
-        if(v.arrayValue)return (v.arrayValue.values||[]).map(decodeValue);
-        if(v.mapValue)return Object.fromEntries(Object.entries(v.mapValue.fields||{}).map(([k,val])=>[k,decodeValue(val)]));
-        return null;
-      };
-      const data=Object.fromEntries(Object.entries(fields).map(([k,v])=>[k,decodeValue(v)]));
-      return {...data,firestoreId:(d.name||"").split("/").pop()};
-    }
-    loadShippingRatesData(db).then(()=>{ if(document.getElementById("wilaya").value) updateTotal(); });
     let p=null;
-    if(id){
-      // الروابط الجديدة هي slug؛ لا نرسل طلب Firestore إضافي لها.
-      // نحتفظ بـ getDoc فقط للروابط القديمة التي كانت تحتوي على Firestore ID.
-      const isLegacyFirestoreId=/^[A-Za-z0-9]{20}$/.test(id);
-      if(isLegacyFirestoreId){
+    if(wantedId){
+      // أولوية 1: slug محفوظ في المنتج، إذا كان موجودًا.
+      const lookups=[
+        ["slug",wantedId],
+        ["name",wantedId.replace(/-/g," ")],
+        ["product",wantedId.replace(/-/g," ")]
+      ];
+      for(const [field,value] of lookups){
         try{
-          const snap=await getDoc(doc(db,"products",id));
-          if(snap.exists()) p={...snap.data(),firestoreId:snap.id};
-        }catch(e){}
+          const q=query(collection(db,"products"),where(field,"==",value),limit(1));
+          const snap=await getDocs(q);
+          if(!snap.empty){const d=snap.docs[0];p={...d.data(),firestoreId:d.id};break;}
+        }catch(_e){}
       }
+
+      // أولوية 2: توافق مع المنتجات القديمة: قراءة collection مرة واحدة فقط.
+      // لا نستخدم REST runQuery لأنه قد يفشل في بعض البيئات بدون إعداد API مناسب.
       if(!p){
-        const wanted=decodeURIComponent(id);
-        // معظم الروابط مبنية من اسم المنتج؛ نجرب استعلامًا مباشرًا بدل تنزيل كل المنتجات.
-        const candidates=[wanted.replace(/-/g," "),wanted];
-        for(const candidate of candidates){
-          try{ p=await restFindProductByField("name",candidate); }catch(_e){}
-          if(p) break;
-          try{ p=await restFindProductByField("product",candidate); }catch(_e){}
-          if(p) break;
-        }
-        // توافق مع المنتجات القديمة التي لا يمكن مطابقة slug الخاص بها مباشرة.
-        // لا نستخدم هذا المسار إلا كحل أخير.
-        if(!p){
+        try{
           const all=await getDocs(collection(db,"products"));
           all.forEach(snap=>{
             if(p)return;
-            const data=snap.data();
-            if(productSlug(data.name||data.product)===wanted || String(data.name||data.product||"").toLowerCase()===wanted.toLowerCase()) p={...data,firestoreId:snap.id};
+            const data=snap.data()||{};
+            const nm=String(data.name||data.product||"");
+            if(productSlug(nm)===wantedId || nm.trim().toLowerCase()===wantedId.toLowerCase()) p={...data,firestoreId:snap.id};
           });
-        }
+        }catch(_e){}
       }
     }
+
     if(p){
+      firestoreVerified=true;
+      p.__seoSnapshot=false;
       try{localStorage.setItem("bazar_selected_product",JSON.stringify(p));}catch(_e){}
       render(p);
-      // جلب التصنيف من Firestore حتى يظهر اسم التصنيف الصحيح حتى لو كان
-      // المفتاح مختلفًا عن الاسم (أو إذا كان التصنيف مخصصًا من لوحة التحكم).
       try{
         const catValue=String(p.category||"").trim();
         if(catValue){
@@ -1338,33 +1348,38 @@ async function load(){
           if(catSnap.exists()){
             const cd=catSnap.data()||{};
             const catName=String(cd.name||"").trim();
-            const catFr=String(cd.name_fr||"").trim();
             const catKey=catSnap.id;
-            const aliasKey=catKey||catValue;
             const crumb=document.getElementById("crumb");
-            if(crumb && catName){
-              const parentMap={
-                electronics:"أدوات وملحقاتها", phones:"أدوات وملحقاتها", laptops:"أدوات وملحقاتها",
-                tools:"أدوات وملحقاتها", home:"المنزل والمطبخ", clothes:"ملابس وأحذية", beauty:"صحة وجمال",
-                women:"معدات نسوية", jewelry:"مجوهرات وإكسسوارات نسائية", baby:"مستلزمات الأطفال والرضع",
-                medical:"أدوات طبية", carparts:"قطع غيار السيارات", summer:"منتجات الصيف", shaving:"آلات الحلاقة",
-                gifts:"هدايا متنوعة", library:"مكتبة", realestate:"عقارات وأراضي", clearance:"تصفية مخزون", misc:"منتجات متنوعة"
-              };
-              const parent=parentMap[aliasKey]||"";
+            if(crumb&&catName){
+              const parentMap={electronics:"أدوات وملحقاتها",phones:"أدوات وملحقاتها",laptops:"أدوات وملحقاتها",tools:"أدوات وملحقاتها",home:"المنزل والمطبخ",clothes:"ملابس وأحذية",beauty:"صحة وجمال",women:"معدات نسوية",jewelry:"مجوهرات وإكسسوارات نسائية",baby:"مستلزمات الأطفال والرضع",medical:"أدوات طبية",carparts:"قطع غيار السيارات",summer:"منتجات الصيف",shaving:"آلات الحلاقة",gifts:"هدايا متنوعة",library:"مكتبة",realestate:"عقارات وأراضي",clearance:"تصفية مخزون",misc:"منتجات متنوعة"};
+              const parent=parentMap[catKey]||"";
               const parts=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`];
-              if(parent) parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(parent)}</span>`);
+              if(parent)parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(parent)}</span>`);
               parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(catName)}</span>`);
               crumb.innerHTML=parts.join("");
             }
           }
         }
-      }catch(_catErr){ /* يبقى التصنيف الاحتياطي الظاهر */ }
+      }catch(_catErr){}
     }else if(!cachedProduct){
-      box.innerHTML='<div class="error"><h2>'+esc(pt("product_not_found_title"))+'</h2><p>'+esc(pt("product_not_found_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
+      const seo=await seoPromise;
+      if(seo){
+        seo.__seoSnapshot=true;
+        render(seo);
+        // إبقاء الشراء معطلًا حتى يتم التحقق من المنتج في Firestore.
+      }else{
+        box.innerHTML='<div class="error"><h2>'+esc(pt("product_not_found_title"))+'</h2><p>'+esc(pt("product_not_found_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
+        document.getElementById("checkout")?.classList.remove("show");
+        document.getElementById("stickyBuy")?.classList.remove("show");
+      }
     }
   }catch(e){
     console.error(e);
-    if(!cachedProduct) box.innerHTML='<div class="error"><h2>'+esc(pt("product_load_failed_title"))+'</h2><p>'+esc(pt("product_load_failed_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
+    if(!cachedProduct){
+      const seo=await seoPromise.catch(()=>null);
+      if(seo){seo.__seoSnapshot=true;render(seo);}
+      else box.innerHTML='<div class="error"><h2>'+esc(pt("product_load_failed_title"))+'</h2><p>'+esc(pt("product_load_failed_desc"))+'</p><button class="back" type="button" onclick="location.reload()">إعادة المحاولة</button></div>';
+    }
   }
 }
 load();
