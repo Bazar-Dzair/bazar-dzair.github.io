@@ -506,7 +506,7 @@
 </section>
 
 <section id="view-blocked" class="view hidden"><div class="page-head"><div><h1>أرقام محظورة</h1><p>هذه الأرقام لا يمكنها تسجيل أي طلب جديد فالمتجر.</p></div></div><div class="panel"><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>رقم الهاتف<input id="blockPhoneInput" placeholder="مثال: 0551234567" inputmode="tel"></label></div><div class="form-actions"><button class="green" type="button" onclick="window.blockPhoneManual()">🚫 حظر هذا الرقم</button></div></div><div id="blockedList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الأرقام المحظورة...</div></div></div></section>
-<section id="view-categories" class="view hidden"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><div style="display:flex;gap:8px"><button class="gray" type="button" onclick="window.mergeDuplicateCategoriesNow()">🗑️ حذف التصنيفات المكررة نهائيًا</button><button class="orange-btn" type="button" onclick="openCategoryForm()">＋ إضافة فئة</button></div></div><div class="panel"><div id="categoryMergeStatus" class="status hidden" style="margin-bottom:12px"></div><div id="categoryForm" class="category-form hidden"><input id="categoryId" type="hidden"><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"></label><label>اسم الفئة بالفرنسية (اختياري)<input id="categoryNameFr" placeholder="مثال: Outils"></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"></label><label>الأيقونة<input id="categoryIcon" placeholder="🔧" maxlength="4"></label></div><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا.</small><div class="form-actions"><button class="green" type="button" onclick="saveCategory()">💾 حفظ الفئة</button><button class="gray" type="button" onclick="closeCategoryForm()">إلغاء</button></div><div id="categoryStatus" class="status hidden"></div></div><div id="categoriesList" class="categories-list"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
+<section id="view-categories" class="view hidden"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><button class="orange-btn" type="button" onclick="openCategoryForm()">＋ إضافة فئة</button></div><div class="panel"><div id="categoryForm" class="category-form hidden"><input id="categoryId" type="hidden"><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"></label><label>اسم الفئة بالفرنسية (اختياري)<input id="categoryNameFr" placeholder="مثال: Outils"></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"></label><label>الأيقونة<input id="categoryIcon" placeholder="🔧" maxlength="4"></label></div><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا.</small><div class="form-actions"><button class="green" type="button" onclick="saveCategory()">💾 حفظ الفئة</button><button class="gray" type="button" onclick="closeCategoryForm()">إلغاء</button></div><div id="categoryStatus" class="status hidden"></div></div><div id="categoriesList" class="categories-list"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
 
 <section id="view-shipping-rates" class="view hidden">
   <div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر وشركة التوصيل لكل ولاية من ولايات الجزائر (58 ولاية المعتمدة في المتجر) — قسمان منفصلان: باب الدار والمكتب.</p></div><button class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button></div>
@@ -1450,35 +1450,38 @@ window.bazarDb=db;window.bazarDoc=doc;window.bazarSetDoc=setDoc;window.bazarGetD
 // استبداله بـ Cloudinary (Unsigned Upload Preset — لا حاجة لأي مفتاح سري في الكود).
 const CLOUDINARY_CLOUD_NAME="ehh5xqwc";
 const CLOUDINARY_UPLOAD_PRESET="bazar_dzair";
-async function uploadToCloudinary(blob){
-  // رفع أكثر تحملاً لشبكات الهاتف: 3 محاولات، مهلة 30 ثانية لكل محاولة
-  // (بدل محاولتين بمهلة 60 ثانية) حتى لا ينتظر المستخدم دقيقتين كاملتين
-  // قبل أن يظهر له أي خطأ، ورسالة أوضح تفرّق بين مشكلة الشبكة وخطأ الخادم.
-  let lastError=null;
-  for(let attempt=1;attempt<=3;attempt++){
-    const fd=new FormData();
-    fd.append("file",blob, "product-image.jpg");
-    fd.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
-    const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),30000);
-    try{
-      const res=await fetch("https://api.cloudinary.com/v1_1/"+CLOUDINARY_CLOUD_NAME+"/image/upload",{method:"POST",body:fd,signal:controller.signal});
-      let json=null;
-      try{ json=await res.json(); }catch(_e){}
-      if(res.ok&&json&&json.secure_url) return json.secure_url;
-      // خطأ صريح من Cloudinary (مثلاً Upload Preset غير موجود أو غير Unsigned):
-      // لا فائدة من إعادة المحاولة لأن النتيجة لن تتغير، فنوقف فورًا برسالة دقيقة.
-      const serverMsg=json&&json.error&&json.error.message?json.error.message:null;
-      if(serverMsg) throw new Error("رفض Cloudinary الصورة: "+serverMsg+" — تحقق من إعداد Upload Preset («"+CLOUDINARY_UPLOAD_PRESET+"») في لوحة Cloudinary (يجب أن يكون Unsigned ومُفعّلاً).");
-      lastError=new Error("فشل الرفع (HTTP "+res.status+")");
-    }catch(e){
-      if(e.name==="AbortError")lastError=new Error("لم يصل رد من خادم الصور خلال 30 ثانية. تحقق من اتصال الإنترنت أو جرّب شبكة أخرى (Wi-Fi/بيانات).");
-      else if(e instanceof TypeError)lastError=new Error("تعذر الوصول إلى خادم الصور (Cloudinary). تحقق من اتصال الإنترنت.");
-      else{ throw e; } // خطأ صريح من الخادم (Upload Preset...): لا نعيد المحاولة.
-    }finally{ clearTimeout(timeout); }
-    if(attempt<3) await new Promise(r=>setTimeout(r,1200));
-  }
-  throw lastError||new Error("فشل رفع الصورة.");
+function uploadToCloudinary(blob,onProgress){
+  // رفع صورة واحدة في كل مرة عبر XHR: أفضل على شبكات الهاتف من fetch المتوازي.
+  // XHR يعطي أيضًا progress حقيقي للرفع، مع مهلة طويلة وإعادة محاولة تلقائية.
+  return new Promise((resolve,reject)=>{
+    let attempt=0, lastError=null;
+    const run=()=>{
+      attempt++;
+      const xhr=new XMLHttpRequest();
+      const fd=new FormData();
+      fd.append("file",blob,"product-image.jpg");
+      fd.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
+      xhr.open("POST","https://api.cloudinary.com/v1_1/"+CLOUDINARY_CLOUD_NAME+"/image/upload",true);
+      xhr.timeout=180000;
+      xhr.upload.onprogress=e=>{if(e.lengthComputable&&typeof onProgress==="function")onProgress(e.loaded/e.total);};
+      xhr.onload=()=>{
+        let json=null;
+        try{json=JSON.parse(xhr.responseText||"{}")}catch(_e){}
+        if(xhr.status>=200&&xhr.status<300&&json?.secure_url){resolve(json.secure_url);return;}
+        lastError=new Error(json?.error?.message||("فشل رفع الصورة (HTTP "+xhr.status+")"));
+        retryOrFail();
+      };
+      xhr.onerror=()=>{lastError=new Error("تعذر الاتصال بخدمة الصور Cloudinary.");retryOrFail();};
+      xhr.ontimeout=()=>{lastError=new Error("انتهت مهلة رفع الصورة بعد 3 دقائق. تحقق من الإنترنت وحاول مرة أخرى.");retryOrFail();};
+      xhr.onabort=()=>{lastError=new Error("تم إيقاف رفع الصورة.");retryOrFail();};
+      try{xhr.send(fd)}catch(e){lastError=e;retryOrFail();}
+      function retryOrFail(){
+        if(attempt<3){setTimeout(run,1500*attempt);}
+        else reject(lastError||new Error("فشل رفع الصورة."));
+      }
+    };
+    run();
+  });
 }
 
 const loginBox=document.getElementById("login");
@@ -1659,16 +1662,8 @@ function categoryBaseKey(key){
 function categoryNameSignature(name){
   return categoryCollapseSpaces(categoryBaseName(name)).toLowerCase();
 }
-function categoryTimeValue(c){
-  // نحوّل createdAt (أو updatedAt احتياطيًا) إلى رقم قابل للمقارنة؛ التصنيفات
-  // بلا أي تاريخ (نُسخ قديمة أُنشئت قبل إضافة هذا الحقل) تُعتبر الأقدم دائمًا.
-  const t=c.createdAt||c.updatedAt;
-  if(t&&typeof t.toMillis==="function")return t.toMillis();
-  if(t&&typeof t.seconds==="number")return t.seconds*1000;
-  return -1;
-}
 async function consolidateDuplicateCategories(snap){
-  const raw=(snap?.docs||[]).map(d=>({key:d.id,name:categoryCollapseSpaces(d.data()?.name||""),icon:String(d.data()?.icon||""),createdAt:d.data()?.createdAt,updatedAt:d.data()?.updatedAt}))
+  const raw=(snap?.docs||[]).map(d=>({key:d.id,name:categoryCollapseSpaces(d.data()?.name||""),icon:String(d.data()?.icon||"")}))
     .filter(c=>c.key&&c.name);
   const byName=new Map();
   raw.forEach(c=>{
@@ -1679,27 +1674,21 @@ async function consolidateDuplicateCategories(snap){
   let changed=false;
   for(const [sig,items] of byName){
     if(items.length<2)continue;
-    // الاحتفاظ بالتصنيف "الجديد" وحذف "القديم" فعليًا من Firestore: نختار
-    // النسخة الأحدث إنشاءً (createdAt/updatedAt) كأساس؛ إن تساوى التاريخ
-    // (أو كان غائبًا عن الجميع) نرجع لقاعدة الاسم/المعرّف بلا لاحقة رقمية.
-    const sorted=[...items].sort((a,b)=>categoryTimeValue(b)-categoryTimeValue(a)||a.key.localeCompare(b.key));
-    const hasAnyDate=sorted.some(c=>categoryTimeValue(c)>=0);
-    const canonical=hasAnyDate ? sorted[0] :
-      (sorted.find(c=>categoryBaseName(c.name)===c.name && categoryBaseKey(c.key)===c.key.toLowerCase())
+    // اختيار نسخة أساسية ثابتة دائمًا (لا نتخطى أي مجموعة مكررة): نُفضّل
+    // اسمًا بلا لاحقة رقمية ومعرّفًا بلا لاحقة رقمية، وإلا نأخذ الأقدم أبجديًا.
+    const sorted=[...items].sort((a,b)=>a.key.localeCompare(b.key));
+    const canonical=sorted.find(c=>categoryBaseName(c.name)===c.name && categoryBaseKey(c.key)===c.key.toLowerCase())
       ||sorted.find(c=>categoryBaseName(c.name)===c.name)
       ||sorted.find(c=>categoryBaseKey(c.key)===c.key.toLowerCase())
-      ||sorted[0]);
+      ||sorted[0];
     const duplicates=items.filter(c=>c.key!==canonical.key);
     if(!duplicates.length)continue;
     try{
       const ps=await getDocs(collection(db,"products"));
       for(const dup of duplicates){
-        // حذف نهائي فعلي للتصنيف القديم من جذوره — بلا أي دمج أو نقل بياناته
-        // إلى التصنيف الآخر. المنتجات التي كانت مرتبطة به تُفرَغ خانة تصنيفها
-        // فقط (مثل زر «🗑️ حذف» اليدوي بالضبط)، حتى لا تبقى تشير لتصنيف محذوف.
         await Promise.all(ps.docs
           .filter(d=>String(d.data()?.category||"")===dup.key)
-          .map(d=>updateDoc(d.ref,{category:"",updatedAt:serverTimestamp()})));
+          .map(d=>updateDoc(d.ref,{category:canonical.key,updatedAt:serverTimestamp()})));
         await deleteDoc(doc(db,"categories",dup.key));
         changed=true;
       }
@@ -1727,27 +1716,6 @@ function renderCategories(){const box=document.getElementById("categoriesList");
 window.toggleCategoryVisibility=async key=>{const c=categories.find(x=>String(x.key)===String(key));if(!c)return;const newHidden=!c.hidden;try{await setDoc(doc(db,"categories",key),{hidden:newHidden,updatedAt:serverTimestamp()},{merge:true});await loadCategories()}catch(e){console.error(e);alert("تعذر تحديث حالة الفئة: "+(e.message||"خطأ غير معروف"))}};
 async function seedDefaultCategoriesIfNeeded(snap){if(!snap.empty){try{await setDoc(doc(db,"settings","categories"),{initialized:true,updatedAt:serverTimestamp()},{merge:true})}catch(_e){}return snap}let initialized=false;try{initialized=(await getDoc(doc(db,"settings","categories"))).data()?.initialized===true}catch(_e){}if(initialized)return snap;for(const c of defaultCategories)await setDoc(doc(db,"categories",c.key),{name:c.name,icon:c.icon,createdAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:false});try{await setDoc(doc(db,"settings","categories"),{initialized:true,updatedAt:serverTimestamp()},{merge:true})}catch(_e){}return await getDocs(collection(db,"categories"));}
 async function loadCategories(){const box=document.getElementById("categoriesList");try{let snap=await getDocs(collection(db,"categories"));snap=await seedDefaultCategoriesIfNeeded(snap);snap=await consolidateDuplicateCategories(snap);categories=normalizeCategoryList(snap.docs.map(d=>({key:d.id,...(d.data()||{})})));renderCategories()}catch(e){console.error("categories load",e);categories=[];if(box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل التصنيفات. تحقق من اتصال Firebase والصلاحيات.</div>'}}
-window.mergeDuplicateCategoriesNow=async()=>{
-  const status=document.getElementById("categoryMergeStatus");
-  if(status){status.classList.remove("hidden");status.textContent="⏳ جاري البحث عن تصنيفات مكررة ودمجها...";status.className="status ok"}
-  try{
-    const before=await getDocs(collection(db,"categories"));
-    const beforeCount=before.docs.length;
-    const after=await consolidateDuplicateCategories(before);
-    const afterCount=after.docs.length;
-    categories=normalizeCategoryList(after.docs.map(d=>({key:d.id,...(d.data()||{})})));
-    renderCategories();
-    if(status){
-      status.textContent=afterCount<beforeCount
-        ? `✅ تم حذف ${beforeCount-afterCount} تصنيف مكرر نهائيًا من قاعدة البيانات (بقي التصنيف الأحدث فقط).`
-        : "لا توجد تصنيفات مكررة حاليًا.";
-      status.className="status ok";
-    }
-  }catch(e){
-    console.error("merge duplicate categories",e);
-    if(status){status.textContent="تعذر دمج التصنيفات المكررة: "+(e.message||"خطأ غير معروف");status.className="status err"}
-  }
-};
 window.openCategoryForm=()=>{document.getElementById("categoryForm")?.classList.remove("hidden");document.getElementById("categoryId").value="";document.getElementById("categoryName").value="";document.getElementById("categoryNameFr").value="";document.getElementById("categoryKey").value="";document.getElementById("categoryIcon").value="🛍️";document.getElementById("categoryName").focus()};
 window.closeCategoryForm=()=>document.getElementById("categoryForm")?.classList.add("hidden");
 window.editCategory=key=>{const c=categories.find(x=>String(x.key)===String(key));if(!c)return;document.getElementById("categoryForm")?.classList.remove("hidden");document.getElementById("categoryId").value=c.key;document.getElementById("categoryName").value=c.name||"";document.getElementById("categoryNameFr").value=c.name_fr||"";document.getElementById("categoryKey").value=c.key||"";document.getElementById("categoryIcon").value=c.icon||categoryIconFor(c.name);document.getElementById("categoryName").focus()};
@@ -1757,10 +1725,7 @@ window.saveCategory=async()=>{const oldKey=document.getElementById("categoryId")
   const duplicate=all.docs.map(d=>({key:d.id,name:String(d.data()?.name||"").trim()}))
     .find(c=>c.key!==oldKey&&categoryNameSignature(c.name)===sig&&c.name);
   if(duplicate){if(status){status.textContent=`يوجد تصنيف بنفس الاسم: «${duplicate.name}». تم منع التكرار.`;status.className="status err"}return}
-  // نسجّل تاريخ الإنشاء عند إضافة تصنيف جديد فعليًا (بلا oldKey، أو بتغيير المعرّف)
-  // حتى يمكن لاحقًا تمييز "الجديد" من "القديم" عند دمج التصنيفات المكررة.
-  const isNewDoc=!oldKey||!existing.exists();
-  if(oldKey&&oldKey!==key){await setDoc(doc(db,"categories",key),{name,name_fr,icon,createdAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:false});const ps=await getDocs(collection(db,"products"));await Promise.all(ps.docs.filter(d=>String(d.data()?.category||"")===oldKey).map(d=>updateDoc(d.ref,{category:key,updatedAt:serverTimestamp()})));await deleteDoc(doc(db,"categories",oldKey))}else await setDoc(doc(db,"categories",key),{name,name_fr,icon,...(isNewDoc?{createdAt:serverTimestamp()}:{}),updatedAt:serverTimestamp()},{merge:true});await loadCategories();closeCategoryForm();if(status){status.textContent="تم حفظ الفئة بنجاح ✅";status.className="status ok"}}catch(e){console.error(e);if(status){status.textContent="تعذر حفظ الفئة: "+(e.message||"خطأ غير معروف");status.className="status err"}}};
+  if(oldKey&&oldKey!==key){await setDoc(doc(db,"categories",key),{name,name_fr,icon,updatedAt:serverTimestamp()},{merge:false});const ps=await getDocs(collection(db,"products"));await Promise.all(ps.docs.filter(d=>String(d.data()?.category||"")===oldKey).map(d=>updateDoc(d.ref,{category:key,updatedAt:serverTimestamp()})));await deleteDoc(doc(db,"categories",oldKey))}else await setDoc(doc(db,"categories",key),{name,name_fr,icon,updatedAt:serverTimestamp()},{merge:true});await loadCategories();closeCategoryForm();if(status){status.textContent="تم حفظ الفئة بنجاح ✅";status.className="status ok"}}catch(e){console.error(e);if(status){status.textContent="تعذر حفظ الفئة: "+(e.message||"خطأ غير معروف");status.className="status err"}}};
 window.deleteCategory=async key=>{const c=categories.find(x=>String(x.key)===String(key));if(!c||!confirm("حذف الفئة «"+c.name+"»؟\nلن يتم حذف المنتجات التابعة لها."))return;try{await deleteDoc(doc(db,"categories",key));const ps=await getDocs(collection(db,"products"));await Promise.all(ps.docs.filter(d=>String(d.data()?.category||"")===String(key)).map(d=>updateDoc(d.ref,{category:"",updatedAt:serverTimestamp()})));await loadCategories()}catch(e){console.error(e);alert("تعذر حذف الفئة: "+(e.message||"خطأ غير معروف"))}};
 
 
@@ -2410,28 +2375,26 @@ window.save=async()=>{
   // رفع حقيقي إلى Cloudinary (مجاني، بلا اشتراك): كل صورة تُضغط ثم تُرفع وتُرجع رابط https حقيقي
   // (بدل تخزين base64 داخل Firestore) — هذا ما يتطلبه Google Merchant/Product schema.
   const uploaded=new Array(selectedImages.length);
-  const tasks=[];
-  for(let i=0;i<selectedImages.length && i<10;i++){
-    const item=selectedImages[i];
-    if(item.existing){ uploaded[i]=item.url; continue; }
-    tasks.push({i,file:item.file});
-  }
   try{
     const progress=document.getElementById("saveProgress");
     const progressBar=progress?.querySelector("span");
     if(progress){progress.classList.add("show");if(progressBar)progressBar.style.width="0%";}
-    let done=0;
-    const worker=async()=>{
-      while(tasks.length){
-        const t=tasks.shift();
-        const blob=await compressImageToBlob(t.file,900,0.62);
-        uploaded[t.i]=await uploadToCloudinary(blob);
-        done++;
-        if(progressBar)progressBar.style.width=Math.round(done/Math.max(1,done+tasks.length)*100)+"%";
-      }
-    };
-    // عمليتان فقط بالتوازي: أفضل على الهاتف والاتصال الضعيف، مع إعادة المحاولة تلقائياً.
-    await Promise.all(Array.from({length:Math.min(2,tasks.length)},()=>worker()));
+    let completed=0;
+    for(let i=0;i<selectedImages.length && i<10;i++){
+      const item=selectedImages[i];
+      if(item.existing){uploaded[i]=item.url;completed++;if(progressBar)progressBar.style.width=Math.round(completed/selectedImages.length*100)+"%";continue;}
+      if(!item.file)throw new Error("الصورة رقم "+(i+1)+" غير متاحة.");
+      // ضغط أقوى قبل الرفع: يقلل استهلاك بيانات الهاتف ووقت انتظار Cloudinary.
+      const blob=await compressImageToBlob(item.file,720,0.55);
+      uploaded[i]=await uploadToCloudinary(blob,(part)=>{
+        if(progressBar){
+          const pct=((completed+part)/Math.max(1,selectedImages.length))*100;
+          progressBar.style.width=Math.min(99,Math.round(pct))+"%";
+        }
+      });
+      completed++;
+      if(progressBar)progressBar.style.width=Math.round(completed/selectedImages.length*100)+"%";
+    }
     if(progressBar)progressBar.style.width="100%";
     setTimeout(()=>progress?.classList.remove("show"),500);
   }catch(e){
