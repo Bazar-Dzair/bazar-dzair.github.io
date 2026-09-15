@@ -801,6 +801,21 @@ async function maybeAutoTranslateDescription(p){
     setCachedAutoFr(p.id||p.firestoreId||"",arSrc,frText);
   }
 }
+// ---- ذاكرة تخزين محلية لأسماء التصنيفات الحقيقية (كما هي في Firestore) ----
+// الهدف: تفادي وميض/تبدّل اسم التصنيف في شريط التنقل. أول مرة يُفتح فيها تصنيف
+// معيّن لا نملك اسمه المترجم بعد فنخفي الفئة الفرعية إلى حين وصول البيانات
+// الحقيقية بدل عرض قيمة خاطئة (مثل معرّف التصنيف الخام) ثم استبدالها بعد لحظة.
+// بعد وصول البيانات الحقيقية نحفظها هنا حتى تظهر فورًا في الزيارات القادمة.
+function getCatNameCache(){
+  try{return JSON.parse(localStorage.getItem("bazar_category_names")||"{}");}catch(_e){return {};}
+}
+function setCatNameCache(key,ar,fr){
+  try{
+    const c=getCatNameCache();
+    c[key]={ar:ar||"",fr:fr||""};
+    localStorage.setItem("bazar_category_names",JSON.stringify(c));
+  }catch(_e){}
+}
 function render(p){product=p;
 // tp: الاسم والوصف المعروضان للزبون حسب اللغة الحالية (name_fr/description_fr إن توفرا).
 // هذا للعرض فقط؛ بيانات الطلب المرسلة لاحقًا (Telegram/Firestore) تستعمل دائمًا product.name الأصلي.
@@ -1249,7 +1264,16 @@ function applyProductSEO(p,name,desc){
       "electronics":"electronics"
     };
     const resolvedKey=catMap[normalized]?normalized:(aliases[category]||aliases[normalized]||normalized);
-    const info=catMap[resolvedKey]||{parent:null,sub:{ar:category,fr:category}};
+    // إذا كان التصنيف معروفًا في الجدول الثابت نستعمله مباشرة (أسرع، بدون انتظار شبكة).
+    // إن لم يكن كذلك (تصنيفات مخصّصة أُنشئت من لوحة التحكم بمعرّف حر مثل "outils")
+    // فلا نخترع نصًا من المعرّف الخام؛ بدل ذلك نبحث في الذاكرة المحلية عن اسمه الحقيقي
+    // المحفوظ من زيارة سابقة، وإن لم يوجد نترك الفئة الفرعية فارغة مؤقتًا إلى حين
+    // وصول اسمها الحقيقي من Firestore (بدل عرض المعرّف الخام كوميض أولي خاطئ).
+    let info=catMap[resolvedKey];
+    if(!info){
+      const cached=getCatNameCache()[category]||getCatNameCache()[normalized];
+      info=cached?{parent:null,sub:cached}:{parent:null,sub:null};
+    }
     const parentText=info.parent?(info.parent[lang]||info.parent.ar):"";
     const subText=info.sub?(info.sub[lang]||info.sub.ar):"";
     // "parentText" مجرد تجميع عرضي لعدة تصنيفات حقيقية معًا (مثلاً "أدوات وملحقاتها" تضم tools/electronics/phones/laptops)
@@ -1316,6 +1340,9 @@ async function load(){
             const catName=(lang==="fr"&&catNameFr)?catNameFr:catNameAr;
             const catKey=catSnap.id;
             const aliasKey=catKey||catValue;
+            // نحفظ الاسم الحقيقي (بالعربية والفرنسية) في الذاكرة المحلية حتى لا يحدث
+            // أي وميض في الزيارات القادمة لنفس هذا التصنيف (انظر render أعلاه).
+            setCatNameCache(aliasKey,catNameAr,catNameFr);
             const crumb=document.getElementById("crumb");
             if(crumb && catName){
               const parentMap={
