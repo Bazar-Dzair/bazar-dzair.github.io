@@ -868,7 +868,7 @@ function ensureSkeleton(){
 ensureSkeleton();
 document.getElementById("photoWrap").innerHTML=`<div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="${esc(pt("gallery_prev"))}">‹</button><img id="mainProductPhoto" class="photo" onclick="openImageLightbox()" tabindex="0" role="button" src="${safeImg(galleryImages[0])}" decoding="async" alt="${esc(name)}" onerror="this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="${esc(pt("gallery_next"))}">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${safeImg(im)}" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>`;
 
-const badgeHtml=available?(p.badge?`<span class="badge-featured">${esc(p.badge)}</span>`:""):`<span class="badge-featured unavailable">${esc(pt("badge_unavailable"))}</span>`;
+const badgeHtml=available?"":`<span class="badge-featured unavailable">${esc(pt("badge_unavailable"))}</span>`;
 const ratingRowHtml=ratingInfo?`<div class="rating-row"><span class="stars">${starsHtml(ratingInfo.value)}</span> <span class="rv">${ratingInfo.value}</span> <span>(${ratingInfo.count} ${esc(pt("reviews_word"))})</span></div>`:"";
 const priceRowHtml=`<div class="price-row"><span class="price-current">${money(p.price)}</span>${hasDiscount?`<span class="price-old">${money(oldPrice)}</span><span class="discount-badge">-${discountPct}%</span>`:""}</div>`;
 
