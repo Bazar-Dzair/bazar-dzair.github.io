@@ -40,7 +40,7 @@ header.topbar .backtop:hover{background:rgba(255,255,255,.15)}
 #langToggleBtn{border:1px solid rgba(255,255,255,.18);padding:8px 14px;border-radius:30px;font-size:13px;font-weight:900;transition:.2s;background:rgba(255,255,255,.08);color:#fff}
 #langToggleBtn:hover{background:rgba(255,255,255,.15)}
 
-.crumb-bar{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(7,26,51,.04)}
+.crumb-bar{visibility:hidden;opacity:0;transition:opacity .12s ease;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(7,26,51,.04)}
 .crumb{max-width:1180px;width:94%;min-height:52px;margin:auto;color:#7b8798;font-size:13.5px;padding:11px 0;display:flex;align-items:center;gap:10px;flex-wrap:nowrap;white-space:nowrap;overflow:hidden}
 .crumb a{color:var(--navy);font-weight:800}
 .crumb .crumb-link{color:#667386;font-weight:700}
@@ -1137,7 +1137,11 @@ function renderProductBreadcrumb(category){
     const href=categoryPageHref(resolvedKey);
     parts.push(`<span class="crumb-sep">›</span><a class="crumb-current" href="${esc(href)}">${esc(subLabel)}</a>`);
   }
-  crumbEl.innerHTML=parts.join("");
+  const nextHtml=parts.join("");
+  // لا نعيد كتابة الشريط إذا لم يتغير، حتى لا يظهر ويختفي عند وصول الكاش/SEO/Firebase.
+  if(crumbEl.innerHTML!==nextHtml) crumbEl.innerHTML=nextHtml;
+  const bar=crumbEl.closest(".crumb-bar");
+  if(bar){bar.style.visibility="visible";bar.style.opacity="1";}
   return {key:resolvedKey,label:subLabel,url:categoryPageHref(resolvedKey)};
 }
 
