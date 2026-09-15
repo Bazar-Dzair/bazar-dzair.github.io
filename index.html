@@ -1075,6 +1075,7 @@ window.submitOrder=async function(){
   }
   if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:cart.map(x=>x.name).join(", "),price:productTotal()+s,category:"",qty:cart.reduce((sum,x)=>sum+x.quantity,0)});
   cart=[];updateCount();renderCart();closeModal("cartOverlay");
+  window.location.replace("/success.html");
   
  }catch(err){
   console.error("order submit failed:",err);
