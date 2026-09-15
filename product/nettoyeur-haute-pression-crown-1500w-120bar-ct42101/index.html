@@ -48,7 +48,9 @@ header.topbar .backtop:hover{background:rgba(255,255,255,.15)}
 #langToggleBtn{border:1px solid rgba(255,255,255,.18);padding:8px 14px;border-radius:30px;font-size:13px;font-weight:900;transition:.2s;background:rgba(255,255,255,.08);color:#fff}
 #langToggleBtn:hover{background:rgba(255,255,255,.15)}
 
-.crumb-bar{visibility:hidden;opacity:0;transition:opacity .12s ease;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(7,26,51,.04)}
+.crumb-bar{visibility:hidden;opacity:0;transition:none;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(7,26,51,.04)}
+.crumb-bar.is-ready{visibility:visible;opacity:1}
+
 .crumb{max-width:1180px;width:94%;min-height:52px;margin:auto;color:#7b8798;font-size:13.5px;padding:11px 0;display:flex;align-items:center;gap:10px;flex-wrap:nowrap;white-space:nowrap;overflow:hidden}
 .crumb a{color:var(--navy);font-weight:800}
 .crumb .crumb-link{color:#667386;font-weight:700}
@@ -1112,7 +1114,15 @@ function categoryPageHref(key){
 }
 function renderProductBreadcrumb(category){
   const crumbEl=document.getElementById("crumb");
+  const bar=crumbEl?.closest(".crumb-bar");
   if(!crumbEl)return;
+  const rawCategory=String(category||"").trim();
+  // احترافيًا: لا نعرض Breadcrumb ناقصًا أثناء تحميل SEO/الكاش.
+  // يبقى مكانه محجوزًا، ثم يظهر مرة واحدة فقط بعد معرفة التصنيف الحقيقي.
+  if(!rawCategory){
+    if(bar){bar.classList.remove("is-ready");bar.setAttribute("aria-hidden","true");}
+    return null;
+  }
   const lang=window.BazarI18n?window.BazarI18n.getLang():"ar";
   const catMap={
     tools:{parent:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},sub:{ar:"أدوات",fr:"Outils"}},
@@ -1135,7 +1145,7 @@ function renderProductBreadcrumb(category){
     clearance:{parent:{ar:"تصفية مخزون",fr:"Déstockage"},sub:{ar:"تصفية مخزون",fr:"Déstockage"}},
     misc:{parent:{ar:"منتجات متنوعة",fr:"Produits Divers"},sub:{ar:"منتجات متنوعة",fr:"Produits Divers"}}
   };
-  const raw=String(category||"").trim();
+  const raw=rawCategory;
   const normalized=raw.toLowerCase();
   const aliases={
     "أكسسوارات وإلكترونيات":"electronics","اكسسوارات وإلكترونيات":"electronics","إكسسوارات وإلكترونيات":"electronics",
@@ -1154,8 +1164,10 @@ function renderProductBreadcrumb(category){
   const nextHtml=parts.join("");
   // لا نعيد كتابة الشريط إذا لم يتغير، حتى لا يظهر ويختفي عند وصول الكاش/SEO/Firebase.
   if(crumbEl.innerHTML!==nextHtml) crumbEl.innerHTML=nextHtml;
-  const bar=crumbEl.closest(".crumb-bar");
-  if(bar){bar.style.visibility="visible";bar.style.opacity="1";}
+  if(bar){
+    bar.classList.add("is-ready");
+    bar.setAttribute("aria-hidden","false");
+  }
   return {key:resolvedKey,label:subLabel,url:categoryPageHref(resolvedKey)};
 }
 
@@ -1272,8 +1284,8 @@ function applyProductSEO(p,name,desc){
     document.head.appendChild(sb);
   }
 
-  // شريط التنقل: الرئيسية ← القسم ← التصنيف. اسم التصنيف قابل للنقر ويعيد إلى صفحة التصنيف.
-  renderProductBreadcrumb(category);
+  // شريط التنقل: لا يظهر إلا بعد توفر تصنيف حقيقي.
+  if(category) renderProductBreadcrumb(category);
 }
 async function load(){
   let cachedProduct=null;
@@ -1364,10 +1376,6 @@ async function load(){
       p.__seoSnapshot=false;
       try{localStorage.setItem("bazar_selected_product",JSON.stringify(p));}catch(_e){}
       render(p);
-      try{
-        const catValue=String(p.category||"").trim();
-        if(catValue) renderProductBreadcrumb(catValue);
-      }catch(_catErr){}
     }else if(!cachedProduct){
       const seo=await seoPromise;
       if(seo){
