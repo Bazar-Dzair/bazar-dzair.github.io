@@ -266,7 +266,7 @@ for p in products:
 # ملاحظة الفرنسية: لا نُخمّن أي ترجمة. نستخدم name_fr/description_fr فقط إن كانت
 # موجودة فعلاً في مستند الفئة أو المنتج في Firestore، وإلا يبقى النص عربيًا كما هو —
 # نفس فلسفة translateProduct في i18n.js تمامًا.
-cat_seen={}; cat_urls=[]
+cat_seen={}; cat_urls=[]; cat_url_map={}
 for c in categories:
     name=str(c['name']); base=slugify(name,'category'); n=cat_seen.get(base,0); cat_seen[base]=n+1
     slug=base if n==0 else f'{base}-{n+1}'
@@ -302,6 +302,7 @@ for c in categories:
     ld={'@context':'https://schema.org','@type':'CollectionPage','name':name,'description':desc,'url':url,'mainEntity':{'@type':'ItemList','itemListElement':[{'@type':'ListItem','position':i+1,'url':pu,'name':pn} for i,(pu,pn,_,_) in enumerate(matched)]},'breadcrumb':{'@type':'BreadcrumbList','itemListElement':[{'@type':'ListItem','position':1,'name':'الرئيسية','item':SITE},{'@type':'ListItem','position':2,'name':name,'item':url}]}}
     write_page(root/'product-category'/slug/'index.html',name+' | Bazar Dzair',desc,url,body,ld)
     cat_urls.append((url,name))
+    cat_url_map[cid]=url
 
 # Sitemap index-like single sitemap with all public SEO URLs.
 today=datetime.now(timezone.utc).date().isoformat()
@@ -314,3 +315,59 @@ xml.append('</urlset>')
 (root/'sitemap-products.xml').write_text('\n'.join(['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']+[f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod></url>' for u,_,_,_ in product_urls]+['</urlset>'])+'\n',encoding='utf-8')
 (root/'sitemap-categories.xml').write_text('\n'.join(['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']+[f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod></url>' for u,_ in cat_urls]+['</urlset>'])+'\n',encoding='utf-8')
 print(f'Generated {len(product_urls)} product pages and {len(cat_urls)} category pages.')
+
+# ===================== محتوى ثابت للصفحة الرئيسية (SEO) =====================
+# قبل هذا التعديل، الصفحة الرئيسية (index.html) لم تكن تحتوي أي محتوى ثابت —
+# قائمة الفئات وقائمة المنتجات تُبنيان بالكامل عبر JavaScript بعد وصول بيانات
+# Firestore، فيرى أي زائر (أو محرك بحث لا يُنفّذ JS بالكامل) صفحة شبه فارغة
+# لحظة الوصول. هنا نحقن نسخة ثابتة — نفس بنية الـHTML التي يولّدها displayProducts()
+# و renderStoreCategories() في index.html تمامًا — بين علامتي SSG المضبوطتين مسبقًا
+# في index.html، فيظهر محتوى حقيقي فورًا في الـHTML الخام. الـJS يبقى يستبدل هذا
+# المحتوى بالكامل (innerHTML=...) بمجرد وصول البيانات الحية — بدون أي تغيير في
+# السلوك التفاعلي، فقط لحظة الوصول الأولى تصبح محتوى حقيقي بدل فراغ.
+
+
+def inject_between_markers(text, start_marker, end_marker, new_inner):
+    pattern = re.compile(re.escape(start_marker) + '.*?' + re.escape(end_marker), re.DOTALL)
+    replacement = start_marker + new_inner + end_marker
+    new_text, n = pattern.subn(replacement, text, count=1)
+    if n == 0:
+        raise RuntimeError(f'SSG markers not found in index.html: {start_marker} ... {end_marker}')
+    return new_text
+
+
+def homepage_product_card(url, name, price, img):
+    safe_url = html.escape(url, quote=True)
+    safe_name = html.escape(name, quote=True)
+    return (
+        f'<article class="product"><a class="pic" href="{safe_url}" aria-label="{safe_name}" '
+        f'style="display:block;color:inherit;text-decoration:none">'
+        f'<img src="{html.escape(img, quote=True)}" alt="{safe_name}" loading="lazy" decoding="async"></a>'
+        f'<div class="info"><a class="name" href="{safe_url}" style="color:inherit;text-decoration:none">{html.escape(name)}</a>'
+        f'<div class="price">{html.escape(money(price))}</div></div></article>'
+    )
+
+
+HOME_MAX_PRODUCTS = 12
+home_products_html = ''.join(
+    homepage_product_card(u, pn, float(p.get('price') or 0), image_of(p))
+    for u, pn, p, _slug in product_urls[:HOME_MAX_PRODUCTS]
+)
+
+home_cats_sorted = sorted(
+    (c for c in categories if c.get('hidden') is not True),
+    key=lambda c: str(c.get('name') or '')
+)
+home_cats_html = ''.join(
+    f'<a class="cat" href="{html.escape(cat_url_map.get(str(c["_id"]), SITE), quote=True)}" '
+    f'style="color:inherit;text-decoration:none">'
+    f'<i>{html.escape(str(c.get("icon") or "🛍️"))}</i>{html.escape(str(c.get("name") or ""))}</a>'
+    for c in home_cats_sorted
+)
+
+home_index_path = root / 'index.html'
+home = home_index_path.read_text(encoding='utf-8')
+home = inject_between_markers(home, '<!--SSG:PRODUCTS_START-->', '<!--SSG:PRODUCTS_END-->', home_products_html)
+home = inject_between_markers(home, '<!--SSG:CATS_START-->', '<!--SSG:CATS_END-->', home_cats_html)
+home_index_path.write_text(home, encoding='utf-8')
+print(f'Injected {len(product_urls[:HOME_MAX_PRODUCTS])} static product cards and {len(home_cats_sorted)} static categories into index.html.')
