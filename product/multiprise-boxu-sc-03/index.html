@@ -702,7 +702,9 @@ const PAGE_DICT={
   footer_customers_title:{ar:"آلاف الزبائن الراضين",fr:"Des milliers de clients satisfaits"},
   footer_customers_sub:{ar:"ثقتكم سر نجاحنا",fr:"Votre confiance est notre succès"},
   footer_delivery_title:{ar:"توصيل سريع",fr:"Livraison rapide"},
-  footer_delivery_sub:{ar:"إلى جميع ولايات الوطن",fr:"Vers toutes les wilayas du pays"}
+  footer_delivery_sub:{ar:"إلى جميع ولايات الوطن",fr:"Vers toutes les wilayas du pays"},
+  confirm_button_verifying:{ar:"⏳ جاري التحقق من المنتج...",fr:"⏳ Vérification du produit..."},
+  toast_product_verify_failed:{ar:"⚠️ تعذر التحقق من المنتج، تحقق من اتصالك بالإنترنت وأعد المحاولة",fr:"⚠️ Vérification du produit impossible, vérifiez votre connexion et réessayez"}
 };
 // pt(key): يبحث أولاً في قاموس الصفحة الخاص، ثم في القاموس العام BazarI18n (i18n.js).
 // إن لم يوجد المفتاح في أي منهما يرجع المفتاح نفسه كحل أخير (لا يكسر شيئًا).
@@ -1040,12 +1042,40 @@ function redirectToSuccess(){
   },900);
 }
 
+// ==========================================================================
+// إصلاح احترافي: صفحة المنتج تعرض أولاً نسخة SEO سريعة (__seoSnapshot=true,
+// firestoreId="") قبل اكتمال التحقق الحقيقي من Firestore. إن ضغط الزبون على
+// "تأكيد الطلب" خلال هذه الفترة القصيرة (شبكة بطيئة/محدودة)، كان يُرسل
+// productId فارغًا إلى الـ Worker فيرفضه فورًا (بدون أي رسالة واضحة للزبون)،
+// فتبقى الصفحة كما هي بدل الانتقال إلى success.html. الحل: ننتظر اكتمال
+// التحقق (مع حد أقصى معقول) بدل رفض الطلب مباشرة.
+// ==========================================================================
+function isProductVerified(p){return !!(p && !p.__seoSnapshot && (p.firestoreId||p.id));}
+function waitForProductVerification(maxMs){
+  return new Promise(resolve=>{
+    if(isProductVerified(product)){resolve(true);return}
+    const start=Date.now();
+    const iv=setInterval(()=>{
+      if(isProductVerified(product)){clearInterval(iv);resolve(true);return}
+      if(Date.now()-start>=maxMs){clearInterval(iv);resolve(false)}
+    },200);
+  });
+}
+
 window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim();
 // ⚠️ مهم: اسم الولاية المُرسَل إلى Telegram/Firestore يجب أن يبقى دائمًا بالعربية،
 // بغض النظر عن لغة واجهة الزبون الحالية (نفس المنطق المستعمل في index.html).
 const wn=w&&window.BazarI18n?BazarI18n.wilayaOptionLabel(w,"ar"):"";
 if(!n||!ph||!w||!a){toast(pt("toast_incomplete"));return}
 if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast(pt("toast_invalid_phone"));return}
+if(!isProductVerified(product)){
+  const vbtn=document.querySelector(".confirm");
+  const vTxt=vbtn?vbtn.textContent:"";
+  if(vbtn){vbtn.disabled=true;vbtn.style.opacity=".6";vbtn.style.pointerEvents="none";vbtn.textContent=pt("confirm_button_verifying");}
+  const verified=await waitForProductVerification(8000);
+  if(vbtn){vbtn.disabled=false;vbtn.style.opacity="";vbtn.style.pointerEvents="";vbtn.textContent=vTxt;}
+  if(!verified){toast(pt("toast_product_verify_failed"));return}
+}
 const opts=computeDeliveryOptions(w);
 const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
 if(!chosen){toast(pt("toast_delivery_unavailable"));return}
