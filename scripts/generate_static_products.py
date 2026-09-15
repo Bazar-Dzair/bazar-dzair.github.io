@@ -115,33 +115,94 @@ def write_page(path, title, description, canonical, body, jsonld):
     path.write_text(doc,encoding='utf-8')
 
 
-def static_product_html(name, desc, price, images, available=True):
+def static_product_html(name, desc, price, images, available=True, badge=None, old_price=None):
     # Server-rendered fallback so Google (and any user before JS/Firestore loads)
     # sees the REAL product content immediately in the raw HTML — not a spinner.
     # The client JS still overwrites #product's innerHTML once Firestore data
-    # arrives (for full interactivity: gallery clicks, buy button, live stock),
-    # so this is purely a static-first / progressive-enhancement fallback.
+    # arrives (for full interactivity: gallery clicks, buy button, live stock).
+    #
+    # IMPORTANT: this markup intentionally reuses the *exact same CSS classes*
+    # as the JS-rendered version in product.html's render() function (photo-wrap,
+    # price-row, trust-grid, action-row, btn-cart/btn-buy, etc.) — since both are
+    # served inside the same product.html <style> block. This way, when the JS
+    # takes over a second or two later, the layout/size/styling stays visually
+    # identical and there is no jarring flash/resize as the page "snaps" from the
+    # plain SEO fallback card into the full interactive one.
+    #
+    # It deliberately does NOT reuse the ids #photoWrap/#infoCol/#infoContent —
+    # those are what ensureSkeleton() in product.html checks for to decide whether
+    # it needs to (re)build the skeleton and move #checkout into place. Keeping
+    # those ids out of this static markup means that logic runs exactly as it
+    # always has, untouched.
     imgs = [i for i in images if i] or ['/logo.svg']
     thumbs = ''.join(
         f'<button class="thumb{" active" if i==0 else ""}"><img src="{html.escape(im,quote=True)}" alt="{html.escape(name,quote=True)} {i+1}" loading="lazy"></button>'
         for i, im in enumerate(imgs)
     )
-    badge = '' if available else '<span class="badge" style="background:#9aa1ab">غير متوفر</span>'
-    buy = ('<button class="buy">⚡ اشترِ الآن</button>' if available
-           else '<button class="buy" disabled style="opacity:.55;cursor:not-allowed">غير متوفر حاليًا</button>')
-    return (
+    photo_wrap = (
         f'<div class="photo-wrap"><div class="main-photo-box">'
-        f'<img id="mainProductPhoto" class="photo" src="{html.escape(imgs[0],quote=True)}" alt="{html.escape(name,quote=True)}">'
-        f'<span id="galleryCount" class="gallery-count">1 / {len(imgs)}</span></div>'
-        f'<div id="productThumbs" class="thumbs">{thumbs}</div>{badge}</div>'
-        f'<div class="info"><h1 class="title">{html.escape(name)}</h1>'
-        f'<div class="price">{html.escape(money(price))}</div>'
-        f'<p class="desc">{html.escape(desc)}</p>'
-        f'{buy}</div>'
+        f'<img class="photo" src="{html.escape(imgs[0],quote=True)}" alt="{html.escape(name,quote=True)}">'
+        f'<span class="gallery-count">1 / {len(imgs)}</span></div>'
+        f'<div class="thumbs">{thumbs}</div></div>'
     )
 
+    if available and badge:
+        badge_html = f'<span class="badge-featured">{html.escape(str(badge))}</span>'
+    elif not available:
+        badge_html = '<span class="badge-featured unavailable">غير متوفر حاليًا</span>'
+    else:
+        badge_html = ''
 
-def inject_product_seo(template, name, desc, url, price, img, images=None, available=True):
+    has_discount = False
+    try:
+        op = float(old_price) if old_price not in (None, '') else None
+        if op is not None and op > float(price or 0):
+            has_discount = True
+            discount_pct = round((op - float(price or 0)) / op * 100)
+    except Exception:
+        op = None
+    price_row = f'<div class="price-row"><span class="price-current">{html.escape(money(price))}</span>'
+    if has_discount:
+        price_row += f'<span class="price-old">{html.escape(money(op))}</span><span class="discount-badge">-{discount_pct}%</span>'
+    price_row += '</div>'
+
+    delivery_strip = '<div class="delivery-strip"><span aria-hidden="true">🚚</span> <span>توصيل سريع لجميع الولايات</span></div>'
+    trust_grid = (
+        '<div class="trust-grid">'
+        '<div class="trust-card"><span class="ic">🛡️</span><span>منتوج أصلي ومضمون</span></div>'
+        '<div class="trust-card"><span class="ic">🚚</span><span>توصيل سريع لجميع الولايات</span></div>'
+        '<div class="trust-card"><span class="ic">🎧</span><span>خدمة ما بعد البيع</span></div>'
+        '<div class="trust-card"><span class="ic">💵</span><span>دفع عند الاستلام</span></div>'
+        '</div>'
+    )
+
+    if available:
+        action_row = (
+            '<div class="action-row">'
+            '<button type="button" class="btn-cart">🛒 إضافة إلى السلة</button>'
+            '<button type="button" class="btn-buy">⚡ اشترِ الآن</button>'
+            '</div>'
+        )
+    else:
+        action_row = (
+            '<div class="action-row">'
+            '<button type="button" class="btn-cart" disabled>غير متوفر حاليًا</button>'
+            '<button type="button" class="btn-buy" disabled>غير متوفر حاليًا</button>'
+            '</div>'
+        )
+    purchase_controls = (
+        '<div class="purchase-controls"><div class="qty"><button disabled>−</button>'
+        f'<span>1</span><button disabled>+</button></div>{action_row}</div>'
+    )
+
+    info = (
+        f'<div class="info">{badge_html}<h1 class="title">{html.escape(name)}</h1>'
+        f'{price_row}{delivery_strip}{trust_grid}{purchase_controls}</div>'
+    )
+    return photo_wrap + info
+
+
+def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None):
     d155=(desc or '').strip()[:155]
     title_tag=f'<title>{html.escape(name)} | Bazar Dzair</title>'
     desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
@@ -159,7 +220,7 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
     out=template.replace('<title>المنتج | Bazar Dzair</title>',title_tag,1)
     out=out.replace('<meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">',desc_tag,1)
     out=out.replace('<link id="canonical" rel="canonical">',canonical_tag+extra,1)
-    static_body=static_product_html(name, desc, price, images or [img], available)
+    static_body=static_product_html(name, desc, price, images or [img], available, badge=badge, old_price=old_price)
     # ملاحظة: product.html أصبح يحتوي على data-i18n="product_loading" على هذا العنصر
     # (بعد إضافة دعم اللغة الفرنسية للواجهة)، لذلك يجب مطابقة النص الجديد بالضبط هنا
     # وإلا سيفشل الاستبدال بصمت ولن تُحقن صفحات SEO الثابتة بالمحتوى الحقيقي للمنتج.
@@ -195,8 +256,10 @@ for p in products:
     imgs_list=p.get('images') if isinstance(p.get('images'),list) else []
     imgs_list=[str(x) for x in imgs_list if x] or [img]
     available=p.get('published') is not False
+    badge=p.get('badge') or None
+    old_price=p.get('oldPrice') or p.get('old_price') or p.get('compareAtPrice') or p.get('compare_at_price') or None
     template=(root/'product.html').read_text(encoding='utf-8')
-    template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available)
+    template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price)
     (root/'product'/slug).mkdir(parents=True,exist_ok=True)
     (root/'product'/slug/'index.html').write_text(template,encoding='utf-8')
     product_urls.append((url,name,p,slug))
