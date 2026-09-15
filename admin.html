@@ -1672,34 +1672,18 @@ function normalizeCategoryList(list){
 }
 
 /*
- * إصلاح نهائي للتصنيفات:
- * - التصنيف الأساسي يعتمد على key ثابت، وليس على نسخة موجودة في الملف.
- * - أي نسخة مثل tools-2 أو "أدوات-2" أو نفس الاسم مع مسافات زائدة تُدمج.
- * - المنتجات المرتبطة بالنسخ المكررة تُنقل للتصنيف الأساسي قبل حذف النسخة.
- * - يتم استرجاع التصنيفات الأساسية العربية + الفرنسية في Firestore حتى لا تختفي
- *   عند تعديل admin.html أو إعادة نشر الموقع.
+ * إصلاح لمرة واحدة فقط للتصنيفات (لا يتكرر بعدها):
+ * - يدمج النسخ المكررة فقط (نفس المعرّف الأساسي أو نفس الاسم العربي/الفرنسي)
+ *   وينقل المنتجات التابعة لها إلى النسخة المعتمدة قبل حذف النسخة الزائدة نهائيًا.
+ * - لا يعيد إنشاء أي تصنيف محذوف بعد الآن، لذلك حذف أو تعديل أي تصنيف يبقى ثابتًا
+ *   ولا يظهر من جديد تلقائيًا عند إعادة فتح لوحة التحكم.
  */
 async function consolidateDuplicateCategories(snap){
   let docs=(snap?.docs||[]).map(d=>({key:d.id,name:categoryCollapseSpaces(d.data()?.name||""),name_fr:categoryCollapseSpaces(d.data()?.name_fr||""),icon:String(d.data()?.icon||""),hidden:d.data()?.hidden===true})).filter(c=>c.key&&c.name);
   let changed=false;
   const canonicalByKey=new Map(defaultCategories.map(c=>[c.key,c]));
 
-  // 1) ثبّت التصنيفات الأساسية وأكمل الترجمة الفرنسية الناقصة.
-  for(const base of defaultCategories){
-    const exact=docs.find(c=>c.key===base.key);
-    if(!exact){
-      await setDoc(doc(db,"categories",base.key),{name:base.name,name_fr:base.name_fr,icon:base.icon,createdAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:false});
-      docs.push({...base}); changed=true;
-    }else{
-      const patch={};
-      if(!exact.name_fr)patch.name_fr=base.name_fr;
-      if(!exact.icon)patch.icon=base.icon;
-      if(!exact.name)patch.name=base.name;
-      if(Object.keys(patch).length){patch.updatedAt=serverTimestamp();await setDoc(doc(db,"categories",base.key),patch,{merge:true});Object.assign(exact,patch);changed=true;}
-    }
-  }
-
-  // 2) تحديد النسخ المكررة بالـ key أو الاسم العربي/الفرنسي.
+  // تحديد النسخ المكررة بالـ key أو الاسم العربي/الفرنسي.
   const groups=new Map();
   docs.forEach(c=>{
     const keyBase=categoryBaseKey(c.key);
@@ -1732,9 +1716,14 @@ async function consolidateDuplicateCategories(snap){
 
 async function seedAndRepairCategories(){
   let snap=await getDocs(collection(db,"categories"));
-  const result=await consolidateDuplicateCategories(snap);
-  snap=result.snap;
-  // تحديث القائمة النهائية بعد الدمج/الحذف، مع إزالة أي key مكرر محليًا أيضًا.
+  let alreadyRepaired=false;
+  try{ alreadyRepaired=(await getDoc(doc(db,"settings","categories"))).data()?.dedupRepaired===true; }catch(_e){}
+  if(!alreadyRepaired){
+    const result=await consolidateDuplicateCategories(snap);
+    snap=result.snap;
+    try{ await setDoc(doc(db,"settings","categories"),{dedupRepaired:true,updatedAt:serverTimestamp()},{merge:true}); }catch(_e){}
+  }
+  // تحديث القائمة النهائية، مع إزالة أي key مكرر محليًا فقط للعرض (بدون أي حذف/إنشاء في Firestore).
   categories=normalizeCategoryList(snap.docs.map(d=>({key:d.id,...(d.data()||{})})));
   return categories;
 }
