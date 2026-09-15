@@ -115,25 +115,6 @@ def write_page(path, title, description, canonical, body, jsonld):
     path.write_text(doc,encoding='utf-8')
 
 
-# شارة المنتج (productBadge) تُخزَّن في Firestore ككود ثابت من قائمة لوحة التحكم
-# (new/featured/offer/best)، وليست نصًا جاهزًا للعرض. النسخة الثابتة (SEO) عربية
-# دائمًا، لذلك نستعمل هنا الترجمة العربية فقط — نفس النصوص المستعملة في i18n.js.
-# بعض المنتجات القديمة قد تحتوي حقل "badge" قديم بنص عربي حر مباشر (قبل اعتماد
-# نظام الأكواد) — في هذه الحالة (كود غير معروف) نعرض النص كما هو دون تغيير.
-BADGE_LABELS_AR = {
-    'new': '🆕 جديد',
-    'featured': '⭐ مميز',
-    'offer': '🔥 عرض',
-    'best': '🏆 الأكثر مبيعًا',
-}
-
-
-def badge_label(code):
-    if not code:
-        return None
-    return BADGE_LABELS_AR.get(code, str(code))
-
-
 def static_product_html(name, desc, price, images, available=True, badge=None, old_price=None):
     # Server-rendered fallback so Google (and any user before JS/Firestore loads)
     # sees the REAL product content immediately in the raw HTML — not a spinner.
@@ -165,10 +146,7 @@ def static_product_html(name, desc, price, images, available=True, badge=None, o
         f'<div class="thumbs">{thumbs}</div></div>'
     )
 
-    badge_text = badge_label(badge)
-    if available and badge_text:
-        badge_html = f'<span class="badge-featured">{html.escape(badge_text)}</span>'
-    elif not available:
+    if not available:
         badge_html = '<span class="badge-featured unavailable">غير متوفر حاليًا</span>'
     else:
         badge_html = ''
