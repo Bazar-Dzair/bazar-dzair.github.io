@@ -1036,6 +1036,17 @@ function updateTotal(){
 }
 document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliveryType=null;updateTotal();});
 
+
+function redirectToSuccess(){
+  const successUrl=new URL("/success.html",window.location.origin).href;
+  try{ window.location.replace(successUrl); }catch(_e){}
+  setTimeout(()=>{
+    if(!/\/success\.html$/i.test(window.location.pathname)){
+      try{ window.location.assign(successUrl); }catch(_e){}
+    }
+  },900);
+}
+
 window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim();
 // ⚠️ مهم: اسم الولاية المُرسَل إلى Telegram/Firestore يجب أن يبقى دائمًا بالعربية،
 // بغض النظر عن لغة واجهة الزبون الحالية (نفس المنطق المستعمل في index.html).
@@ -1094,7 +1105,7 @@ try{
   }
 }catch(e){}
 if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:product.name,price:total,category:product.category||"",qty:quantity,id:product.id||""});
-window.location.replace("/success.html");
+redirectToSuccess();return;
 
 }catch(err){
   console.error("order submit failed:",err);
