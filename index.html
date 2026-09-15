@@ -264,13 +264,13 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
   </div>
 </header>
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeCategoryMenu()"></div>
-<aside class="drawer" id="categoryDrawer" aria-hidden="true"><div class="drawer-head"><h2 data-i18n="drawer_title">🗂️ الفئات</h2><button class="drawer-close" type="button" onclick="closeCategoryMenu()">×</button></div><div class="drawer-cats" id="storeCategories"><div class="cat" onclick="filterCategory('all')"><i>▦</i><span data-i18n="drawer_all">جميع الفئات</span></div><div class="cat"><i>⏳</i><span data-i18n="drawer_loading">جاري تحميل الفئات...</span></div></div></aside>
+<aside class="drawer" id="categoryDrawer" aria-hidden="true"><div class="drawer-head"><h2 data-i18n="drawer_title">🗂️ الفئات</h2><button class="drawer-close" type="button" onclick="closeCategoryMenu()">×</button></div><div class="drawer-cats" id="storeCategories"><div class="cat" onclick="filterCategory('all')"><i>▦</i><span data-i18n="drawer_all">جميع الفئات</span></div><!--SSG:CATS_START--><div class="cat"><i>⏳</i><span data-i18n="drawer_loading">جاري تحميل الفئات...</span></div><!--SSG:CATS_END--></div></aside>
 <main id="home">
 <section class="hero" aria-label="العرض الرئيسي"><picture><source srcset="/assets/hero.webp" type="image/webp"><img src="/assets/hero.jpg" alt="Bazar Dzair" width="964" height="295" fetchpriority="high"></picture></section>
 <section class="section" id="products">
 <div class="section-head"><div class="section-title"><h2 id="categoryPageTitle" data-i18n="products_title">منتجاتنا 🛍️</h2><p id="categoryPageDescription" data-i18n="products_subtitle">أفضل العروض و أحدث المنتجات</p></div><button class="view-all" onclick="showProductsOnly(event)" data-i18n="view_all">عرض الكل ←</button></div>
 <div id="categoryBreadcrumb" style="display:none;margin:-4px 0 14px;color:#6f7d91;font-size:14px"></div>
-<div class="products" id="productGrid"></div>
+<div class="products" id="productGrid"><!--SSG:PRODUCTS_START--><!--SSG:PRODUCTS_END--></div>
 <div id="loadMoreWrap" style="display:none;text-align:center;margin:22px 0 6px;">
   <button id="loadMoreProducts" type="button" class="view-all" onclick="showMoreProducts()" data-i18n="show_more_products">إظهار المزيد ↓</button>
 </div></section>
