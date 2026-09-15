@@ -382,13 +382,6 @@
    <div><label>السعر القديم <span class="field-optional">اختياري</span></label><input id="oldPrice" type="number" min="0" placeholder="مثال: 4800"><small class="hint">يظهر السعر القديم والتخفيض تلقائيًا إذا كان أكبر من السعر الحالي.</small></div>
    <div><label>التصنيف</label><select id="category"></select></div>
    <div><label>المخزون *</label><input id="stock" type="number" min="0" placeholder="20"></div>
-   <div><label>شارة المنتج <span class="field-optional">اختياري</span></label><select id="productBadge">
-     <option value="">بدون شارة</option>
-     <option value="featured">⭐ مميز</option>
-     <option value="new">🆕 جديد</option>
-     <option value="offer">🔥 عرض</option>
-     <option value="best">🏆 الأكثر مبيعًا</option>
-   </select></div>
    <div class="rating-admin-card"><label>تقييم المنتج</label><div class="rating-input-row"><input id="reviewRating" type="number" min="0" max="5" step="0.1" placeholder="4.6"><span>/ 5</span><input id="reviewCount" type="number" min="0" step="1" placeholder="24"><span>تقييم</span></div><small class="hint">الأرقام هنا للعرض في صفحة المنتج فقط.</small></div>
    <div class="full admin-display-options"><div class="display-options-title"><b>خيارات العرض في صفحة المنتج</b><small>تحكم في العناصر التي تظهر للزبون.</small></div><label class="check-option"><input id="showOldPrice" type="checkbox" checked><span>إظهار السعر القديم والتخفيض</span></label><label class="check-option"><input id="showReviews" type="checkbox" checked><span>إظهار التقييمات</span></label></div>
    <div class="full"><div class="publish-row"><div><b>نشر المنتج في المتجر</b><small>يمكنك تغيير الحالة لاحقًا من قائمة خيارات المنتج ⋮</small></div><label class="switch"><input id="published" type="checkbox" checked><span></span></label></div></div>
@@ -1472,7 +1465,6 @@ const priceInput=document.getElementById("price");
 const oldPriceInput=document.getElementById("oldPrice");
 const categoryInput=document.getElementById("category");
 const stockInput=document.getElementById("stock");
-const productBadgeInput=document.getElementById("productBadge");
 const reviewRatingInput=document.getElementById("reviewRating");
 const reviewCountInput=document.getElementById("reviewCount");
 const showOldPriceInput=document.getElementById("showOldPrice");
@@ -2290,7 +2282,6 @@ window.save=async()=>{
     category:categoryInput?.value||"tools",
     stock:Number(stockInput?.value),
     published:publishedInput?.checked!==false,
-    productBadge:productBadgeInput?.value||"",
     reviewRating:safeRating,
     reviewCount:safeReviewCount,
     showOldPrice:showOldPriceInput?.checked!==false,
@@ -2381,7 +2372,6 @@ window.editProduct=id=>{
  if(oldPriceInput)oldPriceInput.value=p.oldPrice??p.compareAtPrice??"";
  renderCategorySelect(p.category||categories[0]?.key||"tools");
  stockInput.value=p.stock??"";
- if(productBadgeInput)productBadgeInput.value=p.productBadge||p.badge||"";
  if(reviewRatingInput)reviewRatingInput.value=p.reviewRating??p.rating??"";
  if(reviewCountInput)reviewCountInput.value=p.reviewCount??p.ratingCount??"";
  if(showOldPriceInput)showOldPriceInput.checked=p.showOldPrice!==false;
@@ -2442,7 +2432,6 @@ window.resetForm=()=>{
  titleBox.textContent="➕ إضافة منتج";
  nameInput.value="";if(nameFrInput)nameFrInput.value="";priceInput.value="";if(oldPriceInput)oldPriceInput.value="";
  renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";
- if(productBadgeInput)productBadgeInput.value="";
  if(reviewRatingInput)reviewRatingInput.value="";
  if(reviewCountInput)reviewCountInput.value="";
  if(showOldPriceInput)showOldPriceInput.checked=true;

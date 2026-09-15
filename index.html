@@ -482,7 +482,6 @@ function mapRestProduct(docSnap,index){
     price:Number(data.price||0),
     image,
     images:imgs.length?imgs:[image],
-    badge:data.badge||"جديد",
     description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
     description_fr:data.description_fr||"",
     category:data.category||"all",
@@ -650,7 +649,6 @@ async function loadProductsFromFirestore(){
       price:Number(data.price||0),
       image,
       images:imgs.length?imgs:[image],
-      badge:data.badge||"جديد",
       description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
       description_fr:data.description_fr||"",
       category:data.category||"all",
@@ -793,8 +791,7 @@ function displayProducts(list=products,reset=true){
  g.innerHTML=visibleList.map(p=>{
    const available=p.published!==false;
    const tp=BazarI18n.translateProduct(p);
-   const badgeText=p.badge&&p.badge!=="جديد"?p.badge:(p.badge?(BazarI18n.getLang()==="fr"?"Nouveau":"جديد"):"");
-   const badgeHtml=available?(badgeText?`<span class="new">${esc(badgeText)}</span>`:""):`<span class="new" style="background:#9aa1ab">${esc(BazarI18n.t("badge_unavailable"))}</span>`;
+   const badgeHtml=available?"":`<span class="new" style="background:#9aa1ab">${esc(BazarI18n.t("badge_unavailable"))}</span>`;
    const actionsHtml=available
      ?`<button class="btn cartbtn" onclick="addCart(${p.id})" aria-label="${esc(BazarI18n.t("aria_add_to_cart"))}">🛒<span class="plus">+</span></button><button class="btn buybtn" onclick="buyNow(${p.id})">${esc(BazarI18n.t("buy_button"))} <span class="buycart">🛒</span></button>`
      :`<button class="btn buybtn" disabled style="opacity:.55;cursor:not-allowed" onclick="return false">${esc(BazarI18n.t("button_unavailable"))}</button>`;
