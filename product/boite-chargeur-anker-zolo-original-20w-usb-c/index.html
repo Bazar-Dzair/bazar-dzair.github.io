@@ -654,9 +654,10 @@ async function applyCategoryCrumb(p){
   const crumbEl=document.getElementById("crumb");
   if(!crumbEl) return;
   const catKey=String(p.category||"").trim();
+  const catUrl=catKey?"/product-category/"+encodeURIComponent(catKey)+"/":"";
   // عرض احتياطي فوري (قبل اكتمال الاتصال بقاعدة البيانات) حتى لا يبقى الشريط فارغًا.
   const fallbackLabel=catKey?catKey.replace(/[-_]+/g," ").trim():"";
-  crumbEl.innerHTML=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`,fallbackLabel?`<span class="crumb-sep">›</span><span class="crumb-current">${esc(fallbackLabel)}</span>`:""].join("");
+  crumbEl.innerHTML=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`,fallbackLabel?`<span class="crumb-sep">›</span><a class="crumb-current" href="${esc(catUrl)}">${esc(fallbackLabel)}</a>`:""].join("");
   if(!catKey) return;
   try{
     let cat=categoryCache.get(catKey);
@@ -671,8 +672,7 @@ async function applyCategoryCrumb(p){
     if(product!==p) return; // تغيّر المنتج المعروض أثناء الانتظار: لا نلمس الشريط.
     const lang=window.BazarI18n?BazarI18n.getLang():"ar";
     const label=(lang==="fr"&&String(cat.name_fr||"").trim())?cat.name_fr:(String(cat.name||"").trim()||fallbackLabel);
-    const icon=cat.icon?cat.icon+" ":"";
-    crumbEl.innerHTML=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`,`<span class="crumb-sep">›</span><span class="crumb-current">${esc(icon+label)}</span>`].join("");
+    crumbEl.innerHTML=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`,`<span class="crumb-sep">›</span><a class="crumb-current" href="${esc(catUrl)}">${esc(label)}</a>`].join("");
   }catch(_e){ /* نتجاهل الخطأ ونُبقي على العرض الاحتياطي */ }
 }
 const legacyShippingPrices={"01":1000,"02":600,"03":800,"04":600,"05":600,"06":600,"07":800,"08":950,"09":450,"10":550,"11":1200,"12":650,"13":600,"14":600,"15":550,"16":300,"17":800,"18":600,"19":600,"20":650,"21":600,"22":600,"23":600,"24":650,"25":600,"26":550,"27":650,"28":650,"29":600,"30":800,"31":600,"32":900,"33":1200,"34":600,"35":450,"36":650,"37":1100,"38":600,"39":800,"40":650,"41":650,"42":450,"43":650,"44":550,"45":800,"46":600,"47":800,"48":600,"49":1100,"50":null,"51":800,"52":1000,"53":1200,"54":null,"55":800,"56":null,"57":850,"58":850};
