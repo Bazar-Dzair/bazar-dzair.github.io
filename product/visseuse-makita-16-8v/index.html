@@ -1249,9 +1249,13 @@ function applyProductSEO(p,name,desc){
     const info=catMap[resolvedKey]||{parent:null,sub:{ar:category,fr:category}};
     const parentText=info.parent?(info.parent[lang]||info.parent.ar):"";
     const subText=info.sub?(info.sub[lang]||info.sub.ar):"";
+    // "parentText" مجرد تجميع عرضي لعدة تصنيفات حقيقية معًا (مثلاً "أدوات وملحقاتها" تضم tools/electronics/phones/laptops)
+    // وليس له تصنيف واحد فعلي في Firestore، لذلك يبقى نصًا بدون رابط. أما تصنيف المنتج نفسه (resolvedKey)
+    // فهو مفتاح حقيقي في مجموعة categories، لذلك يصبح رابطًا يفتح صفحة المتجر مفلترة على هذا التصنيف مباشرة.
+    const catHref="/?category="+encodeURIComponent(resolvedKey);
     const parts=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`];
     if(parentText) parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(parentText)}</span>`);
-    if(subText) parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(subText)}</span>`);
+    if(subText) parts.push(`<span class="crumb-sep">›</span><a class="crumb-current" href="${esc(catHref)}">${esc(subText)}</a>`);
     crumbEl.innerHTML=parts.join("");
   }
 }
@@ -1334,9 +1338,12 @@ async function load(){
               };
               const parentInfo=parentMap[aliasKey];
               const parent=parentInfo?(parentInfo[lang]||parentInfo.ar):"";
+              // aliasKey هو معرّف التصنيف الحقيقي في مجموعة categories، فنستعمله لبناء رابط
+              // يفتح صفحة المتجر مفلترة مباشرة على هذا التصنيف (نفس آلية ?category= في index.html).
+              const catHref="/?category="+encodeURIComponent(aliasKey);
               const parts=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`];
               if(parent) parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(parent)}</span>`);
-              parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(catName)}</span>`);
+              parts.push(`<span class="crumb-sep">›</span><a class="crumb-current" href="${esc(catHref)}">${esc(catName)}</a>`);
               crumb.innerHTML=parts.join("");
             }
           }
