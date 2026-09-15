@@ -115,6 +115,25 @@ def write_page(path, title, description, canonical, body, jsonld):
     path.write_text(doc,encoding='utf-8')
 
 
+# شارة المنتج (productBadge) تُخزَّن في Firestore ككود ثابت من قائمة لوحة التحكم
+# (new/featured/offer/best)، وليست نصًا جاهزًا للعرض. النسخة الثابتة (SEO) عربية
+# دائمًا، لذلك نستعمل هنا الترجمة العربية فقط — نفس النصوص المستعملة في i18n.js.
+# بعض المنتجات القديمة قد تحتوي حقل "badge" قديم بنص عربي حر مباشر (قبل اعتماد
+# نظام الأكواد) — في هذه الحالة (كود غير معروف) نعرض النص كما هو دون تغيير.
+BADGE_LABELS_AR = {
+    'new': '🆕 جديد',
+    'featured': '⭐ مميز',
+    'offer': '🔥 عرض',
+    'best': '🏆 الأكثر مبيعًا',
+}
+
+
+def badge_label(code):
+    if not code:
+        return None
+    return BADGE_LABELS_AR.get(code, str(code))
+
+
 def static_product_html(name, desc, price, images, available=True, badge=None, old_price=None):
     # Server-rendered fallback so Google (and any user before JS/Firestore loads)
     # sees the REAL product content immediately in the raw HTML — not a spinner.
@@ -146,8 +165,9 @@ def static_product_html(name, desc, price, images, available=True, badge=None, o
         f'<div class="thumbs">{thumbs}</div></div>'
     )
 
-    if available and badge:
-        badge_html = f'<span class="badge-featured">{html.escape(str(badge))}</span>'
+    badge_text = badge_label(badge)
+    if available and badge_text:
+        badge_html = f'<span class="badge-featured">{html.escape(badge_text)}</span>'
     elif not available:
         badge_html = '<span class="badge-featured unavailable">غير متوفر حاليًا</span>'
     else:
@@ -256,7 +276,7 @@ for p in products:
     imgs_list=p.get('images') if isinstance(p.get('images'),list) else []
     imgs_list=[str(x) for x in imgs_list if x] or [img]
     available=p.get('published') is not False
-    badge=p.get('badge') or None
+    badge=p.get('productBadge') or p.get('badge') or None
     old_price=p.get('oldPrice') or p.get('old_price') or p.get('compareAtPrice') or p.get('compare_at_price') or None
     template=(root/'product.html').read_text(encoding='utf-8')
     template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price)
