@@ -1075,7 +1075,18 @@ window.submitOrder=async function(){
   }
   if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:cart.map(x=>x.name).join(", "),price:productTotal()+s,category:"",qty:cart.reduce((sum,x)=>sum+x.quantity,0)});
   cart=[];updateCount();renderCart();closeModal("cartOverlay");
-  window.location.replace("/success.html");
+  
+function redirectToSuccess(){
+  const successUrl=new URL("/success.html",window.location.origin).href;
+  try{ window.location.replace(successUrl); }catch(_e){}
+  setTimeout(()=>{
+    if(!/\/success\.html$/i.test(window.location.pathname)){
+      try{ window.location.assign(successUrl); }catch(_e){}
+    }
+  },900);
+}
+
+redirectToSuccess();return;
   
  }catch(err){
   console.error("order submit failed:",err);
