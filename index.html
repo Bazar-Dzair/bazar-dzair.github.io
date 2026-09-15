@@ -6,13 +6,10 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.cloudinary.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
-<link rel="preload" as="image" href="/assets/hero.webp" type="image/webp" fetchpriority="high">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Bazar Dzair متجر إلكتروني جزائري للتسوق أونلاين. منتجات متنوعة، أسعار مناسبة، دفع عند الاستلام وتوصيل إلى 58 ولاية.">
-<meta name="keywords" content="Bazar Dzair, متجر إلكتروني الجزائر, التسوق أونلاين الجزائر, شراء أونلاين الجزائر, الدفع عند الاستلام, توصيل 58 ولاية">
-<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
-<meta name="theme-color" content="#061e3d">
-<title>Bazar Dzair | متجر إلكتروني جزائري - تسوق أونلاين</title>
+<meta name="description" content="متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.">
+<meta name="keywords" content="متجر إلكتروني جزائري, Bazar Dzair, تسوق أونلاين الجزائر, دفع عند الاستلام">
+<title>Bazar Dzair | متجر إلكتروني</title>
 <style>
   :root {
     --navy:#061e3d;
@@ -141,9 +138,6 @@
   }
   .buy:active,.cart:active,.view-all:active { transform:scale(.98); }
 
-  #loadMoreProducts { cursor:pointer; min-width:170px; box-shadow:0 4px 12px rgba(7,29,59,.08); }
-  #loadMoreProducts:hover { background:#fff7f1; }
-
   .benefits {
     display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin:20px 0 16px;
   }
@@ -235,44 +229,21 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
 .product .pic:hover img{transform:scale(1.02)}
 
 .footer-toggle{display:block;border:0;background:none;color:inherit;padding:0;margin:0;text-align:right;font:inherit;cursor:pointer;width:100%;line-height:1.8}.footer-toggle:hover{text-decoration:underline}.footer-link-text{display:none;font-size:12px;line-height:1.8;color:rgba(255,255,255,.78);margin:5px 0 10px;padding:8px 10px;border-right:2px solid rgba(255,255,255,.28);white-space:pre-line}.footer-link-text.open{display:block} 
-
-/* --- Bazar Dzair visual polish / accessibility --- */
-:root{--orange:#ff5a0a;--orange-2:#ff7a00;--navy:#061e3d;--navy-2:#0b2c56;--ring:rgba(255,90,10,.18)}
-body{background:linear-gradient(180deg,#fff 0,#f7f9fc 360px,#fff 100%);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-.topbar{background:linear-gradient(90deg,var(--navy),var(--navy-2));box-shadow:0 1px 0 rgba(255,255,255,.06)}
-.header{position:sticky;top:0;z-index:50;border-bottom:1px solid rgba(7,29,59,.06);box-shadow:0 5px 24px rgba(7,29,59,.04);backdrop-filter:saturate(150%) blur(8px)}
-.brand-mark{box-shadow:0 8px 22px rgba(255,90,10,.12)}
-.circle-btn{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.circle-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(7,29,59,.09);border-color:#d7dde6}.circle-btn:focus-visible,.view-all:focus-visible,.buybtn:focus-visible,.cartbtn:focus-visible,.search input:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
-.search{transition:box-shadow .2s ease,border-color .2s ease}.search:focus-within{border-color:#ffc5a7;box-shadow:0 0 0 4px rgba(255,90,10,.08),0 8px 26px rgba(7,29,59,.07)}
-.hero{box-shadow:0 14px 36px rgba(7,29,59,.10)}
-.section-head{margin-top:38px}.section-title h2{letter-spacing:-.3px}.view-all{transition:.18s ease}.view-all:hover{background:#fff5ef;transform:translateY(-1px)}
-.product{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}.product:hover{transform:translateY(-5px);box-shadow:0 14px 32px rgba(7,29,59,.11);border-color:#e1e6ed}.pic{background:linear-gradient(180deg,#fbfcfe,#f5f7fa)}
-.buybtn{box-shadow:0 8px 16px rgba(255,90,10,.16);transition:transform .16s ease,box-shadow .16s ease}.buybtn:hover{transform:translateY(-1px);box-shadow:0 11px 22px rgba(255,90,10,.22)}.cartbtn{transition:.16s ease}.cartbtn:hover{background:#f6f8fb;transform:translateY(-1px)}
-.benefit{transition:transform .18s ease,box-shadow .18s ease}.benefit:hover{transform:translateY(-3px);box-shadow:0 10px 25px rgba(7,29,59,.08)}
-.footer{background:linear-gradient(135deg,#061e3d,#0b2c56)}
-@media(max-width:560px){.topbar{height:46px}.header{position:sticky;top:0;padding-top:10px;padding-bottom:8px}.hero{border-radius:20px}.section-head{margin-top:28px}.product{border-radius:17px}.pic{height:215px}.buybtn{box-shadow:0 5px 13px rgba(255,90,10,.14)}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <script src="i18n.js"></script>
 <script src="addons.js" defer></script>
 <link rel="canonical" href="https://bazar-dzair.github.io/">
-<meta property="og:type" content="website">
-<meta property="og:locale" content="ar_DZ">
-<meta property="og:site_name" content="Bazar Dzair">
-<meta property="og:title" content="Bazar Dzair | متجر إلكتروني جزائري - تسوق أونلاين">
+<meta property="og:title" content="Bazar Dzair | متجر إلكتروني جزائري">
 <meta property="og:description" content="متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.">
-<meta property="og:url" content="https://bazar-dzair.github.io/">
-<meta property="og:image" content="https://bazar-dzair.github.io/assets/hero.jpg">
-<meta property="og:image:alt" content="Bazar Dzair - متجر إلكتروني جزائري">
+<meta property="og:image" content="https://bazar-dzair.github.io/logo.svg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Bazar Dzair | متجر إلكتروني جزائري - تسوق أونلاين">
+<meta name="twitter:title" content="Bazar Dzair | متجر إلكتروني جزائري">
 <meta name="twitter:description" content="متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.">
-<meta name="twitter:image" content="https://bazar-dzair.github.io/assets/hero.jpg">
+<meta name="twitter:image" content="https://bazar-dzair.github.io/logo.svg">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Bazar Dzair","url":"https://bazar-dzair.github.io/","inLanguage":"ar-DZ"}</script>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Bazar Dzair","alternateName":"Bazar Dzair | متجر إلكتروني","url":"https://bazar-dzair.github.io/","logo":"https://bazar-dzair.github.io/logo.svg","description":"متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.","contactPoint":{"@type":"ContactPoint","telephone":"+213550000000","contactType":"customer service","areaServed":"DZ","availableLanguage":["ar"]}}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Bazar Dzair | متجر إلكتروني جزائري","url":"https://bazar-dzair.github.io/","description":"متجر إلكتروني جزائري للتسوق أونلاين مع الدفع عند الاستلام والتوصيل إلى 58 ولاية.","inLanguage":"ar-DZ","isPartOf":{"@type":"WebSite","name":"Bazar Dzair","url":"https://bazar-dzair.github.io/"}}</script>
 
 <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
 </head>
@@ -296,10 +267,7 @@ body{background:linear-gradient(180deg,#fff 0,#f7f9fc 360px,#fff 100%);-webkit-f
 <section class="section" id="products">
 <div class="section-head"><div class="section-title"><h2 id="categoryPageTitle" data-i18n="products_title">منتجاتنا 🛍️</h2><p id="categoryPageDescription" data-i18n="products_subtitle">أفضل العروض و أحدث المنتجات</p></div><button class="view-all" onclick="showProductsOnly(event)" data-i18n="view_all">عرض الكل ←</button></div>
 <div id="categoryBreadcrumb" style="display:none;margin:-4px 0 14px;color:#6f7d91;font-size:14px"></div>
-<div class="products" id="productGrid"></div>
-<div id="loadMoreWrap" style="display:none;text-align:center;margin:22px 0 6px;">
-  <button id="loadMoreProducts" type="button" class="view-all" onclick="showMoreProducts()" data-i18n="show_more_products">إظهار المزيد ↓</button>
-</div></section>
+<div class="products" id="productGrid"></div></section>
 <section class="benefits" aria-label="مزايا المتجر"><div class="benefit"><div class="big">🎧</div><strong data-i18n="benefit_service_title">خدمة عملاء</strong><small data-i18n="benefit_service_desc">نحن في خدمتكم 7/7</small></div><div class="benefit"><div class="big">🛡️</div><strong data-i18n="benefit_genuine_title">منتجات أصلية</strong><small data-i18n="benefit_genuine_desc">جودة مضمونة</small></div><div class="benefit"><div class="big">🚚</div><strong data-i18n="benefit_delivery_title">توصيل سريع</strong><small data-i18n="benefit_delivery_desc">إلى جميع الولايات</small></div><div class="benefit"><div class="big">🤲</div><strong data-i18n="benefit_cod_title">الدفع عند الاستلام</strong><small data-i18n="benefit_cod_desc">ادفع عند استلام طلبك</small></div></section>
 </main>
 <footer id="footer"><div class="footer-grid"><div><div class="brand" style="justify-self:start;color:#fff;margin-bottom:12px"><div class="brand-mark"></div><div><div class="brand-text"><b style="color:#fff">Bazar</b> <b>Dzair</b></div><div class="brand-sub" style="color:#fff" data-i18n="brand_subtitle">متجر إلكتروني</div></div></div><p id="footerDescription" data-i18n="footer_description">متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.</p></div><div><h4 data-i18n="footer_links_title">روابط مهمة</h4><ul id="importantFooterList"><li><button type="button" class="footer-toggle">من نحن</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">سياسة الخصوصية</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">الشروط والأحكام</button><div class="footer-link-text"></div></li></ul></div><div><h4 data-i18n="footer_customer_title">خدمة الزبائن</h4><ul id="customerFooterList"><li><button type="button" class="footer-toggle">❓ أسئلة شائعة</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">📦 تتبع طلبي</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">🚚 سياسة التوصيل</button><div class="footer-link-text"></div></li></ul><ul><li>📞 <a id="footerPhone" href="tel:0550000000">0550 00 00 00</a></li><li><a id="footerWhatsapp" href="https://wa.me/213500000000" target="_blank" rel="noopener">💬 واتساب متوفر للطلبات</a></li></ul></div></div><div class="copyright" id="footerCopyright">© 2026 Bazar Dzair ❤️ — جميع الحقوق محفوظة</div></footer>
@@ -659,115 +627,67 @@ async function loadProductsFromFirestore(){
   try{const local=JSON.parse(localStorage.getItem("bazarFooterSettings")||"null");if(local)applyFooterData(local);}catch(_e){}
 })();
 
-// ===== تحميل المنتجات بسرعة + مزامنة Firestore في الوقت الحقيقي =====
-// الهدف: عرض آخر نسخة محفوظة فورًا، ثم جلب نسخة حديثة عبر REST بالتوازي مع Firebase،
-// وبعدها يظل onSnapshot هو المصدر النهائي للتحديثات الحية. لا نعتمد على Firebase SDK
-// حتى يبدأ المستخدم برؤية المنتجات.
-(function initFastProducts(){
-  const PRODUCTS_CACHE_KEY = "bazarProductsCache_v2";
-  const PRODUCTS_CACHE_TTL = 30 * 60 * 1000; // الكاش مؤقت فقط؛ Firestore يصححه لاحقًا.
-  let realtimeStarted = false;
-
-  function showProducts(list){
-    if(!Array.isArray(list) || !list.length) return;
-    products=list;
-    const key=getUrlCategory();
-    if(key!=="all" && storeCategories.length) applyUrlCategory();
-    else displayProducts();
+// ===== المصدر الوحيد للمنتجات: Firestore (Realtime onSnapshot) =====
+// المنتجات تُقرأ مباشرة من Firestore في الوقت الحقيقي. لا يوجد LocalStorage للمنتجات،
+// ولا بيانات ثابتة، ولا إخفاء بالـ CSS. أي حذف في Firestore يعكسه هذا الـ listener فورًا.
+// إذا فشل تحميل SDK Firebase تُستخدم الواجهة REST كخطة احتياطية مباشرة (بدون كاش قديم).
+(async function initStoreFirestore(){
+  function mapSnap(d,i){
+    const data=d.data()||{};
+    const imgs=Array.isArray(data.images)?data.images.filter(Boolean):[];
+    const image=data.image||data.imageUrl||data.photo||imgs[0]||"./logo.svg";
+    return {
+      id:i+1,
+      firestoreId:d.id,
+      name:data.name||data.product||"منتج بدون اسم",
+      name_fr:data.name_fr||"",
+      price:Number(data.price||0),
+      image,
+      images:imgs.length?imgs:[image],
+      badge:data.badge||"جديد",
+      description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
+      description_fr:data.description_fr||"",
+      category:data.category||"all",
+      published:data.published!==false,
+      stock:Number(data.stock||0),
+      shippingHome:data.shippingHome||"",
+      shippingOffice:data.shippingOffice||"",
+      deliveryMethod:data.deliveryMethod||""
+    };
   }
-
-  // 1) اعرض الكاش فورًا إن وُجد، حتى لا ينتظر الزبون الشبكة.
   try{
-    const cached=JSON.parse(localStorage.getItem(PRODUCTS_CACHE_KEY)||"null");
-    if(cached && Array.isArray(cached.products) && cached.products.length &&
-       (!cached.savedAt || (Date.now()-cached.savedAt)<PRODUCTS_CACHE_TTL)){
-      showProducts(cached.products);
-    }
-  }catch(e){ console.warn("Products cache read failed",e); }
-
-  // 2) ابدأ REST مباشرة، بدون انتظار Firebase SDK.
-  //    إذا وصل أولاً يعرض المنتجات؛ وإذا وصل onSnapshot بعده، تصبح بيانات Firebase هي النهائية.
-  const restPromise=loadProductsFromFirestore();
-  restPromise.then(ok=>{
-    if(ok && products.length){
-      try{
-        localStorage.setItem(PRODUCTS_CACHE_KEY,JSON.stringify({savedAt:Date.now(),products}));
-      }catch(e){ console.warn("Products cache write failed",e); }
-    }
-  }).catch(()=>{});
-
-  // 3) Firebase يبدأ بالتوازي للمزامنة الحية.
-  (async function initRealtime(){
-    function mapSnap(d,i){
-      const data=d.data()||{};
-      const imgs=Array.isArray(data.images)?data.images.filter(Boolean):[];
-      const image=data.image||data.imageUrl||data.photo||imgs[0]||"./logo.svg";
-      return {
-        id:i+1,
-        firestoreId:d.id,
-        name:data.name||data.product||"منتج بدون اسم",
-        name_fr:data.name_fr||"",
-        price:Number(data.price||0),
-        image,
-        images:imgs.length?imgs:[image],
-        badge:data.badge||"جديد",
-        description:data.description||data.desc||"منتج متوفر في متجر Bazar Dzair.",
-        description_fr:data.description_fr||"",
-        category:data.category||"all",
-        published:data.published!==false,
-        stock:Number(data.stock||0),
-        shippingHome:data.shippingHome||"",
-        shippingOffice:data.shippingOffice||"",
-        deliveryMethod:data.deliveryMethod||""
-      };
-    }
-    try{
-      const {initializeApp}=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
-      const firestore=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
-      const {getFirestore,initializeFirestore,persistentLocalCache,collection,onSnapshot}=firestore;
-      const app=initializeApp(firebaseConfig);
-      try{db=initializeFirestore(app,{localCache:persistentLocalCache({})});}catch(_e){db=getFirestore(app)}
-      firestoreReady=true;
-      realtimeStarted=true;
-      onSnapshot(collection(db,"products"),snap=>{
-        // Firebase هو المصدر النهائي؛ أي إضافة/تعديل/حذف يظهر تلقائيًا ويصحح الكاش.
-        products=snap.docs.map(mapSnap);
-        try{
-          localStorage.setItem(PRODUCTS_CACHE_KEY,JSON.stringify({savedAt:Date.now(),products}));
-        }catch(e){}
-        const key=getUrlCategory();
-        if(key!=="all" && storeCategories.length) applyUrlCategory();
-        else displayProducts();
-      },async error=>{
-        console.warn("Realtime products sync failed; REST remains active",error);
-        if(!products.length){
-          const ok=await restPromise;
-          if(!ok){products=[];displayProducts();}
-        }
-      });
-
-      const renderStoreCategories=(snap)=>{
-        const box=document.getElementById("storeCategories");
-        const seen=new Set();
-        storeCategories=snap.docs.map(d=>({key:d.id,...(d.data()||{})}))
-          .filter(c=>c.name&&!seen.has(c.key)&&seen.add(c.key))
-          .sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));
-        const visibleCategories=storeCategories.filter(c=>c.hidden!==true);
-        if(box) box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>'+escapeHtml(BazarI18n.t("drawer_all"))+'</div>'+(visibleCategories.length?visibleCategories.map(c=>`<div class="cat" onclick="filterCategory('${escapeHtml(c.key)}')"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(catName(c))}</div>`).join(""):'<div class="cat"><i>📂</i>'+escapeHtml(BazarI18n.t("drawer_none"))+'</div>');
-        applyUrlCategory();
-      };
-      onSnapshot(collection(db,"categories"),renderStoreCategories,error=>{
-        const box=document.getElementById("storeCategories");
-        if(box) box.innerHTML='<div class="cat"><i>⚠️</i>'+escapeHtml(BazarI18n.t("drawer_error"))+'</div>';
-      });
-    }catch(error){
-      console.warn("Firebase SDK init failed; REST/cache remain active",error);
-      if(!products.length){
-        const ok=await restPromise;
-        if(!ok){products=[];displayProducts();}
-      }
-    }
-  })();
+    const {initializeApp}=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
+    const firestore=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
+    const {getFirestore,initializeFirestore,persistentLocalCache,collection,onSnapshot,getDocs}=firestore;
+    const app=initializeApp(firebaseConfig);
+    try{db=initializeFirestore(app,{localCache:persistentLocalCache({})});}catch(_e){db=getFirestore(app)}
+    firestoreReady=true;
+    onSnapshot(collection(db,"products"),snap=>{
+      products=snap.docs.map(mapSnap);
+      const key=getUrlCategory();
+      if(key!=="all" && storeCategories.length) applyUrlCategory();
+      else displayProducts();
+    },async error=>{
+      console.warn("Realtime products sync failed; REST fallback",error);
+      const ok=await loadProductsFromFirestore();
+      if(!ok){products=[];displayProducts();}
+    });
+    const renderStoreCategories=(snap)=>{
+      const box=document.getElementById("storeCategories");
+      const seen=new Set();
+      storeCategories=snap.docs.map(d=>({key:d.id,...(d.data()||{})}))
+        .filter(c=>c.name&&!seen.has(c.key)&&seen.add(c.key))
+        .sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));
+      const visibleCategories=storeCategories.filter(c=>c.hidden!==true);
+      if(box) box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>'+escapeHtml(BazarI18n.t("drawer_all"))+'</div>'+(visibleCategories.length?visibleCategories.map(c=>`<div class="cat" onclick="filterCategory('${escapeHtml(c.key)}')"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(catName(c))}</div>`).join(""):'<div class="cat"><i>📂</i>'+escapeHtml(BazarI18n.t("drawer_none"))+'</div>');
+      applyUrlCategory();
+    };
+    onSnapshot(collection(db,"categories"),renderStoreCategories,error=>{const box=document.getElementById("storeCategories");if(box)box.innerHTML='<div class="cat"><i>⚠️</i>'+escapeHtml(BazarI18n.t("drawer_error"))+'</div>';});
+  }catch(error){
+    console.warn("Firebase SDK init failed; REST fallback",error);
+    const ok=await loadProductsFromFirestore();
+    if(!ok){products=[];displayProducts();}
+  }
 })();
 
 loadFastSettings();
@@ -832,41 +752,13 @@ function applyUrlCategory(){
   updateCategorySeo(category);
   if(products.length) filterCategory(category.key,true);
 }
-let productsToDisplay=[];
-let visibleProductsCount=9;
-const PRODUCTS_PER_MORE=6;
-
-function updateLoadMoreButton(){
-  const wrap=document.getElementById("loadMoreWrap");
-  const btn=document.getElementById("loadMoreProducts");
-  if(!wrap||!btn)return;
-  const hasMore=visibleProductsCount<productsToDisplay.length;
-  wrap.style.display=hasMore?"block":"none";
-  if(hasMore){
-    btn.textContent=(window.BazarI18n&&BazarI18n.getLang&&BazarI18n.getLang()==="fr")?"Afficher plus ↓":"إظهار المزيد ↓";
-  }
-}
-
-function showMoreProducts(){
-  if(!productsToDisplay.length)return;
-  visibleProductsCount=Math.min(visibleProductsCount+PRODUCTS_PER_MORE,productsToDisplay.length);
-  displayProducts(productsToDisplay,false);
-  setTimeout(()=>document.getElementById("loadMoreProducts")?.scrollIntoView({behavior:"smooth",block:"center"}),50);
-}
-
-function displayProducts(list=products,reset=true){
+function displayProducts(list=products){
  const g=document.getElementById("productGrid");
- if(reset){productsToDisplay=Array.isArray(list)?list.slice():[];visibleProductsCount=9;}
- else {productsToDisplay=Array.isArray(list)?list:productsToDisplay;}
- if(!productsToDisplay.length){
-   g.innerHTML='<div class="empty" style="grid-column:1/-1">'+esc(BazarI18n.t("empty_products"))+'</div>';
-   updateLoadMoreButton();
-   return;
- }
- const visibleList=productsToDisplay.slice(0,visibleProductsCount);
- g.innerHTML=visibleList.map(p=>{
+ if(!list.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">'+esc(BazarI18n.t("empty_products"))+'</div>';return}
+ g.innerHTML=list.map(p=>{
    const available=p.published!==false;
    const tp=BazarI18n.translateProduct(p);
+   // شارة "جديد" الافتراضية تُترجم تلقائيًا؛ أي شارة مخصّصة كتبها الأدمن تبقى كما هي (لا ترجمة آلية للمحتوى الحر)
    const badgeText=p.badge&&p.badge!=="جديد"?p.badge:(p.badge?(BazarI18n.getLang()==="fr"?"Nouveau":"جديد"):"");
    const badgeHtml=available?(badgeText?`<span class="new">${esc(badgeText)}</span>`:""):`<span class="new" style="background:#9aa1ab">${esc(BazarI18n.t("badge_unavailable"))}</span>`;
    const actionsHtml=available
@@ -874,7 +766,6 @@ function displayProducts(list=products,reset=true){
      :`<button class="btn buybtn" disabled style="opacity:.55;cursor:not-allowed" onclick="return false">${esc(BazarI18n.t("button_unavailable"))}</button>`;
    return `<article class="product${available?"":" unavailable"}"><div class="pic" onclick="goToProduct(${p.id})">${badgeHtml}<img src="${safeImg(p.image)}" alt="${esc(tp.name)}" loading="lazy" decoding="async" style="${available?"":"filter:grayscale(60%);opacity:.75"}"></div><div class="info"><div class="name" onclick="goToProduct(${p.id})">${esc(tp.name)}</div><div class="price">${money(p.price)}</div><div class="buttons">${actionsHtml}</div></div></article>`;
  }).join("");
- updateLoadMoreButton();
 }
 function productSlug(name){
   return String(name || "product")
@@ -1020,7 +911,7 @@ function filterCategory(category,fromUrl=false){
   document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
-function searchProducts(){const q=document.getElementById("search").value.trim().toLowerCase();displayProducts(products.filter(p=>p.name.toLowerCase().includes(q)));}
+function searchProducts(){const q=document.getElementById("search").value.trim().toLowerCase();displayProducts(products.filter(p=>p.name.toLowerCase().includes(q)))}
 window.submitOrder=async function(){
  if(!cart.length){toast(BazarI18n.t("toast_cart_empty"));return}
  if(window.__bazarSubmittingOrder)return;
@@ -1075,19 +966,7 @@ window.submitOrder=async function(){
   }
   if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:cart.map(x=>x.name).join(", "),price:productTotal()+s,category:"",qty:cart.reduce((sum,x)=>sum+x.quantity,0)});
   cart=[];updateCount();renderCart();closeModal("cartOverlay");
-  
-function redirectToSuccess(){
-  const successUrl=new URL("/success.html",window.location.origin).href;
-  try{ window.location.replace(successUrl); }catch(_e){}
-  setTimeout(()=>{
-    if(!/\/success\.html$/i.test(window.location.pathname)){
-      try{ window.location.assign(successUrl); }catch(_e){}
-    }
-  },900);
-}
-
-redirectToSuccess();return;
-  
+  alert(BazarI18n.t("alert_order_success"));setTimeout(()=>{location.href="/success.html";},1000);
  }catch(err){
   console.error("order submit failed:",err);
   toast(err&&err.userMessage?err.userMessage+" ⚠️":BazarI18n.t("toast_order_failed"));

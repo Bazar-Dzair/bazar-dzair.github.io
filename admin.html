@@ -114,15 +114,6 @@
 .funnel-btn.active{background:var(--orange);border-color:var(--orange);color:#fff}
 .total-badge{flex:none;display:inline-flex;align-items:center;gap:6px;background:#eef5ff;color:#1d64d8;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:700;white-space:nowrap}
 .total-badge b{font-size:14px}
-
-.admin-toolbar-extra{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
-.admin-mini-btn{border:1px solid #e1e6ed;background:#fff;color:#46515f;border-radius:9px;padding:9px 12px;font-size:12px;font-weight:800}
-.admin-mini-btn:hover{background:#f7f9fb;border-color:#cfd6df}
-.admin-mini-btn:disabled{opacity:.55;cursor:not-allowed}
-.admin-cache-status{font-size:11px;color:#8a94a2}
-.save-progress{margin-top:10px;height:7px;background:#edf0f4;border-radius:99px;overflow:hidden;display:none}
-.save-progress.show{display:block}
-.save-progress span{display:block;height:100%;width:0;background:var(--orange);transition:width .2s}
 .products-utility-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .util-btn{white-space:nowrap;background:#fff7ee;color:#c65a00;border:1px solid #ffe2bd;border-radius:9px;padding:9px 13px;font-weight:700;font-size:12px}
 .util-btn-dark{background:#374151;color:#fff;border-color:#374151;padding:9px 12px}
@@ -293,20 +284,6 @@
 .multi-select-menu input[type="checkbox"]{width:15px;height:15px;flex-shrink:0}
 .carrier-logo{width:20px;height:20px;border-radius:5px;object-fit:contain;flex-shrink:0;background:#fff;border:1px solid #eef0f3}
 .carrier-btn-logo{width:16px;height:16px;border-radius:4px;object-fit:contain;vertical-align:middle;margin-left:4px}
-
-/* ===== Product presentation fields ===== */
-.field-optional{font-size:10px;color:#98a2b3;font-weight:600;margin-inline-start:4px}
-.rating-admin-card{background:linear-gradient(180deg,#fffaf5,#fff);border:1px solid #ffe3c2;border-radius:14px;padding:12px}
-.rating-input-row{display:flex;align-items:center;gap:7px;direction:ltr;margin-top:7px}
-.rating-input-row input{min-width:0;flex:1}
-.rating-input-row span{font-size:12px;color:#667085;font-weight:700;white-space:nowrap}
-.admin-display-options{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f8fafc;border:1px solid #e6eaf0;border-radius:14px;padding:13px}
-.display-options-title{display:flex;flex-direction:column;gap:3px;margin-inline-end:auto}
-.display-options-title small{font-size:11px;color:#7b8492}
-.check-option{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid #e3e7ed;border-radius:10px;padding:9px 11px;font-size:12px;font-weight:700;cursor:pointer}
-.check-option input{width:17px;height:17px;accent-color:var(--orange);cursor:pointer}
-#featuresText{min-height:145px}
-@media(max-width:760px){.admin-display-options{align-items:stretch}.display-options-title{flex-basis:100%;margin-inline-end:0}.check-option{flex:1}}
 </style>
 </head>
 <body class="auth-check">
@@ -388,18 +365,8 @@
    <div><label>اسم المنتج *</label><input id="name" placeholder="مثال: Lantern LED"></div>
    <div><label>اسم المنتج بالفرنسية (اختياري)</label><input id="name_fr" placeholder="مثال: Lanterne LED"><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا.</small></div>
    <div><label>السعر بالدج *</label><input id="price" type="number" min="0" placeholder="3500"></div>
-   <div><label>السعر القديم <span class="field-optional">اختياري</span></label><input id="oldPrice" type="number" min="0" placeholder="مثال: 4800"><small class="hint">يظهر السعر القديم والتخفيض تلقائيًا إذا كان أكبر من السعر الحالي.</small></div>
    <div><label>التصنيف</label><select id="category"></select></div>
    <div><label>المخزون *</label><input id="stock" type="number" min="0" placeholder="20"></div>
-   <div><label>شارة المنتج <span class="field-optional">اختياري</span></label><select id="productBadge">
-     <option value="">بدون شارة</option>
-     <option value="featured">⭐ مميز</option>
-     <option value="new">🆕 جديد</option>
-     <option value="offer">🔥 عرض</option>
-     <option value="best">🏆 الأكثر مبيعًا</option>
-   </select></div>
-   <div class="rating-admin-card"><label>تقييم المنتج</label><div class="rating-input-row"><input id="reviewRating" type="number" min="0" max="5" step="0.1" placeholder="4.6"><span>/ 5</span><input id="reviewCount" type="number" min="0" step="1" placeholder="24"><span>تقييم</span></div><small class="hint">الأرقام هنا للعرض في صفحة المنتج فقط.</small></div>
-   <div class="full admin-display-options"><div class="display-options-title"><b>خيارات العرض في صفحة المنتج</b><small>تحكم في العناصر التي تظهر للزبون.</small></div><label class="check-option"><input id="showOldPrice" type="checkbox" checked><span>إظهار السعر القديم والتخفيض</span></label><label class="check-option"><input id="showReviews" type="checkbox" checked><span>إظهار التقييمات</span></label></div>
    <div class="full"><div class="publish-row"><div><b>نشر المنتج في المتجر</b><small>يمكنك تغيير الحالة لاحقًا من قائمة خيارات المنتج ⋮</small></div><label class="switch"><input id="published" type="checkbox" checked><span></span></label></div></div>
    <div class="full"><label style="display:block;margin-bottom:8px">🚚 طريقة التوصيل *</label>
      <div class="delivery-method-toggle">
@@ -424,12 +391,10 @@
    <div class="full"><label>الوصف</label><textarea id="description" placeholder="اكتب وصفًا واضحًا للمنتج..."></textarea></div>
    <div class="full"><label>الوصف بالفرنسية (اختياري)</label><textarea id="description_fr" placeholder="Texte descriptif en français (facultatif)..."></textarea><small class="hint">إذا تركته فارغًا، يظهر الوصف العربي للزبون الفرنسي أيضًا.</small></div>
    <div class="full"><label>المواصفات</label><textarea id="specificationsText" placeholder="القدرة: 600W&#10;اللون: أسود&#10;الضمان: 12 شهر"></textarea><small class="hint">اكتب كل مواصفة في سطر مستقل بالشكل: الاسم: القيمة</small></div>
-   <div class="full"><label>✨ أبرز المميزات</label><textarea id="featuresText" placeholder="دوران 360°&#10;ذراع قابل للتعديل&#10;تثبيت قوي وآمن&#10;متوافق مع مختلف الهواتف"></textarea><small class="hint">اكتب كل ميزة في سطر مستقل لتظهر في صفحة المنتج بشكل مرتب.</small></div>
    <div class="full"><label>صور المنتج *</label><div class="upload-card">
      <input id="imageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
      <button type="button" class="upload-drop" onclick="document.getElementById('imageFiles').click()"><span class="upload-icon">☁️</span><b>أضف صور المنتج</b><small>اختر الصور من الهاتف مباشرة — حتى 10 صور</small><span class="upload-hint">JPG, PNG, WEBP — ضغط تلقائي قبل الحفظ</span></button>
      <div class="image-count" id="imageCount">0 / 10 صور</div><div id="imagePreview" class="image-preview"></div>
-     <div id="saveProgress" class="save-progress"><span></span></div>
    </div><small class="hint">الصورة الأولى تصبح صورة الواجهة. الصور الجديدة تُضغط لتقليل حجم مستند Firestore.</small></div>
  </div><div class="form-actions"><button id="saveBtn" class="green" onclick="save()">💾 حفظ المنتج</button><button class="gray" onclick="resetForm()">مسح النموذج</button><button id="backToProductsBtn" class="gray hidden" type="button" onclick="window.backToProductsList()">↩️ رجوع إلى المنتجات</button></div></div>
 </section>
@@ -444,9 +409,8 @@
    </div>
    <div class="products-utility-row">
      <button type="button" onclick="migrateBase64Images()" class="util-btn">🔄 إصلاح صور المنتجات القديمة</button>
-     <button type="button" onclick="window.refreshAdminProducts()" class="util-btn" id="refreshProductsBtn">↻ تحديث المنتجات</button>
+     
    </div>
-   <div class="admin-toolbar-extra"><span id="adminProductsCacheStatus" class="admin-cache-status">جاهز</span><span id="adminProductsLastUpdate" class="admin-cache-status"></span></div>
    <div id="migrateStatus" style="margin:6px 0 0;font-size:13px"></div>
    <div id="productsBulk" class="bulk-toolbar"><div class="bulk-left"><label class="select-all-label"><input id="selectAllProducts" type="checkbox" onchange="window.toggleAllProducts(this.checked)"> تحديد كل منتجات الصفحة</label><span id="productsSelectedCount" class="page-info">0 محدد</span></div><button id="bulkDeleteProducts" class="bulk-delete" type="button" onclick="bulkDeleteProducts()" disabled>🗑 حذف المحدد</button></div>
    <div id="list" class="products"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div>
@@ -1450,38 +1414,26 @@ window.bazarDb=db;window.bazarDoc=doc;window.bazarSetDoc=setDoc;window.bazarGetD
 // استبداله بـ Cloudinary (Unsigned Upload Preset — لا حاجة لأي مفتاح سري في الكود).
 const CLOUDINARY_CLOUD_NAME="ehh5xqwc";
 const CLOUDINARY_UPLOAD_PRESET="bazar_dzair";
-function uploadToCloudinary(blob,onProgress){
-  // رفع صورة واحدة في كل مرة عبر XHR: أفضل على شبكات الهاتف من fetch المتوازي.
-  // XHR يعطي أيضًا progress حقيقي للرفع، مع مهلة طويلة وإعادة محاولة تلقائية.
-  return new Promise((resolve,reject)=>{
-    let attempt=0, lastError=null;
-    const run=()=>{
-      attempt++;
-      const xhr=new XMLHttpRequest();
-      const fd=new FormData();
-      fd.append("file",blob,"product-image.jpg");
-      fd.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
-      xhr.open("POST","https://api.cloudinary.com/v1_1/"+CLOUDINARY_CLOUD_NAME+"/image/upload",true);
-      xhr.timeout=180000;
-      xhr.upload.onprogress=e=>{if(e.lengthComputable&&typeof onProgress==="function")onProgress(e.loaded/e.total);};
-      xhr.onload=()=>{
-        let json=null;
-        try{json=JSON.parse(xhr.responseText||"{}")}catch(_e){}
-        if(xhr.status>=200&&xhr.status<300&&json?.secure_url){resolve(json.secure_url);return;}
-        lastError=new Error(json?.error?.message||("فشل رفع الصورة (HTTP "+xhr.status+")"));
-        retryOrFail();
-      };
-      xhr.onerror=()=>{lastError=new Error("تعذر الاتصال بخدمة الصور Cloudinary.");retryOrFail();};
-      xhr.ontimeout=()=>{lastError=new Error("انتهت مهلة رفع الصورة بعد 3 دقائق. تحقق من الإنترنت وحاول مرة أخرى.");retryOrFail();};
-      xhr.onabort=()=>{lastError=new Error("تم إيقاف رفع الصورة.");retryOrFail();};
-      try{xhr.send(fd)}catch(e){lastError=e;retryOrFail();}
-      function retryOrFail(){
-        if(attempt<3){setTimeout(run,1500*attempt);}
-        else reject(lastError||new Error("فشل رفع الصورة."));
-      }
-    };
-    run();
-  });
+async function uploadToCloudinary(blob){
+  const fd=new FormData();
+  fd.append("file",blob);
+  fd.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),25000);
+  let res;
+  try{
+    res=await fetch("https://api.cloudinary.com/v1_1/"+CLOUDINARY_CLOUD_NAME+"/image/upload",{method:"POST",body:fd,signal:controller.signal});
+  }catch(e){
+    if(e.name==="AbortError") throw new Error("انتهت مهلة رفع الصورة (25 ثانية). تحقق من الاتصال بالإنترنت.");
+    throw e;
+  }finally{ clearTimeout(timeout); }
+  let json;
+  try{ json=await res.json(); }catch(_e){ throw new Error("رد غير صالح من خدمة رفع الصور."); }
+  if(!res.ok||!json||!json.secure_url){
+    const msg=json&&json.error&&json.error.message?json.error.message:("فشل الرفع (HTTP "+res.status+"). تحقق من إعدادات Cloudinary (Cloud name / Upload preset).");
+    throw new Error(msg);
+  }
+  return json.secure_url;
 }
 
 const loginBox=document.getElementById("login");
@@ -1492,19 +1444,12 @@ const loginErrBox=document.getElementById("loginErr");
 const nameInput=document.getElementById("name");
 const nameFrInput=document.getElementById("name_fr");
 const priceInput=document.getElementById("price");
-const oldPriceInput=document.getElementById("oldPrice");
 const categoryInput=document.getElementById("category");
 const stockInput=document.getElementById("stock");
-const productBadgeInput=document.getElementById("productBadge");
-const reviewRatingInput=document.getElementById("reviewRating");
-const reviewCountInput=document.getElementById("reviewCount");
-const showOldPriceInput=document.getElementById("showOldPrice");
-const showReviewsInput=document.getElementById("showReviews");
 const publishedInput=document.getElementById("published");
 const descriptionInput=document.getElementById("description");
 const descriptionFrInput=document.getElementById("description_fr");
 const specificationsText=document.getElementById("specificationsText");
-const featuresText=document.getElementById("featuresText");
 const titleBox=document.getElementById("title");
 const statusBox=document.getElementById("status");
 const listBox=document.getElementById("list");
@@ -1631,25 +1576,7 @@ window.bazarLoadDashboardStats=async function(force=false){
 };
 
 const defaultCategories=[
-  {key:"tools",name:"أدوات",name_fr:"Outils",icon:"🔧"},
-  {key:"home",name:"المطبخ والمنزل",name_fr:"Maison et Cuisine",icon:"🏠"},
-  {key:"electronics",name:"أكسسوارات وإلكترونيات",name_fr:"Accessoires et Électronique",icon:"⚡"},
-  {key:"phones",name:"هواتف",name_fr:"Téléphones",icon:"📱"},
-  {key:"laptops",name:"حاسوب محمول",name_fr:"Ordinateurs portables",icon:"💻"},
-  {key:"clothes",name:"ملابس وأحذية",name_fr:"Vêtements et Chaussures",icon:"👕"},
-  {key:"beauty",name:"صحة وجمال",name_fr:"Santé et Beauté",icon:"✨"},
-  {key:"women",name:"معدات نسوية",name_fr:"Équipements pour Femmes",icon:"👩"},
-  {key:"jewelry",name:"مجوهرات وإكسسوارات نسائية",name_fr:"Bijoux et Accessoires pour Femmes",icon:"💎"},
-  {key:"baby",name:"مستلزمات الأطفال والرضع",name_fr:"Articles pour Bébés et Enfants",icon:"🧸"},
-  {key:"medical",name:"أدوات طبية",name_fr:"Matériel Médical",icon:"🩺"},
-  {key:"carparts",name:"قطع غيار السيارات",name_fr:"Pièces Auto",icon:"🚗"},
-  {key:"summer",name:"منتجات الصيف",name_fr:"Produits d'Été",icon:"☀️"},
-  {key:"shaving",name:"آلات الحلاقة",name_fr:"Machines à Raser",icon:"🪒"},
-  {key:"gifts",name:"هدايا متنوعة",name_fr:"Cadeaux Divers",icon:"🎁"},
-  {key:"library",name:"مكتبة",name_fr:"Librairie",icon:"📚"},
-  {key:"realestate",name:"عقارات وأراضي",name_fr:"Immobilier et Terrains",icon:"🏡"},
-  {key:"clearance",name:"تصفية مخزون",name_fr:"Déstockage",icon:"🏷️"},
-  {key:"misc",name:"منتجات متنوعة",name_fr:"Produits Divers",icon:"🛍️"}
+  {key:"tools",name:"أدوات",icon:"🔧"},{key:"home",name:"المطبخ والمنزل",icon:"🏠"},{key:"electronics",name:"أكسسوارات وإلكترونيات",icon:"⚡"},{key:"phones",name:"هواتف",icon:"📱"},{key:"laptops",name:"حاسوب محمول",icon:"💻"},{key:"clothes",name:"ملابس وأحذية",icon:"👕"},{key:"beauty",name:"صحة وجمال",icon:"✨"},{key:"women",name:"معدات نسوية",icon:"👩"},{key:"jewelry",name:"مجوهرات وإكسسوارات نسائية",icon:"💎"},{key:"baby",name:"مستلزمات الأطفال والرضع",icon:"🧸"},{key:"medical",name:"أدوات طبية",icon:"🩺"},{key:"carparts",name:"قطع غيار السيارات",icon:"🚗"},{key:"summer",name:"منتجات الصيف",icon:"☀️"},{key:"shaving",name:"آلات الحلاقة",icon:"🪒"},{key:"gifts",name:"هدايا متنوعة",icon:"🎁"},{key:"library",name:"مكتبة",icon:"📚"},{key:"realestate",name:"عقارات وأراضي",icon:"🏡"},{key:"clearance",name:"تصفية مخزون",icon:"🏷️"},{key:"misc",name:"منتجات متنوعة",icon:"🛍️"}
 ];
 let categories=[];
 function categoryIconFor(name){
@@ -1657,75 +1584,64 @@ function categoryIconFor(name){
   const rules=[[/سيارات|قطع غيار|auto|car/,'🚗'],[/هاتف|هواتف|mobile|phone/,'📱'],[/حاسوب|كمبيوتر|لابتوب|laptop|computer/,'💻'],[/إلكترون|الكترون|accessor/,'⚡'],[/أدوات|tool/,'🔧'],[/منزل|مطبخ|home|kitchen/,'🏠'],[/ملابس|أحذية|clothes|shoes/,'👕'],[/جمال|صحة|beauty/,'✨'],[/نساء|نسوية|woman|women/,'👩'],[/مجوهر|jewelry/,'💎'],[/أطفال|رضع|baby|kids/,'🧸'],[/طبية|medical/,'🩺'],[/صيف|summer/,'☀️'],[/حلاقة|shav/,'🪒'],[/هدايا|gift/,'🎁'],[/مكتبة|كتب|book/,'📚'],[/عقار|أراضي|real estate|land/,'🏡'],[/تصفية|clearance/,'🏷️']];
   for(const [re,ic] of rules)if(re.test(n))return ic; return '🛍️';
 }
-function categoryCollapseSpaces(s){return String(s||"").trim().replace(/\s+/g," ");}
-function categoryBaseName(name){return categoryCollapseSpaces(name).replace(/(?:\s*[-–—]\s*|\s*_\s*|\s*\()([2-9]\d*)\)?$/u,"").trim();}
-function categoryBaseKey(key){return String(key||"").trim().toLowerCase().replace(/(?:[-_]\d+)$/i,"");}
-function categoryNameSignature(name){return categoryBaseName(name).toLowerCase();}
-function normalizeCategoryList(list){
-  const map=new Map();
-  (Array.isArray(list)?list:[]).forEach(c=>{
-    const key=String(c.key||"").trim(), name=categoryCollapseSpaces(c.name||"");
-    if(!key||!name||map.has(key))return;
-    map.set(key,{key,name,name_fr:categoryCollapseSpaces(c.name_fr||""),icon:String(c.icon||categoryIconFor(name)),hidden:c.hidden===true});
-  });
-  return [...map.values()].sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));
+function normalizeCategoryList(list){const map=new Map();(Array.isArray(list)?list:[]).forEach(c=>{const key=String(c.key||"").trim(),name=String(c.name||"").trim();if(!key||!name||map.has(key))return;map.set(key,{key,name,icon:String(c.icon||categoryIconFor(name)),hidden:c.hidden===true});});return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name,"ar"));}
+
+/* توحيد التصنيفات المكررة مثل: أدوات / أدوات-2 / هواتف / هواتف-2،
+   وكذلك التصنيفات المكررة بنفس الاسم مع اختلاف حالة الأحرف أو المسافات
+   الزائدة (Tools / tools / "  Tools  "). يتم الاحتفاظ بنسخة واحدة فقط
+   (التصنيف الأساسي)، ونقل المنتجات المرتبطة بالنسخ المكررة إلى التصنيف
+   الأساسي قبل حذف النسخ المكررة فعليًا من مصدر البيانات (Firestore). */
+function categoryCollapseSpaces(s){
+  return String(s||"").trim().replace(/\s+/g," ");
 }
-
-/*
- * إصلاح لمرة واحدة فقط للتصنيفات (لا يتكرر بعدها):
- * - يدمج النسخ المكررة فقط (نفس المعرّف الأساسي أو نفس الاسم العربي/الفرنسي)
- *   وينقل المنتجات التابعة لها إلى النسخة المعتمدة قبل حذف النسخة الزائدة نهائيًا.
- * - لا يعيد إنشاء أي تصنيف محذوف بعد الآن، لذلك حذف أو تعديل أي تصنيف يبقى ثابتًا
- *   ولا يظهر من جديد تلقائيًا عند إعادة فتح لوحة التحكم.
- */
+function categoryBaseName(name){
+  return categoryCollapseSpaces(name)
+    .replace(/(?:\s*[-–—]\s*|\s*_\s*|\s*\()([2-9]\d*)\)?$/u,"")
+    .trim();
+}
+function categoryBaseKey(key){
+  return String(key||"").trim().toLowerCase().replace(/(?:[-_]\d+)$/,"");
+}
+// مقارنة "منطقية" للاسم تتجاهل المسافات الزائدة واختلاف حالة الأحرف،
+// تُستخدم لاكتشاف التكرار سواء عند الحفظ أو عند توحيد التصنيفات القديمة.
+function categoryNameSignature(name){
+  return categoryCollapseSpaces(categoryBaseName(name)).toLowerCase();
+}
 async function consolidateDuplicateCategories(snap){
-  let docs=(snap?.docs||[]).map(d=>({key:d.id,name:categoryCollapseSpaces(d.data()?.name||""),name_fr:categoryCollapseSpaces(d.data()?.name_fr||""),icon:String(d.data()?.icon||""),hidden:d.data()?.hidden===true})).filter(c=>c.key&&c.name);
-  let changed=false;
-  const canonicalByKey=new Map(defaultCategories.map(c=>[c.key,c]));
-
-  // تحديد النسخ المكررة بالـ key أو الاسم العربي/الفرنسي.
-  const groups=new Map();
-  docs.forEach(c=>{
-    const keyBase=categoryBaseKey(c.key);
-    const arSig=categoryNameSignature(c.name);
-    const frSig=categoryNameSignature(c.name_fr);
-    const groupKey=canonicalByKey.has(keyBase)?`key:${keyBase}`:(frSig?`fr:${frSig}`:`ar:${arSig}`);
-    if(!groups.has(groupKey))groups.set(groupKey,[]);
-    groups.get(groupKey).push(c);
+  const raw=(snap?.docs||[]).map(d=>({key:d.id,name:categoryCollapseSpaces(d.data()?.name||""),icon:String(d.data()?.icon||"")}))
+    .filter(c=>c.key&&c.name);
+  const byName=new Map();
+  raw.forEach(c=>{
+    const sig=categoryNameSignature(c.name);
+    if(!byName.has(sig))byName.set(sig,[]);
+    byName.get(sig).push(c);
   });
-
-  for(const [groupKey,items] of groups){
+  let changed=false;
+  for(const [sig,items] of byName){
     if(items.length<2)continue;
-    const keyBase=groupKey.startsWith("key:")?groupKey.slice(4):null;
-    const preferred=keyBase&&canonicalByKey.get(keyBase);
+    // اختيار نسخة أساسية ثابتة دائمًا (لا نتخطى أي مجموعة مكررة): نُفضّل
+    // اسمًا بلا لاحقة رقمية ومعرّفًا بلا لاحقة رقمية، وإلا نأخذ الأقدم أبجديًا.
     const sorted=[...items].sort((a,b)=>a.key.localeCompare(b.key));
-    const canonical=(preferred&&items.find(c=>c.key===preferred.key))||
-      sorted.find(c=>categoryBaseKey(c.key)===c.key.toLowerCase())||sorted[0];
-    for(const dup of items){
-      if(dup.key===canonical.key)continue;
+    const canonical=sorted.find(c=>categoryBaseName(c.name)===c.name && categoryBaseKey(c.key)===c.key.toLowerCase())
+      ||sorted.find(c=>categoryBaseName(c.name)===c.name)
+      ||sorted.find(c=>categoryBaseKey(c.key)===c.key.toLowerCase())
+      ||sorted[0];
+    const duplicates=items.filter(c=>c.key!==canonical.key);
+    if(!duplicates.length)continue;
+    try{
       const ps=await getDocs(collection(db,"products"));
-      const updates=ps.docs.filter(d=>String(d.data()?.category||"")===dup.key)
-        .map(d=>updateDoc(d.ref,{category:canonical.key,updatedAt:serverTimestamp()}));
-      if(updates.length)await Promise.all(updates);
-      await deleteDoc(doc(db,"categories",dup.key));
-      changed=true;
+      for(const dup of duplicates){
+        await Promise.all(ps.docs
+          .filter(d=>String(d.data()?.category||"")===dup.key)
+          .map(d=>updateDoc(d.ref,{category:canonical.key,updatedAt:serverTimestamp()})));
+        await deleteDoc(doc(db,"categories",dup.key));
+        changed=true;
+      }
+    }catch(e){
+      console.error("category duplicate migration",e);
     }
   }
-  return {snap:changed?await getDocs(collection(db,"categories")):snap,changed};
-}
-
-async function seedAndRepairCategories(){
-  let snap=await getDocs(collection(db,"categories"));
-  let alreadyRepaired=false;
-  try{ alreadyRepaired=(await getDoc(doc(db,"settings","categories"))).data()?.dedupRepaired===true; }catch(_e){}
-  if(!alreadyRepaired){
-    const result=await consolidateDuplicateCategories(snap);
-    snap=result.snap;
-    try{ await setDoc(doc(db,"settings","categories"),{dedupRepaired:true,updatedAt:serverTimestamp()},{merge:true}); }catch(_e){}
-  }
-  // تحديث القائمة النهائية، مع إزالة أي key مكرر محليًا فقط للعرض (بدون أي حذف/إنشاء في Firestore).
-  categories=normalizeCategoryList(snap.docs.map(d=>({key:d.id,...(d.data()||{})})));
-  return categories;
+  return changed ? await getDocs(collection(db,"categories")) : snap;
 }
 
 imageFilesInput?.addEventListener("change",()=>{
@@ -1744,27 +1660,16 @@ function renderCategorySelect(selectedValue){if(!categoryInput)return;const curr
 function renderCategories(){const box=document.getElementById("categoriesList");if(!box)return;if(!categories.length){box.innerHTML='<div class="empty-card">لا توجد فئات حاليًا. أضف فئة جديدة.</div>';renderCategorySelect("");return}box.innerHTML=categories.map(c=>`<div class="category-row"${c.hidden?' style="opacity:.55"':''}><div class="category-info"><span class="category-icon">${esc(c.icon||"🛍️")}</span><div><b>${esc(c.name)}${c.hidden?' <span style="font-weight:400;font-size:11px;color:#c62828">(مخفية)</span>':''}</b>${c.name_fr?`<small style="display:block;color:#888">FR: ${esc(c.name_fr)}</small>`:''}<small>${esc(c.key)}</small></div></div><div class="category-actions"><button class="edit-cat" type="button" style="${c.hidden?'background:#eafaf0;color:#1a7d3c':'background:#fff7e6;color:#a15c00'}" onclick="toggleCategoryVisibility('${esc(c.key)}')">${c.hidden?'👁️ إظهار':'🙈 إخفاء'}</button><button class="edit-cat" type="button" onclick="editCategory('${esc(c.key)}')">✏️ تعديل</button><button class="delete-cat" type="button" onclick="deleteCategory('${esc(c.key)}')">🗑️ حذف</button></div></div>`).join("");renderCategorySelect(categoryInput?.value||"");}
 window.toggleCategoryVisibility=async key=>{const c=categories.find(x=>String(x.key)===String(key));if(!c)return;const newHidden=!c.hidden;try{await setDoc(doc(db,"categories",key),{hidden:newHidden,updatedAt:serverTimestamp()},{merge:true});await loadCategories()}catch(e){console.error(e);alert("تعذر تحديث حالة الفئة: "+(e.message||"خطأ غير معروف"))}};
 async function seedDefaultCategoriesIfNeeded(snap){if(!snap.empty){try{await setDoc(doc(db,"settings","categories"),{initialized:true,updatedAt:serverTimestamp()},{merge:true})}catch(_e){}return snap}let initialized=false;try{initialized=(await getDoc(doc(db,"settings","categories"))).data()?.initialized===true}catch(_e){}if(initialized)return snap;for(const c of defaultCategories)await setDoc(doc(db,"categories",c.key),{name:c.name,icon:c.icon,createdAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:false});try{await setDoc(doc(db,"settings","categories"),{initialized:true,updatedAt:serverTimestamp()},{merge:true})}catch(_e){}return await getDocs(collection(db,"categories"));}
-async function loadCategories(){
-  const box=document.getElementById("categoriesList");
-  try{
-    await seedAndRepairCategories();
-    renderCategories();
-  }catch(e){
-    console.error("categories load",e);
-    categories=[];
-    if(box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل التصنيفات. تحقق من اتصال Firebase والصلاحيات.</div>';
-  }
-}
+async function loadCategories(){const box=document.getElementById("categoriesList");try{let snap=await getDocs(collection(db,"categories"));snap=await seedDefaultCategoriesIfNeeded(snap);snap=await consolidateDuplicateCategories(snap);categories=normalizeCategoryList(snap.docs.map(d=>({key:d.id,...(d.data()||{})})));renderCategories()}catch(e){console.error("categories load",e);categories=[];if(box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل التصنيفات. تحقق من اتصال Firebase والصلاحيات.</div>'}}
 window.openCategoryForm=()=>{document.getElementById("categoryForm")?.classList.remove("hidden");document.getElementById("categoryId").value="";document.getElementById("categoryName").value="";document.getElementById("categoryNameFr").value="";document.getElementById("categoryKey").value="";document.getElementById("categoryIcon").value="🛍️";document.getElementById("categoryName").focus()};
 window.closeCategoryForm=()=>document.getElementById("categoryForm")?.classList.add("hidden");
 window.editCategory=key=>{const c=categories.find(x=>String(x.key)===String(key));if(!c)return;document.getElementById("categoryForm")?.classList.remove("hidden");document.getElementById("categoryId").value=c.key;document.getElementById("categoryName").value=c.name||"";document.getElementById("categoryNameFr").value=c.name_fr||"";document.getElementById("categoryKey").value=c.key||"";document.getElementById("categoryIcon").value=c.icon||categoryIconFor(c.name);document.getElementById("categoryName").focus()};
 window.saveCategory=async()=>{const oldKey=document.getElementById("categoryId").value.trim(),name=document.getElementById("categoryName").value.trim(),name_fr=document.getElementById("categoryNameFr").value.trim(),key=categoryKeySafe(document.getElementById("categoryKey").value.trim()||name),icon=document.getElementById("categoryIcon").value.trim()||categoryIconFor(name),status=document.getElementById("categoryStatus");if(!name||!key){if(status){status.textContent="اكتب اسم الفئة والمعرّف.";status.className="status err"}return}try{const existing=await getDoc(doc(db,"categories",key));if(existing.exists()&&key!==oldKey){if(status){status.textContent="هذا المعرّف موجود مسبقًا. اختر معرّفًا آخر.";status.className="status err"}return}
   const all=await getDocs(collection(db,"categories"));
-  const arSig=categoryNameSignature(name);
-  const frSig=categoryNameSignature(name_fr);
-  const duplicate=all.docs.map(d=>({key:d.id,name:String(d.data()?.name||"").trim(),name_fr:String(d.data()?.name_fr||"").trim()}))
-    .find(c=>c.key!==oldKey && ((c.name && categoryNameSignature(c.name)===arSig) || (name_fr && c.name_fr && categoryNameSignature(c.name_fr)===frSig)));
-  if(duplicate){if(status){status.textContent=`يوجد تصنيف مكرر: «${duplicate.name}». تم منع التكرار.`;status.className="status err"}return}
+  const sig=categoryNameSignature(name);
+  const duplicate=all.docs.map(d=>({key:d.id,name:String(d.data()?.name||"").trim()}))
+    .find(c=>c.key!==oldKey&&categoryNameSignature(c.name)===sig&&c.name);
+  if(duplicate){if(status){status.textContent=`يوجد تصنيف بنفس الاسم: «${duplicate.name}». تم منع التكرار.`;status.className="status err"}return}
   if(oldKey&&oldKey!==key){await setDoc(doc(db,"categories",key),{name,name_fr,icon,updatedAt:serverTimestamp()},{merge:false});const ps=await getDocs(collection(db,"products"));await Promise.all(ps.docs.filter(d=>String(d.data()?.category||"")===oldKey).map(d=>updateDoc(d.ref,{category:key,updatedAt:serverTimestamp()})));await deleteDoc(doc(db,"categories",oldKey))}else await setDoc(doc(db,"categories",key),{name,name_fr,icon,updatedAt:serverTimestamp()},{merge:true});await loadCategories();closeCategoryForm();if(status){status.textContent="تم حفظ الفئة بنجاح ✅";status.className="status ok"}}catch(e){console.error(e);if(status){status.textContent="تعذر حفظ الفئة: "+(e.message||"خطأ غير معروف");status.className="status err"}}};
 window.deleteCategory=async key=>{const c=categories.find(x=>String(x.key)===String(key));if(!c||!confirm("حذف الفئة «"+c.name+"»؟\nلن يتم حذف المنتجات التابعة لها."))return;try{await deleteDoc(doc(db,"categories",key));const ps=await getDocs(collection(db,"products"));await Promise.all(ps.docs.filter(d=>String(d.data()?.category||"")===String(key)).map(d=>updateDoc(d.ref,{category:"",updatedAt:serverTimestamp()})));await loadCategories()}catch(e){console.error(e);alert("تعذر حذف الفئة: "+(e.message||"خطأ غير معروف"))}};
 
@@ -1892,25 +1797,7 @@ window.bazarLoadProducts=async function(force=false){
   if(productsLoading)return productsLoading;
   if(productsLoaded&&!force){ render(); return; }
   const box=listBox;
-  const cacheKey="bazarAdminProductsCacheV2";
-  const statusEl=document.getElementById("adminProductsCacheStatus");
-  const refreshBtn=document.getElementById("refreshProductsBtn");
-  const setStatus=t=>{if(statusEl)statusEl.textContent=t;};
-
-  // عرض نسخة محلية فورًا حتى لا تبقى لوحة التحكم فارغة عند بطء الشبكة.
-  if(!productsLoaded && !force){
-    try{
-      const cached=JSON.parse(localStorage.getItem(cacheKey)||"null");
-      if(Array.isArray(cached?.items) && cached.items.length){
-        products=cached.items;
-        productsLoaded=true;
-        setStatus("تم عرض نسخة محفوظة — جارِ التحديث…");
-        render();updateStats();
-      }
-    }catch(e){console.warn("admin product cache",e)}
-  }
-  if(box && !productsLoaded){box.innerHTML='<div class="empty-card"><span class="empty-icon">⏳</span><b>جاري تحميل المنتجات...</b><span>يتم تحميل البيانات من المتجر بأمان.</span></div>';}
-  if(refreshBtn)refreshBtn.disabled=true;
+  if(box && !productsLoaded){box.innerHTML='<div class="empty-card"><span class="empty-icon">⏳</span><b>جاري تحميل المنتجات...</b><span>يتم تحميل البيانات عند فتح قسم المنتجات فقط.</span></div>';}
   productsLoading=(async()=>{
     try{
       const snap=await getDocs(collection(db,"products"));
@@ -1920,13 +1807,8 @@ window.bazarLoadProducts=async function(force=false){
       if(productCounter)productCounter.textContent=snap.size.toLocaleString("ar-DZ");
       render();updateStats();
       try{
-        localStorage.setItem(cacheKey,JSON.stringify({items:products,updatedAt:Date.now()}));
         localStorage.setItem("bazarProductsCount",String(snap.size));
-      }catch(e){console.warn("admin product cache write",e)}
-      const stamp=new Date();
-      const last=document.getElementById("adminProductsLastUpdate");
-      if(last)last.textContent=`آخر تحديث: ${stamp.toLocaleTimeString("ar-DZ",{hour:"2-digit",minute:"2-digit"})}`;
-      setStatus("تم التحديث من Firestore ✓");
+      }catch(e){}
       try{
         const editId=sessionStorage.getItem("bazarEditingProduct");
         const view=sessionStorage.getItem("bazarAdminView");
@@ -1937,21 +1819,10 @@ window.bazarLoadProducts=async function(force=false){
       }catch(e){}
     }catch(e){
       console.error("products load",e);
-      if(!productsLoaded && box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل المنتجات. تحقق من اتصال Firebase والصلاحيات.</div>';
-      setStatus(productsLoaded?"تعذر التحديث — يتم استعمال النسخة المحفوظة":"تعذر تحميل المنتجات");
-      if(productsLoaded){show("تعذر تحديث المنتجات من الخادم؛ تم الاحتفاظ بالنسخة الأخيرة.","err");}
-    }finally{
-      if(refreshBtn)refreshBtn.disabled=false;
-      productsLoading=null;
-    }
+      if(box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل المنتجات. تحقق من اتصال Firebase والصلاحيات.</div>';
+    }finally{productsLoading=null;}
   })();
   return productsLoading;
-};
-
-window.refreshAdminProducts=async function(){
-  productsLoaded=false;
-  await window.bazarLoadProducts(true);
-  show("تم تحديث قائمة المنتجات من الخادم ✅","ok");
 };
 
 window.bazarLoadOrders=async function(force=false){
@@ -2368,34 +2239,21 @@ window.save=async()=>{
  saving=true;
  setBtnSaving(true);
  let specifications=[];
- let features=[];
  try{
   specifications=String(specificationsText?.value||"").split("\n").map(s=>s.trim()).filter(Boolean).map(line=>{
     const i=line.indexOf(":");
     return i>0 ? {key:line.slice(0,i).trim(),value:line.slice(i+1).trim()} : {key:line,value:""};
   });
-  features=String(featuresText?.value||"").split("\n").map(s=>s.trim()).filter(Boolean);
-  const currentPrice=Number(priceInput?.value||0);
-  const enteredOldPrice=Number(oldPriceInput?.value||0);
-  const safeRating=Math.max(0,Math.min(5,Number(reviewRatingInput?.value||0)));
-  const safeReviewCount=Math.max(0,Math.floor(Number(reviewCountInput?.value||0)));
   let data={
     name:nameInput?.value.trim()||"",
     name_fr:nameFrInput?.value.trim()||"",
-    price:currentPrice,
-    oldPrice:enteredOldPrice>currentPrice?enteredOldPrice:0,
+    price:Number(priceInput?.value),
     category:categoryInput?.value||"tools",
     stock:Number(stockInput?.value),
     published:publishedInput?.checked!==false,
-    productBadge:productBadgeInput?.value||"",
-    reviewRating:safeRating,
-    reviewCount:safeReviewCount,
-    showOldPrice:showOldPriceInput?.checked!==false,
-    showReviews:showReviewsInput?.checked!==false,
     description:descriptionInput?.value.trim()||"",
     description_fr:descriptionFrInput?.value.trim()||"",
     specifications,
-    features,
     deliveryMethod:currentDeliveryMethod(),
     shippingHome:currentDeliveryMethod()==="home"?(shippingHomeSelect?.dataset.value||""):"",
     shippingOffice:currentDeliveryMethod()==="office"?(shippingOfficeSelect?.dataset.value||""):"",
@@ -2407,38 +2265,24 @@ window.save=async()=>{
   if(!data.name||data.price<0||data.stock<0||!selectedImages.length){
     show("أكمل بيانات المنتج المطلوبة وأضف صورة واحدة على الأقل.","err");return;
   }
-  if(enteredOldPrice>0 && enteredOldPrice<=currentPrice){
-    show("السعر القديم يجب أن يكون أكبر من السعر الحالي حتى يظهر التخفيض.","err");return;
-  }
 
   show("⏳ جاري رفع الصور...","ok");
   // رفع حقيقي إلى Cloudinary (مجاني، بلا اشتراك): كل صورة تُضغط ثم تُرفع وتُرجع رابط https حقيقي
   // (بدل تخزين base64 داخل Firestore) — هذا ما يتطلبه Google Merchant/Product schema.
   const uploaded=new Array(selectedImages.length);
+  const tasks=[];
+  for(let i=0;i<selectedImages.length && i<10;i++){
+    const item=selectedImages[i];
+    if(item.existing){ uploaded[i]=item.url; continue; }
+    tasks.push({i,file:item.file});
+  }
   try{
-    const progress=document.getElementById("saveProgress");
-    const progressBar=progress?.querySelector("span");
-    if(progress){progress.classList.add("show");if(progressBar)progressBar.style.width="0%";}
-    let completed=0;
-    for(let i=0;i<selectedImages.length && i<10;i++){
-      const item=selectedImages[i];
-      if(item.existing){uploaded[i]=item.url;completed++;if(progressBar)progressBar.style.width=Math.round(completed/selectedImages.length*100)+"%";continue;}
-      if(!item.file)throw new Error("الصورة رقم "+(i+1)+" غير متاحة.");
-      // ضغط أقوى قبل الرفع: يقلل استهلاك بيانات الهاتف ووقت انتظار Cloudinary.
-      const blob=await compressImageToBlob(item.file,720,0.55);
-      uploaded[i]=await uploadToCloudinary(blob,(part)=>{
-        if(progressBar){
-          const pct=((completed+part)/Math.max(1,selectedImages.length))*100;
-          progressBar.style.width=Math.min(99,Math.round(pct))+"%";
-        }
-      });
-      completed++;
-      if(progressBar)progressBar.style.width=Math.round(completed/selectedImages.length*100)+"%";
+    // الرفع بالتتابع (وليس بالتوازي) لتفادي رفض Cloudinary للطلبات الكثيرة دفعة واحدة.
+    for(const t of tasks){
+      const blob=await compressImageToBlob(t.file,1000,0.7);
+      uploaded[t.i]=await uploadToCloudinary(blob);
     }
-    if(progressBar)progressBar.style.width="100%";
-    setTimeout(()=>progress?.classList.remove("show"),500);
   }catch(e){
-    document.getElementById("saveProgress")?.classList.remove("show");
     show("فشل رفع الصور: "+(e?.message||"خطأ غير معروف"),"err");
     return;
   }
@@ -2486,23 +2330,13 @@ window.editProduct=id=>{
  nameInput.value=p.name||"";
  if(nameFrInput)nameFrInput.value=p.name_fr||"";
  priceInput.value=p.price??"";
- if(oldPriceInput)oldPriceInput.value=p.oldPrice??p.compareAtPrice??"";
  renderCategorySelect(p.category||categories[0]?.key||"tools");
  stockInput.value=p.stock??"";
- if(productBadgeInput)productBadgeInput.value=p.productBadge||p.badge||"";
- if(reviewRatingInput)reviewRatingInput.value=p.reviewRating??p.rating??"";
- if(reviewCountInput)reviewCountInput.value=p.reviewCount??p.ratingCount??"";
- if(showOldPriceInput)showOldPriceInput.checked=p.showOldPrice!==false;
- if(showReviewsInput)showReviewsInput.checked=p.showReviews!==false;
  descriptionInput.value=p.description||"";
  if(descriptionFrInput)descriptionFrInput.value=p.description_fr||"";
  if(specificationsText){
    const specs=Array.isArray(p.specifications)?p.specifications:[];
    specificationsText.value=specs.map(x=>x&&x.key?`${x.key}: ${x.value??""}`:String(x||"")).join("\n");
- }
- if(featuresText){
-   const features=Array.isArray(p.features)?p.features:(Array.isArray(p.highlights)?p.highlights:[]);
-   featuresText.value=features.map(x=>typeof x==="string"?x:(x?.text||x?.name||"")).filter(Boolean).join("\n");
  }
  const imgs=Array.isArray(p.images)&&p.images.length?p.images:[p.image].filter(Boolean);
  selectedImages=imgs.slice(0,10).map(u=>({url:u,existing:true,file:null}));
@@ -2548,16 +2382,9 @@ window.removeProduct=async id=>{
 window.resetForm=()=>{
  editing=null;
  titleBox.textContent="➕ إضافة منتج";
- nameInput.value="";if(nameFrInput)nameFrInput.value="";priceInput.value="";if(oldPriceInput)oldPriceInput.value="";
- renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";
- if(productBadgeInput)productBadgeInput.value="";
- if(reviewRatingInput)reviewRatingInput.value="";
- if(reviewCountInput)reviewCountInput.value="";
- if(showOldPriceInput)showOldPriceInput.checked=true;
- if(showReviewsInput)showReviewsInput.checked=true;
- if(publishedInput)publishedInput.checked=true;descriptionInput.value="";if(descriptionFrInput)descriptionFrInput.value="";
+ nameInput.value="";if(nameFrInput)nameFrInput.value="";priceInput.value="";
+ renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";if(publishedInput)publishedInput.checked=true;descriptionInput.value="";if(descriptionFrInput)descriptionFrInput.value="";
  if(specificationsText) specificationsText.value="";
- if(featuresText) featuresText.value="";
  selectedImages=[];
  setMultiSelectValue(shippingHomeSelect,"");
  setMultiSelectValue(shippingOfficeSelect,"");
@@ -2594,10 +2421,6 @@ renderSelectedImages();
 function show(t,c){statusBox.textContent=t;statusBox.className="status "+c;setTimeout(()=>statusBox.className="status hidden",3500)}
 function esc(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 
-
-window.addEventListener("beforeunload",e=>{
-  if(saving){e.preventDefault();e.returnValue="";}
-});
 </script>
 </body>
 </html>
