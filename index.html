@@ -138,6 +138,9 @@
   }
   .buy:active,.cart:active,.view-all:active { transform:scale(.98); }
 
+  #loadMoreProducts { cursor:pointer; min-width:170px; box-shadow:0 4px 12px rgba(7,29,59,.08); }
+  #loadMoreProducts:hover { background:#fff7f1; }
+
   .benefits {
     display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin:20px 0 16px;
   }
@@ -267,7 +270,10 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
 <section class="section" id="products">
 <div class="section-head"><div class="section-title"><h2 id="categoryPageTitle" data-i18n="products_title">منتجاتنا 🛍️</h2><p id="categoryPageDescription" data-i18n="products_subtitle">أفضل العروض و أحدث المنتجات</p></div><button class="view-all" onclick="showProductsOnly(event)" data-i18n="view_all">عرض الكل ←</button></div>
 <div id="categoryBreadcrumb" style="display:none;margin:-4px 0 14px;color:#6f7d91;font-size:14px"></div>
-<div class="products" id="productGrid"></div></section>
+<div class="products" id="productGrid"></div>
+<div id="loadMoreWrap" style="display:none;text-align:center;margin:22px 0 6px;">
+  <button id="loadMoreProducts" type="button" class="view-all" onclick="showMoreProducts()" data-i18n="show_more_products">إظهار المزيد ↓</button>
+</div></section>
 <section class="benefits" aria-label="مزايا المتجر"><div class="benefit"><div class="big">🎧</div><strong data-i18n="benefit_service_title">خدمة عملاء</strong><small data-i18n="benefit_service_desc">نحن في خدمتكم 7/7</small></div><div class="benefit"><div class="big">🛡️</div><strong data-i18n="benefit_genuine_title">منتجات أصلية</strong><small data-i18n="benefit_genuine_desc">جودة مضمونة</small></div><div class="benefit"><div class="big">🚚</div><strong data-i18n="benefit_delivery_title">توصيل سريع</strong><small data-i18n="benefit_delivery_desc">إلى جميع الولايات</small></div><div class="benefit"><div class="big">🤲</div><strong data-i18n="benefit_cod_title">الدفع عند الاستلام</strong><small data-i18n="benefit_cod_desc">ادفع عند استلام طلبك</small></div></section>
 </main>
 <footer id="footer"><div class="footer-grid"><div><div class="brand" style="justify-self:start;color:#fff;margin-bottom:12px"><div class="brand-mark"></div><div><div class="brand-text"><b style="color:#fff">Bazar</b> <b>Dzair</b></div><div class="brand-sub" style="color:#fff" data-i18n="brand_subtitle">متجر إلكتروني</div></div></div><p id="footerDescription" data-i18n="footer_description">متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.</p></div><div><h4 data-i18n="footer_links_title">روابط مهمة</h4><ul id="importantFooterList"><li><button type="button" class="footer-toggle">من نحن</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">سياسة الخصوصية</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">الشروط والأحكام</button><div class="footer-link-text"></div></li></ul></div><div><h4 data-i18n="footer_customer_title">خدمة الزبائن</h4><ul id="customerFooterList"><li><button type="button" class="footer-toggle">❓ أسئلة شائعة</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">📦 تتبع طلبي</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">🚚 سياسة التوصيل</button><div class="footer-link-text"></div></li></ul><ul><li>📞 <a id="footerPhone" href="tel:0550000000">0550 00 00 00</a></li><li><a id="footerWhatsapp" href="https://wa.me/213500000000" target="_blank" rel="noopener">💬 واتساب متوفر للطلبات</a></li></ul></div></div><div class="copyright" id="footerCopyright">© 2026 Bazar Dzair ❤️ — جميع الحقوق محفوظة</div></footer>
@@ -752,13 +758,41 @@ function applyUrlCategory(){
   updateCategorySeo(category);
   if(products.length) filterCategory(category.key,true);
 }
-function displayProducts(list=products){
+let productsToDisplay=[];
+let visibleProductsCount=9;
+const PRODUCTS_PER_MORE=6;
+
+function updateLoadMoreButton(){
+  const wrap=document.getElementById("loadMoreWrap");
+  const btn=document.getElementById("loadMoreProducts");
+  if(!wrap||!btn)return;
+  const hasMore=visibleProductsCount<productsToDisplay.length;
+  wrap.style.display=hasMore?"block":"none";
+  if(hasMore){
+    btn.textContent=(window.BazarI18n&&BazarI18n.getLang&&BazarI18n.getLang()==="fr")?"Afficher plus ↓":"إظهار المزيد ↓";
+  }
+}
+
+function showMoreProducts(){
+  if(!productsToDisplay.length)return;
+  visibleProductsCount=Math.min(visibleProductsCount+PRODUCTS_PER_MORE,productsToDisplay.length);
+  displayProducts(productsToDisplay,false);
+  setTimeout(()=>document.getElementById("loadMoreProducts")?.scrollIntoView({behavior:"smooth",block:"center"}),50);
+}
+
+function displayProducts(list=products,reset=true){
  const g=document.getElementById("productGrid");
- if(!list.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">'+esc(BazarI18n.t("empty_products"))+'</div>';return}
- g.innerHTML=list.map(p=>{
+ if(reset){productsToDisplay=Array.isArray(list)?list.slice():[];visibleProductsCount=9;}
+ else {productsToDisplay=Array.isArray(list)?list:productsToDisplay;}
+ if(!productsToDisplay.length){
+   g.innerHTML='<div class="empty" style="grid-column:1/-1">'+esc(BazarI18n.t("empty_products"))+'</div>';
+   updateLoadMoreButton();
+   return;
+ }
+ const visibleList=productsToDisplay.slice(0,visibleProductsCount);
+ g.innerHTML=visibleList.map(p=>{
    const available=p.published!==false;
    const tp=BazarI18n.translateProduct(p);
-   // شارة "جديد" الافتراضية تُترجم تلقائيًا؛ أي شارة مخصّصة كتبها الأدمن تبقى كما هي (لا ترجمة آلية للمحتوى الحر)
    const badgeText=p.badge&&p.badge!=="جديد"?p.badge:(p.badge?(BazarI18n.getLang()==="fr"?"Nouveau":"جديد"):"");
    const badgeHtml=available?(badgeText?`<span class="new">${esc(badgeText)}</span>`:""):`<span class="new" style="background:#9aa1ab">${esc(BazarI18n.t("badge_unavailable"))}</span>`;
    const actionsHtml=available
@@ -766,6 +800,7 @@ function displayProducts(list=products){
      :`<button class="btn buybtn" disabled style="opacity:.55;cursor:not-allowed" onclick="return false">${esc(BazarI18n.t("button_unavailable"))}</button>`;
    return `<article class="product${available?"":" unavailable"}"><div class="pic" onclick="goToProduct(${p.id})">${badgeHtml}<img src="${safeImg(p.image)}" alt="${esc(tp.name)}" loading="lazy" decoding="async" style="${available?"":"filter:grayscale(60%);opacity:.75"}"></div><div class="info"><div class="name" onclick="goToProduct(${p.id})">${esc(tp.name)}</div><div class="price">${money(p.price)}</div><div class="buttons">${actionsHtml}</div></div></article>`;
  }).join("");
+ updateLoadMoreButton();
 }
 function productSlug(name){
   return String(name || "product")
@@ -911,7 +946,7 @@ function filterCategory(category,fromUrl=false){
   document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
-function searchProducts(){const q=document.getElementById("search").value.trim().toLowerCase();displayProducts(products.filter(p=>p.name.toLowerCase().includes(q)))}
+function searchProducts(){const q=document.getElementById("search").value.trim().toLowerCase();displayProducts(products.filter(p=>p.name.toLowerCase().includes(q)));}
 window.submitOrder=async function(){
  if(!cart.length){toast(BazarI18n.t("toast_cart_empty"));return}
  if(window.__bazarSubmittingOrder)return;
@@ -966,7 +1001,7 @@ window.submitOrder=async function(){
   }
   if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:cart.map(x=>x.name).join(", "),price:productTotal()+s,category:"",qty:cart.reduce((sum,x)=>sum+x.quantity,0)});
   cart=[];updateCount();renderCart();closeModal("cartOverlay");
-  alert(BazarI18n.t("alert_order_success"));setTimeout(()=>{location.href="/success.html";},1000);
+  
  }catch(err){
   console.error("order submit failed:",err);
   toast(err&&err.userMessage?err.userMessage+" ⚠️":BazarI18n.t("toast_order_failed"));

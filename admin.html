@@ -284,6 +284,20 @@
 .multi-select-menu input[type="checkbox"]{width:15px;height:15px;flex-shrink:0}
 .carrier-logo{width:20px;height:20px;border-radius:5px;object-fit:contain;flex-shrink:0;background:#fff;border:1px solid #eef0f3}
 .carrier-btn-logo{width:16px;height:16px;border-radius:4px;object-fit:contain;vertical-align:middle;margin-left:4px}
+
+/* ===== Product presentation fields ===== */
+.field-optional{font-size:10px;color:#98a2b3;font-weight:600;margin-inline-start:4px}
+.rating-admin-card{background:linear-gradient(180deg,#fffaf5,#fff);border:1px solid #ffe3c2;border-radius:14px;padding:12px}
+.rating-input-row{display:flex;align-items:center;gap:7px;direction:ltr;margin-top:7px}
+.rating-input-row input{min-width:0;flex:1}
+.rating-input-row span{font-size:12px;color:#667085;font-weight:700;white-space:nowrap}
+.admin-display-options{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f8fafc;border:1px solid #e6eaf0;border-radius:14px;padding:13px}
+.display-options-title{display:flex;flex-direction:column;gap:3px;margin-inline-end:auto}
+.display-options-title small{font-size:11px;color:#7b8492}
+.check-option{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid #e3e7ed;border-radius:10px;padding:9px 11px;font-size:12px;font-weight:700;cursor:pointer}
+.check-option input{width:17px;height:17px;accent-color:var(--orange);cursor:pointer}
+#featuresText{min-height:145px}
+@media(max-width:760px){.admin-display-options{align-items:stretch}.display-options-title{flex-basis:100%;margin-inline-end:0}.check-option{flex:1}}
 </style>
 </head>
 <body class="auth-check">
@@ -365,8 +379,18 @@
    <div><label>اسم المنتج *</label><input id="name" placeholder="مثال: Lantern LED"></div>
    <div><label>اسم المنتج بالفرنسية (اختياري)</label><input id="name_fr" placeholder="مثال: Lanterne LED"><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا.</small></div>
    <div><label>السعر بالدج *</label><input id="price" type="number" min="0" placeholder="3500"></div>
+   <div><label>السعر القديم <span class="field-optional">اختياري</span></label><input id="oldPrice" type="number" min="0" placeholder="مثال: 4800"><small class="hint">يظهر السعر القديم والتخفيض تلقائيًا إذا كان أكبر من السعر الحالي.</small></div>
    <div><label>التصنيف</label><select id="category"></select></div>
    <div><label>المخزون *</label><input id="stock" type="number" min="0" placeholder="20"></div>
+   <div><label>شارة المنتج <span class="field-optional">اختياري</span></label><select id="productBadge">
+     <option value="">بدون شارة</option>
+     <option value="featured">⭐ مميز</option>
+     <option value="new">🆕 جديد</option>
+     <option value="offer">🔥 عرض</option>
+     <option value="best">🏆 الأكثر مبيعًا</option>
+   </select></div>
+   <div class="rating-admin-card"><label>تقييم المنتج</label><div class="rating-input-row"><input id="reviewRating" type="number" min="0" max="5" step="0.1" placeholder="4.6"><span>/ 5</span><input id="reviewCount" type="number" min="0" step="1" placeholder="24"><span>تقييم</span></div><small class="hint">الأرقام هنا للعرض في صفحة المنتج فقط.</small></div>
+   <div class="full admin-display-options"><div class="display-options-title"><b>خيارات العرض في صفحة المنتج</b><small>تحكم في العناصر التي تظهر للزبون.</small></div><label class="check-option"><input id="showOldPrice" type="checkbox" checked><span>إظهار السعر القديم والتخفيض</span></label><label class="check-option"><input id="showReviews" type="checkbox" checked><span>إظهار التقييمات</span></label></div>
    <div class="full"><div class="publish-row"><div><b>نشر المنتج في المتجر</b><small>يمكنك تغيير الحالة لاحقًا من قائمة خيارات المنتج ⋮</small></div><label class="switch"><input id="published" type="checkbox" checked><span></span></label></div></div>
    <div class="full"><label style="display:block;margin-bottom:8px">🚚 طريقة التوصيل *</label>
      <div class="delivery-method-toggle">
@@ -391,6 +415,7 @@
    <div class="full"><label>الوصف</label><textarea id="description" placeholder="اكتب وصفًا واضحًا للمنتج..."></textarea></div>
    <div class="full"><label>الوصف بالفرنسية (اختياري)</label><textarea id="description_fr" placeholder="Texte descriptif en français (facultatif)..."></textarea><small class="hint">إذا تركته فارغًا، يظهر الوصف العربي للزبون الفرنسي أيضًا.</small></div>
    <div class="full"><label>المواصفات</label><textarea id="specificationsText" placeholder="القدرة: 600W&#10;اللون: أسود&#10;الضمان: 12 شهر"></textarea><small class="hint">اكتب كل مواصفة في سطر مستقل بالشكل: الاسم: القيمة</small></div>
+   <div class="full"><label>✨ أبرز المميزات</label><textarea id="featuresText" placeholder="دوران 360°&#10;ذراع قابل للتعديل&#10;تثبيت قوي وآمن&#10;متوافق مع مختلف الهواتف"></textarea><small class="hint">اكتب كل ميزة في سطر مستقل لتظهر في صفحة المنتج بشكل مرتب.</small></div>
    <div class="full"><label>صور المنتج *</label><div class="upload-card">
      <input id="imageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
      <button type="button" class="upload-drop" onclick="document.getElementById('imageFiles').click()"><span class="upload-icon">☁️</span><b>أضف صور المنتج</b><small>اختر الصور من الهاتف مباشرة — حتى 10 صور</small><span class="upload-hint">JPG, PNG, WEBP — ضغط تلقائي قبل الحفظ</span></button>
@@ -1444,12 +1469,19 @@ const loginErrBox=document.getElementById("loginErr");
 const nameInput=document.getElementById("name");
 const nameFrInput=document.getElementById("name_fr");
 const priceInput=document.getElementById("price");
+const oldPriceInput=document.getElementById("oldPrice");
 const categoryInput=document.getElementById("category");
 const stockInput=document.getElementById("stock");
+const productBadgeInput=document.getElementById("productBadge");
+const reviewRatingInput=document.getElementById("reviewRating");
+const reviewCountInput=document.getElementById("reviewCount");
+const showOldPriceInput=document.getElementById("showOldPrice");
+const showReviewsInput=document.getElementById("showReviews");
 const publishedInput=document.getElementById("published");
 const descriptionInput=document.getElementById("description");
 const descriptionFrInput=document.getElementById("description_fr");
 const specificationsText=document.getElementById("specificationsText");
+const featuresText=document.getElementById("featuresText");
 const titleBox=document.getElementById("title");
 const statusBox=document.getElementById("status");
 const listBox=document.getElementById("list");
@@ -2239,21 +2271,34 @@ window.save=async()=>{
  saving=true;
  setBtnSaving(true);
  let specifications=[];
+ let features=[];
  try{
   specifications=String(specificationsText?.value||"").split("\n").map(s=>s.trim()).filter(Boolean).map(line=>{
     const i=line.indexOf(":");
     return i>0 ? {key:line.slice(0,i).trim(),value:line.slice(i+1).trim()} : {key:line,value:""};
   });
+  features=String(featuresText?.value||"").split("\n").map(s=>s.trim()).filter(Boolean);
+  const currentPrice=Number(priceInput?.value||0);
+  const enteredOldPrice=Number(oldPriceInput?.value||0);
+  const safeRating=Math.max(0,Math.min(5,Number(reviewRatingInput?.value||0)));
+  const safeReviewCount=Math.max(0,Math.floor(Number(reviewCountInput?.value||0)));
   let data={
     name:nameInput?.value.trim()||"",
     name_fr:nameFrInput?.value.trim()||"",
-    price:Number(priceInput?.value),
+    price:currentPrice,
+    oldPrice:enteredOldPrice>currentPrice?enteredOldPrice:0,
     category:categoryInput?.value||"tools",
     stock:Number(stockInput?.value),
     published:publishedInput?.checked!==false,
+    productBadge:productBadgeInput?.value||"",
+    reviewRating:safeRating,
+    reviewCount:safeReviewCount,
+    showOldPrice:showOldPriceInput?.checked!==false,
+    showReviews:showReviewsInput?.checked!==false,
     description:descriptionInput?.value.trim()||"",
     description_fr:descriptionFrInput?.value.trim()||"",
     specifications,
+    features,
     deliveryMethod:currentDeliveryMethod(),
     shippingHome:currentDeliveryMethod()==="home"?(shippingHomeSelect?.dataset.value||""):"",
     shippingOffice:currentDeliveryMethod()==="office"?(shippingOfficeSelect?.dataset.value||""):"",
@@ -2264,6 +2309,9 @@ window.save=async()=>{
 
   if(!data.name||data.price<0||data.stock<0||!selectedImages.length){
     show("أكمل بيانات المنتج المطلوبة وأضف صورة واحدة على الأقل.","err");return;
+  }
+  if(enteredOldPrice>0 && enteredOldPrice<=currentPrice){
+    show("السعر القديم يجب أن يكون أكبر من السعر الحالي حتى يظهر التخفيض.","err");return;
   }
 
   show("⏳ جاري رفع الصور...","ok");
@@ -2330,13 +2378,23 @@ window.editProduct=id=>{
  nameInput.value=p.name||"";
  if(nameFrInput)nameFrInput.value=p.name_fr||"";
  priceInput.value=p.price??"";
+ if(oldPriceInput)oldPriceInput.value=p.oldPrice??p.compareAtPrice??"";
  renderCategorySelect(p.category||categories[0]?.key||"tools");
  stockInput.value=p.stock??"";
+ if(productBadgeInput)productBadgeInput.value=p.productBadge||p.badge||"";
+ if(reviewRatingInput)reviewRatingInput.value=p.reviewRating??p.rating??"";
+ if(reviewCountInput)reviewCountInput.value=p.reviewCount??p.ratingCount??"";
+ if(showOldPriceInput)showOldPriceInput.checked=p.showOldPrice!==false;
+ if(showReviewsInput)showReviewsInput.checked=p.showReviews!==false;
  descriptionInput.value=p.description||"";
  if(descriptionFrInput)descriptionFrInput.value=p.description_fr||"";
  if(specificationsText){
    const specs=Array.isArray(p.specifications)?p.specifications:[];
    specificationsText.value=specs.map(x=>x&&x.key?`${x.key}: ${x.value??""}`:String(x||"")).join("\n");
+ }
+ if(featuresText){
+   const features=Array.isArray(p.features)?p.features:(Array.isArray(p.highlights)?p.highlights:[]);
+   featuresText.value=features.map(x=>typeof x==="string"?x:(x?.text||x?.name||"")).filter(Boolean).join("\n");
  }
  const imgs=Array.isArray(p.images)&&p.images.length?p.images:[p.image].filter(Boolean);
  selectedImages=imgs.slice(0,10).map(u=>({url:u,existing:true,file:null}));
@@ -2382,9 +2440,16 @@ window.removeProduct=async id=>{
 window.resetForm=()=>{
  editing=null;
  titleBox.textContent="➕ إضافة منتج";
- nameInput.value="";if(nameFrInput)nameFrInput.value="";priceInput.value="";
- renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";if(publishedInput)publishedInput.checked=true;descriptionInput.value="";if(descriptionFrInput)descriptionFrInput.value="";
+ nameInput.value="";if(nameFrInput)nameFrInput.value="";priceInput.value="";if(oldPriceInput)oldPriceInput.value="";
+ renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";
+ if(productBadgeInput)productBadgeInput.value="";
+ if(reviewRatingInput)reviewRatingInput.value="";
+ if(reviewCountInput)reviewCountInput.value="";
+ if(showOldPriceInput)showOldPriceInput.checked=true;
+ if(showReviewsInput)showReviewsInput.checked=true;
+ if(publishedInput)publishedInput.checked=true;descriptionInput.value="";if(descriptionFrInput)descriptionFrInput.value="";
  if(specificationsText) specificationsText.value="";
+ if(featuresText) featuresText.value="";
  selectedImages=[];
  setMultiSelectValue(shippingHomeSelect,"");
  setMultiSelectValue(shippingOfficeSelect,"");
