@@ -200,8 +200,21 @@ def static_product_html(name, desc, price, images, available=True, badge=None, o
     return photo_wrap + info
 
 
+def make_meta_description(desc, limit=155):
+    """يبني وصف Meta نظيف: يفكّك القوائم النقطية إلى سطر واحد (بدون أسطر جديدة خام)،
+    ولا يقطع الكلمة أو الإيموجي الأخير في المنتصف — يوقف عند آخر مسافة قبل الحد."""
+    flat = ' '.join((desc or '').split())  # يجمع كل الأسطر/المسافات المتكررة في سطر واحد نظيف
+    if len(flat) <= limit:
+        return flat
+    cut = flat[:limit]
+    last_space = cut.rfind(' ')
+    if last_space > 0:
+        cut = cut[:last_space]
+    return cut.rstrip(' ,-–—') + '…'
+
+
 def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None):
-    d155=(desc or '').strip()[:155]
+    d155=make_meta_description(desc)
     title_tag=f'<title>{html.escape(name)} | Bazar Dzair</title>'
     desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
     canonical_tag=f'<link id="canonical" rel="canonical" href="{html.escape(url,quote=True)}">'
