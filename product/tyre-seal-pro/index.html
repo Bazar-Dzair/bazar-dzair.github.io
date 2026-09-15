@@ -1205,26 +1205,30 @@ function applyProductSEO(p,name,desc){
   // عن اسم التصنيف الظاهر للزبون. لذلك لا نعتمد على اسم المنتج لتحديد الفئة.
   const crumbEl=document.getElementById("crumb");
   if(crumbEl){
+    const lang=window.BazarI18n?BazarI18n.getLang():"ar";
+    const isKeyboard=/(clavier|keyboard|لوحة|مفتاح|gaming)/i.test(name);
+    // كل تصنيف يحمل اسمه بالعربية والفرنسية معًا حتى يتغيّر شريط التنقل
+    // فورًا حسب اللغة الحالية دون أي نص عربي ثابت.
     const catMap={
-      tools:{parent:"أدوات وملحقاتها",sub:/(clavier|keyboard|لوحة|مفتاح|gaming)/i.test(name)?"لوحات المفاتيح":"أدوات"},
-      home:{parent:"المنزل والمطبخ",sub:"المنزل والمطبخ"},
-      electronics:{parent:"أدوات وملحقاتها",sub:"أكسسوارات وإلكترونيات"},
-      phones:{parent:"أدوات وملحقاتها",sub:"هواتف وإكسسواراتها"},
-      laptops:{parent:"أدوات وملحقاتها",sub:"حاسوب محمول"},
-      clothes:{parent:"ملابس وأحذية",sub:"ملابس وأحذية"},
-      beauty:{parent:"صحة وجمال",sub:"صحة وجمال"},
-      women:{parent:"معدات نسوية",sub:"معدات نسوية"},
-      jewelry:{parent:"مجوهرات وإكسسوارات نسائية",sub:"مجوهرات وإكسسوارات نسائية"},
-      baby:{parent:"مستلزمات الأطفال والرضع",sub:"مستلزمات الأطفال والرضع"},
-      medical:{parent:"أدوات طبية",sub:"أدوات طبية"},
-      carparts:{parent:"قطع غيار السيارات",sub:"قطع غيار السيارات"},
-      summer:{parent:"منتجات الصيف",sub:"منتجات الصيف"},
-      shaving:{parent:"آلات الحلاقة",sub:"آلات الحلاقة"},
-      gifts:{parent:"هدايا متنوعة",sub:"هدايا متنوعة"},
-      library:{parent:"مكتبة",sub:"مكتبة"},
-      realestate:{parent:"عقارات وأراضي",sub:"عقارات وأراضي"},
-      clearance:{parent:"تصفية مخزون",sub:"تصفية مخزون"},
-      misc:{parent:"منتجات متنوعة",sub:"منتجات متنوعة"}
+      tools:{parent:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},sub:isKeyboard?{ar:"لوحات المفاتيح",fr:"Claviers"}:{ar:"أدوات",fr:"Outils"}},
+      home:{parent:{ar:"المنزل والمطبخ",fr:"Maison et cuisine"},sub:{ar:"المنزل والمطبخ",fr:"Maison et cuisine"}},
+      electronics:{parent:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},sub:{ar:"أكسسوارات وإلكترونيات",fr:"Accessoires et électronique"}},
+      phones:{parent:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},sub:{ar:"هواتف وإكسسواراتها",fr:"Téléphones et accessoires"}},
+      laptops:{parent:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},sub:{ar:"حاسوب محمول",fr:"Ordinateurs portables"}},
+      clothes:{parent:{ar:"ملابس وأحذية",fr:"Vêtements et chaussures"},sub:{ar:"ملابس وأحذية",fr:"Vêtements et chaussures"}},
+      beauty:{parent:{ar:"صحة وجمال",fr:"Santé et beauté"},sub:{ar:"صحة وجمال",fr:"Santé et beauté"}},
+      women:{parent:{ar:"معدات نسوية",fr:"Équipements féminins"},sub:{ar:"معدات نسوية",fr:"Équipements féminins"}},
+      jewelry:{parent:{ar:"مجوهرات وإكسسوارات نسائية",fr:"Bijoux et accessoires femme"},sub:{ar:"مجوهرات وإكسسوارات نسائية",fr:"Bijoux et accessoires femme"}},
+      baby:{parent:{ar:"مستلزمات الأطفال والرضع",fr:"Articles pour bébés et enfants"},sub:{ar:"مستلزمات الأطفال والرضع",fr:"Articles pour bébés et enfants"}},
+      medical:{parent:{ar:"أدوات طبية",fr:"Matériel médical"},sub:{ar:"أدوات طبية",fr:"Matériel médical"}},
+      carparts:{parent:{ar:"قطع غيار السيارات",fr:"Pièces automobiles"},sub:{ar:"قطع غيار السيارات",fr:"Pièces automobiles"}},
+      summer:{parent:{ar:"منتجات الصيف",fr:"Produits d'été"},sub:{ar:"منتجات الصيف",fr:"Produits d'été"}},
+      shaving:{parent:{ar:"آلات الحلاقة",fr:"Rasoirs et tondeuses"},sub:{ar:"آلات الحلاقة",fr:"Rasoirs et tondeuses"}},
+      gifts:{parent:{ar:"هدايا متنوعة",fr:"Idées cadeaux"},sub:{ar:"هدايا متنوعة",fr:"Idées cadeaux"}},
+      library:{parent:{ar:"مكتبة",fr:"Librairie"},sub:{ar:"مكتبة",fr:"Librairie"}},
+      realestate:{parent:{ar:"عقارات وأراضي",fr:"Immobilier et terrains"},sub:{ar:"عقارات وأراضي",fr:"Immobilier et terrains"}},
+      clearance:{parent:{ar:"تصفية مخزون",fr:"Liquidation de stock"},sub:{ar:"تصفية مخزون",fr:"Liquidation de stock"}},
+      misc:{parent:{ar:"منتجات متنوعة",fr:"Produits divers"},sub:{ar:"منتجات متنوعة",fr:"Produits divers"}}
     };
     const normalized=category.toLowerCase().trim();
     const aliases={
@@ -1236,10 +1240,12 @@ function applyProductSEO(p,name,desc){
       "electronics":"electronics"
     };
     const resolvedKey=catMap[normalized]?normalized:(aliases[category]||aliases[normalized]||normalized);
-    const info=catMap[resolvedKey]||{parent:"",sub:category};
+    const info=catMap[resolvedKey]||{parent:null,sub:{ar:category,fr:category}};
+    const parentText=info.parent?(info.parent[lang]||info.parent.ar):"";
+    const subText=info.sub?(info.sub[lang]||info.sub.ar):"";
     const parts=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`];
-    if(info.parent) parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(info.parent)}</span>`);
-    if(info.sub) parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(info.sub)}</span>`);
+    if(parentText) parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(parentText)}</span>`);
+    if(subText) parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(subText)}</span>`);
     crumbEl.innerHTML=parts.join("");
   }
 }
@@ -1289,20 +1295,39 @@ async function load(){
           const catSnap=await getDoc(doc(db,"categories",catValue));
           if(catSnap.exists()){
             const cd=catSnap.data()||{};
-            const catName=String(cd.name||"").trim();
-            const catFr=String(cd.name_fr||"").trim();
+            const catNameAr=String(cd.name||"").trim();
+            const catNameFr=String(cd.name_fr||"").trim();
+            const lang=window.BazarI18n?BazarI18n.getLang():"ar";
+            // إن لم يتوفر اسم فرنسي للتصنيف في Firestore نرجع للاسم العربي كحل احتياطي
+            // بدل ترك الشريط فارغًا.
+            const catName=(lang==="fr"&&catNameFr)?catNameFr:catNameAr;
             const catKey=catSnap.id;
             const aliasKey=catKey||catValue;
             const crumb=document.getElementById("crumb");
             if(crumb && catName){
               const parentMap={
-                electronics:"أدوات وملحقاتها", phones:"أدوات وملحقاتها", laptops:"أدوات وملحقاتها",
-                tools:"أدوات وملحقاتها", home:"المنزل والمطبخ", clothes:"ملابس وأحذية", beauty:"صحة وجمال",
-                women:"معدات نسوية", jewelry:"مجوهرات وإكسسوارات نسائية", baby:"مستلزمات الأطفال والرضع",
-                medical:"أدوات طبية", carparts:"قطع غيار السيارات", summer:"منتجات الصيف", shaving:"آلات الحلاقة",
-                gifts:"هدايا متنوعة", library:"مكتبة", realestate:"عقارات وأراضي", clearance:"تصفية مخزون", misc:"منتجات متنوعة"
+                electronics:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},
+                phones:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},
+                laptops:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},
+                tools:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},
+                home:{ar:"المنزل والمطبخ",fr:"Maison et cuisine"},
+                clothes:{ar:"ملابس وأحذية",fr:"Vêtements et chaussures"},
+                beauty:{ar:"صحة وجمال",fr:"Santé et beauté"},
+                women:{ar:"معدات نسوية",fr:"Équipements féminins"},
+                jewelry:{ar:"مجوهرات وإكسسوارات نسائية",fr:"Bijoux et accessoires femme"},
+                baby:{ar:"مستلزمات الأطفال والرضع",fr:"Articles pour bébés et enfants"},
+                medical:{ar:"أدوات طبية",fr:"Matériel médical"},
+                carparts:{ar:"قطع غيار السيارات",fr:"Pièces automobiles"},
+                summer:{ar:"منتجات الصيف",fr:"Produits d'été"},
+                shaving:{ar:"آلات الحلاقة",fr:"Rasoirs et tondeuses"},
+                gifts:{ar:"هدايا متنوعة",fr:"Idées cadeaux"},
+                library:{ar:"مكتبة",fr:"Librairie"},
+                realestate:{ar:"عقارات وأراضي",fr:"Immobilier et terrains"},
+                clearance:{ar:"تصفية مخزون",fr:"Liquidation de stock"},
+                misc:{ar:"منتجات متنوعة",fr:"Produits divers"}
               };
-              const parent=parentMap[aliasKey]||"";
+              const parentInfo=parentMap[aliasKey];
+              const parent=parentInfo?(parentInfo[lang]||parentInfo.ar):"";
               const parts=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`];
               if(parent) parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(parent)}</span>`);
               parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(catName)}</span>`);
