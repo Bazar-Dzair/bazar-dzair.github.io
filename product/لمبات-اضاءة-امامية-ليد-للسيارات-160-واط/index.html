@@ -1216,48 +1216,69 @@ function applyProductSEO(p,name,desc){
     document.head.appendChild(sb);
   }
 
-  // شريط التنقل: الرئيسية ← القسم ← التصنيف الحقيقي للمنتج.
-  // مهم: قيمة p.category هي مفتاح التصنيف في Firestore، وقد تكون مختلفة
-  // عن اسم التصنيف الظاهر للزبون. لذلك لا نعتمد على اسم المنتج لتحديد الفئة.
-  const crumbEl=document.getElementById("crumb");
-  if(crumbEl){
+  // ===== التصنيف في صفحة المنتج (ثنائي اللغة) =====
+  // لا نعتمد على اسم عربي ثابت: نقرأ name / name_fr من وثيقة التصنيف،
+  // ثم نختار الاسم حسب اللغة الحالية. هذا يحافظ على التصنيف حتى بعد تعديله
+  // من لوحة التحكم، ولا يغيّر قيمة category المحفوظة داخل المنتج.
+  function renderProductCategoryBreadcrumb(catDoc, fallbackValue){
+    const crumbEl=document.getElementById("crumb");
+    if(!crumbEl)return;
+
+    const lang=window.BazarI18n?.getLang?.()||"ar";
+    const value=String(fallbackValue||"").trim();
+    const key=String(catDoc?.key||"").trim() || value;
+    const normalized=key.toLowerCase();
+
     const catMap={
-      tools:{parent:"أدوات وملحقاتها",sub:/(clavier|keyboard|لوحة|مفتاح|gaming)/i.test(name)?"لوحات المفاتيح":"أدوات"},
-      home:{parent:"المنزل والمطبخ",sub:"المنزل والمطبخ"},
-      electronics:{parent:"أدوات وملحقاتها",sub:"أكسسوارات وإلكترونيات"},
-      phones:{parent:"أدوات وملحقاتها",sub:"هواتف وإكسسواراتها"},
-      laptops:{parent:"أدوات وملحقاتها",sub:"حاسوب محمول"},
-      clothes:{parent:"ملابس وأحذية",sub:"ملابس وأحذية"},
-      beauty:{parent:"صحة وجمال",sub:"صحة وجمال"},
-      women:{parent:"معدات نسوية",sub:"معدات نسوية"},
-      jewelry:{parent:"مجوهرات وإكسسوارات نسائية",sub:"مجوهرات وإكسسوارات نسائية"},
-      baby:{parent:"مستلزمات الأطفال والرضع",sub:"مستلزمات الأطفال والرضع"},
-      medical:{parent:"أدوات طبية",sub:"أدوات طبية"},
-      carparts:{parent:"قطع غيار السيارات",sub:"قطع غيار السيارات"},
-      summer:{parent:"منتجات الصيف",sub:"منتجات الصيف"},
-      shaving:{parent:"آلات الحلاقة",sub:"آلات الحلاقة"},
-      gifts:{parent:"هدايا متنوعة",sub:"هدايا متنوعة"},
-      library:{parent:"مكتبة",sub:"مكتبة"},
-      realestate:{parent:"عقارات وأراضي",sub:"عقارات وأراضي"},
-      clearance:{parent:"تصفية مخزون",sub:"تصفية مخزون"},
-      misc:{parent:"منتجات متنوعة",sub:"منتجات متنوعة"}
+      tools:{ar:"أدوات",fr:"Outils",parentAr:"أدوات وملحقاتها",parentFr:"Outils et accessoires"},
+      home:{ar:"المنزل والمطبخ",fr:"Maison et cuisine",parentAr:"المنزل والمطبخ",parentFr:"Maison et cuisine"},
+      electronics:{ar:"أكسسوارات وإلكترونيات",fr:"Accessoires et électronique",parentAr:"أدوات وملحقاتها",parentFr:"Outils et accessoires"},
+      phones:{ar:"هواتف وإكسسواراتها",fr:"Téléphones et accessoires",parentAr:"أدوات وملحقاتها",parentFr:"Outils et accessoires"},
+      laptops:{ar:"حاسوب محمول",fr:"Ordinateurs portables",parentAr:"أدوات وملحقاتها",parentFr:"Outils et accessoires"},
+      clothes:{ar:"ملابس وأحذية",fr:"Vêtements et chaussures",parentAr:"ملابس وأحذية",parentFr:"Vêtements et chaussures"},
+      beauty:{ar:"صحة وجمال",fr:"Santé et beauté",parentAr:"صحة وجمال",parentFr:"Santé et beauté"},
+      women:{ar:"معدات نسوية",fr:"Équipements pour femmes",parentAr:"معدات نسوية",parentFr:"Équipements pour femmes"},
+      jewelry:{ar:"مجوهرات وإكسسوارات نسائية",fr:"Bijoux et accessoires pour femmes",parentAr:"مجوهرات وإكسسوارات نسائية",parentFr:"Bijoux et accessoires pour femmes"},
+      baby:{ar:"مستلزمات الأطفال والرضع",fr:"Articles pour enfants et bébés",parentAr:"مستلزمات الأطفال والرضع",parentFr:"Articles pour enfants et bébés"},
+      medical:{ar:"أدوات طبية",fr:"Matériel médical",parentAr:"أدوات طبية",parentFr:"Matériel médical"},
+      carparts:{ar:"قطع غيار السيارات",fr:"Pièces automobiles",parentAr:"قطع غيار السيارات",parentFr:"Pièces automobiles"},
+      summer:{ar:"منتجات الصيف",fr:"Produits d'été",parentAr:"منتجات الصيف",parentFr:"Produits d'été"},
+      shaving:{ar:"آلات الحلاقة",fr:"Appareils de rasage",parentAr:"آلات الحلاقة",parentFr:"Appareils de rasage"},
+      gifts:{ar:"هدايا متنوعة",fr:"Cadeaux divers",parentAr:"هدايا متنوعة",parentFr:"Cadeaux divers"},
+      library:{ar:"مكتبة",fr:"Librairie",parentAr:"مكتبة",parentFr:"Librairie"},
+      realestate:{ar:"عقارات وأراضي",fr:"Immobilier et terrains",parentAr:"عقارات وأراضي",parentFr:"Immobilier et terrains"},
+      clearance:{ar:"تصفية مخزون",fr:"Déstockage",parentAr:"تصفية مخزون",parentFr:"Déstockage"},
+      misc:{ar:"منتجات متنوعة",fr:"Produits divers",parentAr:"منتجات متنوعة",parentFr:"Produits divers"}
     };
-    const normalized=category.toLowerCase().trim();
+
     const aliases={
       "أكسسوارات وإلكترونيات":"electronics",
       "اكسسوارات وإلكترونيات":"electronics",
       "إكسسوارات وإلكترونيات":"electronics",
       "accessoires et electronique":"electronics",
       "accessoires et électronique":"electronics",
-      "electronics":"electronics"
+      electronics:"electronics"
     };
-    const resolvedKey=catMap[normalized]?normalized:(aliases[category]||aliases[normalized]||normalized);
-    const info=catMap[resolvedKey]||{parent:"",sub:category};
+
+    const resolvedKey=catMap[normalized]?normalized:(aliases[value]||aliases[normalized]||normalized);
+    const info=catMap[resolvedKey]||null;
+
+    // أولوية الاسم المحفوظ في Firestore، ثم الاسم الاحتياطي للأنواع القديمة.
+    const arName=String(catDoc?.name||"").trim() || info?.ar || value;
+    const frName=String(catDoc?.name_fr||"").trim() || info?.fr || arName;
+    const displayName=lang==="fr"?frName:arName;
+
+    const parentAr=info?.parentAr||"";
+    const parentFr=info?.parentFr||"";
+    const parent=lang==="fr"?parentFr:parentAr;
+
     const parts=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`];
-    if(info.parent) parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(info.parent)}</span>`);
-    if(info.sub) parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(info.sub)}</span>`);
+    if(parent)parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(parent)}</span>`);
+    if(displayName)parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(displayName)}</span>`);
     crumbEl.innerHTML=parts.join("");
   }
+
+  renderProductCategoryBreadcrumb(null, p.category);
 }
 async function load(){
   let cachedProduct=null;
@@ -1297,36 +1318,38 @@ async function load(){
     if(p){
       try{localStorage.setItem("bazar_selected_product",JSON.stringify(p));}catch(_e){}
       render(p);
-      // جلب التصنيف من Firestore حتى يظهر اسم التصنيف الصحيح حتى لو كان
-      // المفتاح مختلفًا عن الاسم (أو إذا كان التصنيف مخصصًا من لوحة التحكم).
+      // جلب التصنيف من Firestore حتى يظهر الاسم الحالي الصحيح بالعربية/الفرنسية.
+      // ندعم أيضًا المنتجات القديمة التي قد تحتوي اسم التصنيف بدل الـ key.
       try{
         const catValue=String(p.category||"").trim();
         if(catValue){
-          const catSnap=await getDoc(doc(db,"categories",catValue));
+          let catSnap=await getDoc(doc(db,"categories",catValue));
+
+          // توافق مع المنتجات القديمة: إذا كان category هو الاسم وليس المعرّف،
+          // ابحث عن name أو name_fr بدل أن يختفي التصنيف.
+          if(!catSnap.exists()){
+            const catAll=await getDocs(collection(db,"categories"));
+            const wanted=catValue.toLowerCase();
+            const found=catAll.docs.find(s=>{
+              const cd=s.data()||{};
+              return String(cd.name||"").trim().toLowerCase()===wanted ||
+                     String(cd.name_fr||"").trim().toLowerCase()===wanted;
+            });
+            if(found)catSnap=found;
+          }
+
           if(catSnap.exists()){
             const cd=catSnap.data()||{};
-            const catName=String(cd.name||"").trim();
-            const catFr=String(cd.name_fr||"").trim();
-            const catKey=catSnap.id;
-            const aliasKey=catKey||catValue;
-            const crumb=document.getElementById("crumb");
-            if(crumb && catName){
-              const parentMap={
-                electronics:"أدوات وملحقاتها", phones:"أدوات وملحقاتها", laptops:"أدوات وملحقاتها",
-                tools:"أدوات وملحقاتها", home:"المنزل والمطبخ", clothes:"ملابس وأحذية", beauty:"صحة وجمال",
-                women:"معدات نسوية", jewelry:"مجوهرات وإكسسوارات نسائية", baby:"مستلزمات الأطفال والرضع",
-                medical:"أدوات طبية", carparts:"قطع غيار السيارات", summer:"منتجات الصيف", shaving:"آلات الحلاقة",
-                gifts:"هدايا متنوعة", library:"مكتبة", realestate:"عقارات وأراضي", clearance:"تصفية مخزون", misc:"منتجات متنوعة"
-              };
-              const parent=parentMap[aliasKey]||"";
-              const parts=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`];
-              if(parent) parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(parent)}</span>`);
-              parts.push(`<span class="crumb-sep">›</span><span class="crumb-current">${esc(catName)}</span>`);
-              crumb.innerHTML=parts.join("");
-            }
+            renderProductCategoryBreadcrumb({...cd,key:catSnap.id},catValue);
+          }else{
+            renderProductCategoryBreadcrumb(null,catValue);
           }
         }
-      }catch(_catErr){ /* يبقى التصنيف الاحتياطي الظاهر */ }
+      }catch(_catErr){
+        // يبقى التصنيف الاحتياطي ظاهرًا ولا يؤثر هذا الخطأ على تحميل المنتج.
+        renderProductCategoryBreadcrumb(null,p.category);
+      }
+
     }else if(!cachedProduct){
       box.innerHTML='<div class="error"><h2>'+esc(pt("product_not_found_title"))+'</h2><p>'+esc(pt("product_not_found_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
     }
