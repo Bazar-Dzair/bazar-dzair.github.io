@@ -642,49 +642,6 @@ async function getFirebase(){
   return firebasePromise;
 }
 const firebaseConfig={apiKey:"AIzaSyBWdQ_AIy_2gOBl-bP1S1tLaGIqaZjpar8",authDomain:"bazar-dzair-33816.firebaseapp.com",projectId:"bazar-dzair-33816",storageBucket:"bazar-dzair-33816.firebasestorage.app",messagingSenderId:"51073161969",appId:"1:51073161969:web:cb75a3224bdca11ea8e750"};
-// نسخة واحدة مشتركة من Firestore (تُستعمل من طرف ربط التصنيفات وباقي الصفحة معًا) حتى لا نستدعي initializeApp مرتين.
-let dbPromise=null;
-async function getDb(){
-  if(!dbPromise){
-    dbPromise=getFirebase().then(({initializeApp,getFirestore})=>{
-      const app=initializeApp(firebaseConfig);
-      const db=getFirestore(app);
-      window.__bazarDb=db;
-      return db;
-    });
-  }
-  return dbPromise;
-}
-// ===== ربط كل منتج بتصنيفه الحقيقي كما هو معرّف في لوحة التحكم (Firestore) =====
-// بدل الاعتماد على قائمة تصنيفات ثابتة داخل الكود، نقرأ اسم/أيقونة/ترجمة التصنيف
-// مباشرة من مجموعة "categories" بنفس المفتاح المحفوظ في المنتج (p.category)، حتى تنعكس
-// أي إضافة أو تعديل أو حذف يقوم به الأدمن فورًا على صفحة المنتج، لأي تصنيف كان (افتراضي أو جديد).
-const categoryCache=new Map();
-async function applyCategoryCrumb(p){
-  const crumbEl=document.getElementById("crumb");
-  if(!crumbEl) return;
-  const catKey=String(p.category||"").trim();
-  const catUrl=catKey?"/product-category/"+encodeURIComponent(catKey)+"/":"";
-  // عرض احتياطي فوري (قبل اكتمال الاتصال بقاعدة البيانات) حتى لا يبقى الشريط فارغًا.
-  const fallbackLabel=catKey?catKey.replace(/[-_]+/g," ").trim():"";
-  crumbEl.innerHTML=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`,fallbackLabel?`<span class="crumb-sep">›</span><a class="crumb-current" href="${esc(catUrl)}">${esc(fallbackLabel)}</a>`:""].join("");
-  if(!catKey) return;
-  try{
-    let cat=categoryCache.get(catKey);
-    if(cat===undefined){
-      const {doc,getDoc}=await getFirebase();
-      const db=await getDb();
-      const snap=await getDoc(doc(db,"categories",catKey));
-      cat=snap.exists()?snap.data():null;
-      categoryCache.set(catKey,cat);
-    }
-    if(!cat) return; // تصنيف غير موجود (محذوف مثلاً): نكتفي بالعرض الاحتياطي أعلاه.
-    if(product!==p) return; // تغيّر المنتج المعروض أثناء الانتظار: لا نلمس الشريط.
-    const lang=window.BazarI18n?BazarI18n.getLang():"ar";
-    const label=(lang==="fr"&&String(cat.name_fr||"").trim())?cat.name_fr:(String(cat.name||"").trim()||fallbackLabel);
-    crumbEl.innerHTML=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`,`<span class="crumb-sep">›</span><a class="crumb-current" href="${esc(catUrl)}">${esc(label)}</a>`].join("");
-  }catch(_e){ /* نتجاهل الخطأ ونُبقي على العرض الاحتياطي */ }
-}
 const legacyShippingPrices={"01":1000,"02":600,"03":800,"04":600,"05":600,"06":600,"07":800,"08":950,"09":450,"10":550,"11":1200,"12":650,"13":600,"14":600,"15":550,"16":300,"17":800,"18":600,"19":600,"20":650,"21":600,"22":600,"23":600,"24":650,"25":600,"26":550,"27":650,"28":650,"29":600,"30":800,"31":600,"32":900,"33":1200,"34":600,"35":450,"36":650,"37":1100,"38":600,"39":800,"40":650,"41":650,"42":450,"43":650,"44":550,"45":800,"46":600,"47":800,"48":600,"49":1100,"50":null,"51":800,"52":1000,"53":1200,"54":null,"55":800,"56":null,"57":850,"58":850};
 // أسعار المكتب الاحتياطية لكل الولايات الـ58 (نفس الأرقام المُدخلة فعليًا في لوحة التحكم — أسعار التوصيل / المكتب).
 // تُستخدم فقط كخط احتياطي إذا لم تُحمَّل بيانات Firestore بعد أو لم يُحدَّد سعر بعد لولاية معيّنة؛ بيانات settings/shipping (التي تُدار من لوحة التحكم) تبقى المصدر الأساسي دائمًا وتُستخدم أولاً إن وُجدت.
@@ -1139,7 +1096,7 @@ try{
   }
 }catch(e){}
 if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:product.name,price:total,category:product.category||"",qty:quantity,id:product.id||""});
-window.location.href="/success.html";
+window.location.replace("/success.html");
 
 }catch(err){
   console.error("order submit failed:",err);
@@ -1147,6 +1104,56 @@ window.location.href="/success.html";
   window.__bazarSubmittingOrder=false;if(btn){btn.disabled=false;btn.style.opacity="";btn.style.pointerEvents=""}
 }};
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2400)}
+
+
+function categoryPageHref(key){
+  const k=String(key||"").trim();
+  return k ? "/?category="+encodeURIComponent(k) : "/";
+}
+function renderProductBreadcrumb(category){
+  const crumbEl=document.getElementById("crumb");
+  if(!crumbEl)return;
+  const lang=window.BazarI18n?window.BazarI18n.getLang():"ar";
+  const catMap={
+    tools:{parent:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},sub:{ar:"أدوات",fr:"Outils"}},
+    home:{parent:{ar:"المنزل والمطبخ",fr:"Maison et Cuisine"},sub:{ar:"المطبخ والمنزل",fr:"Maison et Cuisine"}},
+    electronics:{parent:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},sub:{ar:"أكسسوارات وإلكترونيات",fr:"Accessoires et Électronique"}},
+    phones:{parent:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},sub:{ar:"هواتف",fr:"Téléphones"}},
+    laptops:{parent:{ar:"أدوات وملحقاتها",fr:"Outils et accessoires"},sub:{ar:"حاسوب محمول",fr:"Ordinateurs portables"}},
+    clothes:{parent:{ar:"ملابس وأحذية",fr:"Vêtements et Chaussures"},sub:{ar:"ملابس وأحذية",fr:"Vêtements et Chaussures"}},
+    beauty:{parent:{ar:"صحة وجمال",fr:"Santé et Beauté"},sub:{ar:"صحة وجمال",fr:"Santé et Beauté"}},
+    women:{parent:{ar:"معدات نسوية",fr:"Équipements pour Femmes"},sub:{ar:"معدات نسوية",fr:"Équipements pour Femmes"}},
+    jewelry:{parent:{ar:"مجوهرات وإكسسوارات نسائية",fr:"Bijoux et Accessoires pour Femmes"},sub:{ar:"مجوهرات وإكسسوارات نسائية",fr:"Bijoux et Accessoires pour Femmes"}},
+    baby:{parent:{ar:"مستلزمات الأطفال والرضع",fr:"Articles pour Bébés et Enfants"},sub:{ar:"مستلزمات الأطفال والرضع",fr:"Articles pour Bébés et Enfants"}},
+    medical:{parent:{ar:"أدوات طبية",fr:"Matériel Médical"},sub:{ar:"أدوات طبية",fr:"Matériel Médical"}},
+    carparts:{parent:{ar:"قطع غيار السيارات",fr:"Pièces Auto"},sub:{ar:"قطع غيار السيارات",fr:"Pièces Auto"}},
+    summer:{parent:{ar:"منتجات الصيف",fr:"Produits d'Été"},sub:{ar:"منتجات الصيف",fr:"Produits d'Été"}},
+    shaving:{parent:{ar:"آلات الحلاقة",fr:"Machines à Raser"},sub:{ar:"آلات الحلاقة",fr:"Machines à Raser"}},
+    gifts:{parent:{ar:"هدايا متنوعة",fr:"Cadeaux Divers"},sub:{ar:"هدايا متنوعة",fr:"Cadeaux Divers"}},
+    library:{parent:{ar:"مكتبة",fr:"Librairie"},sub:{ar:"مكتبة",fr:"Librairie"}},
+    realestate:{parent:{ar:"عقارات وأراضي",fr:"Immobilier et Terrains"},sub:{ar:"عقارات وأراضي",fr:"Immobilier et Terrains"}},
+    clearance:{parent:{ar:"تصفية مخزون",fr:"Déstockage"},sub:{ar:"تصفية مخزون",fr:"Déstockage"}},
+    misc:{parent:{ar:"منتجات متنوعة",fr:"Produits Divers"},sub:{ar:"منتجات متنوعة",fr:"Produits Divers"}}
+  };
+  const raw=String(category||"").trim();
+  const normalized=raw.toLowerCase();
+  const aliases={
+    "أكسسوارات وإلكترونيات":"electronics","اكسسوارات وإلكترونيات":"electronics","إكسسوارات وإلكترونيات":"electronics",
+    "accessoires et electronique":"electronics","accessoires et électronique":"electronics","electronics":"electronics"
+  };
+  const resolvedKey=catMap[normalized]?normalized:(aliases[raw]||aliases[normalized]||normalized);
+  const info=catMap[resolvedKey];
+  const parentLabel=info?(info.parent[lang]||info.parent.ar):"";
+  const subLabel=info?(info.sub[lang]||info.sub.ar):raw;
+  const parts=[`<a href="/">🏠 ${esc(pt("nav_home"))}</a>`];
+  if(parentLabel)parts.push(`<span class="crumb-sep">›</span><span class="crumb-link">${esc(parentLabel)}</span>`);
+  if(subLabel){
+    const href=categoryPageHref(resolvedKey);
+    parts.push(`<span class="crumb-sep">›</span><a class="crumb-current" href="${esc(href)}">${esc(subLabel)}</a>`);
+  }
+  crumbEl.innerHTML=parts.join("");
+  return {key:resolvedKey,label:subLabel,url:categoryPageHref(resolvedKey)};
+}
 
 // ===== SEO حقيقي لكل منتج =====
 function applyProductSEO(p,name,desc){
@@ -1244,6 +1251,7 @@ function applyProductSEO(p,name,desc){
 
   // Breadcrumb JSON-LD — عنصرين فقط (الرئيسية والمنتج) لأن كل عنصر في Schema BreadcrumbList
   // يلزمه رابط URL خاص به، وما عندناش رابط مؤكد لصفحة الفئة داخل هذا القالب.
+  const category=String(p.category||"").trim();
   const items=[
     {"@type":"ListItem","position":1,"name":pt("nav_home"),"item":"https://bazar-dzair.github.io/"},
     {"@type":"ListItem","position":2,"name":name,"item":url}
@@ -1260,11 +1268,8 @@ function applyProductSEO(p,name,desc){
     document.head.appendChild(sb);
   }
 
-  // شريط التنقل: الرئيسية ← القسم ← التصنيف الحقيقي للمنتج.
-  // مهم: قيمة p.category هي مفتاح التصنيف في Firestore، وقد تكون مختلفة
-  // عن اسم التصنيف الظاهر للزبون. لذلك نربطها مباشرة بمجموعة "categories" في
-  // لوحة التحكم بدل قائمة ثابتة، ليتعرف كل منتج على تصنيفه الحقيقي المحدّث.
-  applyCategoryCrumb(p);
+  // شريط التنقل: الرئيسية ← القسم ← التصنيف. اسم التصنيف قابل للنقر ويعيد إلى صفحة التصنيف.
+  renderProductBreadcrumb(category);
 }
 async function load(){
   let cachedProduct=null;
@@ -1313,8 +1318,10 @@ async function load(){
   }).catch(()=>{});
 
   try{
-    const {doc,getDoc,collection,getDocs,query,where,limit}=await getFirebase();
-    const db=await getDb();
+    const {initializeApp,getFirestore,doc,getDoc,collection,getDocs,query,where,limit}=await getFirebase();
+    const app=initializeApp(firebaseConfig);
+    const db=getFirestore(app);
+    window.__bazarDb=db;
     loadShippingRatesData(db).then(()=>{ if(document.getElementById("wilaya").value) updateTotal(); }).catch(()=>{});
 
     let p=null;
@@ -1352,7 +1359,11 @@ async function load(){
       firestoreVerified=true;
       p.__seoSnapshot=false;
       try{localStorage.setItem("bazar_selected_product",JSON.stringify(p));}catch(_e){}
-      render(p); // render() يستدعي applyCategoryCrumb(p) داخليًا فيربط شريط التنقل بالتصنيف الحقيقي من لوحة التحكم.
+      render(p);
+      try{
+        const catValue=String(p.category||"").trim();
+        if(catValue) renderProductBreadcrumb(catValue);
+      }catch(_catErr){}
     }else if(!cachedProduct){
       const seo=await seoPromise;
       if(seo){
