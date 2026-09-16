@@ -243,7 +243,11 @@
     root = root || document;
     var lang = getLang();
     document.documentElement.setAttribute("lang", lang === "fr" ? "fr" : "ar");
-    document.documentElement.setAttribute("dir", lang === "fr" ? "ltr" : "rtl");
+    // التصميم بالكامل مبني على RTL (مواضع، هوامش...) حتى في الواجهة الفرنسية —
+    // نفس القرار المطبّق يدويًا في كل صفحة (index.html، product.html). لا نُبدّل
+    // الاتجاه إلى ltr هنا أبدًا، وإلا فأي صفحة جديدة تستدعي applyStatic() دون أن
+    // "تُصحّح" الاتجاه بعدها يدويًا (كما يفعل index.html حاليًا) ستنكسر بصريًا.
+    document.documentElement.setAttribute("dir", "rtl");
 
     root.querySelectorAll("[data-i18n]").forEach(function (el) {
       var key = el.getAttribute("data-i18n");
