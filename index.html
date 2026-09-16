@@ -407,7 +407,7 @@ function computeDeliveryOptions(w){
   }
   let officePrice=null,officeCompanyStr="";
   if(rate){officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);officeCompanyStr=rate.officeCompany||"";}
-  if(officePrice==null && legacyOfficeShippingPrices[w]!=null){officePrice=legacyOfficeShippingPrices[w];officeCompanyStr=officeCompanyStr||"dhd";}
+  if(officePrice==null && legacyOfficeShippingPrices[w]!=null && legacyOfficeShippingPrices[w]!==""){officePrice=legacyOfficeShippingPrices[w];officeCompanyStr=officeCompanyStr||"dhd";}
   if(methods.includes("office") && officePrice!=null){
     const av=computeAvail(combinedProductCarriers("shippingOffice"),officeCompanyStr);
     if(av.available) opts.office={price:officePrice,codes:av.codes};
@@ -667,7 +667,7 @@ async function loadProductsFromFirestore(){
       description_fr:data.description_fr||"",
       category:data.category||"all",
       published:data.published!==false,
-      stock:Number(data.stock||0),
+      stock:(data.stock===undefined||data.stock===null||data.stock==="")?null:Number(data.stock),
       shippingHome:data.shippingHome||"",
       shippingOffice:data.shippingOffice||"",
       deliveryMethod:data.deliveryMethod||""
@@ -805,7 +805,8 @@ function displayProducts(list=products,reset=true){
  }
  const visibleList=productsToDisplay.slice(0,visibleProductsCount);
  g.innerHTML=visibleList.map(p=>{
-   const available=p.published!==false;
+   const stockValue=Number(p.stock);
+   const available=p.published!==false&&!(Number.isFinite(stockValue)&&stockValue<=0);
    const tp=BazarI18n.translateProduct(p);
    const badgeHtml=available?"":`<span class="new" style="background:#9aa1ab">${esc(BazarI18n.t("badge_unavailable"))}</span>`;
    const actionsHtml=available
@@ -884,7 +885,8 @@ function cartDetail(){addCart(selected.id,dQty);closeModal("productOverlay")}
 function buyDetail(){addCart(selected.id,dQty);closeModal("productOverlay");openCart()}
 function addCart(id,q=1){
  const p=products.find(x=>x.id===id);if(!p)return;const e=cart.find(x=>x.id===id);
- e?e.quantity+=q:cart.push({...p,quantity:q});updateCount();renderCart();toast(BazarI18n.t("toast_added_cart"));
+ const maxQty=Number.isFinite(Number(p.stock))&&Number(p.stock)>0?Number(p.stock):Infinity;
+ e?e.quantity=Math.min(maxQty,e.quantity+q):cart.push({...p,quantity:Math.min(maxQty,q)});updateCount();renderCart();toast(BazarI18n.t("toast_added_cart"));
  if(window.bazarTrackEvent)window.bazarTrackEvent("AddToCart",{id:p.id,content_name:p.name,price:p.price,qty:q,category:p.category});
 }
 function buyNow(id){
@@ -895,7 +897,7 @@ function openCart(){renderCart();document.getElementById("cartOverlay").style.di
  if(window.bazarTrackEvent && cart.length)window.bazarTrackEvent("InitiateCheckout",{total:cart.reduce((s,x)=>s+x.price*x.quantity,0),content_name:cart.map(x=>x.name).join(", ")});}
 function closeModal(id){document.getElementById(id).style.display="none";document.body.style.overflow=""}
 function overlayClose(e,id){if(e.target.id===id)closeModal(id)}
-function changeQty(id,x){const e=cart.find(p=>p.id===id);if(!e)return;e.quantity+=x;if(e.quantity<1)cart=cart.filter(p=>p.id!==id);updateCount();renderCart()}
+function changeQty(id,x){const e=cart.find(p=>p.id===id);if(!e)return;const maxQty=Number.isFinite(Number(e.stock))&&Number(e.stock)>0?Number(e.stock):Infinity;e.quantity=Math.min(maxQty,e.quantity+x);if(e.quantity<1)cart=cart.filter(p=>p.id!==id);updateCount();renderCart()}
 function removeItem(id){cart=cart.filter(p=>p.id!==id);updateCount();renderCart()}
 function productTotal(){return cart.reduce((s,x)=>s+x.price*x.quantity,0)}
 function renderCart(){
