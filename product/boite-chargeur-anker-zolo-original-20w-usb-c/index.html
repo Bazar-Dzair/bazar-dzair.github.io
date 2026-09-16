@@ -963,10 +963,9 @@ window.backToProduct=()=>{hideCODCheckout();showProductInfo();document.getElemen
 let selectedDeliveryType=null;
 function computeAvail(prod,wil){
   const P=carrierCodes(prod),W=carrierCodes(wil);
-  if(!P.length&&!W.length) return {available:true,codes:[]};
   if(!P.length) return {available:true,codes:W};
   if(!W.length) return {available:true,codes:P};
-  const inter=P.filter(x=>W.includes(x));
+  const inter=carrierIntersect(prod,wil);
   return {available:inter.length>0,codes:inter};
 }
 function computeDeliveryOptions(w){
