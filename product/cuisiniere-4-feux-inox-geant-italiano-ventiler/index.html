@@ -274,7 +274,6 @@ body{padding-bottom:96px}
 .reviews-empty{padding:28px;text-align:center;color:var(--muted);background:#f8fafc;border-radius:14px;border:1px dashed #dfe5ec}
 .reviews-more{margin-top:12px;width:100%;border:1px solid #dfe5ec;background:#fff;border-radius:10px;padding:10px;color:var(--navy);font-weight:800;cursor:pointer}
 .stock-note{font-size:11.5px;font-weight:800;margin:-5px 0 10px;color:#17803a}.stock-note.out{color:#c62828}
-#reviewsCard:empty{display:none!important}
 @media(max-width:950px){.product-card{grid-template-columns:minmax(0,1fr) minmax(330px,.9fr);gap:20px}.title{font-size:26px}.price-current{font-size:29px}.trust-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:800px){
  body{background:#f7f8fb} header.topbar .topbar-in{min-height:56px}.brand-txt{font-size:17px}
@@ -598,7 +597,6 @@ body{padding-bottom:96px}
   </div>
 </div>
 <div id="descCard" class="desc-card"></div>
-<div id="reviewsCard" class="reviews-card"></div>
 </main>
 <footer class="site-footer"><div class="footer-in">
   <div class="footer-item"><span class="fi-ic">🛡️</span><div><b data-i18n="footer_quality_title">جودة مضمونة</b><span data-i18n="footer_quality_sub">منتجات أصلية ومختارة بعناية</span></div></div>
@@ -900,7 +898,6 @@ const featureLines=rawSpecs.map(x=>{
   if(x&&typeof x==='object'&&x.key) return String(x.value??"").trim()?`${x.key}: ${x.value}`:String(x.key);
   return String(x||"").trim();
 }).filter(Boolean);
-const reviewsCard=document.getElementById("reviewsCard");
 const descCard=document.getElementById("descCard");
 const allReviews=Array.isArray(p.reviews)?p.reviews:[];
 const validReviewsForUI=allReviews.filter(r=>r&&String(r.text||r.reviewBody||r.comment||"").trim()&&String(r.author||r.authorName||r.name||"").trim());
@@ -926,7 +923,6 @@ if(descCard){
     if(dp) dp.classList.add("collapsed");
   }
 }
-if(reviewsCard) reviewsCard.innerHTML="";
 window.switchDetailsTab=tab=>{
   const d=document.getElementById('descriptionPane'),r=document.getElementById('reviewsPane'),dt=document.getElementById('descTabBtn'),rt=document.getElementById('reviewsTabBtn');
   const isR=tab==='reviews';
