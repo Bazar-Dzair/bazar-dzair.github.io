@@ -820,7 +820,8 @@ function render(p){product=p;
 // هذا للعرض فقط؛ بيانات الطلب المرسلة لاحقًا (Telegram/Firestore) تستعمل دائمًا product.name الأصلي.
 const tp=window.BazarI18n?BazarI18n.translateProduct(p):{name:p.name||p.product||pt("default_product_name"),description:p.description||p.desc||pt("default_product_desc")};
 const name=tp.name;const desc=tp.description;
-galleryImages=Array.isArray(p.images)&&p.images.length?p.images.filter(Boolean):[p.image||p.imageUrl||p.photo||"/logo.svg"];galleryIndex=0;
+const rawGalleryImages=Array.isArray(p.images)?p.images.filter(Boolean):[];
+galleryImages=rawGalleryImages.length?rawGalleryImages:[p.image||p.imageUrl||p.photo||"/logo.svg"];galleryIndex=0;
 
 document.title=name+" | Bazar Dzair";
 const md=document.getElementById("metaDescription");if(md)md.content=trimMetaDescription(desc);
