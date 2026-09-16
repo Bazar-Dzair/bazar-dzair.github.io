@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.">
 <meta name="keywords" content="متجر إلكتروني جزائري, Bazar Dzair, تسوق أونلاين الجزائر, دفع عند الاستلام">
-<title>Bazar Dzair | متجر إلكتروني</title>
+<title>Bazar Dzair | متجر إلكتروني جزائري</title>
 <style>
   :root {
     --navy:#061e3d;
@@ -740,8 +740,10 @@ function updateCategorySeo(category){
     if(title) title.textContent=BazarI18n.t("products_title");
     if(desc) desc.textContent=BazarI18n.t("products_subtitle");
     if(crumb) crumb.style.display="none";
-    document.title=lang==="fr"?"Bazar Dzair | Boutique en ligne":"Bazar Dzair | متجر إلكتروني";
-    if(meta) meta.setAttribute("content",lang==="fr"?"Bazar Dzair - boutique en ligne algérienne":"Bazar Dzair - متجر إلكتروني جزائري");
+    // نطابق العنوان/الوصف مع ما هو مكتوب أصلاً بالـHTML الثابت (og:title/keywords)،
+    // بدل نسخة أقصر كانت تُكتب هنا سابقًا وتفسد SEO فـكل تحميل للصفحة الرئيسية.
+    document.title="Bazar Dzair | "+(lang==="fr"?"Boutique en ligne algérienne":"متجر إلكتروني جزائري");
+    if(meta) meta.setAttribute("content",BazarI18n.t("footer_description"));
     activeCategory=null;
     return;
   }
