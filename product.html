@@ -934,13 +934,6 @@ window.switchDetailsTab=tab=>{
 };
 window.toggleAllReviews=()=>{const more=document.getElementById("moreReviews"),btn=document.getElementById("toggleAllReviewsBtn");if(!more||!btn)return;const hidden=more.style.display==="none";more.style.display=hidden?"block":"none";btn.textContent=hidden?"إخفاء التقييمات":pt("view_all_reviews")+" ("+validReviewsForUI.length+")";};
 maybeAutoTranslateDescription(p);}
-window.toggleAllReviews=()=>{
-  const more=document.getElementById("moreReviews");
-  const btn=document.getElementById("toggleAllReviewsBtn");
-  if(!more||!btn)return;
-  const isHidden=more.style.display==="none";
-  more.style.display=isHidden?"block":"none";
-};
 window.toggleDescription=()=>{
   const pane=document.getElementById("descriptionPane");
   const btn=document.getElementById("descMoreBtn");
