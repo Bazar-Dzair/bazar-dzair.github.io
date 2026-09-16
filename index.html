@@ -262,6 +262,12 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
     <a class="brand" href="#home" onclick="showHome(event)"><div class="brand-mark"></div><div><div class="brand-text"><b id="siteBrand">Bazar</b> <b>Dzair</b></div><div class="brand-sub" id="siteSubtitle" data-i18n="brand_subtitle">متجر إلكتروني</div></div></a>
   </div>
 </header>
+<div class="search-wrap">
+  <form class="search" role="search" onsubmit="event.preventDefault();searchProducts();document.getElementById('search').blur();">
+    <input type="search" id="search" data-i18n-ph="search_placeholder" data-i18n-aria="search_aria" placeholder="ابحث عن منتج..." aria-label="بحث عن منتج" oninput="searchProducts()">
+    <button type="submit" aria-label="بحث">🔍</button>
+  </form>
+</div>
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeCategoryMenu()"></div>
 <aside class="drawer" id="categoryDrawer" aria-hidden="true"><div class="drawer-head"><h2 data-i18n="drawer_title">🗂️ الفئات</h2><button class="drawer-close" type="button" onclick="closeCategoryMenu()">×</button></div><div class="drawer-cats" id="storeCategories"><div class="cat" onclick="filterCategory('all')"><i>▦</i><span data-i18n="drawer_all">جميع الفئات</span></div><!--SSG:CATS_START--><a class="cat" href="https://bazar-dzair.github.io/product-category/%D8%A7%D8%AF%D9%88%D8%A7%D8%AA/" style="color:inherit;text-decoration:none"><i>🛠️</i>ادوات</a><a class="cat" href="https://bazar-dzair.github.io/product-category/%D8%A7%D9%83%D8%B3%D9%8A%D8%B3%D9%88%D8%A7%D8%B1-%D9%88-%D8%A7%D9%84%D9%83%D8%AA%D8%B1%D9%88%D9%86%D8%A7%D8%AA/" style="color:inherit;text-decoration:none"><i>🔋🎮</i>اكسيسوار و الكترونات</a><a class="cat" href="https://bazar-dzair.github.io/product-category/%D8%A7%D9%84%D8%A7%D8%AA-%D8%AD%D9%84%D8%A7%D9%82%D8%A9/" style="color:inherit;text-decoration:none"><i>🪒</i>الات حلاقة</a><a class="cat" href="https://bazar-dzair.github.io/product-category/%D8%A7%D9%84%D9%85%D9%86%D8%B2%D9%84-%D9%88-%D8%A7%D9%84%D9%85%D8%B7%D8%A8%D8%AE/" style="color:inherit;text-decoration:none"><i>🏠</i>المنزل و المطبخ</a><a class="cat" href="https://bazar-dzair.github.io/product-category/%D8%AD%D8%A7%D8%B3%D9%88%D8%A8-%D9%85%D8%AD%D9%85%D9%88%D9%84/" style="color:inherit;text-decoration:none"><i>💻</i>حاسوب محمول</a><a class="cat" href="https://bazar-dzair.github.io/product-category/%D8%B5%D8%AD%D8%A9-%D9%88-%D8%AC%D9%85%D8%A7%D9%84/" style="color:inherit;text-decoration:none"><i>💄🧼</i>صحة و جمال</a><a class="cat" href="https://bazar-dzair.github.io/product-category/%D9%82%D8%B7%D8%B9-%D8%BA%D9%8A%D8%A7%D8%B1-%D8%B3%D9%8A%D8%A7%D8%B1%D8%A7%D8%AA/" style="color:inherit;text-decoration:none"><i>🚗</i>قطع غيار سيارات</a><a class="cat" href="https://bazar-dzair.github.io/product-category/%D9%85%D8%B9%D8%AF%D8%A7%D8%AA-%D9%86%D8%B3%D9%88%D9%8A%D8%A9/" style="color:inherit;text-decoration:none"><i>👩</i>معدات نسوية</a><a class="cat" href="https://bazar-dzair.github.io/product-category/%D9%85%D9%84%D8%A7%D8%A8%D8%B3-%D9%88%D8%A7%D8%AD%D8%B0%D9%8A%D8%A9/" style="color:inherit;text-decoration:none"><i>👕</i>ملابس وأحذية</a><a class="cat" href="https://bazar-dzair.github.io/product-category/%D9%85%D9%86%D8%AA%D8%AC%D8%A7%D8%AA-%D8%B5%D9%8A%D9%81%D9%8A%D8%A9/" style="color:inherit;text-decoration:none"><i>🏖️</i>منتجات صيفية</a><a class="cat" href="https://bazar-dzair.github.io/product-category/%D9%87%D9%88%D8%A7%D8%AA%D9%81/" style="color:inherit;text-decoration:none"><i>📱</i>هواتف</a><!--SSG:CATS_END--></div></aside>
 <main id="home">
@@ -953,7 +959,37 @@ function filterCategory(category,fromUrl=false){
   document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
-function searchProducts(){const q=document.getElementById("search").value.trim().toLowerCase();displayProducts(products.filter(p=>p.name.toLowerCase().includes(q)));}
+let searchDebounceTimer=null;
+function searchProducts(){
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer=setTimeout(()=>{
+    const input=document.getElementById("search");
+    if(!input)return;
+    const q=input.value.trim().toLowerCase();
+    if(!q){
+      document.body.classList.remove("products-only");
+      updateCategorySeo(activeCategory);
+      displayProducts(activeCategory?products.filter(p=>String(p.category)===String(activeCategory.key)):products);
+      return;
+    }
+    document.body.classList.add("products-only");
+    const filtered=products.filter(p=>{
+      const tp=BazarI18n.translateProduct(p);
+      return String(tp.name||"").toLowerCase().includes(q)
+        || String(p.name||"").toLowerCase().includes(q)
+        || String(p.name_fr||"").toLowerCase().includes(q);
+    });
+    if(!filtered.length){
+      const g=document.getElementById("productGrid");
+      if(g) g.innerHTML='<div class="empty" style="grid-column:1/-1">'+esc(BazarI18n.t("search_no_results"))+'</div>';
+      const wrap=document.getElementById("loadMoreWrap");
+      if(wrap) wrap.style.display="none";
+      return;
+    }
+    displayProducts(filtered);
+    document.getElementById("products")?.scrollIntoView({behavior:"smooth",block:"start"});
+  },200);
+}
 window.submitOrder=async function(){
  if(!cart.length){toast(BazarI18n.t("toast_cart_empty"));return}
  if(window.__bazarSubmittingOrder)return;
