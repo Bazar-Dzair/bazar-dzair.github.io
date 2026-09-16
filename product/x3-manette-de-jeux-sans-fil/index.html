@@ -995,7 +995,7 @@ function computeDeliveryOptions(w){
   }
   let officePrice=null,officeCompanyStr="";
   if(rate){officePrice=(rate.office===""||rate.office==null)?null:Number(rate.office);officeCompanyStr=rate.officeCompany||"";}
-  if(officePrice==null && legacyOfficeShippingPrices[w]!=null){officePrice=legacyOfficeShippingPrices[w];officeCompanyStr=officeCompanyStr||"dhd";}
+  if(officePrice==null && legacyOfficeShippingPrices[w]!=null && legacyOfficeShippingPrices[w]!==""){officePrice=legacyOfficeShippingPrices[w];officeCompanyStr=officeCompanyStr||"dhd";}
   if((!method||method==="office") && officePrice!=null){
     const av=computeAvail(product?.shippingOffice||"",officeCompanyStr);
     if(av.available) opts.office={price:officePrice,codes:av.codes};
