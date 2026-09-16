@@ -772,22 +772,31 @@ async function translateLineMyMemory(line){
     return out?String(out):line;
   }catch(_e){return line;}
 }
+function applyAutoFrText(text){
+  var descEl=box.querySelector("#descriptionContent");
+  if(!descEl) return;
+  var introEl=descEl.querySelector(":scope > .detail-intro");
+  var listEl=descEl.querySelector(":scope > ul.feature-list");
+  var lines=String(text||"").split("\n").map(function(l){return l.trim();}).filter(Boolean);
+  var intro=lines.length?lines[0]:text;
+  var rest=lines.length>1?lines.slice(1):[];
+  if(introEl) introEl.textContent=intro||"";
+  if(listEl) listEl.innerHTML=rest.map(function(x){return "<li>"+esc(x)+"</li>";}).join("");
+}
 async function maybeAutoTranslateDescription(p){
   if(!(window.BazarI18n&&BazarI18n.getLang()==="fr")) return;
   if(p.description_fr&&String(p.description_fr).trim()) return; // عندو ترجمة يدوية، ما نلمسوهاش
   var arSrc=String(p.description||p.desc||"");
   if(!arSrc.trim()) return;
   var cached=getCachedAutoFr(p.id||p.firestoreId||"",arSrc);
-  var descEl=box.querySelector(".desc");
-  if(cached){if(descEl)descEl.textContent=cached;return;}
+  if(cached){applyAutoFrText(cached);return;}
   var lines=arSrc.split("\n");
   var translatedLines=await Promise.all(lines.map(translateLineMyMemory));
   var frText=translatedLines.join("\n");
   // نتأكد أن الزبون مازال في نفس المنتج ونفس اللغة الفرنسية قبل التعديل (تفادي أي تعارض
   // لو تغيّر المنتج أثناء انتظار الرد — تبديل اللغة نفسه يعيد تحميل الصفحة فلا خطر منه).
   if(product===p&&window.BazarI18n&&BazarI18n.getLang()==="fr"){
-    var liveDescEl=box.querySelector(".desc");
-    if(liveDescEl) liveDescEl.textContent=frText;
+    applyAutoFrText(frText);
     setCachedAutoFr(p.id||p.firestoreId||"",arSrc,frText);
   }
 }
@@ -1136,7 +1145,7 @@ function applyProductSEO(p,name,desc){
     }
   };
 
-  if(Number(p.stock)===0)ld.offers.availability="https://schema.org/OutOfStock";
+  if(Number.isFinite(Number(p.stock))&&Number(p.stock)<=0)ld.offers.availability="https://schema.org/OutOfStock";
 
   // نضيف aggregateRating فقط إذا كانت بيانات التقييم الحقيقية موجودة في المنتج.
   const rating = p.aggregateRating || p.rating || {};
