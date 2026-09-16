@@ -808,6 +808,15 @@ function setCatNameCache(key,ar,fr){
     localStorage.setItem("bazar_category_names",JSON.stringify(c));
   }catch(_e){}
 }
+function trimMetaDescription(desc,limit){
+  limit=limit||155;
+  const flat=String(desc||"").replace(/\s+/g," ").trim();
+  if(flat.length<=limit) return flat;
+  let cut=flat.slice(0,limit);
+  const lastSpace=cut.lastIndexOf(" ");
+  if(lastSpace>0) cut=cut.slice(0,lastSpace);
+  return cut.replace(/[\s,\-–—]+$/,"")+"…";
+}
 function render(p){product=p;
 // tp: الاسم والوصف المعروضان للزبون حسب اللغة الحالية (name_fr/description_fr إن توفرا).
 // هذا للعرض فقط؛ بيانات الطلب المرسلة لاحقًا (Telegram/Firestore) تستعمل دائمًا product.name الأصلي.
@@ -816,7 +825,7 @@ const name=tp.name;const desc=tp.description;
 galleryImages=Array.isArray(p.images)&&p.images.length?p.images.filter(Boolean):[p.image||p.imageUrl||p.photo||"/logo.svg"];galleryIndex=0;
 
 document.title=name+" | Bazar Dzair";
-const md=document.getElementById("metaDescription");if(md)md.content=String(desc).slice(0,155);
+const md=document.getElementById("metaDescription");if(md)md.content=trimMetaDescription(desc);
 applyProductSEO(p,name,desc);
 if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});
 const available=p.published!==false;
@@ -1113,12 +1122,12 @@ function applyProductSEO(p,name,desc){
 
   document.querySelector('link[rel="canonical"]')&&(document.querySelector('link[rel="canonical"]').href=url);
   setOG("ogTitle","og:title",name);
-  setOG("ogDescription","og:description",String(p.description||p.desc||"").slice(0,155));
+  setOG("ogDescription","og:description",trimMetaDescription(p.description||p.desc));
   setOG("ogUrl","og:url",url);
   setOG("ogImage","og:image",image);
   setMeta("twitterCard","name","summary_large_image");
   if(!document.querySelector('meta[name="twitter:title"]')){const t=document.createElement("meta");t.name="twitter:title";t.content=name;document.head.appendChild(t);}
-  if(!document.querySelector('meta[name="twitter:description"]')){const t=document.createElement("meta");t.name="twitter:description";t.content=String(p.description||p.desc||"").slice(0,155);document.head.appendChild(t);}
+  if(!document.querySelector('meta[name="twitter:description"]')){const t=document.createElement("meta");t.name="twitter:description";t.content=trimMetaDescription(p.description||p.desc);document.head.appendChild(t);}
 
   // Product JSON-LD — بيانات حقيقية فقط، بدون اختلاق تقييمات أو مراجعات.
   const ld={
