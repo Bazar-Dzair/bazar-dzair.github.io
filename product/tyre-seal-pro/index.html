@@ -827,7 +827,9 @@ document.title=name+" | Bazar Dzair";
 const md=document.getElementById("metaDescription");if(md)md.content=trimMetaDescription(desc);
 applyProductSEO(p,name,desc);
 if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});
-const available=p.published!==false;
+const stockValue=Number(p.stock);
+const outOfStock=Number.isFinite(stockValue)&&stockValue<=0;
+const available=p.published!==false&&!outOfStock;
 // ===== تقييم المنتج: لا نعرض أي شيء إلا إذا توفرت بيانات تقييم حقيقية في المنتج (لا نختلق أرقامًا). =====
 function getRatingInfo(prod){
   // دعم كل الصيغ التي تستعملها لوحة التحكم والبيانات القديمة.
@@ -879,7 +881,6 @@ const badgeHtml=available?"":`<span class="badge-featured unavailable">${esc(pt(
 const ratingRowHtml=ratingInfo?`<div class="rating-row"><span class="stars">${starsHtml(ratingInfo.value)}</span> <span class="rv">${ratingInfo.value}</span> <span>(${ratingInfo.count} ${esc(pt("reviews_word"))})</span></div>`:"";
 const priceRowHtml=`<div class="price-row"><span class="price-current">${money(p.price)}</span>${hasDiscount?`<span class="price-old">${money(oldPrice)}</span><span class="discount-badge">-${discountPct}%</span>`:""}</div>`;
 
-const stockValue=Number(p.stock);
 const stockNoteHtml=Number.isFinite(stockValue)?(stockValue<=0?`<div class="stock-note out">⛔ ${esc(pt("badge_unavailable"))}</div>`:`<div class="stock-note">✓ متوفر في المخزون${stockValue<=5?` — ${stockValue} قطع فقط`:``}</div>`):"";
 const infoFeatures=Array.isArray(p.specifications)?p.specifications.map(x=>{if(x&&typeof x==='object'&&x.key)return String(x.value??"").trim()?`${x.key}: ${x.value}`:String(x.key);return String(x||"").trim()}).filter(Boolean).slice(0,4):[];
 const highlightsHtml=infoFeatures.length?`<div class="product-highlights"><div class="product-highlights-title">✨ أبرز المميزات</div><ul class="product-highlights-list">${infoFeatures.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:"";
@@ -941,7 +942,7 @@ window.toggleDescription=()=>{
 window.addToCartUI=()=>{toast(pt("added_to_cart_toast"));};
 window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=safeImg(galleryImages[galleryIndex]);const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));if(document.getElementById('imageLightbox')?.classList.contains('open'))window.syncLightbox();};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
 window.openImageLightbox=()=>{const l=document.getElementById('imageLightbox'),i=document.getElementById('lightboxImg');if(!l||!i)return;i.src=safeImg(galleryImages[galleryIndex]);i.alt=document.getElementById('mainProductPhoto')?.alt||'';l.classList.add('open');document.body.style.overflow='hidden';};window.closeImageLightbox=()=>{const l=document.getElementById('imageLightbox');if(l)l.classList.remove('open');document.body.style.overflow='';};window.syncLightbox=()=>{const i=document.getElementById('lightboxImg');if(i)i.src=safeImg(galleryImages[galleryIndex]);};
-window.changeQty=x=>{quantity=Math.max(1,quantity+x);document.getElementById("qty").textContent=quantity;const tp2=window.BazarI18n?BazarI18n.translateProduct(product):{name:product.name||product.product};document.getElementById("checkoutProduct").textContent=tp2.name+" × "+quantity+" — "+money(product.price*quantity);const sbp=document.getElementById("sbPrice");if(sbp)sbp.textContent=money(product.price*quantity);updateTotal()};
+window.changeQty=x=>{const stockCap=Number(product?.stock);const maxQty=Number.isFinite(stockCap)&&stockCap>0?stockCap:Infinity;quantity=Math.max(1,Math.min(maxQty,quantity+x));document.getElementById("qty").textContent=quantity;const tp2=window.BazarI18n?BazarI18n.translateProduct(product):{name:product.name||product.product};document.getElementById("checkoutProduct").textContent=tp2.name+" × "+quantity+" — "+money(product.price*quantity);const sbp=document.getElementById("sbPrice");if(sbp)sbp.textContent=money(product.price*quantity);updateTotal()};
 // ===== التبديل بين معلومات المنتج ونموذج COD داخل نفس عمود .info =====
 // hideProductInfo/showProductInfo: يُخفيان أو يُظهران محتوى المنتج (العنوان/السعر/الكمية/الأزرار) فقط،
 // دون لمس عمود الصور أو الوصف أو التقييمات في الأسفل.
