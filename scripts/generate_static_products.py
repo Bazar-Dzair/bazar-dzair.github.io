@@ -213,7 +213,7 @@ def make_meta_description(desc, limit=155):
     return cut.rstrip(' ,-–—') + '…'
 
 
-def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None):
+def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None):
     d155=make_meta_description(desc)
     title_tag=f'<title>{html.escape(name)} | Bazar Dzair</title>'
     desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
@@ -228,6 +228,25 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
         f'<script type="application/ld+json" id="bazar_product_jsonld">{json.dumps(ld,ensure_ascii=False)}</script>'
         f'<script type="application/ld+json" id="bazar_breadcrumb_jsonld">{json.dumps(bc,ensure_ascii=False)}</script>'
     )
+    if static_product_data is not None:
+        # ===== إصلاح "الطبقتين" =====
+        # قبل هذا التعديل كانت هذه الصفحة الثابتة (SSG) تحتوي فقط على HTML جامد
+        # للعرض/الفهرسة، بينما بيانات المنتج الحقيقية التي يحتاجها JS (render(),
+        # إضافة للسلة، إرسال الطلب...) تُطلب من جديد بالكامل من Firestore بعد
+        # تحميل الصفحة — إما عبر استعلام where("slug","==",...) أو، في أسوأ
+        # الحالات (عندما لا يملك المنتج حقل slug بعد)، بتحميل كل مجموعة products.
+        # أي زيارة = طلب Firestore إضافي حتى لو كانت كل البيانات متوفرة أصلاً هنا
+        # وقت البناء.
+        #
+        # الحل: نُضمّن بيانات المنتج الحقيقية (كما أتت من Firestore وقت البناء،
+        # + firestoreId) كـ JSON خام داخل الصفحة نفسها. هكذا تصبح الصفحة الثابتة
+        # هي المصدر الفوري لعرض المنتج بالكامل (render() يعمل عليها مباشرة، بدون
+        # أي شبكة) — و JS يستخدم Firestore بعد ذلك فقط لتحديث اختياري وخفيف
+        # (وثيقة واحدة بالمعرّف المباشر، لا استعلام ولا مسح للمجموعة كاملة) في
+        # حال تغيّر السعر/المخزون بعد توليد الصفحة. انظر التعديل المقابل في
+        # product.html (دالة load()).
+        data_json=json.dumps(static_product_data,ensure_ascii=False).replace('</','<\\/')
+        extra+=f'<script type="application/json" id="bazar-static-product">{data_json}</script>'
     out=template.replace('<title>المنتج | Bazar Dzair</title>',title_tag,1)
     out=out.replace('<meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">',desc_tag,1)
     out=out.replace('<link id="canonical" rel="canonical">',canonical_tag+extra,1)
@@ -270,7 +289,13 @@ for p in products:
     badge=p.get('productBadge') or p.get('badge') or None
     old_price=p.get('oldPrice') or p.get('old_price') or p.get('compareAtPrice') or p.get('compare_at_price') or None
     template=(root/'product.html').read_text(encoding='utf-8')
-    template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price)
+    # نفس الوثيقة الحقيقية القادمة من Firestore (كل الحقول: stock, category,
+    # specifications, deliveryMethod, shippingHome/Office...) + firestoreId،
+    # بنفس الشكل الذي يبنيه product.html عادةً من {...snap.data(), firestoreId: snap.id}.
+    # هذا ما يُضمَّن في الصفحة (انظر static_product_data في inject_product_seo).
+    static_product_data={**p, 'firestoreId': p['_id']}
+    static_product_data.pop('_id', None)
+    template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data)
     (root/'product'/slug).mkdir(parents=True,exist_ok=True)
     (root/'product'/slug/'index.html').write_text(template,encoding='utf-8')
     product_urls.append((url,name,p,slug))
