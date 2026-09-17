@@ -1069,13 +1069,23 @@ window.saveShippingRates=async function(){
     });
     const payload={rates,prices,updatedAt:window.bazarServerTimestamp()};
     await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","shipping"),payload,{merge:true});
-    // تحقّق فعلي: نعيد قراءة الوثيقة من القاعدة للتأكد أن التغييرات وصلت فعلاً وليست محجوبة بصمت
+    // تحقّق فعلي: نعيد قراءة الوثيقة من القاعدة للتأكد أن التغييرات وصلت فعلاً وليست محجوبة بصمت.
+    // ⚠️ لا نقارن عبر JSON.stringify مباشرة: Firestore لا يضمن ترتيب حقول الخريطة (map)
+    // بنفس ترتيب إنشائها محليًا، خصوصًا بعد كتابة merge:true على وثيقة موجودة مسبقًا
+    // بحقول أُنشئت بترتيب مختلف — فتُصبح المقارنة النصية مختلفة رغم تطابق القيم فعليًا،
+    // مما كان يُظهر "فشل التحقق" حتى عندما ينجح الحفظ فعلاً. نقارن الحقول قيمة بقيمة بدل ذلك.
+    function sameRate(a,b){
+      a=a||{};b=b||{};
+      const keys=new Set([...Object.keys(a),...Object.keys(b)]);
+      for(const k of keys){ if(String(a[k]??"")!==String(b[k]??"")) return false; }
+      return true;
+    }
     let verified=false;
     try{
       const snap=await window.bazarGetDoc(window.bazarDoc(window.bazarDb,"settings","shipping"));
       const saved=snap.exists()?(snap.data().rates||{}):{};
       const sampleCode=Object.keys(rates)[0];
-      verified = sampleCode ? JSON.stringify(saved[sampleCode]||{})===JSON.stringify(rates[sampleCode]||{}) : true;
+      verified = sampleCode ? sameRate(saved[sampleCode],rates[sampleCode]) : true;
     }catch(verifyErr){console.error("verify failed",verifyErr);}
     shippingRatesData=rates;
     if(verified){
