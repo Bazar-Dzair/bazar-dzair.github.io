@@ -819,10 +819,14 @@ function previewBrandImage(input,id){
 async function uploadBrandFile(input,path){
   const file=input?.files?.[0];
   if(!file)return "";
-  if(!window.bazarStorage||!window.bazarStorageRef||!window.bazarUploadBytes||!window.bazarGetDownloadURL) throw new Error("خدمة رفع الصور غير جاهزة");
-  const r=window.bazarStorageRef(window.bazarStorage, path+"_"+Date.now()+"_"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_"));
-  await window.bazarUploadBytes(r,file);
-  return await window.bazarGetDownloadURL(r);
+  // ⚠️ إصلاح 17/09/2026: كانت هذه الدالة ترفع الشعار/البانر عبر Firebase Storage
+  // (getStorage/uploadBytes) — لكن مشروع Firebase هنا على خطة Spark المجانية بلا
+  // Firebase Storage (يتطلب خطة Blaze)، فكانت كل محاولة رفع شعار أو بانر تفشل. بقية
+  // صور المنتجات فالموقع (admin.html نفسه) ترفع فعليًا عبر Cloudinary — نستعمل نفس
+  // الآلية هنا عوض Firebase Storage.
+  if(!window.bazarUploadToCloudinary||!window.bazarCompressImage) throw new Error("خدمة رفع الصور غير جاهزة");
+  const blob=await window.bazarCompressImage(file,1200,0.8);
+  return await window.bazarUploadToCloudinary(blob);
 }
 function closeSetting(){document.getElementById("settingsModal").classList.add("hidden");activeSetting=null}
 
@@ -1383,6 +1387,10 @@ messagingSenderId:"51073161969",
 appId:"1:51073161969:web:cb75a3224bdca11ea8e750"};
 const firebaseApp=initializeApp(config),db=getFirestore(firebaseApp),auth=getAuth(firebaseApp),storage=getStorage(firebaseApp);
 window.bazarDb=db;window.bazarDoc=doc;window.bazarSetDoc=setDoc;window.bazarGetDoc=getDoc;window.bazarServerTimestamp=serverTimestamp;window.bazarStorage=storage;window.bazarStorageRef=storageRef;window.bazarUploadBytes=uploadBytes;window.bazarGetDownloadURL=getDownloadURL;window.bazarAuth=auth;
+// إتاحة دوال رفع Cloudinary/ضغط الصور (معرّفة أدناه فنفس هذا الـ module) للـ <script>
+// العادي الأول فالصفحة (لي فيه uploadBrandFile) — السكربتات من نوع module لها نطاق
+// خاص بها ولا تشارك المتغيرات تلقائيًا مع سكربت عادي آخر.
+window.bazarUploadToCloudinary=uploadToCloudinary;window.bazarCompressImage=compressImageToBlob;
 
 // ===== رفع الصور عبر Cloudinary (خطة Free دائمة، بدون اشتراك أو بطاقة بنكية) =====
 // Firebase Storage يتطلب خطة Blaze (اشتراك مربوط ببطاقة) من Google منذ فبراير 2026، لذلك تم
