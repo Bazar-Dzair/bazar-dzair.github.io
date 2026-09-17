@@ -1295,7 +1295,7 @@ async function load(){
   if(cachedProduct) render(cachedProduct);
 
   try{
-    const {initializeApp,getFirestore,doc,getDoc,collection,getDocs}=await getFirebase();
+    const {initializeApp,getFirestore,doc,getDoc,collection,getDocs,query,where,limit}=await getFirebase();
     const app=initializeApp(firebaseConfig);
     const db=getFirestore(app);
     window.__bazarDb=db;
@@ -1313,12 +1313,29 @@ async function load(){
       }
       if(!p){
         const wanted=decodeURIComponent(id);
-        const all=await getDocs(collection(db,"products"));
-        all.forEach(snap=>{
-          if(p)return;
-          const data=snap.data();
-          if(productSlug(data.name||data.product)===wanted || String(data.name||data.product||"").toLowerCase()===wanted.toLowerCase()) p={...data,firestoreId:snap.id};
-        });
+        // الوصول المباشر: كل منتج يملك الآن حقل "slug" مخزَّن في وثيقته (يُكتب من
+        // لوحة التحكم عند الإضافة/التعديل). هذا الاستعلام يقرأ وثيقة واحدة فقط
+        // بدل تحميل مجموعة products كاملة عند كل زيارة لصفحة منتج.
+        try{
+          const q=query(collection(db,"products"),where("slug","==",wanted),limit(1));
+          const bySlug=await getDocs(q);
+          if(!bySlug.empty){
+            const snap=bySlug.docs[0];
+            p={...snap.data(),firestoreId:snap.id};
+          }
+        }catch(e){}
+        // خط احتياطي فقط للمنتجات القديمة التي لم يُحفَظ لها بعد حقل "slug"
+        // (قبل تشغيل أداة "إصلاح روابط المنتجات" من لوحة التحكم، أو لحظيًا قبل
+        // أن تُحفظ. يقرأ المجموعة كاملة مرة واحدة، ثم لن يُستدعى مجددًا لهذا
+        // المنتج بمجرد إصلاح حقل slug الخاص به.
+        if(!p){
+          const all=await getDocs(collection(db,"products"));
+          all.forEach(snap=>{
+            if(p)return;
+            const data=snap.data();
+            if(productSlug(data.name||data.product)===wanted || String(data.name||data.product||"").toLowerCase()===wanted.toLowerCase()) p={...data,firestoreId:snap.id};
+          });
+        }
       }
     }
     if(p){
