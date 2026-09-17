@@ -1436,9 +1436,5 @@ async function load(){
 }
 load();
 </script>
-<script>
-window.addEventListener('error',e=>{document.body.insertAdjacentHTML('afterbegin','<div style="position:fixed;top:0;left:0;right:0;background:#d00;color:#fff;padding:10px;z-index:99999;font-size:13px;direction:ltr;text-align:left">JS ERROR: '+e.message+'</div>');});
-window.addEventListener('unhandledrejection',e=>{document.body.insertAdjacentHTML('afterbegin','<div style="position:fixed;top:0;left:0;right:0;background:#d00;color:#fff;padding:10px;z-index:99999;font-size:13px;direction:ltr;text-align:left">PROMISE ERROR: '+((e.reason&&e.reason.message)||e.reason)+'</div>');});
-</script>
 </body>
 </html>
