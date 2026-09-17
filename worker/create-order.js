@@ -7,42 +7,26 @@
 // الذي يحتوي بالفعل /send-telegram. لا تضعه داخل مجلد الاستضافة الثابت —
 // لو وُضع هناك سيُنشر كملف عام قابل للتحميل (حتى لو أسراره بأمان في env).
 //
-// ما يفعله هذا المسار:
-//   1) يتحقق من توكن Cloudflare Turnstile عبر siteverify (نقطة 4 من الفحص:
-//      كانت هذه الخطوة غائبة تمامًا رغم وجود إشارة لها في firestore.rules —
-//      أي زبون/بوت كان يستطيع إرسال عشرات الطلبات الوهمية دون أي عائق).
-//      التحقق "fail-closed": لو TURNSTILE_SECRET_KEY غير مُهيّأ في env، أو
-//      فشل التحقق، يُرفض الطلب بالكامل، ولا يُنشأ أي شيء في Firestore.
-//   2) يعيد نفس التحقق الموجود في firestore.rules (شكل البيانات، الهاتف، الكمية...).
-//   3) يتحقق أن رقم هاتف الزبون غير موجود في قائمة الأرقام المحظورة (collection
-//      blockedPhones يديرها الأدمن من لوحة التحكم) — مرة واحدة فقط للطلب كله.
-//   4) يجلب السعر الحقيقي لكل منتج من Firestore ويقارنه بالسعر المُرسل.
-//   5) يكتب كل عنصر كطلب مستقل في Firestore بصلاحيات Service Account (تتجاوز
-//      Security Rules تمامًا، وهذا مقصود ومتوقَّع لأي Admin SDK / Service Account).
-//   6) يرسل إشعار Telegram واحد يلخّص كل عناصر الطلب (التوكن يبقى في env هنا
-//      فقط، لا يمر عبر المتصفح أبدًا).
+// ✅ هذه النسخة تصحح ثغرة كانت موجودة فعليًا: firestore.rules يذكر أن
+// Turnstile يُتحقق منه في هذا الـ Worker، لكن الكود الفعلي لم يكن يحتوي
+// على أي استدعاء siteverify — أي طلب كان يُقبل بدون أي حماية بوتات.
 //
-// 🔁 تغيير مهم عن النسخة السابقة: توكن Turnstile يُستهلك مرة واحدة فقط عند
-// التحقق (single-use) — فكان استدعاء /create-order داخل حلقة (لكل عنصر في
-// السلة طلب HTTP منفصل بنفس التوكن) سيفشل من العنصر الثاني فصاعدًا. لهذا
-// أصبح هذا المسار يقبل الطلب كوحدة واحدة: توكن Turnstile واحد + قائمة
-// "items" (عنصر واحد أو أكثر)، فيتم التحقق الأمني مرة واحدة فقط ثم تُكتب كل
-// العناصر. يبقى الشكل القديم (عنصر واحد بدون items) مدعومًا للتوافق، لكنه
-// يتطلب turnstileToken كذلك.
-//
-// شكل الطلب الجديد (JSON):
-// {
-//   "turnstileToken": "...",                 // إلزامي، من ودجة Turnstile في الصفحة
-//   "customerName": "...", "customerPhone": "...",
-//   "wilaya": "...", "address": "...",
-//   "deliveryType": "المنزل|المكتب", "shippingCompany": "...",
-//   "items": [
-//     { "product":"...", "productId":"...", "quantity":1, "price":1000, "shipping":500, "total":1500 },
-//     ...
-//   ]
-// }
-// (الشكل القديم: نفس الحقول لكن product/productId/quantity/price/shipping/total
-//  مباشرة على مستوى الجذر بدل items — يبقى مدعومًا، عنصر واحد فقط.)
+// ما يفعله هذا المسار الآن:
+//   1) يتحقق فعليًا من Turnstile عبر Cloudflare siteverify — fail-closed
+//      (لو السر غير مهيأ في الـ Worker، يُرفض الطلب بدل تجاوز الفحص بصمت).
+//   2) يعيد نفس التحقق الموجود في firestore.rules (شكل البيانات، الهاتف، الكمية...)
+//      لكل عنصر في الطلب.
+//   3) يتحقق أن رقم هاتف الزبون غير موجود في قائمة الأرقام المحظورة
+//      (collection blockedPhones يديرها الأدمن من لوحة التحكم).
+//   4) يدعم "سلة" فيها أكثر من منتج في نفس الطلب (items[]) — بتحقّق Turnstile
+//      واحد فقط للطلب كله (لأن توكن Turnstile أحادي الاستخدام، ولا يمكن
+//      استدعاء الـ Worker في حلقة لكل منتج كما كان يحدث سابقًا في السلة).
+//      لا يزال الشكل القديم (منتج واحد بدون items[]) مدعومًا لتفادي كسر
+//      أي صفحة لم تُحدَّث بعد.
+//   5) يجلب السعر الحقيقي لكل منتج من Firestore ويقارنه بالسعر المُرسل.
+//   6) يكتب مستند طلب منفصل لكل عنصر في Firestore عبر صلاحيات Service Account
+//      (تتجاوز Security Rules تمامًا، وهذا مقصود ومتوقَّع لأي Admin SDK).
+//   7) يرسل إشعار Telegram واحد ملخّص لكل عناصر الطلب.
 //
 // الأسرار المطلوبة (Cloudflare Dashboard > Workers > Settings > Variables,
 // أو عبر: npx wrangler secret put <NAME>):
@@ -51,9 +35,8 @@
 //   FIREBASE_PRIVATE_KEY   — من نفس الملف (private_key) — الصقه كاملاً بأسطره \n
 //   TELEGRAM_BOT_TOKEN     — إن لم يكن معرّفًا مسبقًا في الـ Worker الحالي
 //   TELEGRAM_CHAT_ID       — إن لم يكن معرّفًا مسبقًا في الـ Worker الحالي
-//   TURNSTILE_SECRET_KEY   — من Cloudflare Dashboard > Turnstile > مفتاحك >
-//                            Secret Key (وليس Site Key؛ Site Key هو العلني
-//                            الذي يوضع في HTML ولا يحتاج تخفّيًا)
+//   TURNSTILE_SECRET_KEY   — Cloudflare Dashboard > Turnstile > الودجة > Secret Key
+//                            (وليس Site Key، الذي هو عام ويوضع في HTML)
 //
 // كيفية الحصول على Service Account JSON:
 //   Firebase Console > ⚙️ Project Settings > Service Accounts >
@@ -65,8 +48,8 @@
 // إذا أضفت دومينًا مخصصًا (custom domain) للموقع لاحقًا، أضفه هنا أيضًا.
 const ALLOWED_ORIGINS = ["https://bazar-dzair.github.io"];
 
-// أقصى عدد عناصر مقبول في طلب واحد (حماية من إساءة استخدام مسار السلة).
-const MAX_ITEMS_PER_ORDER = 30;
+// أقصى عدد عناصر (منتجات) مقبول في طلب واحد — يمنع سلة ضخمة مفتعلة.
+const MAX_ITEMS = 50;
 
 function corsHeaders(request) {
   const origin = request.headers.get("Origin");
@@ -103,70 +86,59 @@ export async function handleCreateOrder(request, env) {
   } catch {
     return json({ error: "بيانات غير صالحة" }, 400, cors);
   }
-  if (!body || typeof body !== "object") {
-    return json({ error: "بيانات غير صالحة" }, 400, cors);
-  }
 
   const {
-    turnstileToken,
     customerName,
     customerPhone,
     wilaya,
     address,
     deliveryType,
     shippingCompany,
-  } = body;
+    total,
+    turnstileToken,
+  } = body || {};
 
-  // 0) تطبيع شكل الطلب: قائمة items (الشكل الجديد) أو عنصر واحد على مستوى
-  // الجذر (الشكل القديم — يبقى مدعومًا للتوافق الخلفي أثناء الانتقال).
-  let rawItems;
-  if (Array.isArray(body.items)) {
-    rawItems = body.items;
-  } else if (body.product !== undefined || body.productId !== undefined) {
-    rawItems = [
+  // 1) توحيد الشكل: الجديد (items[] لسلة كاملة) أو القديم (منتج واحد بدون items[]).
+  //    نُبقي الشكل القديم مدعومًا حتى لا تنكسر أي صفحة لم تُحدَّث بعد للإرسال الجديد.
+  let items = Array.isArray(body.items) ? body.items : null;
+  if (!items) {
+    items = [
       {
         product: body.product,
         productId: body.productId,
         quantity: body.quantity,
         price: body.price,
         shipping: body.shipping,
-        total: body.total,
       },
     ];
-  } else {
-    return json({ error: "لا توجد عناصر في الطلب" }, 400, cors);
   }
-  if (!Array.isArray(rawItems) || rawItems.length === 0) {
-    return json({ error: "لا توجد عناصر في الطلب" }, 400, cors);
-  }
-  if (rawItems.length > MAX_ITEMS_PER_ORDER) {
-    return json({ error: "عدد عناصر السلة كبير جدًا" }, 400, cors);
+  if (items.length === 0 || items.length > MAX_ITEMS) {
+    return json({ error: "سلة غير صالحة" }, 400, cors);
   }
 
-  // 1) التحقق من بيانات الزبون المشتركة (نفس شروط isValidOrder() في
-  // firestore.rules للحقول التي لا تتغير بين عناصر نفس الطلب)
-  const customerError = validateCustomer({ customerName, customerPhone, wilaya, address });
-  if (customerError) {
-    return json({ error: customerError }, 400, cors);
+  // 2) التحقق من الحقول المشتركة (اسم/هاتف/ولاية/عنوان) + كل عنصر في السلة —
+  //    نفس شروط isValidOrder() في firestore.rules، مطبّقة على كل منتج.
+  const commonError = validateCommonFields({ customerName, customerPhone, wilaya, address });
+  if (commonError) return json({ error: commonError }, 400, cors);
+
+  for (const it of items) {
+    const itemError = validateItem(it);
+    if (itemError) return json({ error: itemError }, 400, cors);
   }
 
-  // 2) التحقق من كل عنصر على حدة (شكل البيانات فقط في هذه المرحلة، مطابقة
-  // السعر الحقيقي تأتي لاحقًا بعد جلبها من Firestore)
-  for (const item of rawItems) {
-    const itemError = validateItem(item);
-    if (itemError) {
-      return json({ error: itemError }, 400, cors);
-    }
+  // 3) تحقق Turnstile الحقيقي — قبل أي اتصال بـ Firestore أو Google OAuth، لتفادي
+  //    استهلاك موارد الخادم في طلبات بوتات لا تحمل توكن صالح أصلاً.
+  //    fail-closed: أي عطل في التحقق (بما فيه غياب السر) يعني رفض الطلب، وليس قبوله.
+  let turnstileOk;
+  try {
+    const ip = request.headers.get("CF-Connecting-IP") || undefined;
+    turnstileOk = await verifyTurnstile(turnstileToken, env, ip);
+  } catch (e) {
+    console.error("Turnstile verification error:", e && e.message);
+    return json({ error: "تعذّر التحقق الأمني، حاول لاحقًا" }, 503, cors);
   }
-
-  // 3) التحقق الأمني عبر Cloudflare Turnstile — مرة واحدة فقط للطلب كله،
-  // لأن التوكن أحادي الاستخدام (single-use). هذا يسد الثغرة المؤكدة في
-  // نقطة 4 من الفحص: كانت firestore.rules تشير إلى Turnstile لكن الـ Worker
-  // الفعلي لم يكن يتحقق منه إطلاقًا.
-  const clientIp = request.headers.get("CF-Connecting-IP") || undefined;
-  const turnstileResult = await verifyTurnstile(env, turnstileToken, clientIp);
-  if (!turnstileResult.ok) {
-    return json({ error: turnstileResult.error }, 403, cors);
+  if (!turnstileOk) {
+    return json({ error: "فشل التحقق الأمني (Turnstile)، أعد المحاولة" }, 403, cors);
   }
 
   // 4) الحصول على توكن Service Account — يُستخدم لفحص الحظر ثم للكتابة لاحقًا
@@ -174,7 +146,6 @@ export async function handleCreateOrder(request, env) {
   try {
     accessToken = await getGoogleAccessToken(env);
   } catch (e) {
-    console.error("getGoogleAccessToken failed:", e);
     return json({ error: "تعذّر الاتصال بالخادم" }, 502, cors);
   }
 
@@ -183,94 +154,85 @@ export async function handleCreateOrder(request, env) {
   try {
     phoneBlocked = await isPhoneBlocked(env, accessToken, customerPhone);
   } catch (e) {
-    console.error("isPhoneBlocked failed:", e);
     return json({ error: "تعذّر التحقق من رقم الهاتف" }, 502, cors);
   }
   if (phoneBlocked) {
     return json({ error: "لا يمكن تسجيل الطلب بهذا الرقم" }, 403, cors);
   }
 
-  // 6) مطابقة السعر الحقيقي لكل عنصر — نفس منطق get(...).data.price == d.price
-  // في القواعد — وحساب/التحقق من المجموع الخاص بكل عنصر
-  const preparedItems = [];
-  for (const item of rawItems) {
+  // 6) مطابقة السعر الحقيقي لكل منتج — نفس منطق get(...).data.price == d.price
+  //    في القواعد، لكن مطبّق على كل عنصر في السلة على حدة.
+  const resolvedItems = [];
+  let computedTotal = 0;
+  for (const it of items) {
     let realPrice;
     try {
-      realPrice = await getProductPrice(env, item.productId);
+      realPrice = await getProductPrice(env, it.productId);
     } catch {
       return json({ error: "تعذّر التحقق من المنتج" }, 502, cors);
     }
-    if (realPrice === null || Math.abs(realPrice - Number(item.price)) > 0.001) {
-      return json({ error: "السعر لا يطابق المنتج الحقيقي" }, 400, cors);
+    if (realPrice === null || Math.abs(realPrice - Number(it.price)) > 0.001) {
+      return json({ error: `السعر لا يطابق المنتج الحقيقي: ${it.product || it.productId}` }, 400, cors);
     }
-
-    const shippingValue = Number(item.shipping || 0);
-    const totalValue = Number(item.total);
-    const expectedTotal = Number(item.price) * Number(item.quantity) + shippingValue;
-
-    // حارس صريح ضد NaN: لو shipping أو total قيمة غير رقمية (نص، object...)
-    // فإن Number(...) تُعطي NaN، و"NaN > 0.01" في JS تُرجع false — أي أن
-    // المقارنة كانت تتجاوز الفحص بصمت وتقبل أي مجموع يرسله الزبون. نرفض
-    // الطلب صراحةً في هذه الحالة بدل الاعتماد على المقارنة وحدها.
-    if (
-      !Number.isFinite(shippingValue) ||
-      shippingValue < 0 ||
-      !Number.isFinite(totalValue) ||
-      !Number.isFinite(expectedTotal) ||
-      Math.abs(expectedTotal - totalValue) > 0.01
-    ) {
-      return json({ error: "المجموع غير صحيح" }, 400, cors);
+    const shippingValue = Number(it.shipping || 0);
+    if (!Number.isFinite(shippingValue) || shippingValue < 0) {
+      return json({ error: "قيمة شحن غير صالحة" }, 400, cors);
     }
-
-    preparedItems.push({
-      product: item.product,
-      productId: item.productId,
-      quantity: Number(item.quantity),
-      price: Number(item.price),
-      shipping: shippingValue,
-      total: totalValue,
-    });
+    const itemTotal = realPrice * Number(it.quantity) + shippingValue;
+    computedTotal += itemTotal;
+    resolvedItems.push({ ...it, price: realPrice, shipping: shippingValue, itemTotal });
   }
 
-  // 7) الكتابة في Firestore عبر Service Account — عنصر واحد = وثيقة طلب واحدة
+  // حارس صريح ضد NaN: لو total قيمة غير رقمية (نص، object...) فإن Number(...)
+  // تُعطي NaN، و"NaN > 0.01" في JS تُرجع false — أي أن المقارنة كانت يمكن أن
+  // تتجاوز الفحص بصمت وتقبل أي مجموع يرسله الزبون. نرفض الطلب صراحةً هنا.
+  const totalValue = Number(total);
+  if (
+    !Number.isFinite(totalValue) ||
+    !Number.isFinite(computedTotal) ||
+    Math.abs(computedTotal - totalValue) > 0.01
+  ) {
+    return json({ error: "المجموع غير صحيح" }, 400, cors);
+  }
+
+  // 7) الكتابة في Firestore عبر Service Account — مستند طلب مستقل لكل عنصر،
+  //    لتوافق تام مع لوحة الأدمن الحالية (orders.html) التي تتوقع منتجًا واحدًا
+  //    لكل مستند طلب.
   const ids = [];
   try {
-    for (const item of preparedItems) {
+    for (const it of resolvedItems) {
       const doc = await createOrderDoc(env, accessToken, {
         customerName,
         customerPhone,
         wilaya,
         address,
-        product: item.product,
-        productId: item.productId,
-        quantity: item.quantity,
-        price: item.price,
-        shipping: item.shipping,
+        product: it.product,
+        productId: it.productId,
+        quantity: Number(it.quantity),
+        price: Number(it.price),
+        shipping: Number(it.shipping || 0),
         deliveryType: deliveryType || "",
         shippingCompany: shippingCompany || "",
-        total: item.total,
+        total: Number(it.itemTotal),
         status: "جديد",
         createdAt: new Date(),
       });
-      ids.push(doc && doc.name ? doc.name.split("/").pop() : null);
+      const id = doc && doc.name ? doc.name.split("/").pop() : null;
+      if (id) ids.push(id);
     }
   } catch (e) {
-    console.error("createOrderDoc failed:", e);
-    // ⚠️ عناصر سابقة في preparedItems قد تكون كُتبت بنجاح قبل هذا الخطأ.
-    // نُبلغ الزبون بخطأ عام؛ العناصر التي نجحت ستظهر في لوحة الأدمن، ويمكن
-    // للمتابعة اليدوية عبر Telegram/الأدمن تفادي ازدواج الطلب عند إعادة المحاولة.
-    return json({ error: "تعذّر حفظ الطلب بالكامل", partial: ids.length > 0 }, 502, cors);
+    return json({ error: "تعذّر حفظ الطلب" }, 502, cors);
   }
 
-  // 8) إشعار Telegram واحد يلخّص كل عناصر الطلب — لا يفشل الطلب لو تعطّل الإشعار
+  // 8) إشعار Telegram واحد ملخّص لكل عناصر الطلب — لا يفشل الطلب لو تعطّل الإشعار
   try {
     await sendTelegram(env, {
       customerName,
       customerPhone,
       wilaya,
       address,
-      items: preparedItems,
-      grandTotal: preparedItems.reduce((sum, it) => sum + it.total, 0),
+      items: resolvedItems,
+      total: totalValue,
     });
   } catch (e) {
     console.error("Telegram notify failed:", e);
@@ -280,42 +242,29 @@ export async function handleCreateOrder(request, env) {
 }
 
 // ---------------------------------------------------------------------
-// التحقق من توكن Cloudflare Turnstile عبر siteverify.
-// fail-closed: أي حالة غامضة (سر غير مهيأ، خطأ شبكة، توكن مفقود) تُرفض ولا
-// تُمرَّر كنجاح — لأن الهدف هو منع الطلبات الوهمية/الآلية، فالسكوت عن الخطأ
-// هنا يُعيد فتح نفس الثغرة التي نُصلحها.
+// تحقق Turnstile عبر Cloudflare siteverify. fail-closed: لو TURNSTILE_SECRET_KEY
+// غير معرَّف في env، نرمي خطأ بدل اعتبار الطلب مقبولاً — أي عطل في الإعداد
+// يعني رفض كل الطلبات، وليس تعطيل الحماية بصمت.
 // ---------------------------------------------------------------------
-async function verifyTurnstile(env, token, ip) {
-  if (!token || typeof token !== "string") {
-    return { ok: false, error: "التحقق الأمني مفقود، أعد تحميل الصفحة وحاول مجددًا" };
+async function verifyTurnstile(token, env, ip) {
+  if (!env.TURNSTILE_SECRET_KEY) {
+    throw new Error("TURNSTILE_SECRET_KEY not configured");
   }
-  const secret = env.TURNSTILE_SECRET_KEY;
-  if (!secret) {
-    console.error("TURNSTILE_SECRET_KEY غير مُهيّأ في env — رفض الطلب (fail-closed)");
-    return { ok: false, error: "الحماية الأمنية غير مُفعّلة على الخادم حاليًا، حاول لاحقًا" };
-  }
-  const form = new URLSearchParams();
-  form.set("secret", secret);
-  form.set("response", token);
-  if (ip) form.set("remoteip", ip);
+  if (!token || typeof token !== "string") return false;
 
-  let data;
-  try {
-    const resp = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: form.toString(),
-    });
-    data = await resp.json();
-  } catch (e) {
-    console.error("Turnstile siteverify request failed:", e);
-    return { ok: false, error: "تعذّر التحقق الأمني، تحقق من اتصالك وحاول مجددًا" };
-  }
-  if (!data || data.success !== true) {
-    console.error("Turnstile verification failed:", data && data["error-codes"]);
-    return { ok: false, error: "فشل التحقق الأمني، أعد تحميل الصفحة وحاول مجددًا" };
-  }
-  return { ok: true };
+  const formData = new URLSearchParams();
+  formData.append("secret", env.TURNSTILE_SECRET_KEY);
+  formData.append("response", token);
+  if (ip) formData.append("remoteip", ip);
+
+  const resp = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formData.toString(),
+  });
+  if (!resp.ok) throw new Error("siteverify HTTP " + resp.status);
+  const data = await resp.json().catch(() => ({ success: false }));
+  return data.success === true;
 }
 
 // ---------------------------------------------------------------------
@@ -338,10 +287,10 @@ async function isPhoneBlocked(env, accessToken, phone) {
 }
 
 // ---------------------------------------------------------------------
-// التحقق من حقول الزبون المشتركة بين كل عناصر الطلب — نفس شروط
-// isValidOrder() الموجودة في firestore.rules لهذه الحقول
+// الحقول المشتركة بين كل عناصر الطلب (اسم/هاتف/ولاية/عنوان) — نفس شروط
+// isValidOrder() الموجودة في firestore.rules.
 // ---------------------------------------------------------------------
-function validateCustomer(d) {
+function validateCommonFields(d) {
   if (
     typeof d.customerName !== "string" ||
     d.customerName.trim().length === 0 ||
@@ -369,8 +318,7 @@ function validateCustomer(d) {
 }
 
 // ---------------------------------------------------------------------
-// التحقق من حقول عنصر واحد من الطلب (منتج/كمية/سعر/مجموع) — نفس شروط
-// isValidOrder() الموجودة في firestore.rules لهذه الحقول
+// تحقق من عنصر واحد داخل items[] (منتج + كمية + سعر مُرسَل من الواجهة).
 // ---------------------------------------------------------------------
 function validateItem(d) {
   if (!d || typeof d !== "object") return "عنصر طلب غير صالح";
@@ -386,14 +334,10 @@ function validateItem(d) {
     d.productId.length >= 200
   )
     return "معرّف منتج غير صالح";
-  if (
-    !Number.isInteger(d.quantity) ||
-    d.quantity <= 0 ||
-    d.quantity > 50
-  )
+  if (!Number.isInteger(d.quantity) || d.quantity <= 0 || d.quantity > 50)
     return "كمية غير صالحة";
-  if (typeof d.price !== "number" || d.price < 0) return "سعر غير صالح";
-  if (typeof d.total !== "number" || d.total < 0) return "مجموع غير صالح";
+  if (typeof d.price !== "number" || !Number.isFinite(d.price) || d.price < 0)
+    return "سعر غير صالح";
   // shipping اختياري، لكن إن أُرسل يجب أن يكون رقمًا غير سالب — منع التلاعب
   // بقيمة الشحن (إرسال نص أو object يُحوَّل إلى NaN ويُفسد فحص المجموع لاحقًا).
   if (
@@ -518,21 +462,21 @@ async function createOrderDoc(env, accessToken, order) {
 }
 
 // ---------------------------------------------------------------------
-// إشعار Telegram واحد يلخّص كل عناصر الطلب — ادمج هذا مع الدالة الموجودة
-// لديك مسبقًا في /send-telegram إن كانت موجودة، لتفادي التكرار.
+// إشعار Telegram — رسالة واحدة ملخّصة لكل عناصر الطلب (بدل رسالة لكل منتج).
 // ---------------------------------------------------------------------
 async function sendTelegram(env, o) {
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
   const itemsText = o.items
     .map(
       (it) =>
-        `  • ${it.product} × ${it.quantity} = ${it.price * it.quantity} دج`
+        `  • ${it.product} × ${it.quantity} = ${it.price * it.quantity} دج` +
+        (it.shipping ? ` (+ توصيل ${it.shipping} دج)` : "")
     )
     .join("\n");
   const text =
     `🛒 طلب جديد\n👤 الاسم: ${o.customerName}\n📞 الهاتف: ${o.customerPhone}\n` +
     `📍 الولاية: ${o.wilaya}\n🏠 العنوان: ${o.address}\n📦 المنتجات:\n${itemsText}\n` +
-    `💰 المجموع الكلي: ${o.grandTotal} دج`;
+    `💰 المجموع الكلي: ${o.total} دج`;
   await fetch(
     `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
     {
@@ -562,9 +506,4 @@ function json(obj, status, extraHeaders) {
 //       return new Response("Not found", { status: 404 });
 //     }
 //   };
-//
-// ⚠️ لا تنشر هذا التعديل وحده: صفحتا index.html و product.html في المستودع
-// الحالي لا ترسلان بعد turnstileToken، فستفشل كل الطلبات (403) فور نشر هذا
-// الملف حتى يتم تحديث الصفحتين (الجزء التالي من العمل) وإضافة ودجة
-// Turnstile ومفتاح TURNSTILE_SECRET_KEY كسرّ Worker.
 // ---------------------------------------------------------------------
