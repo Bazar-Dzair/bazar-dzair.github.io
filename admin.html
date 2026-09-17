@@ -429,6 +429,7 @@
    </div>
    <div class="products-utility-row">
      <button type="button" onclick="migrateBase64Images()" class="util-btn">🔄 إصلاح صور المنتجات القديمة</button>
+     <button type="button" onclick="migrateProductSlugs()" class="util-btn">🔗 إصلاح روابط المنتجات (slug)</button>
      
    </div>
    <div id="migrateStatus" style="margin:6px 0 0;font-size:13px"></div>
@@ -1796,6 +1797,40 @@ window.migrateBase64Images=async function(){
   else setStatus("✅ لا توجد صور قديمة (base64) — كل الصور روابط حقيقية أصلاً.","ok");
 };
 
+// يضيف حقل "slug" لكل منتج قديم لا يملكه بعد (أو كان غير مطابق للاسم الحالي)،
+// حتى تتمكن صفحة المنتج (product.html) من جلب المنتج بقراءة وثيقة واحدة مباشرة
+// عبر استعلام على slug، بدل تحميل مجموعة products كاملة عند كل زيارة. عملية تُشغَّل
+// مرة واحدة (أو كلما رغبت)؛ لا تمس أي حقل آخر في المنتج.
+window.migrateProductSlugs=async function(){
+  const statusEl=document.getElementById("migrateStatus");
+  const setStatus=(t,c)=>{if(statusEl){statusEl.textContent=t;statusEl.style.color=c==="err"?"#dc2626":c==="ok"?"#16a34a":"#374151"}};
+  if(!confirm("سيتم فحص كل المنتجات وإضافة/تصحيح حقل الرابط المباشر (slug) للمنتجات التي لا تملكه. لن يتم المساس بأي بيانات أخرى للمنتج. متابعة؟"))return;
+  setStatus("⏳ جاري فحص المنتجات...","");
+  let snap;
+  try{ snap=await getDocs(collection(db,"products")); }
+  catch(e){ setStatus("تعذر تحميل المنتجات: "+(e?.message||"خطأ غير معروف"),"err"); return; }
+
+  let fixed=0, failed=0;
+  for(const d of snap.docs){
+    const p=d.data();
+    const correctSlug=productSlug(p.name||p.product||"");
+    if(p.slug===correctSlug) continue; // محدَّث أصلاً
+    setStatus(`⏳ جاري إصلاح: ${p.name||p.product||d.id}...`,"");
+    try{
+      await updateDoc(doc(db,"products",d.id),{slug:correctSlug,updatedAt:serverTimestamp()});
+      fixed++;
+    }catch(e){
+      console.error("slug migration failed",d.id,e);
+      failed++;
+    }
+  }
+  productsLoaded=false;
+  await window.bazarLoadProducts(true);
+  if(failed) setStatus(`تم إصلاح رابط ${fixed} منتج. فشل جزء من العملية في ${failed} حالة — أعد المحاولة.`,"err");
+  else if(fixed) setStatus(`✅ تم إصلاح رابط ${fixed} منتج بنجاح. الآن كل زيارة لصفحة منتج تقرأ وثيقته مباشرة بدل المجموعة كاملة.`,"ok");
+  else setStatus("✅ كل المنتجات تملك رابطًا (slug) صحيحًا أصلاً.","ok");
+};
+
 window.bazarLoadProducts=async function(force=false){
   if(productsLoading)return productsLoading;
   if(productsLoaded&&!force){ render(); return; }
@@ -2252,6 +2287,9 @@ window.save=async()=>{
   let data={
     name:nameInput?.value.trim()||"",
     name_fr:nameFrInput?.value.trim()||"",
+    // يُحفظ مع كل إضافة/تعديل حتى تتمكن صفحة المنتج من جلب الوثيقة مباشرة
+    // (استعلام على حقل slug) بدل تحميل مجموعة products كاملة عند كل زيارة.
+    slug:productSlug(nameInput?.value.trim()||""),
     price:currentPrice,
     oldPrice:enteredOldPrice>currentPrice?enteredOldPrice:0,
     category:categoryInput?.value||"tools",
