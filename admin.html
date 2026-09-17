@@ -1610,11 +1610,9 @@ async function consolidateDuplicateCategories(snap){
     const duplicates=items.filter(c=>c.key!==canonical.key);
     if(!duplicates.length)continue;
     try{
-      const ps=await getDocs(collection(db,"products"));
+      // حذف صريح وبدون أي دمج/إعادة تعيين لفئة المنتجات: المنتجات التابعة
+      // للفئات المكررة تبقى كما هي (لن تُنسَب إلى النسخة المحتفَظ بها).
       for(const dup of duplicates){
-        await Promise.all(ps.docs
-          .filter(d=>String(d.data()?.category||"")===dup.key)
-          .map(d=>updateDoc(d.ref,{category:canonical.key,updatedAt:serverTimestamp()})));
         await deleteDoc(doc(db,"categories",dup.key));
         changed=true;
       }
