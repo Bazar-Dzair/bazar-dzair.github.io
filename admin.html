@@ -1292,7 +1292,7 @@ async function saveAddon(){
 async function testAddon(key){
   var d=addonsDefs.find(function(x){return x.key===key;});
   var c=localAddons[key]||{};
-  var raw=idValueOf(d,c);
+  var raw=idValueOf(c,d);
   var lines=[];
   // 1) الحالة من حيث التفعيل
   if(c.enabled===true) lines.push("✓ إعداد مفعّل");
@@ -1315,7 +1315,7 @@ async function testAddon(key){
       var done=await window.bazarSyncAddons();
       okFirestore=!!done;
       var fresh=localAddons[key]||{};
-      var freshRaw=idValueOf(d,fresh);
+      var freshRaw=idValueOf(fresh,d);
       if(okFirestore && freshRaw){
         lines=[];
         if(fresh.enabled===true) lines.push("✓ مفعّل");
@@ -1330,7 +1330,7 @@ async function testAddon(key){
       lines.push("؟ تعذر التحقق من Firestore: "+(e&&e.message||"خطأ"));
     }
   }else{
-    var v2; var rawNow=idValueOf(d,c);
+    var v2; var rawNow=idValueOf(c,d);
     if(rawNow){ v2=validatePattern(d,rawNow); if(v2.ok) lines.push("✓ محفوظ محليًا"); else lines.push("✗ "+v2.msg); }
     lines.push("؟ Firestore غير متصل — التأكيد النهائي غير متاح");
   }
