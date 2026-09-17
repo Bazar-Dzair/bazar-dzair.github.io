@@ -97,7 +97,7 @@ export async function handleCreateOrder(request, env) {
     price,
     shipping,
     total,
-  });
+  }); // ← shipping أصبحت الآن جزءًا من التحقق الفعلي داخل validateOrder()
   if (validationError) {
     return json({ error: validationError }, 400, cors);
   }
@@ -131,9 +131,21 @@ export async function handleCreateOrder(request, env) {
   if (realPrice === null || Math.abs(realPrice - Number(price)) > 0.001) {
     return json({ error: "السعر لا يطابق المنتج الحقيقي" }, 400, cors);
   }
-  const expectedTotal =
-    Number(price) * Number(quantity) + Number(shipping || 0);
-  if (Math.abs(expectedTotal - Number(total)) > 0.01) {
+  const shippingValue = Number(shipping || 0);
+  const totalValue = Number(total);
+  const expectedTotal = Number(price) * Number(quantity) + shippingValue;
+
+  // حارس صريح ضد NaN: لو shipping أو total قيمة غير رقمية (نص، object...)
+  // فإن Number(...) تُعطي NaN، و"NaN > 0.01" في JS تُرجع false — أي أن
+  // المقارنة أدناه كانت تتجاوز الفحص بصمت وتقبل أي مجموع يرسله الزبون.
+  // نرفض الطلب صراحةً في هذه الحالة بدل الاعتماد على المقارنة وحدها.
+  if (
+    !Number.isFinite(shippingValue) ||
+    shippingValue < 0 ||
+    !Number.isFinite(totalValue) ||
+    !Number.isFinite(expectedTotal) ||
+    Math.abs(expectedTotal - totalValue) > 0.01
+  ) {
     return json({ error: "المجموع غير صحيح" }, 400, cors);
   }
 
@@ -245,6 +257,14 @@ function validateOrder(d) {
     return "كمية غير صالحة";
   if (typeof d.price !== "number" || d.price < 0) return "سعر غير صالح";
   if (typeof d.total !== "number" || d.total < 0) return "مجموع غير صالح";
+  // shipping اختياري، لكن إن أُرسل يجب أن يكون رقمًا غير سالب — منع التلاعب
+  // بقيمة الشحن (إرسال نص أو object يُحوَّل إلى NaN ويُفسد فحص المجموع لاحقًا).
+  if (
+    d.shipping !== undefined &&
+    d.shipping !== null &&
+    (typeof d.shipping !== "number" || !Number.isFinite(d.shipping) || d.shipping < 0)
+  )
+    return "قيمة شحن غير صالحة";
   return null;
 }
 
