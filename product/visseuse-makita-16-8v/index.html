@@ -1294,6 +1294,20 @@ async function load(){
   }catch(_e){}
   if(cachedProduct) render(cachedProduct);
 
+  // بيانات المنتج الحقيقية كما وُلِّدت وقت البناء (SSG) — مضمَّنة في هذه الصفحة
+  // نفسها (انظر scripts/generate_static_products.py). إن وُجدت ولها firestoreId
+  // مطابق، فهي مصدر العرض الفوري بدون أي طلب شبكة على الإطلاق، بدل الاعتماد
+  // على استعلام Firestore إضافي (أو الأسوأ: تحميل كل مجموعة products) في كل زيارة.
+  let staticProduct=null;
+  try{
+    const tag=document.getElementById("bazar-static-product");
+    if(tag){
+      const sp=JSON.parse(tag.textContent);
+      if(sp && sp.firestoreId && (!id || productSlug(sp.name||sp.product)===decodeURIComponent(id))) staticProduct=sp;
+    }
+  }catch(_e){}
+  if(staticProduct && !cachedProduct) render(staticProduct);
+
   try{
     const {initializeApp,getFirestore,doc,getDoc,collection,getDocs,query,where,limit}=await getFirebase();
     const app=initializeApp(firebaseConfig);
@@ -1301,7 +1315,21 @@ async function load(){
     window.__bazarDb=db;
     loadShippingRatesData(db).then(()=>{ if(document.getElementById("wilaya").value) updateTotal(); });
     let p=null;
-    if(id){
+    if(staticProduct){
+      // الصفحة تملك أصلاً بيانات المنتج الحقيقية (مُضمَّنة وقت البناء)، فلا حاجة
+      // لأي استعلام (where/slug) ولا لتحميل المجموعة كاملة. نكتفي بقراءة وثيقة
+      // واحدة بمعرّفها المباشر — أرخص عملية ممكنة على Firestore — فقط لتحديث
+      // السعر/المخزون إن تغيّرا بعد توليد الصفحة. عند أي فشل (لا اتصال، إلخ)
+      // تبقى بيانات SSG المعروضة أصلاً هي المستخدمة، دون أي انقطاع للزبون.
+      try{
+        const snap=await getDoc(doc(db,"products",staticProduct.firestoreId));
+        if(snap.exists()) p={...snap.data(),firestoreId:snap.id};
+      }catch(e){}
+      if(!p) p=staticProduct;
+    }else if(id){
+      // مسار احتياطي فقط للصفحات القديمة التي لم تُعَد توليدها بعد بالنسخة
+      // الجديدة (بدون بيانات SSG مُضمَّنة). الصفحات المُولَّدة حديثًا تدخل من
+      // الفرع أعلاه ولا تحتاج أيًا من هذه الطلبات الإضافية.
       // الروابط الجديدة هي slug؛ لا نرسل طلب Firestore إضافي لها.
       // نحتفظ بـ getDoc فقط للروابط القديمة التي كانت تحتوي على Firestore ID.
       const isLegacyFirestoreId=/^[A-Za-z0-9]{20}$/.test(id);
@@ -1396,12 +1424,15 @@ async function load(){
           }
         }
       }catch(_catErr){ /* يبقى التصنيف الاحتياطي الظاهر */ }
-    }else if(!cachedProduct){
+    }else if(!cachedProduct && !staticProduct){
       box.innerHTML='<div class="error"><h2>'+esc(pt("product_not_found_title"))+'</h2><p>'+esc(pt("product_not_found_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
     }
   }catch(e){
     console.error(e);
-    if(!cachedProduct) box.innerHTML='<div class="error"><h2>'+esc(pt("product_load_failed_title"))+'</h2><p>'+esc(pt("product_load_failed_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
+    // إن كانت بيانات المنتج ظاهرة أصلاً (من SSG أو من ذاكرة التصفح المحلية)، لا
+    // نمسحها برسالة خطأ فقط لأن Firestore فشل في تحديثها — تبقى النسخة المعروضة
+    // صحيحة وكاملة للزبون.
+    if(!cachedProduct && !staticProduct) box.innerHTML='<div class="error"><h2>'+esc(pt("product_load_failed_title"))+'</h2><p>'+esc(pt("product_load_failed_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
   }
 }
 load();
