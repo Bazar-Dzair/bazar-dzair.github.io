@@ -770,6 +770,10 @@ async function openSetting(key){
   document.getElementById("settingModalIcon").textContent=def?.[0]||"⚙";
   document.getElementById("settingModalTitle").textContent=def?.[1]||"الإعداد";
   document.getElementById("settingModalDesc").textContent=def?.[2]||"تعديل إعدادات المتجر";
+  // openAddon() يستبدل أزرار هذه النافذة المشتركة بأزرار خاصة بالإضافات (saveAddon/closeAddon)
+  // ولا يُعيدها أبدًا — فبدون هذا السطر، أي إعداد عادي (عام/بريد/سلة/شعار) يُفتح بعد إضافة واحدة
+  // على الأقل يبقى بزر "حفظ" يستدعي saveAddon() بدل saveSetting() ولا يحفظ شيئًا فعليًا.
+  document.querySelectorAll("#settingsModal .modal-actions").forEach(a=>{a.innerHTML='<button class="green" onclick="saveSetting()">💾 حفظ الإعدادات</button><button class="gray" onclick="closeSetting()">إلغاء</button>';});
 
   if(key==="branding"){
     const remote=await getRemoteSetting("site");
