@@ -12,6 +12,7 @@
 <meta name="theme-color" content="#071b33">
 <script src="/i18n.js"></script>
 <script src="/addons.js" defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <!--SEO/OG تُحدّث ديناميكيًا حسب المنتج الحقيقي قبل إغلاق head--> 
 <meta property="og:locale" content="ar_DZ"><meta property="og:site_name" content="Bazar Dzair">
 <meta name="twitter:card" content="summary_large_image">
@@ -591,6 +592,8 @@ body{padding-bottom:96px}
     <div class="order-row total-row"><span data-i18n="checkout_total_label">المبلغ الإجمالي للتسديد</span><span id="grandTotal">—</span></div>
   </div>
 
+  <div class="cf-turnstile" id="turnstileWidget" data-sitekey="YOUR_TURNSTILE_SITE_KEY" data-callback="__bazarTsSuccess" data-expired-callback="__bazarTsExpired" data-error-callback="__bazarTsExpired" style="margin:10px 0"></div>
+
   <button class="confirm" id="confirmBtn" onclick="submitOrder()" data-i18n="confirm_button">✅ تأكيد الطلب</button>
 
 
@@ -1037,6 +1040,12 @@ function updateTotal(){
 }
 document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliveryType=null;updateTotal();});
 
+// ودجة Turnstile: تخزّن التوكن عند نجاح التحقق، وتفرغه عند الانتهاء/الخطأ
+// (توكن قديم/منتهي لا يجب إرساله للخادم — سيُرفض هناك على أي حال).
+window.__bazarTsToken=null;
+window.__bazarTsSuccess=(token)=>{window.__bazarTsToken=token};
+window.__bazarTsExpired=()=>{window.__bazarTsToken=null};
+
 window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim();
 // ⚠️ مهم: اسم الولاية المُرسَل إلى Telegram/Firestore يجب أن يبقى دائمًا بالعربية،
 // بغض النظر عن لغة واجهة الزبون الحالية (نفس المنطق المستعمل في index.html).
@@ -1046,6 +1055,7 @@ if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast(pt("toast_invalid_phon
 const opts=computeDeliveryOptions(w);
 const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
 if(!chosen){toast(pt("toast_delivery_unavailable"));return}
+if(!window.__bazarTsToken){toast(pt("toast_security_check")||"الرجاء إكمال التحقق الأمني ⚠️");return}
 const btn=document.querySelector(".confirm");window.__bazarSubmittingOrder=true;if(btn){btn.disabled=true;btn.style.opacity=".6";btn.style.pointerEvents="none"}
 try{
 const s=chosen.price;
@@ -1057,13 +1067,16 @@ const orderPayload={
   customerPhone: ph,
   wilaya: wn,
   address: a,
-  product: product.name,
-  productId: product.firestoreId || product.id || "",
-  quantity: quantity,
-  price: product.price,
-  shipping: s,
   deliveryType: deliveryTypeLabel,
   shippingCompany: carrierNames,
+  turnstileToken: window.__bazarTsToken,
+  items: [{
+    product: product.name,
+    productId: product.firestoreId || product.id || "",
+    quantity: quantity,
+    price: product.price,
+    shipping: s
+  }],
   total: total
 };
 // 🛠️ إصلاح: كان هذا الكود يكتب الطلب مباشرة فـ Firestore عبر addDoc()، لكن
@@ -1106,6 +1119,10 @@ window.location.href="/success.html";
 }catch(err){
   console.error("order submit failed:",err);
   toast(err&&err.userMessage?err.userMessage+" ⚠️":pt("toast_order_failed"));
+  // توكن Turnstile أحادي الاستخدام: إن فشل الطلب (رفضه الخادم أو انقطع الاتصال)
+  // يجب الحصول على توكن جديد قبل أي محاولة تالية.
+  window.__bazarTsToken=null;
+  if(window.turnstile){try{turnstile.reset()}catch(e){}}
   window.__bazarSubmittingOrder=false;if(btn){btn.disabled=false;btn.style.opacity="";btn.style.pointerEvents=""}
 }};
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2400)}
