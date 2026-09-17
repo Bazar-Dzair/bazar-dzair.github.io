@@ -1,78 +1,47 @@
 // =====================================================================
-// worker.js — الكود الكامل للـ Cloudflare Worker
+// worker/create-order.js — مسار جديد يُضاف إلى Cloudflare Worker الحالي
 // (noisy-lake-ace8.a-bazar-dzair-pro.workers.dev)
 //
-// ✅ هذا الملف يحتوي نقطة الدخول export default { fetch } — وهو ما كان
-// ناقصًا. ضع هذا الملف بالكامل في الـ Worker (بدّل كل المحتوى القديم به)
-// ثم Deploy.
+// ⚠️ هذا الملف NOT مخصص لمجلد الموقع (Pages/GitHub). ضعه في مستودع الـ
+// Worker المنفصل الخاص بك، وادمج المسار /create-order مع الراوتر الحالي
+// الذي يحتوي بالفعل /send-telegram. لا تضعه داخل مجلد الاستضافة الثابت —
+// لو وُضع هناك سيُنشر كملف عام قابل للتحميل (حتى لو أسراره بأمان في env).
 //
-// الأسرار المطلوبة (Settings > Variables على Cloudflare، أو
-// npx wrangler secret put <NAME>):
-//   FIREBASE_PROJECT_ID    = bazar-dzair-33816
-//   FIREBASE_CLIENT_EMAIL  = من ملف Service Account JSON
-//   FIREBASE_PRIVATE_KEY   = من نفس الملف (private_key كاملاً بأسطره \n)
-//   TELEGRAM_BOT_TOKEN
-//   TELEGRAM_CHAT_ID
+// ما يفعله هذا المسار:
+//   1) يعيد نفس التحقق الموجود في firestore.rules (شكل البيانات، الهاتف، الكمية...).
+//   2) يتحقق أن رقم هاتف الزبون غير موجود في قائمة الأرقام المحظورة (collection
+//      blockedPhones يديرها الأدمن من لوحة التحكم).
+//   3) يجلب السعر الحقيقي للمنتج من Firestore ويقارنه بالسعر المُرسل.
+//   4) يكتب الطلب في Firestore بصلاحيات Service Account (تتجاوز Security Rules
+//      تمامًا، وهذا مقصود ومتوقَّع لأي Admin SDK / Service Account).
+//   5) يرسل إشعار Telegram (التوكن يبقى في env هنا فقط، لا يمر عبر المتصفح أبدًا).
+//
+// الأسرار المطلوبة (Cloudflare Dashboard > Workers > Settings > Variables,
+// أو عبر: npx wrangler secret put <NAME>):
+//   FIREBASE_PROJECT_ID    — "bazar-dzair-33816"
+//   FIREBASE_CLIENT_EMAIL  — من ملف Service Account JSON (client_email)
+//   FIREBASE_PRIVATE_KEY   — من نفس الملف (private_key) — الصقه كاملاً بأسطره \n
+//   TELEGRAM_BOT_TOKEN     — إن لم يكن معرّفًا مسبقًا في الـ Worker الحالي
+//   TELEGRAM_CHAT_ID       — إن لم يكن معرّفًا مسبقًا في الـ Worker الحالي
+//
+// كيفية الحصول على Service Account JSON:
+//   Firebase Console > ⚙️ Project Settings > Service Accounts >
+//   Generate new private key. لا تضع هذا الملف في أي مستودع Git إطلاقًا —
+//   انسخ قيمه فقط كأسرار Worker.
 // =====================================================================
 
-const ALLOWED_ORIGINS = ["https://bazar-dzair.github.io"];
-
-function corsHeaders(request) {
-  const origin = request.headers.get("Origin");
-  const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    "Access-Control-Allow-Origin": allowOrigin,
+export async function handleCreateOrder(request, env) {
+  const cors = {
+    "Access-Control-Allow-Origin": "*", // يمكن تضييقها لدومين المتجر فقط
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
-    "Vary": "Origin",
   };
-}
-
-// ---------------------------------------------------------------------
-// ✅ نقطة الدخول — هذا هو الجزء الذي كان ناقصًا في النسخة السابقة
-// ---------------------------------------------------------------------
-export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-
-    if (url.pathname === "/create-order") {
-      return handleCreateOrder(request, env);
-    }
-
-    // مسار احتياطي بسيط لو احتجت إرسال تليغرام يدويًا لاحقًا
-    if (url.pathname === "/send-telegram" && request.method === "POST") {
-      const cors = corsHeaders(request);
-      try {
-        const body = await request.json();
-        await sendTelegram(env, body || {});
-        return json({ ok: true }, 200, cors);
-      } catch (e) {
-        return json({ error: "فشل إرسال الإشعار" }, 502, cors);
-      }
-    }
-
-    if (url.pathname === "/send-telegram" && request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders(request) });
-    }
-
-    return new Response("Not found", { status: 404 });
-  },
-};
-
-// ---------------------------------------------------------------------
-async function handleCreateOrder(request, env) {
-  const cors = corsHeaders(request);
 
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: cors });
   }
   if (request.method !== "POST") {
     return json({ error: "Method not allowed" }, 405, cors);
-  }
-
-  const origin = request.headers.get("Origin");
-  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
-    return json({ error: "Origin not allowed" }, 403, cors);
   }
 
   let body;
@@ -97,6 +66,7 @@ async function handleCreateOrder(request, env) {
     total,
   } = body || {};
 
+  // 1) نفس شروط isValidOrder() في firestore.rules، بالضبط
   const validationError = validateOrder({
     customerName,
     customerPhone,
@@ -113,6 +83,7 @@ async function handleCreateOrder(request, env) {
     return json({ error: validationError }, 400, cors);
   }
 
+  // 2) الحصول على توكن Service Account مبكرًا — يُستخدم لفحص الحظر ثم للكتابة لاحقًا
   let accessToken;
   try {
     accessToken = await getGoogleAccessToken(env);
@@ -120,6 +91,7 @@ async function handleCreateOrder(request, env) {
     return json({ error: "تعذّر الاتصال بالخادم" }, 502, cors);
   }
 
+  // 3) رفض الطلب إذا كان رقم الهاتف محظورًا من لوحة تحكم الأدمن
   let phoneBlocked;
   try {
     phoneBlocked = await isPhoneBlocked(env, accessToken, customerPhone);
@@ -130,6 +102,7 @@ async function handleCreateOrder(request, env) {
     return json({ error: "لا يمكن تسجيل الطلب بهذا الرقم" }, 403, cors);
   }
 
+  // 4) مطابقة السعر الحقيقي — نفس منطق get(...).data.price == d.price في القواعد
   let realPrice;
   try {
     realPrice = await getProductPrice(env, productId);
@@ -139,20 +112,13 @@ async function handleCreateOrder(request, env) {
   if (realPrice === null || Math.abs(realPrice - Number(price)) > 0.001) {
     return json({ error: "السعر لا يطابق المنتج الحقيقي" }, 400, cors);
   }
-  const shippingValue = Number(shipping || 0);
-  const totalValue = Number(total);
-  const expectedTotal = Number(price) * Number(quantity) + shippingValue;
-
-  if (
-    !Number.isFinite(shippingValue) ||
-    shippingValue < 0 ||
-    !Number.isFinite(totalValue) ||
-    !Number.isFinite(expectedTotal) ||
-    Math.abs(expectedTotal - totalValue) > 0.01
-  ) {
+  const expectedTotal =
+    Number(price) * Number(quantity) + Number(shipping || 0);
+  if (Math.abs(expectedTotal - Number(total)) > 0.01) {
     return json({ error: "المجموع غير صحيح" }, 400, cors);
   }
 
+  // 5) الكتابة في Firestore عبر Service Account
   let doc;
   try {
     doc = await createOrderDoc(env, accessToken, {
@@ -175,6 +141,7 @@ async function handleCreateOrder(request, env) {
     return json({ error: "تعذّر حفظ الطلب" }, 502, cors);
   }
 
+  // 6) إشعار Telegram — لا يفشل الطلب لو تعطّل الإشعار
   try {
     await sendTelegram(env, {
       customerName,
@@ -193,6 +160,11 @@ async function handleCreateOrder(request, env) {
   return json({ ok: true, id }, 200, cors);
 }
 
+// ---------------------------------------------------------------------
+// يتحقق هل رقم الهاتف موجود في collection "blockedPhones" (معرّف الوثيقة =
+// رقم الهاتف نفسه). القراءة تتم بصلاحيات Service Account حتى لو كانت
+// firestore.rules تمنع القراءة العامة لهذا الـ collection.
+// ---------------------------------------------------------------------
 async function isPhoneBlocked(env, accessToken, phone) {
   if (!phone || typeof phone !== "string") return false;
   const projectId = env.FIREBASE_PROJECT_ID;
@@ -207,6 +179,9 @@ async function isPhoneBlocked(env, accessToken, phone) {
   return true;
 }
 
+// ---------------------------------------------------------------------
+// نفس شروط isValidOrder() الموجودة في firestore.rules
+// ---------------------------------------------------------------------
 function validateOrder(d) {
   if (
     typeof d.customerName !== "string" ||
@@ -243,19 +218,21 @@ function validateOrder(d) {
     d.productId.length >= 200
   )
     return "معرّف منتج غير صالح";
-  if (!Number.isInteger(d.quantity) || d.quantity <= 0 || d.quantity > 50)
+  if (
+    !Number.isInteger(d.quantity) ||
+    d.quantity <= 0 ||
+    d.quantity > 50
+  )
     return "كمية غير صالحة";
   if (typeof d.price !== "number" || d.price < 0) return "سعر غير صالح";
   if (typeof d.total !== "number" || d.total < 0) return "مجموع غير صالح";
-  if (
-    d.shipping !== undefined &&
-    d.shipping !== null &&
-    (typeof d.shipping !== "number" || !Number.isFinite(d.shipping) || d.shipping < 0)
-  )
-    return "قيمة شحن غير صالحة";
   return null;
 }
 
+// ---------------------------------------------------------------------
+// جلب السعر الحقيقي للمنتج (قراءة عامة، بدون حاجة توثيق — نفس ما تسمح به
+// firestore.rules لِـ collection products أصلاً)
+// ---------------------------------------------------------------------
 async function getProductPrice(env, productId) {
   const projectId = env.FIREBASE_PROJECT_ID;
   const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/products/${encodeURIComponent(
@@ -271,6 +248,10 @@ async function getProductPrice(env, productId) {
   return null;
 }
 
+// ---------------------------------------------------------------------
+// OAuth2 عبر Service Account (JWT Bearer flow) — يعمل داخل Workers runtime
+// بالكامل عبر Web Crypto، بدون الحاجة لـ firebase-admin (غير متوافق مع Workers).
+// ---------------------------------------------------------------------
 async function getGoogleAccessToken(env) {
   const now = Math.floor(Date.now() / 1000);
   const header = { alg: "RS256", typ: "JWT" };
@@ -313,7 +294,9 @@ async function importPrivateKey(pem) {
     .replace(/-----BEGIN PRIVATE KEY-----/, "")
     .replace(/-----END PRIVATE KEY-----/, "")
     .replace(/\s+/g, "");
-  const binaryDer = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
+  const binaryDer = Uint8Array.from(atob(pemContents), (c) =>
+    c.charCodeAt(0)
+  );
   return crypto.subtle.importKey(
     "pkcs8",
     binaryDer.buffer,
@@ -330,6 +313,9 @@ function base64url(buf) {
   return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+// ---------------------------------------------------------------------
+// كتابة الطلب في Firestore عبر REST API (بصلاحيات Service Account)
+// ---------------------------------------------------------------------
 async function createOrderDoc(env, accessToken, order) {
   const projectId = env.FIREBASE_PROJECT_ID;
   const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/orders`;
@@ -337,7 +323,9 @@ async function createOrderDoc(env, accessToken, order) {
   for (const [k, v] of Object.entries(order)) {
     if (v instanceof Date) fields[k] = { timestampValue: v.toISOString() };
     else if (typeof v === "number")
-      fields[k] = Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+      fields[k] = Number.isInteger(v)
+        ? { integerValue: String(v) }
+        : { doubleValue: v };
     else fields[k] = { stringValue: String(v ?? "") };
   }
   const resp = await fetch(url, {
@@ -353,17 +341,24 @@ async function createOrderDoc(env, accessToken, order) {
   return data;
 }
 
+// ---------------------------------------------------------------------
+// إشعار Telegram — ادمج هذا مع الدالة الموجودة لديك مسبقًا في /send-telegram
+// إن كانت موجودة، لتفادي التكرار.
+// ---------------------------------------------------------------------
 async function sendTelegram(env, o) {
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
   const text =
     `🛒 طلب جديد\n👤 الاسم: ${o.customerName}\n📞 الهاتف: ${o.customerPhone}\n` +
     `📍 الولاية: ${o.wilaya}\n🏠 العنوان: ${o.address}\n📦 المنتج: ${o.product}\n` +
     `🔢 الكمية: ${o.quantity}\n💰 المجموع: ${o.total} دج`;
-  await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text }),
-  });
+  await fetch(
+    `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text }),
+    }
+  );
 }
 
 function json(obj, status, extraHeaders) {
@@ -372,4 +367,17 @@ function json(obj, status, extraHeaders) {
     headers: { "Content-Type": "application/json", ...(extraHeaders || {}) },
   });
 }
-  
+
+// ---------------------------------------------------------------------
+// دمج مع الراوتر الحالي في worker الرئيسي، مثال:
+//
+//   import { handleCreateOrder } from "./create-order.js";
+//   export default {
+//     async fetch(request, env, ctx) {
+//       const url = new URL(request.url);
+//       if (url.pathname === "/create-order") return handleCreateOrder(request, env);
+//       if (url.pathname === "/send-telegram") return handleSendTelegram(request, env); // الموجودة مسبقًا
+//       return new Response("Not found", { status: 404 });
+//     }
+//   };
+// ---------------------------------------------------------------------
