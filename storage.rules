@@ -5,8 +5,12 @@ rules_version = '2';
 // انسخ هذا الملف كاملاً إلى Firebase Console > Storage > Rules ثم انشر
 // (أو فعّل نشره التلقائي — راجع firebase.json و تعليمات_نشر التي بالأسفل).
 //
-// ⚠️ قبل النشر: بدّل القيمة 'ADMIN_UID_HERE' بنفس UID المستخدم في
-//    firestore.rules (Firebase Console → Authentication → Users → User UID).
+// ⚠️ كانت القيمة هنا لا تزال 'ADMIN_UID_HERE' (لم تُستبدل أبدًا) بينما
+//    firestore.rules يستعمل UID حقيقيًا — ما كان يمنع رفع شعار/بانر المتجر من
+//    admin.html نهائيًا (isAdmin() كانت ترجع false دائمًا). تم الآن مزامنة
+//    القيمة مع نفس UID المستخدم في firestore.rules. إذا تغيّر حساب الأدمن مستقبلاً
+//    يجب تحديث القيمة هنا وفي firestore.rules معًا (Firebase Console → Authentication
+//    → Users → User UID).
 // =====================================================================
 
 service firebase.storage {
@@ -14,7 +18,7 @@ service firebase.storage {
 
     function isAdmin() {
       return request.auth != null
-             && request.auth.uid == 'ADMIN_UID_HERE';
+             && request.auth.uid == 'GOBngnCP2eMTLZrJpf72GOmXvvO2';
     }
 
     // صور المنتجات — قراءة عامة، الرفع/الحذف/التعديل للأدمن فقط.
