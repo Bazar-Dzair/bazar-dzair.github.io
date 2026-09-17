@@ -30,18 +30,37 @@
 //   انسخ قيمه فقط كأسرار Worker.
 // =====================================================================
 
-export async function handleCreateOrder(request, env) {
-  const cors = {
-    "Access-Control-Allow-Origin": "*", // يمكن تضييقها لدومين المتجر فقط
+// الدومين الوحيد المسموح له بإرسال طلبات إلى هذا الـ Worker.
+// إذا أضفت دومينًا مخصصًا (custom domain) للموقع لاحقًا، أضفه هنا أيضًا.
+const ALLOWED_ORIGINS = ["https://bazar-dzair.github.io"];
+
+function corsHeaders(request) {
+  const origin = request.headers.get("Origin");
+  const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
+    "Vary": "Origin",
   };
+}
+
+export async function handleCreateOrder(request, env) {
+  const cors = corsHeaders(request);
 
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: cors });
   }
   if (request.method !== "POST") {
     return json({ error: "Method not allowed" }, 405, cors);
+  }
+
+  // ملاحظة: رأس CORS وحده لا يمنع سوى المتصفح من قراءة الرد؛ لمنع أي جهة
+  // خارجية (سكربت، سيرفر آخر...) من استدعاء هذا المسار مباشرة، نرفض أي
+  // طلب يحمل رأس Origin غير مسموح به صراحةً.
+  const origin = request.headers.get("Origin");
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    return json({ error: "Origin not allowed" }, 403, cors);
   }
 
   let body;
