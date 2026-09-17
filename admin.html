@@ -1332,65 +1332,6 @@ async function testAddon(key){
 
   setAddonStatus(lines.join(" — "),true);
 }
-function slugifySitemap(name){
-  let s=String(name||"").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
-  s=s.replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-+|-+$/g,"")||"product";
-  return s;
-}
-async function genSitemapXML(){
-  const ta=document.getElementById("sitemap_out");
-  if(!ta)return;
-  let productList=[];
-  const decodeValue=v=>{
-    if(!v)return null;
-    if(Object.prototype.hasOwnProperty.call(v,"stringValue"))return v.stringValue;
-    if(Object.prototype.hasOwnProperty.call(v,"integerValue"))return Number(v.integerValue);
-    if(Object.prototype.hasOwnProperty.call(v,"doubleValue"))return Number(v.doubleValue);
-    if(Object.prototype.hasOwnProperty.call(v,"booleanValue"))return v.booleanValue;
-    return Object.values(v)[0] ?? null;
-  };
-  try{
-    // قراءة كل المنتجات الحقيقية من Firestore مع دعم pagination.
-    let pageToken="";
-    do{
-      const url="https://firestore.googleapis.com/v1/projects/bazar-dzair-33816/databases/(default)/documents/products?pageSize=1000"+(pageToken?"&pageToken="+encodeURIComponent(pageToken):"");
-      const res=await fetch(url,{headers:{"Accept":"application/json"}});
-      if(!res.ok)throw new Error("Firestore HTTP "+res.status);
-      const j=await res.json();
-      (j.documents||[]).forEach(d=>{
-        const f=d.fields||{};
-        const name=decodeValue(f.name)||decodeValue(f.product);
-        const published=decodeValue(f.published);
-        if(name && published!==false) productList.push({name:String(name)});
-      });
-      pageToken=j.nextPageToken||"";
-    }while(pageToken);
-  }catch(e){
-    console.warn("sitemap generation",e);
-    setAddonStatus("تعذر قراءة المنتجات من Firestore: "+(e.message||"خطأ"),false);
-    return;
-  }
-  const slugify=s=>String(s||"product").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-+|-+$/g,"")||"product";
-  const xmlEsc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");
-  const today=new Date().toISOString().slice(0,10);
-  const lines=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    `  <url><loc>https://bazar-dzair.github.io/</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>`];
-  const seen=new Set();
-  productList.forEach(p=>{
-    const sl=slugify(p.name); if(seen.has(sl))return; seen.add(sl);
-    const loc="https://bazar-dzair.github.io/product/"+encodeURIComponent(sl)+"/";
-    lines.push(`  <url><loc>${xmlEsc(loc)}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>`);
-  });
-  lines.push('</urlset>');
-  ta.value=lines.join("\n");
-  setAddonStatus("تم توليد sitemap.xml من "+seen.size+" منتج منشور. يتم تحديث الملف على GitHub تلقائيًا عبر GitHub Actions.",true);
-}
-function copySitemapXML(){
-  const ta=document.getElementById("sitemap_out");
-  if(!ta||!ta.value){setAddonStatus("اضغط توليد أولًا.");return;}
-  if(navigator.clipboard){navigator.clipboard.writeText(ta.value).then(()=>setAddonStatus("تم نسخ sitemap.xml ✅")).catch(()=>{});
-  }else{ta.select();document.execCommand("copy");setAddonStatus("تم النسخ ✅");}
-}
 function gscDownloadFile(){
   const inp=document.getElementById("addon_id");
   const code=(inp&&String(inp.value||"").trim())||"";
@@ -2101,10 +2042,6 @@ window.bazarLoadAddons=function(){
   },function(e){console.warn("addons realtime",e);});
 };
 
-window.updateOrderStatus=async(id,status)=>{
-  try{await updateDoc(doc(db,"orders",id),{status,updatedAt:serverTimestamp()});show("تم تحديث حالة الطلبية ✅","ok");}
-  catch(e){alert("تعذر تحديث الحالة: "+(e.message||"خطأ غير معروف"))}
-};
 window.deleteOrder=async id=>{if(!confirm("حذف هذه الطلبية؟"))return;try{await deleteDoc(doc(db,"orders",id));window.adminOrders=(window.adminOrders||[]).filter(o=>o.id!==id);selectedOrders.delete(id);const total=Math.max(1,Math.ceil((window.adminOrders||[]).length/ITEMS_PER_PAGE));if(ordersPage>total)ordersPage=total;updateOrderStats((window.adminOrders||[]).length);renderOrders();show("تم حذف الطلبية ✅","ok")}catch(e){alert("تعذر حذف الطلبية: "+e.message)}};
 
 // ===== الأرقام المحظورة: منع رقم هاتف من تسجيل أي طلب جديد =====
