@@ -129,8 +129,7 @@
     if (!(mp.enabled === true)) return;
     var id = (typeof mp.id === "string") ? mp.id.trim() : "";
     if (!/^[0-9]{8,20}$/.test(id)) return;
-    if (document.getElementById("bazar_meta_script")) return;
-    external("bazar_meta_script", "https://connect.facebook.net/en_US/fbevents.js", { async: true });
+    if (document.getElementById("bazar_meta_cfg")) return;
     inline("bazar_meta_cfg", [
       "!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments);};",
       "if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;",
@@ -148,16 +147,19 @@
     if (!(tk.enabled === true)) return;
     var id = (typeof tk.id === "string") ? tk.id.trim() : "";
     if (!/^[A-Za-z0-9]{9,25}$/.test(id)) return;
-    if (document.getElementById("bazar_tt_script")) return;
+    if (document.getElementById("bazar_tt_base")) return;
     inline("bazar_tt_base", [
       "!function (w, d, t) { w.TiktokAnalyticsObject=t; var ttq=w[t]=w[t]||[];",
       "ttq.methods=['page','track','identify','instances','debug','on','off','once','ready','alias','group','enableCookie','disableCookie','holdConsent','revokeConsent','grantConsent'];",
-      "ttq.setUseStrictMode=ttq.setUseStrictMode||function(){};",
-      "var p1=d.createElement('script'),s=d.getElementsByTagName('script')[0];p1.async=!0;p1.src=t;s.parentNode.insertBefore(p1,s);",
-      "}(window, document, 'https://analytics.tiktok.com/i18n/pixel/events.js');"
+      "ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};",
+      "for(var i=0;i<ttq.methods.length;i++){ttq.setAndDefer(ttq,ttq.methods[i]);}",
+      "ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++){ttq.setAndDefer(e,ttq.methods[n]);}return e};",
+      "ttq.load=function(e,n){var i='https://analytics.tiktok.com/i18n/pixel/events.js',o=n&&n.partner;ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=i;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]=n||{};",
+      "var p1=d.createElement('script');p1.type='text/javascript';p1.async=!0;p1.src=i+'?sdkid='+e+'&lib='+t;var s=d.getElementsByTagName('script')[0];s.parentNode.insertBefore(p1,s);};",
+      "}(window, document, 'ttq');"
     ].join(""));
     inline("bazar_tt_init", [
-      "ttq.load('" + id + "');ttq.page();"
+      "ttq.load('" + id.replace(/'/g, "") + "');ttq.page();"
     ].join(""));
 
   }
@@ -221,7 +223,7 @@
           else if (eventName === "InitiateCheckout") evName = "initiate_checkout";
           else if (eventName === "Purchase") evName = "complete_payment";
           if (evName) {
-            try { ttq(evName, { contents: [{ id: data.id || "", quantity: Number(data.qty || 1), price: Number(data.price || 0) }], value: Number(data.total || data.price || 0) || undefined, currency: "DZD" }); } catch (e) {}
+            try { ttq.track(evName, { contents: [{ id: data.id || "", quantity: Number(data.qty || 1), price: Number(data.price || 0) }], value: Number(data.total || data.price || 0) || undefined, currency: "DZD" }); } catch (e) {}
           }
         }
       } catch (e) { /* tracking errors never break the store */ }
