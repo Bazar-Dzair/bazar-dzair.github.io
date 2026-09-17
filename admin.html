@@ -1658,7 +1658,12 @@ window.saveCategory=async()=>{const oldKey=document.getElementById("categoryId")
     .find(c=>c.key!==oldKey&&categoryNameSignature(c.name)===sig&&c.name);
   if(duplicate){if(status){status.textContent=`يوجد تصنيف بنفس الاسم: «${duplicate.name}». تم منع التكرار.`;status.className="status err"}return}
   if(oldKey&&oldKey!==key){await setDoc(doc(db,"categories",key),{name,name_fr,icon,updatedAt:serverTimestamp()},{merge:false});const ps=await getDocs(collection(db,"products"));await Promise.all(ps.docs.filter(d=>String(d.data()?.category||"")===oldKey).map(d=>updateDoc(d.ref,{category:key,updatedAt:serverTimestamp()})));await deleteDoc(doc(db,"categories",oldKey))}else await setDoc(doc(db,"categories",key),{name,name_fr,icon,updatedAt:serverTimestamp()},{merge:true});await loadCategories();closeCategoryForm();if(status){status.textContent="تم حفظ الفئة بنجاح ✅";status.className="status ok"}}catch(e){console.error(e);if(status){status.textContent="تعذر حفظ الفئة: "+(e.message||"خطأ غير معروف");status.className="status err"}}};
-window.deleteCategory=async key=>{const c=categories.find(x=>String(x.key)===String(key));if(!c||!confirm("حذف الفئة «"+c.name+"»؟\nلن يتم حذف المنتجات التابعة لها."))return;try{await deleteDoc(doc(db,"categories",key));const ps=await getDocs(collection(db,"products"));await Promise.all(ps.docs.filter(d=>String(d.data()?.category||"")===String(key)).map(d=>updateDoc(d.ref,{category:"",updatedAt:serverTimestamp()})));await loadCategories()}catch(e){console.error(e);alert("تعذر حذف الفئة: "+(e.message||"خطأ غير معروف"))}};
+window.deleteCategory=async key=>{const c=categories.find(x=>String(x.key)===String(key));if(!c||!confirm("حذف الفئة «"+c.name+"»؟\nلن يتم حذف أو تعديل المنتجات التابعة لها (تبقى محتفظة بربطها القديم بهذه الفئة حتى تُعاد تصنيفها يدويًا)."))return;try{
+  // ⚠️ إصلاح: كانت هذه الدالة تحذف الفئة ثم تمسح (category:"") من كل المنتجات
+  // المرتبطة بها — وهو نوع من إعادة التعيين رفضه المستخدم صراحة سابقًا لدالة
+  // consolidateDuplicateCategories(). طبّقنا نفس المبدأ هنا: حذف صِرف للفئة فقط،
+  // بلا أي لمس لحقل category في المنتجات.
+  await deleteDoc(doc(db,"categories",key));await loadCategories()}catch(e){console.error(e);alert("تعذر حذف الفئة: "+(e.message||"خطأ غير معروف"))}};
 
 
 
