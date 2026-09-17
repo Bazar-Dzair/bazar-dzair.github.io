@@ -2353,7 +2353,7 @@ window.editProduct=id=>{
  setDeliveryMethod(p.deliveryMethod||((!p.shippingHome&&p.shippingOffice)?"office":"home"));
  document.getElementById("backToProductsBtn")?.classList.remove("hidden");
  try{sessionStorage.setItem("bazarAdminView","product");sessionStorage.setItem("bazarEditingProduct",id);}catch(e){}
- showView("product",null,false);
+ showView("product",document.querySelector('.nav-item[data-view="product"]'),false);
  try{
    const url=new URL(window.location.href);
    url.searchParams.set("view","product");
