@@ -1690,9 +1690,20 @@ function appPage(){
     const params=new URLSearchParams(window.location.search);
     view=params.get("view")||sessionStorage.getItem("bazarAdminView")||"dashboard";
   }catch(e){}
-  const valid=["dashboard","orders","product","products","categories","shipping-rates","sections","footer","users","settings","addons"];
+  const valid=["dashboard","orders","product","products","categories","shipping-rates","sections","footer","users","settings","addons","order-detail","blocked"];
   if(!valid.includes(view)) view="dashboard";
   const nav=[...document.querySelectorAll(".nav-item")];
+  const ordersNavItem=document.querySelector('.nav-item[onclick*="orders"]');
+  // إعادة تحميل الصفحة وهي على "تفاصيل الطلبية" (مثلاً بعد نسخ الرابط أو تحديث المتصفح):
+  // نفس منطق popstate — نعرض تفاصيل الطلبية إن كانت محمّلة، وإلا نرجع لقائمة الطلبات
+  // بدل السقوط الصامت إلى لوحة التحكم وفقدان السياق.
+  if(view==="order-detail"){
+    const oid=new URLSearchParams(window.location.search).get("order");
+    const o=(window.adminOrders||[]).find(x=>x.id===oid);
+    if(o){ renderOrderDetail(o); showView("order-detail",ordersNavItem,false,false); }
+    else { showView("orders",ordersNavItem,false,false); }
+    return;
+  }
   const navItem=document.querySelector('.nav-item[data-view="'+view+'"]');
   // صفحة إنشاء/تعديل المنتج: إن لم يوجد معرّف منتج (لا في الرابط ولا في الجلسة)
   // فهذه صفحة "إنشاء منتج جديد" ويجب أن تبدأ فارغة تمامًا.
