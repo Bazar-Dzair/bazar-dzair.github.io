@@ -1,5 +1,5 @@
 // =====================================================================
-// worker/create-order.js — مسار يُضاف إلى Cloudflare Worker الحالي
+// worker/create-order.js — مسار جديد يُضاف إلى Cloudflare Worker الحالي
 // (noisy-lake-ace8.a-bazar-dzair-pro.workers.dev)
 //
 // ⚠️ هذا الملف NOT مخصص لمجلد الموقع (Pages/GitHub). ضعه في مستودع الـ
@@ -7,26 +7,14 @@
 // الذي يحتوي بالفعل /send-telegram. لا تضعه داخل مجلد الاستضافة الثابت —
 // لو وُضع هناك سيُنشر كملف عام قابل للتحميل (حتى لو أسراره بأمان في env).
 //
-// ✅ هذه النسخة تصحح ثغرة كانت موجودة فعليًا: firestore.rules يذكر أن
-// Turnstile يُتحقق منه في هذا الـ Worker، لكن الكود الفعلي لم يكن يحتوي
-// على أي استدعاء siteverify — أي طلب كان يُقبل بدون أي حماية بوتات.
-//
-// ما يفعله هذا المسار الآن:
-//   1) يتحقق فعليًا من Turnstile عبر Cloudflare siteverify — fail-closed
-//      (لو السر غير مهيأ في الـ Worker، يُرفض الطلب بدل تجاوز الفحص بصمت).
-//   2) يعيد نفس التحقق الموجود في firestore.rules (شكل البيانات، الهاتف، الكمية...)
-//      لكل عنصر في الطلب.
-//   3) يتحقق أن رقم هاتف الزبون غير موجود في قائمة الأرقام المحظورة
-//      (collection blockedPhones يديرها الأدمن من لوحة التحكم).
-//   4) يدعم "سلة" فيها أكثر من منتج في نفس الطلب (items[]) — بتحقّق Turnstile
-//      واحد فقط للطلب كله (لأن توكن Turnstile أحادي الاستخدام، ولا يمكن
-//      استدعاء الـ Worker في حلقة لكل منتج كما كان يحدث سابقًا في السلة).
-//      لا يزال الشكل القديم (منتج واحد بدون items[]) مدعومًا لتفادي كسر
-//      أي صفحة لم تُحدَّث بعد.
-//   5) يجلب السعر الحقيقي لكل منتج من Firestore ويقارنه بالسعر المُرسل.
-//   6) يكتب مستند طلب منفصل لكل عنصر في Firestore عبر صلاحيات Service Account
-//      (تتجاوز Security Rules تمامًا، وهذا مقصود ومتوقَّع لأي Admin SDK).
-//   7) يرسل إشعار Telegram واحد ملخّص لكل عناصر الطلب.
+// ما يفعله هذا المسار:
+//   1) يعيد نفس التحقق الموجود في firestore.rules (شكل البيانات، الهاتف، الكمية...).
+//   2) يتحقق أن رقم هاتف الزبون غير موجود في قائمة الأرقام المحظورة (collection
+//      blockedPhones يديرها الأدمن من لوحة التحكم).
+//   3) يجلب السعر الحقيقي للمنتج من Firestore ويقارنه بالسعر المُرسل.
+//   4) يكتب الطلب في Firestore بصلاحيات Service Account (تتجاوز Security Rules
+//      تمامًا، وهذا مقصود ومتوقَّع لأي Admin SDK / Service Account).
+//   5) يرسل إشعار Telegram (التوكن يبقى في env هنا فقط، لا يمر عبر المتصفح أبدًا).
 //
 // الأسرار المطلوبة (Cloudflare Dashboard > Workers > Settings > Variables,
 // أو عبر: npx wrangler secret put <NAME>):
@@ -35,8 +23,6 @@
 //   FIREBASE_PRIVATE_KEY   — من نفس الملف (private_key) — الصقه كاملاً بأسطره \n
 //   TELEGRAM_BOT_TOKEN     — إن لم يكن معرّفًا مسبقًا في الـ Worker الحالي
 //   TELEGRAM_CHAT_ID       — إن لم يكن معرّفًا مسبقًا في الـ Worker الحالي
-//   TURNSTILE_SECRET_KEY   — Cloudflare Dashboard > Turnstile > الودجة > Secret Key
-//                            (وليس Site Key، الذي هو عام ويوضع في HTML)
 //
 // كيفية الحصول على Service Account JSON:
 //   Firebase Console > ⚙️ Project Settings > Service Accounts >
@@ -47,9 +33,6 @@
 // الدومين الوحيد المسموح له بإرسال طلبات إلى هذا الـ Worker.
 // إذا أضفت دومينًا مخصصًا (custom domain) للموقع لاحقًا، أضفه هنا أيضًا.
 const ALLOWED_ORIGINS = ["https://bazar-dzair.github.io"];
-
-// أقصى عدد عناصر (منتجات) مقبول في طلب واحد — يمنع سلة ضخمة مفتعلة.
-const MAX_ITEMS = 50;
 
 function corsHeaders(request) {
   const origin = request.headers.get("Origin");
@@ -92,56 +75,34 @@ export async function handleCreateOrder(request, env) {
     customerPhone,
     wilaya,
     address,
+    product,
+    productId,
+    quantity,
+    price,
+    shipping,
     deliveryType,
     shippingCompany,
     total,
-    turnstileToken,
   } = body || {};
 
-  // 1) توحيد الشكل: الجديد (items[] لسلة كاملة) أو القديم (منتج واحد بدون items[]).
-  //    نُبقي الشكل القديم مدعومًا حتى لا تنكسر أي صفحة لم تُحدَّث بعد للإرسال الجديد.
-  let items = Array.isArray(body.items) ? body.items : null;
-  if (!items) {
-    items = [
-      {
-        product: body.product,
-        productId: body.productId,
-        quantity: body.quantity,
-        price: body.price,
-        shipping: body.shipping,
-      },
-    ];
-  }
-  if (items.length === 0 || items.length > MAX_ITEMS) {
-    return json({ error: "سلة غير صالحة" }, 400, cors);
-  }
-
-  // 2) التحقق من الحقول المشتركة (اسم/هاتف/ولاية/عنوان) + كل عنصر في السلة —
-  //    نفس شروط isValidOrder() في firestore.rules، مطبّقة على كل منتج.
-  const commonError = validateCommonFields({ customerName, customerPhone, wilaya, address });
-  if (commonError) return json({ error: commonError }, 400, cors);
-
-  for (const it of items) {
-    const itemError = validateItem(it);
-    if (itemError) return json({ error: itemError }, 400, cors);
+  // 1) نفس شروط isValidOrder() في firestore.rules، بالضبط
+  const validationError = validateOrder({
+    customerName,
+    customerPhone,
+    wilaya,
+    address,
+    product,
+    productId,
+    quantity,
+    price,
+    shipping,
+    total,
+  }); // ← shipping أصبحت الآن جزءًا من التحقق الفعلي داخل validateOrder()
+  if (validationError) {
+    return json({ error: validationError }, 400, cors);
   }
 
-  // 3) تحقق Turnstile الحقيقي — قبل أي اتصال بـ Firestore أو Google OAuth، لتفادي
-  //    استهلاك موارد الخادم في طلبات بوتات لا تحمل توكن صالح أصلاً.
-  //    fail-closed: أي عطل في التحقق (بما فيه غياب السر) يعني رفض الطلب، وليس قبوله.
-  let turnstileOk;
-  try {
-    const ip = request.headers.get("CF-Connecting-IP") || undefined;
-    turnstileOk = await verifyTurnstile(turnstileToken, env, ip);
-  } catch (e) {
-    console.error("Turnstile verification error:", e && e.message);
-    return json({ error: "تعذّر التحقق الأمني، حاول لاحقًا" }, 503, cors);
-  }
-  if (!turnstileOk) {
-    return json({ error: "فشل التحقق الأمني (Turnstile)، أعد المحاولة" }, 403, cors);
-  }
-
-  // 4) الحصول على توكن Service Account — يُستخدم لفحص الحظر ثم للكتابة لاحقًا
+  // 2) الحصول على توكن Service Account مبكرًا — يُستخدم لفحص الحظر ثم للكتابة لاحقًا
   let accessToken;
   try {
     accessToken = await getGoogleAccessToken(env);
@@ -149,7 +110,7 @@ export async function handleCreateOrder(request, env) {
     return json({ error: "تعذّر الاتصال بالخادم" }, 502, cors);
   }
 
-  // 5) رفض الطلب إذا كان رقم الهاتف محظورًا من لوحة تحكم الأدمن
+  // 3) رفض الطلب إذا كان رقم الهاتف محظورًا من لوحة تحكم الأدمن
   let phoneBlocked;
   try {
     phoneBlocked = await isPhoneBlocked(env, accessToken, customerPhone);
@@ -160,111 +121,74 @@ export async function handleCreateOrder(request, env) {
     return json({ error: "لا يمكن تسجيل الطلب بهذا الرقم" }, 403, cors);
   }
 
-  // 6) مطابقة السعر الحقيقي لكل منتج — نفس منطق get(...).data.price == d.price
-  //    في القواعد، لكن مطبّق على كل عنصر في السلة على حدة.
-  const resolvedItems = [];
-  let computedTotal = 0;
-  for (const it of items) {
-    let realPrice;
-    try {
-      realPrice = await getProductPrice(env, it.productId);
-    } catch {
-      return json({ error: "تعذّر التحقق من المنتج" }, 502, cors);
-    }
-    if (realPrice === null || Math.abs(realPrice - Number(it.price)) > 0.001) {
-      return json({ error: `السعر لا يطابق المنتج الحقيقي: ${it.product || it.productId}` }, 400, cors);
-    }
-    const shippingValue = Number(it.shipping || 0);
-    if (!Number.isFinite(shippingValue) || shippingValue < 0) {
-      return json({ error: "قيمة شحن غير صالحة" }, 400, cors);
-    }
-    const itemTotal = realPrice * Number(it.quantity) + shippingValue;
-    computedTotal += itemTotal;
-    resolvedItems.push({ ...it, price: realPrice, shipping: shippingValue, itemTotal });
+  // 4) مطابقة السعر الحقيقي — نفس منطق get(...).data.price == d.price في القواعد
+  let realPrice;
+  try {
+    realPrice = await getProductPrice(env, productId);
+  } catch {
+    return json({ error: "تعذّر التحقق من المنتج" }, 502, cors);
   }
-
-  // حارس صريح ضد NaN: لو total قيمة غير رقمية (نص، object...) فإن Number(...)
-  // تُعطي NaN، و"NaN > 0.01" في JS تُرجع false — أي أن المقارنة كانت يمكن أن
-  // تتجاوز الفحص بصمت وتقبل أي مجموع يرسله الزبون. نرفض الطلب صراحةً هنا.
+  if (realPrice === null || Math.abs(realPrice - Number(price)) > 0.001) {
+    return json({ error: "السعر لا يطابق المنتج الحقيقي" }, 400, cors);
+  }
+  const shippingValue = Number(shipping || 0);
   const totalValue = Number(total);
+  const expectedTotal = Number(price) * Number(quantity) + shippingValue;
+
+  // حارس صريح ضد NaN: لو shipping أو total قيمة غير رقمية (نص، object...)
+  // فإن Number(...) تُعطي NaN، و"NaN > 0.01" في JS تُرجع false — أي أن
+  // المقارنة أدناه كانت تتجاوز الفحص بصمت وتقبل أي مجموع يرسله الزبون.
+  // نرفض الطلب صراحةً في هذه الحالة بدل الاعتماد على المقارنة وحدها.
   if (
+    !Number.isFinite(shippingValue) ||
+    shippingValue < 0 ||
     !Number.isFinite(totalValue) ||
-    !Number.isFinite(computedTotal) ||
-    Math.abs(computedTotal - totalValue) > 0.01
+    !Number.isFinite(expectedTotal) ||
+    Math.abs(expectedTotal - totalValue) > 0.01
   ) {
     return json({ error: "المجموع غير صحيح" }, 400, cors);
   }
 
-  // 7) الكتابة في Firestore عبر Service Account — مستند طلب مستقل لكل عنصر،
-  //    لتوافق تام مع لوحة الأدمن الحالية (orders.html) التي تتوقع منتجًا واحدًا
-  //    لكل مستند طلب.
-  const ids = [];
+  // 5) الكتابة في Firestore عبر Service Account
+  let doc;
   try {
-    for (const it of resolvedItems) {
-      const doc = await createOrderDoc(env, accessToken, {
-        customerName,
-        customerPhone,
-        wilaya,
-        address,
-        product: it.product,
-        productId: it.productId,
-        quantity: Number(it.quantity),
-        price: Number(it.price),
-        shipping: Number(it.shipping || 0),
-        deliveryType: deliveryType || "",
-        shippingCompany: shippingCompany || "",
-        total: Number(it.itemTotal),
-        status: "جديد",
-        createdAt: new Date(),
-      });
-      const id = doc && doc.name ? doc.name.split("/").pop() : null;
-      if (id) ids.push(id);
-    }
+    doc = await createOrderDoc(env, accessToken, {
+      customerName,
+      customerPhone,
+      wilaya,
+      address,
+      product,
+      productId,
+      quantity: Number(quantity),
+      price: Number(price),
+      shipping: Number(shipping || 0),
+      deliveryType: deliveryType || "",
+      shippingCompany: shippingCompany || "",
+      total: Number(total),
+      status: "جديد",
+      createdAt: new Date(),
+    });
   } catch (e) {
     return json({ error: "تعذّر حفظ الطلب" }, 502, cors);
   }
 
-  // 8) إشعار Telegram واحد ملخّص لكل عناصر الطلب — لا يفشل الطلب لو تعطّل الإشعار
+  // 6) إشعار Telegram — لا يفشل الطلب لو تعطّل الإشعار
   try {
     await sendTelegram(env, {
       customerName,
       customerPhone,
       wilaya,
       address,
-      items: resolvedItems,
-      total: totalValue,
+      product,
+      quantity,
+      total,
     });
   } catch (e) {
     console.error("Telegram notify failed:", e);
   }
 
-  return json({ ok: true, ids }, 200, cors);
-}
-
-// ---------------------------------------------------------------------
-// تحقق Turnstile عبر Cloudflare siteverify. fail-closed: لو TURNSTILE_SECRET_KEY
-// غير معرَّف في env، نرمي خطأ بدل اعتبار الطلب مقبولاً — أي عطل في الإعداد
-// يعني رفض كل الطلبات، وليس تعطيل الحماية بصمت.
-// ---------------------------------------------------------------------
-async function verifyTurnstile(token, env, ip) {
-  if (!env.TURNSTILE_SECRET_KEY) {
-    throw new Error("TURNSTILE_SECRET_KEY not configured");
-  }
-  if (!token || typeof token !== "string") return false;
-
-  const formData = new URLSearchParams();
-  formData.append("secret", env.TURNSTILE_SECRET_KEY);
-  formData.append("response", token);
-  if (ip) formData.append("remoteip", ip);
-
-  const resp = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: formData.toString(),
-  });
-  if (!resp.ok) throw new Error("siteverify HTTP " + resp.status);
-  const data = await resp.json().catch(() => ({ success: false }));
-  return data.success === true;
+  const id = doc && doc.name ? doc.name.split("/").pop() : null;
+  return json({ ok: true, id }, 200, cors);
 }
 
 // ---------------------------------------------------------------------
@@ -287,10 +211,9 @@ async function isPhoneBlocked(env, accessToken, phone) {
 }
 
 // ---------------------------------------------------------------------
-// الحقول المشتركة بين كل عناصر الطلب (اسم/هاتف/ولاية/عنوان) — نفس شروط
-// isValidOrder() الموجودة في firestore.rules.
+// نفس شروط isValidOrder() الموجودة في firestore.rules
 // ---------------------------------------------------------------------
-function validateCommonFields(d) {
+function validateOrder(d) {
   if (
     typeof d.customerName !== "string" ||
     d.customerName.trim().length === 0 ||
@@ -314,14 +237,6 @@ function validateCommonFields(d) {
     d.address.length >= 300
   )
     return "عنوان غير صالح";
-  return null;
-}
-
-// ---------------------------------------------------------------------
-// تحقق من عنصر واحد داخل items[] (منتج + كمية + سعر مُرسَل من الواجهة).
-// ---------------------------------------------------------------------
-function validateItem(d) {
-  if (!d || typeof d !== "object") return "عنصر طلب غير صالح";
   if (
     typeof d.product !== "string" ||
     d.product.trim().length === 0 ||
@@ -334,10 +249,14 @@ function validateItem(d) {
     d.productId.length >= 200
   )
     return "معرّف منتج غير صالح";
-  if (!Number.isInteger(d.quantity) || d.quantity <= 0 || d.quantity > 50)
+  if (
+    !Number.isInteger(d.quantity) ||
+    d.quantity <= 0 ||
+    d.quantity > 50
+  )
     return "كمية غير صالحة";
-  if (typeof d.price !== "number" || !Number.isFinite(d.price) || d.price < 0)
-    return "سعر غير صالح";
+  if (typeof d.price !== "number" || d.price < 0) return "سعر غير صالح";
+  if (typeof d.total !== "number" || d.total < 0) return "مجموع غير صالح";
   // shipping اختياري، لكن إن أُرسل يجب أن يكون رقمًا غير سالب — منع التلاعب
   // بقيمة الشحن (إرسال نص أو object يُحوَّل إلى NaN ويُفسد فحص المجموع لاحقًا).
   if (
@@ -462,21 +381,15 @@ async function createOrderDoc(env, accessToken, order) {
 }
 
 // ---------------------------------------------------------------------
-// إشعار Telegram — رسالة واحدة ملخّصة لكل عناصر الطلب (بدل رسالة لكل منتج).
+// إشعار Telegram — ادمج هذا مع الدالة الموجودة لديك مسبقًا في /send-telegram
+// إن كانت موجودة، لتفادي التكرار.
 // ---------------------------------------------------------------------
 async function sendTelegram(env, o) {
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
-  const itemsText = o.items
-    .map(
-      (it) =>
-        `  • ${it.product} × ${it.quantity} = ${it.price * it.quantity} دج` +
-        (it.shipping ? ` (+ توصيل ${it.shipping} دج)` : "")
-    )
-    .join("\n");
   const text =
     `🛒 طلب جديد\n👤 الاسم: ${o.customerName}\n📞 الهاتف: ${o.customerPhone}\n` +
-    `📍 الولاية: ${o.wilaya}\n🏠 العنوان: ${o.address}\n📦 المنتجات:\n${itemsText}\n` +
-    `💰 المجموع الكلي: ${o.total} دج`;
+    `📍 الولاية: ${o.wilaya}\n🏠 العنوان: ${o.address}\n📦 المنتج: ${o.product}\n` +
+    `🔢 الكمية: ${o.quantity}\n💰 المجموع: ${o.total} دج`;
   await fetch(
     `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
     {
