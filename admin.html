@@ -344,7 +344,7 @@
   </nav>
   <div class="nav-title">النظام</div><nav class="nav">
     <button class="nav-item" data-view="settings" onclick="showView('settings',this)">⚙ <span>الإعدادات</span></button>
-    <button class="nav-item" data-view="addons" onclick="showAddons()">🧩 <span>الإضافات</span></button>
+    <button class="nav-item" data-view="addons" onclick="showAddons(this)">🧩 <span>الإضافات</span></button>
   </nav>
   <div class="sidebar-bottom"><button class="logout-side" onclick="logout()">↪ <span>تسجيل الخروج</span></button></div>
 </aside>
@@ -1122,7 +1122,7 @@ function addonDefaults(){
   return d;
 }
 function dbReady(){return !!(window.bazarDb&&window.bazarDoc&&window.bazarGetDoc&&window.bazarSetDoc);}
-function showAddons(){showView("addons",null,false);renderAddonsGrid();if(window.bazarSyncAddons)window.bazarSyncAddons();}
+function showAddons(el){showView("addons",el||null,false);renderAddonsGrid();if(window.bazarSyncAddons)window.bazarSyncAddons();}
 function addonStateOf(c){
   if(!c)c={};
   var enabled=c.enabled===true;
