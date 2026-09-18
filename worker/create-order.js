@@ -408,15 +408,75 @@ function json(obj, status, extraHeaders) {
 }
 
 // ---------------------------------------------------------------------
-// دمج مع الراوتر الحالي في worker الرئيسي، مثال:
+// 🛠️ الإصلاح الأصلي: "does not provide an export named 'default'"
+// السبب: هذا الملف كان *كل* محتوى worker.js على Cloudflare، وفيه فقط
+// "export async function handleCreateOrder" — تصدير باسم، بدون export
+// default. Cloudflare Workers (ES Modules) يطلب export default واحد فـ
+// نقطة الدخول (فيه fetch(request, env, ctx))، وبدونه يُرفض الملف كامل.
 //
-//   import { handleCreateOrder } from "./create-order.js";
-//   export default {
-//     async fetch(request, env, ctx) {
-//       const url = new URL(request.url);
-//       if (url.pathname === "/create-order") return handleCreateOrder(request, env);
-//       if (url.pathname === "/send-telegram") return handleSendTelegram(request, env); // الموجودة مسبقًا
-//       return new Response("Not found", { status: 404 });
-//     }
-//   };
+// ⚠️ ما عندي محتوى /send-telegram الأصلي (غير موجود فـ أي ملف بعثتيه).
+// دورت فـ كل كود الموقع (index.html, product.html) ولقيت الكل يستدعي
+// /create-order فقط، وهي أصلاً تبعث Telegram بنفسها (sendTelegram تحت).
+// إذا عندك استخدام آخر لـ /send-telegram، ابعثيلي كوده القديم للدمج.
 // ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+// نقطة الدخول (Entry point) — راوتر بسيط وقابل للتوسّع لاحقًا (لو أضفتِ
+// مسارات جديدة، زيدي سطر واحد فـ ROUTES تحت، بلا ما تلمسي باقي الكود).
+// ---------------------------------------------------------------------
+const REQUIRED_SECRETS = [
+  "FIREBASE_PROJECT_ID",
+  "FIREBASE_CLIENT_EMAIL",
+  "FIREBASE_PRIVATE_KEY",
+];
+
+const ROUTES = {
+  "/create-order": handleCreateOrder,
+  // مسار فحص سريع: GET /health — يفيد للتأكد أن الـ Worker منشور فعليًا
+  // وأن الأسرار (secrets) معرّفة، بدون الحاجة لإرسال طلبية حقيقية للاختبار.
+  "/health": async (request, env) => {
+    const missing = REQUIRED_SECRETS.filter((k) => !env[k]);
+    return json(
+      missing.length
+        ? { ok: false, missingSecrets: missing }
+        : { ok: true },
+      missing.length ? 500 : 200
+    );
+  },
+};
+
+export default {
+  async fetch(request, env, ctx) {
+    try {
+      const url = new URL(request.url);
+      // نتجاهل أي "/" فـ آخر المسار (مثلاً "/create-order/") حتى لا يفشل
+      // التوجيه بسبب فرق بسيط لا علاقة له بالمنطق.
+      const pathname = url.pathname.replace(/\/+$/, "") || "/";
+      const handler = ROUTES[pathname];
+
+      if (!handler) return new Response("Not found", { status: 404 });
+
+      // حارس مبكر: لو أحد الأسرار الأساسية ناقص فـ إعدادات الـ Worker على
+      // Cloudflare، نرجّع خطأ واضح فورًا بدل ما الطلب يفشل لاحقًا بخطأ غامض
+      // (مثلاً داخل getGoogleAccessToken) يصعب تشخيصه من طرف الزبون.
+      if (pathname !== "/health") {
+        const missing = REQUIRED_SECRETS.filter((k) => !env[k]);
+        if (missing.length) {
+          console.error("Missing required secrets:", missing.join(", "));
+          return json(
+            { error: "خطأ فـ إعدادات الخادم، تواصلي مع الدعم" },
+            500
+          );
+        }
+      }
+
+      return await handler(request, env, ctx);
+    } catch (err) {
+      // شبكة أمان أخيرة: أي خطأ غير متوقع (bug، انقطاع خدمة خارجية...) يُسجَّل
+      // فـ الـ logs (Cloudflare > Workers > Logs) بدل ما يُرجع صفحة خطأ فارغة
+      // للزبون، ويرجع له رسالة عربية مفهومة بدل تفاصيل تقنية.
+      console.error("Unhandled worker error:", err && err.stack ? err.stack : err);
+      return json({ error: "حدث خطأ غير متوقع، حاولي مجددًا" }, 500);
+    }
+  },
+};
+      
