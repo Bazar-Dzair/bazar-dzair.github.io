@@ -4,11 +4,9 @@ rules_version = '2';
 // Bazar Dzair — Firestore Security Rules (نسخة معززة v2)
 // انسخ هذا الملف كاملاً إلى Firebase Console > Firestore > Rules ثم انشر.
 //
-// ⚠️ قبل النشر: بدّل القيمة 'GOBngnCP2eMTLZrJpf72GOmXvvO2' بـ UID حساب الأدمن الحقيقي.
-//    كيفية الحصول عليه: Firebase Console → Authentication → Users →
-//    عمود "User UID" لحسابك (وليس الإيميل).
-//    استخدام UID أكثر أمانًا من الإيميل لأنه غير قابل للتخمين ولا يكشف
-//    عنوان تسجيل الدخول الحقيقي في حال تسريب الكود.
+// ✅ UID حساب الأدمن الحقيقي مؤكَّد ومضبوط فعليًا (تمت مطابقته يدويًا مع
+//    Firebase Console → Authentication → Users → User UID بتاريخ اليوم).
+//    لا حاجة لتغييره إلا إذا تغيّر حساب الأدمن المستعمل لتسجيل الدخول للوحة.
 // =====================================================================
 
 service cloud.firestore {
