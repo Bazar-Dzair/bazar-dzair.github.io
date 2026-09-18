@@ -1645,7 +1645,7 @@ imageFilesInput?.addEventListener("change",()=>{
 
 window.login=async()=>{const e=emailInput.value.trim(),p=passwordInput.value;loginErrBox.classList.add("hidden");if(!e||!p){loginErrBox.textContent="اكتب البريد الإلكتروني وكلمة المرور.";loginErrBox.classList.remove("hidden");return}try{await signInWithEmailAndPassword(auth,e,p)}catch(x){console.error("Firebase login error:",x);loginErrBox.textContent="فشل الدخول: "+(x.code==="auth/invalid-credential"||x.code==="auth/wrong-password"||x.code==="auth/user-not-found"?"البريد أو كلمة المرور غير صحيحة.":x.message);loginErrBox.classList.remove("hidden")}};
 window.logout=()=>signOut(auth);
-onAuthStateChanged(auth,u=>{document.body.classList.remove("auth-check");if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(typeof startOrdersRealtimeSync==="function")startOrdersRealtimeSync();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
+onAuthStateChanged(auth,u=>{document.body.classList.remove("auth-check");if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
 
 function categoryKeySafe(value){return String(value||"").trim().toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}\-_]+/gu,"-").replace(/^-+|-+$/g,"");}
 function renderCategorySelect(selectedValue){if(!categoryInput)return;const current=selectedValue!==undefined?String(selectedValue):String(categoryInput.value||"");categoryInput.innerHTML=categories.map(c=>`<option value="${esc(c.key)}">${esc(c.icon||"🛍️")} ${esc(c.name)}</option>`).join("");if(categories.some(c=>String(c.key)===current))categoryInput.value=current;else if(categories.length)categoryInput.value=categories[0].key;}
@@ -1743,73 +1743,6 @@ let productsLoading=null;
 let ordersLoaded=false;
 let ordersLoading=null;
 let addonsLoaded=false;
-let ordersRealtimeStarted=false;
-
-// الاستماع الفعلي لمجموعة orders (بدل getDocs لمرة واحدة). يُشغَّل مرة واحدة
-// فقط فور تسجيل الدخول (وليس فقط عند فتح تبويب "الطلبات")، حتى يبقى عداد
-// الجرس 🔔 وإحصائيات لوحة التحكم محدَّثين حيّين طوال الجلسة، تمامًا مثل
-// إشعار Telegram الذي يصل فور تسجيل أي طلب جديد عبر الـ Worker.
-// تحميل/تحديث الطلبات + تشخيص أي خطأ بوضوح (بدل رسالة عامة أو صمت تام).
-// ✅ إصلاح إضافي: onSnapshot (الاستماع الحي) يعتمد على قناة WebChannel طويلة
-// الاتصال مع Firestore، وهذه القناة تُحجب أحيانًا بصمت من طرف بعض مانعات
-// الإعلانات (uBlock/Brave Shields) أو بعض الشبكات/الراوترات المحلية دون أي
-// خطأ ظاهر — فتبقى اللوحة عالقة على "جاري تحميل الطلبات..." للأبد. الحل الأكثر
-// ثباتًا: قراءة عادية (getDocs، نفس نوع الطلب البسيط الذي كان يعمل أصلاً) تتكرر
-// كل بضع ثوانٍ (polling) بدل استماع حي دائم — تعمل في كل بيئة تقريبًا.
-async function fetchOrdersOnce(){
-  try{
-    const snap=await getDocs(collection(db,"orders"));
-    window.adminOrders=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
-    const ascByDate=[...window.adminOrders].sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return ta-tb;});
-    ascByDate.forEach((o,i)=>{o.orderSeq=i+1;});
-    window.adminOrders.sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return tb-ta;});
-    updateOrderStats(window.adminOrders.length);
-    const phones=new Set(window.adminOrders.map(o=>String(o.phone||o.customerPhone||o.tel||"").trim()).filter(Boolean));
-    const custEl=document.getElementById("statCustomers");
-    if(custEl)custEl.textContent=(phones.size||window.adminOrders.length).toLocaleString("ar-DZ");
-    const wasLoaded=ordersLoaded;
-    ordersLoaded=true; dashboardStatsLoaded=true;
-    if(!wasLoaded){ordersPage=1;selectedOrders.clear();}
-    const ordersView=document.getElementById("view-orders");
-    if(ordersView&&!ordersView.classList.contains("hidden"))renderOrders();
-    if(window.bazarLoadProducts && !productsLoaded){
-      window.bazarLoadProducts().catch(()=>{});
-    }
-  }catch(e){
-    console.error("orders fetch failed",e);
-    // ✅ تشخيص واضح بدل رسالة عامة: السبب شبه الأكيد لعدم ظهور الطلبات رغم
-    // وصولها فعليًا لـ Firestore (ووصول إشعار Telegram الذي يمر عبر مسار مستقل
-    // بصلاحيات Service Account) هو أن isAdmin() في firestore.rules تتحقق من
-    // UID ثابت واحد فقط. إن كان هذا الـ UID المكتوب في firestore.rules لا يطابق
-    // UID الحساب المسجّل دخوله الآن فعليًا في هذه اللوحة، سترفض القواعد كل قراءة
-    // لمجموعة orders (permission-denied) — نعرض الـ UID الحقيقي هنا مباشرة حتى
-    // تتم مقارنته بالقيمة الموجودة في firestore.rules المنشورة فعليًا على Firebase.
-    if(!ordersLoaded){
-      const box=document.getElementById("orders");
-      if(box){
-        if(e&&e.code==="permission-denied"){
-          const uid=auth.currentUser?auth.currentUser.uid:"غير معروف (سجّل الدخول أولاً)";
-          box.innerHTML='<div class="empty-card">❌ Firestore رفض قراءة الطلبات (permission-denied).<br>'
-            +'السبب الأرجح: قيمة isAdmin() داخل firestore.rules المنشورة فعليًا على Firebase Console لا تطابق حساب الأدمن الحالي.<br>'
-            +'معرّف حسابك الحالي (UID) هو:<br><b dir="ltr" style="user-select:all">'+esc(uid)+'</b><br>'
-            +'تأكد أن هذا بالضبط هو UID المكتوب داخل دالة isAdmin() في Firestore Rules على Firebase Console (وليس فقط في هذا الملف محليًا)، ثم اضغط "نشر/Publish" هناك وأعد تحميل هذه الصفحة.</div>';
-        }else{
-          box.innerHTML='<div class="empty-card">❌ تعذر قراءة الطلبات من Firestore: '+esc(e&&e.message?e.message:"خطأ غير معروف")+'</div>';
-        }
-      }
-    }
-  }
-}
-
-let ordersPollTimer=null;
-function startOrdersRealtimeSync(){
-  if(ordersRealtimeStarted)return;
-  ordersRealtimeStarted=true;
-  fetchOrdersOnce();
-  // كل 8 ثوانٍ طالما اللوحة مفتوحة — كافٍ لظهور أي طلب جديد بسرعة معقولة
-  // بدون الاعتماد على قناة استماع حي قد تُحجب بصمت في بعض المتصفحات/الشبكات.
-  ordersPollTimer=setInterval(fetchOrdersOnce,8000);
-}
 
 // يحوّل صور المنتجات القديمة المخزّنة كـ base64 داخل Firestore إلى صور حقيقية
 // مرفوعة على Cloudinary (مجاني، بدون اشتراك)، تلقائيًا وبدون إعادة رفع يدوي.
@@ -1935,19 +1868,28 @@ window.bazarLoadProducts=async function(force=false){
 };
 
 window.bazarLoadOrders=async function(force=false){
-  // ✅ إصلاح 1: كانت هذه الدالة تقرأ الطلبات مرة واحدة فقط (getDocs) ثم تخزّن
-  // النتيجة في ordersLoaded ولا تعيد القراءة أبدًا طوال الجلسة — أي طلب جديد
-  // يصل بعد أول فتح لتبويب "الطلبات" كان لا يظهر إطلاقًا إلا بعد Refresh يدوي
-  // للصفحة كاملة، رغم أن إشعار Telegram يصل فورًا (لأنه مسار مستقل عبر الـ Worker).
-  // الحل: تحديث دوري تلقائي (كل 8 ثوانٍ، عبر startOrdersRealtimeSync) بدل قراءة
-  // لمرة واحدة، بحيث تظهر أي طلبية جديدة تلقائيًا دون تدخل يدوي.
-  if(force){await fetchOrdersOnce();return;}
-  startOrdersRealtimeSync();
-  if(ordersLoaded){renderOrders();}
-  else{
-    const box=document.getElementById("orders");
-    if(box)box.innerHTML='<div class="empty-card">⏳ جاري تحميل الطلبات...</div>';
-  }
+  if(ordersLoading)return ordersLoading;
+  if(ordersLoaded&&!force){renderOrders();return;}
+  const box=document.getElementById("orders");
+  if(!box)return;
+  box.innerHTML='<div class="empty-card">⏳ جاري تحميل الطلبات...</div>';
+  ordersLoading=(async()=>{
+    try{
+      const snap=await getDocs(collection(db,"orders"));
+      updateOrderStats(snap.size);
+      window.adminOrders=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+      const ascByDate=[...window.adminOrders].sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return ta-tb;});
+      ascByDate.forEach((o,i)=>{o.orderSeq=i+1;});
+      window.adminOrders.sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return tb-ta;});
+      ordersLoaded=true;
+      ordersPage=1; selectedOrders.clear(); renderOrders();
+      if(window.bazarLoadProducts && !productsLoaded){
+        window.bazarLoadProducts().then(()=>{ if(document.getElementById("view-orders")&&!document.getElementById("view-orders").classList.contains("hidden")) renderOrders(); }).catch(()=>{});
+      }
+    }catch(e){console.error(e);updateOrderStats(0);box.innerHTML='<div class="empty-card">❌ تعذر قراءة الطلبات من Firestore. تحقق من Firestore Rules.</div>';
+    }finally{ordersLoading=null;}
+  })();
+  return ordersLoading;
 };
 
 function getFilteredOrders(){
