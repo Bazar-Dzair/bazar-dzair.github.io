@@ -1749,10 +1749,16 @@ let ordersRealtimeStarted=false;
 // فقط فور تسجيل الدخول (وليس فقط عند فتح تبويب "الطلبات")، حتى يبقى عداد
 // الجرس 🔔 وإحصائيات لوحة التحكم محدَّثين حيّين طوال الجلسة، تمامًا مثل
 // إشعار Telegram الذي يصل فور تسجيل أي طلب جديد عبر الـ Worker.
-function startOrdersRealtimeSync(){
-  if(ordersRealtimeStarted)return;
-  ordersRealtimeStarted=true;
-  onSnapshot(collection(db,"orders"),snap=>{
+// تحميل/تحديث الطلبات + تشخيص أي خطأ بوضوح (بدل رسالة عامة أو صمت تام).
+// ✅ إصلاح إضافي: onSnapshot (الاستماع الحي) يعتمد على قناة WebChannel طويلة
+// الاتصال مع Firestore، وهذه القناة تُحجب أحيانًا بصمت من طرف بعض مانعات
+// الإعلانات (uBlock/Brave Shields) أو بعض الشبكات/الراوترات المحلية دون أي
+// خطأ ظاهر — فتبقى اللوحة عالقة على "جاري تحميل الطلبات..." للأبد. الحل الأكثر
+// ثباتًا: قراءة عادية (getDocs، نفس نوع الطلب البسيط الذي كان يعمل أصلاً) تتكرر
+// كل بضع ثوانٍ (polling) بدل استماع حي دائم — تعمل في كل بيئة تقريبًا.
+async function fetchOrdersOnce(){
+  try{
+    const snap=await getDocs(collection(db,"orders"));
     window.adminOrders=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
     const ascByDate=[...window.adminOrders].sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return ta-tb;});
     ascByDate.forEach((o,i)=>{o.orderSeq=i+1;});
@@ -1769,11 +1775,40 @@ function startOrdersRealtimeSync(){
     if(window.bazarLoadProducts && !productsLoaded){
       window.bazarLoadProducts().catch(()=>{});
     }
-  },e=>{
-    console.error("orders realtime sync failed",e);
-    const box=document.getElementById("orders");
-    if(box&&!ordersLoaded)box.innerHTML='<div class="empty-card">❌ تعذر قراءة الطلبات من Firestore. تحقق من Firestore Rules.</div>';
-  });
+  }catch(e){
+    console.error("orders fetch failed",e);
+    // ✅ تشخيص واضح بدل رسالة عامة: السبب شبه الأكيد لعدم ظهور الطلبات رغم
+    // وصولها فعليًا لـ Firestore (ووصول إشعار Telegram الذي يمر عبر مسار مستقل
+    // بصلاحيات Service Account) هو أن isAdmin() في firestore.rules تتحقق من
+    // UID ثابت واحد فقط. إن كان هذا الـ UID المكتوب في firestore.rules لا يطابق
+    // UID الحساب المسجّل دخوله الآن فعليًا في هذه اللوحة، سترفض القواعد كل قراءة
+    // لمجموعة orders (permission-denied) — نعرض الـ UID الحقيقي هنا مباشرة حتى
+    // تتم مقارنته بالقيمة الموجودة في firestore.rules المنشورة فعليًا على Firebase.
+    if(!ordersLoaded){
+      const box=document.getElementById("orders");
+      if(box){
+        if(e&&e.code==="permission-denied"){
+          const uid=auth.currentUser?auth.currentUser.uid:"غير معروف (سجّل الدخول أولاً)";
+          box.innerHTML='<div class="empty-card">❌ Firestore رفض قراءة الطلبات (permission-denied).<br>'
+            +'السبب الأرجح: قيمة isAdmin() داخل firestore.rules المنشورة فعليًا على Firebase Console لا تطابق حساب الأدمن الحالي.<br>'
+            +'معرّف حسابك الحالي (UID) هو:<br><b dir="ltr" style="user-select:all">'+esc(uid)+'</b><br>'
+            +'تأكد أن هذا بالضبط هو UID المكتوب داخل دالة isAdmin() في Firestore Rules على Firebase Console (وليس فقط في هذا الملف محليًا)، ثم اضغط "نشر/Publish" هناك وأعد تحميل هذه الصفحة.</div>';
+        }else{
+          box.innerHTML='<div class="empty-card">❌ تعذر قراءة الطلبات من Firestore: '+esc(e&&e.message?e.message:"خطأ غير معروف")+'</div>';
+        }
+      }
+    }
+  }
+}
+
+let ordersPollTimer=null;
+function startOrdersRealtimeSync(){
+  if(ordersRealtimeStarted)return;
+  ordersRealtimeStarted=true;
+  fetchOrdersOnce();
+  // كل 8 ثوانٍ طالما اللوحة مفتوحة — كافٍ لظهور أي طلب جديد بسرعة معقولة
+  // بدون الاعتماد على قناة استماع حي قد تُحجب بصمت في بعض المتصفحات/الشبكات.
+  ordersPollTimer=setInterval(fetchOrdersOnce,8000);
 }
 
 // يحوّل صور المنتجات القديمة المخزّنة كـ base64 داخل Firestore إلى صور حقيقية
@@ -1900,13 +1935,13 @@ window.bazarLoadProducts=async function(force=false){
 };
 
 window.bazarLoadOrders=async function(force=false){
-  // ✅ إصلاح: كانت هذه الدالة تقرأ الطلبات مرة واحدة فقط (getDocs) ثم تخزّن
+  // ✅ إصلاح 1: كانت هذه الدالة تقرأ الطلبات مرة واحدة فقط (getDocs) ثم تخزّن
   // النتيجة في ordersLoaded ولا تعيد القراءة أبدًا طوال الجلسة — أي طلب جديد
   // يصل بعد أول فتح لتبويب "الطلبات" كان لا يظهر إطلاقًا إلا بعد Refresh يدوي
   // للصفحة كاملة، رغم أن إشعار Telegram يصل فورًا (لأنه مسار مستقل عبر الـ Worker).
-  // الحل: الاستماع الفعلي (onSnapshot) لمجموعة orders بدل قراءة لمرة واحدة،
-  // بحيث تظهر أي طلبية جديدة فور كتابتها فعليًا، بنفس لحظة وصول Telegram.
-  if(force){ordersLoaded=false;}
+  // الحل: تحديث دوري تلقائي (كل 8 ثوانٍ، عبر startOrdersRealtimeSync) بدل قراءة
+  // لمرة واحدة، بحيث تظهر أي طلبية جديدة تلقائيًا دون تدخل يدوي.
+  if(force){await fetchOrdersOnce();return;}
   startOrdersRealtimeSync();
   if(ordersLoaded){renderOrders();}
   else{
