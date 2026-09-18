@@ -1066,24 +1066,28 @@ const orderPayload={
   shippingCompany: carrierNames,
   total: total
 };
-// ✅ الطلب يمر إجباريًا عبر Cloudflare Worker (create-order) — هو من يتحقق من
-// شكل البيانات، أن رقم الهاتف غير محظور، وأن السعر يطابق سعر المنتج الحقيقي،
-// ثم يكتب الطلب في Firestore بصلاحيات Service Account ويرسل إشعار Telegram.
-// firestore.rules تمنع الآن أي كتابة مباشرة من المتصفح على orders (allow create:
-// if isAdmin() فقط)، لذلك أي محاولة addDoc من هنا كانت تفشل دائمًا بـ
-// permission-denied قبل وصول الطلب للـ Worker أصلاً — نستعمل فقط مسار الـ Worker،
-// تمامًا كما تفعل صفحة index.html.
-const resp=await fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/create-order",{
+// ✅ الكتابة تتم من المتصفح مباشرة فـ Firestore، لكن firestore.rules هي من تتحقق
+// فعليًا وتفرض كل الشروط (شكل البيانات، صحة رقم الهاتف، أن الرقم غير محظور، وأن
+// السعر يطابق سعر المنتج الحقيقي المخزّن فعليًا) — لا يمكن لأي عميل (حتى لو عدّل
+// الكود من جهته) تجاوز هذه الشروط، لأنها مفروضة من جهة الخادم (Firestore) نفسها.
+const {addDoc,collection,serverTimestamp}=await getFirebase();
+const db=window.__bazarDb;
+if(!db){throw new Error(pt("db_connect_error"))}
+try{
+  await addDoc(collection(db,"orders"),{...orderPayload,status:"جديد",createdAt:serverTimestamp()});
+}catch(fireErr){
+  console.error("firestore order write failed:",fireErr);
+  const e=new Error(pt("order_write_failed"));
+  e.userMessage=(fireErr&&fireErr.code==="permission-denied")?pt("order_write_failed_detail"):pt("order_write_failed_generic");
+  throw e;
+}
+// ✅ إشعار Telegram فقط — لا يفشل تسجيل الطلب لو تعطّل هذا الاستدعاء، لأن الطلب
+// سُجّل فعليًا فـ Firestore أعلاه (وهذا ما يظهره لوحة التحكم).
+fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/create-order",{
   method:"POST",
   headers:{"Content-Type":"application/json"},
   body:JSON.stringify(orderPayload)
-});
-if(!resp.ok){
-  const errBody=await resp.json().catch(()=>({}));
-  const e=new Error(errBody.error||("HTTP "+resp.status));
-  if(errBody.error)e.userMessage=errBody.error;
-  throw e;
-}
+}).catch(()=>{});
 try{
   const addonsCfg=window.__bazarAddons||{};
   const gs=addonsCfg.googleSheets||{};
