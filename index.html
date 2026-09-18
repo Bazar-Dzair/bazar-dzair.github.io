@@ -224,7 +224,7 @@
 .info{padding:0 18px 17px}.name{min-height:54px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;line-height:1.55;font-weight:800;cursor:pointer}.name:hover{color:var(--orange)}.price{color:var(--orange);font-weight:900;font-size:20px;margin:4px 0 14px;text-align:center}.buttons{display:flex;gap:10px;align-items:stretch}.btn{border-radius:17px;padding:13px;font-weight:900;min-height:56px;display:flex;align-items:center;justify-content:center;gap:7px}.cartbtn{width:74px;flex:0 0 74px;border:2px solid var(--navy);background:#fff;color:var(--navy);font-size:20px}.cartbtn .plus{font-size:18px;font-weight:900}.buybtn{flex:1;border:0;background:linear-gradient(135deg,var(--orange),#ff7100);color:#fff;width:auto;font-size:16px}.buycart{font-size:19px}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:950;padding:15px;overflow:auto}.modal{background:#fff;width:min(900px,100%);margin:30px auto;padding:22px;border-radius:22px;position:relative}.close{position:absolute;left:14px;top:12px;border:0;border-radius:50%;width:38px;height:38px;font-size:24px;background:#f3f5f8;color:var(--navy)}.detail{display:grid;grid-template-columns:1fr 1fr;gap:25px}.detail-pic{height:380px;background:#f4f6f8;border-radius:15px}.detail-pic img{width:100%;height:100%;object-fit:contain}.detail h2{margin-top:25px;font-size:27px}.detail-price{color:var(--orange);font-size:26px;font-weight:bold;margin:10px 0}.desc{color:var(--muted);margin-bottom:18px}.qty{display:flex;width:max-content;border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-bottom:15px}.qty button{border:0;width:40px;height:40px;background:#fff}.qty span{width:42px;text-align:center;padding-top:8px}.detail-actions{display:flex;gap:8px}.detail-actions button{flex:1;border:0;padding:13px;border-radius:10px;font-weight:bold}.orange{background:var(--orange);color:#fff}.dark{background:var(--navy);color:#fff}.cart-modal{width:min(720px,100%)}.cart-list{margin-top:42px}.cart-row{display:grid;grid-template-columns:62px 1fr auto auto;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.cart-row img{width:62px;height:62px;object-fit:contain;background:#f5f5f5;border-radius:8px}.cart-row h4{font-size:14px;margin:0}.small{font-size:12px;color:var(--muted)}.cq{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}.cq button{border:0;width:29px;background:#fff}.cq span{width:28px;text-align:center;padding-top:4px}.remove{border:0;background:none}.summary{background:#f8fafc;border-radius:13px;padding:14px;margin-top:15px}.line{display:flex;justify-content:space-between;margin:6px 0}.total{border-top:1px solid var(--line);padding-top:10px;margin-top:8px;font-size:19px;font-weight:bold}.order{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;outline:none;background:#fff}.full{grid-column:1/-1}.ship{color:var(--muted);font-size:13px;margin-top:6px}.confirm{width:100%;border:0;background:#16a34a;color:#fff;padding:14px;border-radius:10px;margin-top:10px;font-weight:bold}.empty{text-align:center;padding:35px;color:var(--muted)}
 .delivery-opt{display:flex;align-items:center;gap:6px;flex-direction:column;align-items:flex-start;border:2px solid var(--line);border-radius:12px;padding:9px 13px;cursor:pointer;background:#fff;font-size:13px;font-weight:700;color:var(--text)}.delivery-opt.active{border-color:var(--orange,#ff6a00);background:#fff7f0}.delivery-opt .small{font-weight:400}
-body.products-only .search-wrap,body.products-only .hero,body.products-only .home-features,body.products-only .newsletter{display:none!important}body.products-only main{padding-top:20px}body.products-only #products{margin-top:0}
+body.products-only .search-wrap,body.products-only .hero,body.products-only .home-features,body.products-only .newsletter,body.products-only .home-highlights{display:none!important}body.products-only main{padding-top:20px}body.products-only #products{margin-top:0}
 @media(max-width:900px){.products{grid-template-columns:repeat(2,1fr)}.pic{height:250px}.detail{grid-template-columns:1fr}.detail-pic{height:300px}}
 @media(max-width:560px){.products{grid-template-columns:1fr 1fr;gap:10px}.pic{height:205px}.info{padding:0 10px 12px}.name{font-size:13px;min-height:46px}.price{font-size:17px}.btn{font-size:12px;padding:10px 5px;min-height:48px}.cartbtn{width:54px;flex-basis:54px;font-size:17px}.drawer{width:88vw}.grid{grid-template-columns:1fr}.full{grid-column:auto}.cart-row{grid-template-columns:55px 1fr auto}.cart-row .cq{grid-column:2}.remove{grid-column:3;grid-row:1}}
 .hero-text{display:none!important}\n
@@ -273,6 +273,14 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
 <main id="home">
 <h1 class="sr-only">Bazar Dzair | متجر إلكتروني جزائري لمنتجات متنوعة بأسعار مناسبة، توصيل سريع لجميع الولايات والدفع عند الاستلام</h1>
 <section class="hero" aria-label="العرض الرئيسي"><picture><source srcset="/assets/hero.webp" type="image/webp"><img src="/assets/hero.jpg" alt="Bazar Dzair - تسوق منتجات متنوعة أونلاين في الجزائر" width="964" height="295" fetchpriority="high"></picture></section>
+<section class="section home-highlights" id="featuredProductsSection" style="display:none">
+<div class="section-head"><div class="section-title"><h2 data-i18n="featured_products_title">المنتجات المميزة ⭐</h2><p data-i18n="featured_products_subtitle">اختيارنا الخاص لكم</p></div></div>
+<div class="products" id="featuredProductGrid"></div>
+</section>
+<section class="section home-highlights" id="latestProductsSection" style="display:none">
+<div class="section-head"><div class="section-title"><h2 data-i18n="latest_products_title">أحدث المنتجات 🆕</h2><p data-i18n="latest_products_subtitle">آخر ما أضفناه إلى المتجر</p></div></div>
+<div class="products" id="latestProductGrid"></div>
+</section>
 <section class="section" id="products">
 <div class="section-head"><div class="section-title"><h2 id="categoryPageTitle" data-i18n="products_title">منتجاتنا 🛍️</h2><p id="categoryPageDescription" data-i18n="products_subtitle">أفضل العروض و أحدث المنتجات</p></div><button class="view-all" onclick="showProductsOnly(event)" data-i18n="view_all">عرض الكل ←</button></div>
 <div id="categoryBreadcrumb" style="display:none;margin:-4px 0 14px;color:#6f7d91;font-size:14px"></div>
@@ -501,7 +509,10 @@ function mapRestProduct(docSnap,index){
     category:data.category||"all",
     shippingHome:data.shippingHome||"",
     shippingOffice:data.shippingOffice||"",
-    deliveryMethod:data.deliveryMethod||""
+    deliveryMethod:data.deliveryMethod||"",
+    featured:data.featured===true,
+    // timestampValue في REST نص ISO جاهز؛ Date.parse يحوّله مباشرة إلى رقم مللي ثانية.
+    createdAtMs:data.createdAt?(Date.parse(data.createdAt)||0):0
   };
 }
 
@@ -633,6 +644,7 @@ async function loadProductsFromFirestore(){
       const key=getUrlCategory();
       if(key!=="all" && storeCategories.length) applyUrlCategory();
       else displayProducts();
+      renderHomeHighlights();
     }
     return true;
   }catch(error){
@@ -670,7 +682,11 @@ async function loadProductsFromFirestore(){
       stock:(data.stock===undefined||data.stock===null||data.stock==="")?null:Number(data.stock),
       shippingHome:data.shippingHome||"",
       shippingOffice:data.shippingOffice||"",
-      deliveryMethod:data.deliveryMethod||""
+      deliveryMethod:data.deliveryMethod||"",
+      featured:data.featured===true,
+      // createdAt يصل كـ Firestore Timestamp عبر SDK (له toMillis)؛ نحوّله إلى رقم بسيط
+      // لاستعماله في ترتيب "أحدث المنتجات" دون تحميل استعلام إضافي منفصل.
+      createdAtMs:(data.createdAt&&typeof data.createdAt.toMillis==="function")?data.createdAt.toMillis():0
     };
   }
   try{
@@ -685,10 +701,12 @@ async function loadProductsFromFirestore(){
       const key=getUrlCategory();
       if(key!=="all" && storeCategories.length) applyUrlCategory();
       else displayProducts();
+      renderHomeHighlights();
     },async error=>{
       console.warn("Realtime products sync failed; REST fallback",error);
       const ok=await loadProductsFromFirestore();
       if(!ok){products=[];displayProducts();}
+      renderHomeHighlights();
     });
     const renderStoreCategories=(snap)=>{
       const box=document.getElementById("storeCategories");
@@ -705,6 +723,7 @@ async function loadProductsFromFirestore(){
     console.warn("Firebase SDK init failed; REST fallback",error);
     const ok=await loadProductsFromFirestore();
     if(!ok){products=[];displayProducts();}
+    renderHomeHighlights();
   }
 })();
 
@@ -794,6 +813,19 @@ function showMoreProducts(){
   setTimeout(()=>document.getElementById("loadMoreProducts")?.scrollIntoView({behavior:"smooth",block:"center"}),50);
 }
 
+// بطاقة منتج واحدة، مستعملة في الشبكة الرئيسية وأيضًا في أقسام "المميزة"/"الأحدث"
+// حتى لا يتكرر نفس القالب في أكثر من مكان ويختلف عن بعضه بمرور الوقت.
+function productCardHtml(p){
+   const stockValue=Number(p.stock);
+   const available=p.published!==false&&!(Number.isFinite(stockValue)&&stockValue<=0);
+   const tp=BazarI18n.translateProduct(p);
+   const badgeHtml=available?"":`<span class="new" style="background:#9aa1ab">${esc(BazarI18n.t("badge_unavailable"))}</span>`;
+   const actionsHtml=available
+     ?`<button class="btn cartbtn" onclick="addCart(${p.id})" aria-label="${esc(BazarI18n.t("aria_add_to_cart"))}">🛒<span class="plus">+</span></button><button class="btn buybtn" onclick="buyNow(${p.id})">${esc(BazarI18n.t("buy_button"))} <span class="buycart">🛒</span></button>`
+     :`<button class="btn buybtn" disabled style="opacity:.55;cursor:not-allowed" onclick="return false">${esc(BazarI18n.t("button_unavailable"))}</button>`;
+   return `<article class="product${available?"":" unavailable"}"><div class="pic" onclick="goToProduct(${p.id})">${badgeHtml}<img src="${safeImg(p.image)}" alt="${esc(tp.name)}" loading="lazy" decoding="async" style="${available?"":"filter:grayscale(60%);opacity:.75"}"></div><div class="info"><div class="name" onclick="goToProduct(${p.id})">${esc(tp.name)}</div><div class="price">${money(p.price)}</div><div class="buttons">${actionsHtml}</div></div></article>`;
+}
+
 function displayProducts(list=products,reset=true){
  const g=document.getElementById("productGrid");
  if(reset){productsToDisplay=Array.isArray(list)?list.slice():[];visibleProductsCount=9;}
@@ -804,17 +836,37 @@ function displayProducts(list=products,reset=true){
    return;
  }
  const visibleList=productsToDisplay.slice(0,visibleProductsCount);
- g.innerHTML=visibleList.map(p=>{
-   const stockValue=Number(p.stock);
-   const available=p.published!==false&&!(Number.isFinite(stockValue)&&stockValue<=0);
-   const tp=BazarI18n.translateProduct(p);
-   const badgeHtml=available?"":`<span class="new" style="background:#9aa1ab">${esc(BazarI18n.t("badge_unavailable"))}</span>`;
-   const actionsHtml=available
-     ?`<button class="btn cartbtn" onclick="addCart(${p.id})" aria-label="${esc(BazarI18n.t("aria_add_to_cart"))}">🛒<span class="plus">+</span></button><button class="btn buybtn" onclick="buyNow(${p.id})">${esc(BazarI18n.t("buy_button"))} <span class="buycart">🛒</span></button>`
-     :`<button class="btn buybtn" disabled style="opacity:.55;cursor:not-allowed" onclick="return false">${esc(BazarI18n.t("button_unavailable"))}</button>`;
-   return `<article class="product${available?"":" unavailable"}"><div class="pic" onclick="goToProduct(${p.id})">${badgeHtml}<img src="${safeImg(p.image)}" alt="${esc(tp.name)}" loading="lazy" decoding="async" style="${available?"":"filter:grayscale(60%);opacity:.75"}"></div><div class="info"><div class="name" onclick="goToProduct(${p.id})">${esc(tp.name)}</div><div class="price">${money(p.price)}</div><div class="buttons">${actionsHtml}</div></div></article>`;
- }).join("");
+ g.innerHTML=visibleList.map(productCardHtml).join("");
  updateLoadMoreButton();
+}
+
+// ===== أقسام الصفحة الرئيسية: "المنتجات المميزة" و"أحدث المنتجات" =====
+// تُبنى من نفس المصفوفة products المحمّلة أصلاً (بدون أي طلب Firestore إضافي)،
+// وتُخفى تلقائيًا إذا لم تتوفر منتجات مناسبة (مثلاً لا يوجد أي منتج مميز بعد).
+const HOME_HIGHLIGHT_LIMIT=8;
+function renderHomeHighlights(){
+  const featuredGrid=document.getElementById("featuredProductGrid");
+  const featuredSection=document.getElementById("featuredProductsSection");
+  const latestGrid=document.getElementById("latestProductGrid");
+  const latestSection=document.getElementById("latestProductsSection");
+  if(!featuredGrid||!latestGrid||!Array.isArray(products)) return;
+  const visible=products.filter(p=>p.published!==false);
+
+  const featured=visible.filter(p=>p.featured===true).slice(0,HOME_HIGHLIGHT_LIMIT);
+  if(featured.length){
+    featuredGrid.innerHTML=featured.map(productCardHtml).join("");
+    if(featuredSection) featuredSection.style.display="";
+  } else if(featuredSection){
+    featuredSection.style.display="none";
+  }
+
+  const latest=visible.slice().sort((a,b)=>(b.createdAtMs||0)-(a.createdAtMs||0)).slice(0,HOME_HIGHLIGHT_LIMIT);
+  if(latest.length){
+    latestGrid.innerHTML=latest.map(productCardHtml).join("");
+    if(latestSection) latestSection.style.display="";
+  } else if(latestSection){
+    latestSection.style.display="none";
+  }
 }
 function productSlug(name){
   return String(name || "product")

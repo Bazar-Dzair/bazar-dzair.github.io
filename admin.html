@@ -387,6 +387,7 @@
    <div class="rating-admin-card"><label>تقييم المنتج</label><div class="rating-input-row"><input id="reviewRating" type="number" min="0" max="5" step="0.1" placeholder="4.6"><span>/ 5</span><input id="reviewCount" type="number" min="0" step="1" placeholder="24"><span>تقييم</span></div><small class="hint">الأرقام هنا للعرض في صفحة المنتج فقط.</small></div>
    <div class="full admin-display-options"><div class="display-options-title"><b>خيارات العرض في صفحة المنتج</b><small>تحكم في العناصر التي تظهر للزبون.</small></div><label class="check-option"><input id="showOldPrice" type="checkbox" checked><span>إظهار السعر القديم والتخفيض</span></label><label class="check-option"><input id="showReviews" type="checkbox" checked><span>إظهار التقييمات</span></label></div>
    <div class="full"><div class="publish-row"><div><b>نشر المنتج في المتجر</b><small>يمكنك تغيير الحالة لاحقًا من قائمة خيارات المنتج ⋮</small></div><label class="switch"><input id="published" type="checkbox" checked><span></span></label></div></div>
+   <div class="full"><div class="publish-row"><div><b>منتج مميز ⭐</b><small>يظهر في قسم "المنتجات المميزة" بالصفحة الرئيسية</small></div><label class="switch"><input id="featured" type="checkbox"><span></span></label></div></div>
    <div class="full"><label style="display:block;margin-bottom:8px">🚚 طريقة التوصيل *</label>
      <div class="delivery-method-toggle">
        <label class="delivery-method-opt"><input type="radio" name="deliveryMethod" id="deliveryMethodHome" value="home" checked onchange="window.updateDeliveryMethodUI()"><span>🏠 توصيل باب دار</span></label>
@@ -1440,6 +1441,7 @@ const reviewCountInput=document.getElementById("reviewCount");
 const showOldPriceInput=document.getElementById("showOldPrice");
 const showReviewsInput=document.getElementById("showReviews");
 const publishedInput=document.getElementById("published");
+const featuredInput=document.getElementById("featured");
 const descriptionInput=document.getElementById("description");
 const descriptionFrInput=document.getElementById("description_fr");
 const specificationsText=document.getElementById("specificationsText");
@@ -2299,6 +2301,7 @@ window.save=async()=>{
     category:categoryInput?.value||"tools",
     stock:Number(stockInput?.value),
     published:publishedInput?.checked!==false,
+    featured:featuredInput?.checked===true,
     reviewRating:safeRating,
     reviewCount:safeReviewCount,
     showOldPrice:showOldPriceInput?.checked!==false,
@@ -2393,6 +2396,7 @@ window.editProduct=id=>{
  if(reviewCountInput)reviewCountInput.value=p.reviewCount??p.ratingCount??"";
  if(showOldPriceInput)showOldPriceInput.checked=p.showOldPrice!==false;
  if(showReviewsInput)showReviewsInput.checked=p.showReviews!==false;
+ if(featuredInput)featuredInput.checked=p.featured===true;
  descriptionInput.value=p.description||"";
  if(descriptionFrInput)descriptionFrInput.value=p.description_fr||"";
  if(specificationsText){
@@ -2453,7 +2457,7 @@ window.resetForm=()=>{
  if(reviewCountInput)reviewCountInput.value="";
  if(showOldPriceInput)showOldPriceInput.checked=true;
  if(showReviewsInput)showReviewsInput.checked=true;
- if(publishedInput)publishedInput.checked=true;descriptionInput.value="";if(descriptionFrInput)descriptionFrInput.value="";
+ if(publishedInput)publishedInput.checked=true;if(featuredInput)featuredInput.checked=false;descriptionInput.value="";if(descriptionFrInput)descriptionFrInput.value="";
  if(specificationsText) specificationsText.value="";
  if(featuresText) featuresText.value="";
  selectedImages=[];

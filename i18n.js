@@ -46,6 +46,10 @@
     products_title:    { ar: "منتجاتنا 🛍️",                   fr: "Nos produits 🛍️" },
     products_subtitle: { ar: "أفضل العروض و أحدث المنتجات",   fr: "Les meilleures offres et les derniers produits" },
     view_all:          { ar: "عرض الكل ←",                    fr: "Voir tout →" },
+    featured_products_title:    { ar: "المنتجات المميزة ⭐",              fr: "Produits vedettes ⭐" },
+    featured_products_subtitle: { ar: "اختيارنا الخاص لكم",               fr: "Notre sélection pour vous" },
+    latest_products_title:      { ar: "أحدث المنتجات 🆕",                 fr: "Derniers produits 🆕" },
+    latest_products_subtitle:   { ar: "آخر ما أضفناه إلى المتجر",         fr: "Les derniers ajouts à la boutique" },
 
     benefit_service_title: { ar: "خدمة عملاء",     fr: "Service client" },
     benefit_service_desc:  { ar: "نحن في خدمتكم 7/7", fr: "À votre service 7j/7" },
