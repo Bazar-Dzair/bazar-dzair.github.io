@@ -171,6 +171,16 @@
     lang_toggle_to_fr: { ar: "Français", fr: "Français" },
     lang_toggle_to_ar: { ar: "العربية",  fr: "العربية" },
 
+    cat_back_to_store:   { ar: "العودة للمتجر",            fr: "Retour à la boutique" },
+    cat_all:            { ar: "الكل",                    fr: "Tous" },
+    cat_price_asc:       { ar: "السعر: الأقل أولاً",       fr: "Prix croissant" },
+    cat_price_desc:      { ar: "السعر: الأعلى أولاً",       fr: "Prix décroissant" },
+    cat_filter:          { ar: "تصفية",                    fr: "Filtrer" },
+    cat_available_only:  { ar: "المتوفر فقط",               fr: "Disponibles uniquement" },
+    cat_products_count:  { ar: "منتج",                     fr: "produits" },
+    cat_empty:           { ar: "لا توجد منتجات مطابقة",      fr: "Aucun produit ne correspond" },
+    cat_search_placeholder: { ar: "ابحث في هذا التصنيف...", fr: "Rechercher dans cette catégorie..." },
+
     currency_suffix: { ar: "دج", fr: "DA" }
   };
 
