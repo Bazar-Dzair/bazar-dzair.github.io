@@ -233,6 +233,98 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
 .product .pic:hover img{transform:scale(1.02)}
 
 .footer-toggle{display:block;border:0;background:none;color:inherit;padding:0;margin:0;text-align:right;font:inherit;cursor:pointer;width:100%;line-height:1.8}.footer-toggle:hover{text-decoration:underline}.footer-link-text{display:none;font-size:12px;line-height:1.8;color:rgba(255,255,255,.78);margin:5px 0 10px;padding:8px 10px;border-right:2px solid rgba(255,255,255,.28);white-space:pre-line}.footer-link-text.open{display:block} 
+</style>
+<style id="latest-carousel-css">
+/* ===== Derniers produits — carrousel (design Bazar Dzair) ===== */
+.lp{--lp-gap:14px;margin:26px 0 8px;padding:20px 16px 16px;background:#f3f6fb;border:1px solid #e7ecf4;border-radius:28px}
+.lp-head{display:flex;align-items:center;gap:14px;margin:0 0 18px}
+.lp-ico{flex:none;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,var(--orange-2),var(--orange));box-shadow:0 8px 18px rgba(255,90,10,.28)}
+.lp-ico .lp-svg{width:28px;height:28px;stroke-width:2.2}
+.lp-titles{flex:1;min-width:0}
+.lp-titles h2{margin:0;font-size:26px;line-height:1.25;font-weight:900;color:var(--navy)}
+.lp-titles p{margin:4px 0 0;font-size:14px;line-height:1.55;color:#62728b}
+.lp .view-all.lp-all{flex:none;padding:9px 18px;background:#fff;white-space:nowrap;transition:background .15s,color .15s}
+.lp .view-all.lp-all:hover{background:var(--orange);color:#fff}
+
+.lp-svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.lp-wrap{position:relative}
+.lp-track{display:flex;gap:var(--lp-gap);overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-padding-inline:16px;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:12px 16px 30px;margin:-12px -16px -30px}
+.lp-track::-webkit-scrollbar{display:none}
+.lp-track:focus-visible{outline:2px solid var(--orange);outline-offset:2px;border-radius:22px}
+
+.lp-card{flex:0 0 calc((100% - 2*var(--lp-gap))/3);min-width:0;scroll-snap-align:start;display:flex;flex-direction:column;padding:8px 8px 14px;background:#fff;border:1px solid #e9eef5;border-radius:22px;box-shadow:0 6px 20px rgba(7,29,59,.07)}
+.lp-media{position:relative;display:block;aspect-ratio:5/4;overflow:hidden;border-radius:16px;background:#eef2f7}
+.lp-media img{display:block;width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none}
+.lp-badge{position:absolute;z-index:2;top:10px;inset-inline-start:10px;padding:6px 12px;border-radius:12px;background:var(--orange);color:#fff;font-size:12px;font-weight:800;line-height:1.3}
+.lp-badge.off{background:#8b95a5}
+.lp-off .lp-media img{filter:grayscale(.6);opacity:.75}
+
+.lp-body{display:flex;flex-direction:column;flex:1;padding:12px 8px 0}
+.lp-name{margin:0 0 6px;font-size:16px;line-height:1.45;font-weight:800;color:var(--navy);min-height:2.9em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lp-name a{color:inherit}
+.lp-name a:hover{color:var(--orange)}
+.lp-name a:focus-visible,.lp-buy:focus-visible,.lp-fav:focus-visible,.lp-arrow:focus-visible,.lp-dot:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.lp-rating{display:flex;align-items:center;gap:6px;margin:0 0 6px;font-size:12px;color:#62728b}
+.lp-stars{position:relative;display:inline-block;width:80px;height:16px;color:#d6dce6}
+.lp-stars-bg,.lp-stars-fg>span{display:flex;width:80px}
+.lp-stars-fg{position:absolute;top:0;bottom:0;inset-inline-start:0;overflow:hidden;color:#ffb400}
+.lp-star{width:16px;height:16px;fill:currentColor;stroke:none}
+.lp-desc{margin:0 0 10px;font-size:13px;line-height:1.55;color:#62728b;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.lp-foot{margin-top:auto;padding-top:4px}
+.lp-price{margin:0 0 12px;font-size:22px;line-height:1.2;font-weight:900;color:var(--orange)}
+.lp-actions{display:flex;gap:10px}
+.lp-buy{flex:1;min-width:0;height:46px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;color:#fff;font-size:15px;font-weight:800;background:linear-gradient(135deg,var(--orange-2),var(--orange));box-shadow:0 6px 14px rgba(255,90,10,.26);transition:transform .15s,box-shadow .15s}
+.lp-buy:hover{box-shadow:0 8px 18px rgba(255,90,10,.38)}
+.lp-buy:active{transform:scale(.98)}
+.lp-buy[disabled]{background:#c9d0da;box-shadow:none;cursor:not-allowed;font-size:13px}
+.lp-fav{flex:none;width:46px;height:46px;display:grid;place-items:center;border:1.5px solid #dbe2ec;border-radius:14px;background:#fff;color:var(--navy);transition:border-color .15s,color .15s}
+.lp-fav:hover{border-color:var(--orange);color:var(--orange)}
+.lp-fav[aria-pressed="true"]{border-color:var(--orange);color:var(--orange)}
+.lp-fav[aria-pressed="true"] .lp-svg{fill:currentColor}
+.lp-fav.lp-pop .lp-svg{animation:lp-pop .3s ease-out}
+@keyframes lp-pop{0%{transform:scale(.7)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+
+.lp-arrow{position:absolute;z-index:3;top:var(--lp-arrow-y,110px);width:42px;height:42px;margin-top:-21px;display:grid;place-items:center;border:0;border-radius:50%;background:#fff;color:var(--navy);box-shadow:0 6px 18px rgba(7,29,59,.22);transition:opacity .2s,transform .15s}
+.lp-arrow:active{transform:scale(.94)}
+.lp-prev{inset-inline-start:8px}
+.lp-next{inset-inline-end:8px}
+.lp-next .lp-svg{transform:scaleX(-1)}
+[dir="ltr"] .lp-next .lp-svg{transform:none}
+[dir="ltr"] .lp-prev .lp-svg{transform:scaleX(-1)}
+.lp-arrow[disabled]{opacity:0;pointer-events:none}
+
+.lp-dots{display:flex;justify-content:center;gap:8px;margin-top:14px}
+.lp-dot{position:relative;width:10px;height:10px;padding:0;border:0;border-radius:50%;background:#c7cfdb;transition:background .2s,transform .2s}
+.lp-dot:after{content:"";position:absolute;inset:-9px}
+.lp-dot[aria-current="true"]{background:var(--orange);transform:scale(1.15)}
+.lp-static .lp-arrow,.lp-static .lp-dots{display:none}
+.lp-static .lp-track{padding-bottom:16px;margin-bottom:-16px}
+
+@media (max-width:900px){
+  .lp-card{flex-basis:calc((100% - var(--lp-gap))/2)}
+}
+@media (max-width:600px){
+  .lp{--lp-gap:12px;padding:18px 16px 14px;border-radius:24px}
+  .lp-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:11px;row-gap:10px;margin-bottom:14px}
+  .lp-titles{display:contents}
+  .lp-titles h2{grid-column:2;font-size:20px}
+  .lp-titles p{grid-column:1/-1;grid-row:2;margin:0;font-size:13px}
+  .lp-ico{width:44px;height:44px;border-radius:14px}
+  .lp-ico .lp-svg{width:24px;height:24px}
+  .lp .view-all.lp-all{padding:8px 13px;font-size:13px}
+  .lp-wrap{margin-inline:-16px}
+  .lp-track{--lp-w:min(68vw,280px);margin-inline:0;scroll-padding-inline:0;padding-inline:calc((100% - var(--lp-w))/2)}
+  .lp-card{flex:0 0 var(--lp-w);scroll-snap-align:center}
+  .lp-name{font-size:15px}
+  .lp-price{font-size:20px}
+  .lp-arrow{width:38px;height:38px;margin-top:-19px}
+}
+@media (prefers-reduced-motion:reduce){
+  .lp-buy,.lp-arrow,.lp-dot{transition:none}
+  .lp-fav.lp-pop .lp-svg{animation:none}
+}
 </style><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <script src="i18n.js" defer></script>
 <script src="addons.js" defer></script>
@@ -250,6 +342,14 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
 <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="lp-i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+<symbol id="lp-i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></symbol>
+<symbol id="lp-i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+<symbol id="lp-i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+<symbol id="lp-i-star" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
+</defs></svg>
+
 <header>
   <div class="topbar"><div class="item">🎧 <span id="topText1">خدمة عملاء مميزة</span></div><div class="item"><span class="truck">🚚</span><span id="topText2">توصيل إلى جميع الولايات</span></div><div class="item">🛡️ <span id="topText3">الدفع عند الاستلام</span></div></div>
   <div class="header">
@@ -277,9 +377,18 @@ body.products-only .search-wrap,body.products-only .hero,body.products-only .hom
 <div class="section-head"><div class="section-title"><h2 data-i18n="featured_products_title">المنتجات المميزة ⭐</h2><p data-i18n="featured_products_subtitle">اختيارنا الخاص لكم</p></div></div>
 <div class="products" id="featuredProductGrid"></div>
 </section>
-<section class="section home-highlights" id="latestProductsSection" style="display:none">
-<div class="section-head"><div class="section-title"><h2 data-i18n="latest_products_title">أحدث المنتجات 🆕</h2><p data-i18n="latest_products_subtitle">آخر ما أضفناه إلى المتجر</p></div></div>
-<div class="products" id="latestProductGrid"></div>
+<section class="section home-highlights lp" id="latestProductsSection" style="display:none" aria-labelledby="lpTitle">
+<div class="lp-head">
+  <span class="lp-ico" aria-hidden="true"><svg class="lp-svg" viewBox="0 0 24 24"><use href="#lp-i-flame"/></svg></span>
+  <div class="lp-titles"><h2 id="lpTitle" data-i18n="latest_products_title">أحدث المنتجات</h2><p data-i18n="latest_products_subtitle">اكتشف آخر المنتجات المضافة إلى متجرنا</p></div>
+  <button type="button" class="view-all lp-all" onclick="showProductsOnly(event)" data-i18n="view_all">عرض الكل ←</button>
+</div>
+<div class="lp-wrap" id="latestCarousel">
+  <button type="button" class="lp-arrow lp-prev" id="lpPrev" data-i18n-aria="carousel_prev" aria-label="السابق"><svg class="lp-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#lp-i-chevron"/></svg></button>
+  <div class="lp-track" id="latestProductGrid" role="region" aria-roledescription="carousel" data-i18n-aria="latest_products_title" aria-label="أحدث المنتجات" tabindex="0"></div>
+  <button type="button" class="lp-arrow lp-next" id="lpNext" data-i18n-aria="carousel_next" aria-label="التالي"><svg class="lp-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#lp-i-chevron"/></svg></button>
+  <div class="lp-dots" id="lpDots"></div>
+</div>
 </section>
 <section class="section" id="products">
 <div class="section-head"><div class="section-title"><h2 id="categoryPageTitle" data-i18n="products_title">منتجاتنا 🛍️</h2><p id="categoryPageDescription" data-i18n="products_subtitle">أفضل العروض و أحدث المنتجات</p></div><button class="view-all" onclick="showProductsOnly(event)" data-i18n="view_all">عرض الكل ←</button></div>
@@ -511,6 +620,11 @@ function mapRestProduct(docSnap,index){
     shippingOffice:data.shippingOffice||"",
     deliveryMethod:data.deliveryMethod||"",
     featured:data.featured===true,
+    published:data.published!==false,
+    stock:(data.stock===undefined||data.stock===null||data.stock==="")?null:Number(data.stock),
+    reviewRating:Number(data.reviewRating)||0,
+    reviewCount:Number(data.reviewCount)||0,
+    showReviews:data.showReviews!==false,
     // timestampValue في REST نص ISO جاهز؛ Date.parse يحوّله مباشرة إلى رقم مللي ثانية.
     createdAtMs:data.createdAt?(Date.parse(data.createdAt)||0):0
   };
@@ -684,6 +798,9 @@ async function loadProductsFromFirestore(){
       shippingOffice:data.shippingOffice||"",
       deliveryMethod:data.deliveryMethod||"",
       featured:data.featured===true,
+      reviewRating:Number(data.reviewRating)||0,
+      reviewCount:Number(data.reviewCount)||0,
+      showReviews:data.showReviews!==false,
       // createdAt يصل كـ Firestore Timestamp عبر SDK (له toMillis)؛ نحوّله إلى رقم بسيط
       // لاستعماله في ترتيب "أحدث المنتجات" دون تحميل استعلام إضافي منفصل.
       createdAtMs:(data.createdAt&&typeof data.createdAt.toMillis==="function")?data.createdAt.toMillis():0
@@ -816,7 +933,7 @@ function showMoreProducts(){
 // بطاقة منتج واحدة، مستعملة في الشبكة الرئيسية وأيضًا في أقسام "المميزة"/"الأحدث"
 // حتى لا يتكرر نفس القالب في أكثر من مكان ويختلف عن بعضه بمرور الوقت.
 function productCardHtml(p){
-   const stockValue=Number(p.stock);
+   const stockValue=lpHasStock(p)?Number(p.stock):NaN;
    const available=p.published!==false&&!(Number.isFinite(stockValue)&&stockValue<=0);
    const tp=BazarI18n.translateProduct(p);
    const badgeHtml=available?"":`<span class="new" style="background:#9aa1ab">${esc(BazarI18n.t("badge_unavailable"))}</span>`;
@@ -862,12 +979,173 @@ function renderHomeHighlights(){
 
   const latest=visible.slice().sort((a,b)=>(b.createdAtMs||0)-(a.createdAtMs||0)).slice(0,HOME_HIGHLIGHT_LIMIT);
   if(latest.length){
-    latestGrid.innerHTML=latest.map(productCardHtml).join("");
     if(latestSection) latestSection.style.display="";
+    renderLatestCarousel(latest);
   } else if(latestSection){
     latestSection.style.display="none";
   }
 }
+
+// ===== Derniers produits : carrousel (cartes + flèches + points + favoris) =====
+// Un seul jeu de gestionnaires (délégation) sur la piste; la géométrie est mesurée
+// avec getBoundingClientRect() pour rester correcte en RTL comme en LTR.
+const LP_WISH_KEY="bazarWishlist";
+const LP_DEFAULT_DESC="منتج متوفر في متجر Bazar Dzair.";
+const lpState={inited:false,track:null,wrap:null,prev:null,next:null,dots:null,per:1,pages:0,page:0,raf:0};
+
+// Number(null) vaut 0 : « pas de suivi de stock » ne doit jamais passer pour « rupture ».
+function lpHasStock(p){return p.stock!==null&&p.stock!==undefined&&p.stock!==""&&Number.isFinite(Number(p.stock));}
+function lpAvailable(p){return p.published!==false&&!(lpHasStock(p)&&Number(p.stock)<=0);}
+function lpWishRead(){try{const a=JSON.parse(localStorage.getItem(LP_WISH_KEY)||"[]");return Array.isArray(a)?a:[];}catch(_e){return [];}}
+function lpWishWrite(a){try{localStorage.setItem(LP_WISH_KEY,JSON.stringify(a));}catch(_e){}}
+function lpReduced(){return !!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);}
+
+// Même règle que product.html : on n'affiche que de vraies données d'avis.
+function lpRating(p){
+  if(p.showReviews===false) return null;
+  const v=Number(p.reviewRating),c=Number(p.reviewCount);
+  return (Number.isFinite(v)&&v>=1&&v<=5&&Number.isFinite(c)&&c>0)?{value:v,count:c}:null;
+}
+function lpStars(r){
+  const row='<svg class="lp-svg lp-star" viewBox="0 0 24 24" aria-hidden="true"><use href="#lp-i-star"/></svg>'.repeat(5);
+  return `<span class="lp-stars" role="img" aria-label="${r.value.toFixed(1)} / 5"><span class="lp-stars-bg">${row}</span><span class="lp-stars-fg" style="width:${(r.value/5*100).toFixed(1)}%"><span>${row}</span></span></span>`;
+}
+function lpDesc(tp){
+  const d=String(tp.description||"").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+  if(!d||d===LP_DEFAULT_DESC||d===BazarI18n.t("default_product_desc")) return "";
+  return d.length>110?d.slice(0,110).trim()+"…":d;
+}
+
+function latestCardHtml(p){
+  const T=k=>esc(BazarI18n.t(k));
+  const tp=BazarI18n.translateProduct(p);
+  const ok=lpAvailable(p);
+  const fid=String(p.firestoreId||p.id);
+  const wished=lpWishRead().includes(fid);
+  const r=lpRating(p);
+  const desc=lpDesc(tp);
+  const name=esc(tp.name);
+  const buy=ok
+    ?`<button type="button" class="lp-buy" data-act="buy" data-pid="${p.id}"><svg class="lp-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#lp-i-cart"/></svg>${T("buy_button")}</button>`
+    :`<button type="button" class="lp-buy" disabled>${T("button_unavailable")}</button>`;
+  return `<article class="lp-card${ok?"":" lp-off"}" role="group" aria-roledescription="slide">`
+    +`<a class="lp-media" href="#" data-act="open" data-pid="${p.id}" tabindex="-1" aria-hidden="true"><span class="lp-badge${ok?"":" off"}">${T(ok?"badge_new":"badge_unavailable")}</span><img src="${safeImg(p.image)}" alt="" loading="lazy" decoding="async" draggable="false"></a>`
+    +`<div class="lp-body"><h3 class="lp-name"><a href="#" data-act="open" data-pid="${p.id}">${name}</a></h3>`
+    +(r?`<div class="lp-rating">${lpStars(r)}<span>(${r.count})</span></div>`:"")
+    +(desc?`<p class="lp-desc">${esc(desc)}</p>`:"")
+    +`<div class="lp-foot"><div class="lp-price">${money(p.price)}</div><div class="lp-actions">${buy}`
+    +`<button type="button" class="lp-fav" data-act="fav" data-fid="${esc(fid)}" aria-pressed="${wished}" aria-label="${T(wished?"wish_remove":"wish_add")}"><svg class="lp-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#lp-i-heart"/></svg></button>`
+    +`</div></div></div></article>`;
+}
+
+function renderLatestCarousel(list){
+  const track=document.getElementById("latestProductGrid");
+  if(!track) return;
+  const html=list.map(latestCardHtml).join("");
+  // Les snapshots Firestore arrivent souvent : ne reconstruire que si le contenu a changé
+  // (évite de remettre le carrousel à zéro pendant que le visiteur le fait défiler).
+  if(track.dataset.sig!==html){ track.innerHTML=html; track.dataset.sig=html; }
+  lpInit(track);
+  lpSchedule();
+}
+
+function lpInit(track){
+  if(lpState.inited) return;
+  lpState.inited=true;
+  lpState.track=track;
+  lpState.wrap=document.getElementById("latestCarousel");
+  lpState.prev=document.getElementById("lpPrev");
+  lpState.next=document.getElementById("lpNext");
+  lpState.dots=document.getElementById("lpDots");
+  track.addEventListener("scroll",lpSchedule,{passive:true});
+  window.addEventListener("resize",lpSchedule);
+  if(window.ResizeObserver) new ResizeObserver(lpSchedule).observe(track);
+  lpState.prev.addEventListener("click",()=>lpGoPage(lpState.page-1));
+  lpState.next.addEventListener("click",()=>lpGoPage(lpState.page+1));
+  lpState.dots.addEventListener("click",e=>{const b=e.target.closest("[data-page]");if(b) lpGoPage(Number(b.dataset.page));});
+  track.addEventListener("click",e=>{
+    const el=e.target.closest("[data-act]");
+    if(!el||!track.contains(el)) return;
+    const act=el.dataset.act;
+    if(act==="open"){e.preventDefault();goToProduct(Number(el.dataset.pid));}
+    else if(act==="buy"){buyNow(Number(el.dataset.pid));}
+    else if(act==="fav"){lpToggleWish(el);}
+  });
+}
+
+function lpToggleWish(btn){
+  const fid=btn.dataset.fid;
+  const list=lpWishRead();
+  const i=list.indexOf(fid);
+  const on=i<0;
+  if(on) list.push(fid); else list.splice(i,1);
+  lpWishWrite(list);
+  btn.setAttribute("aria-pressed",String(on));
+  btn.setAttribute("aria-label",BazarI18n.t(on?"wish_remove":"wish_add"));
+  btn.classList.remove("lp-pop"); void btn.offsetWidth; btn.classList.add("lp-pop");
+  toast(BazarI18n.t(on?"toast_wish_added":"toast_wish_removed"));
+}
+
+function lpSchedule(){
+  if(lpState.raf) return;
+  lpState.raf=requestAnimationFrame(lpUpdate);
+}
+function lpMetrics(){
+  const tr=lpState.track,cards=tr.children,n=cards.length;
+  const cs=getComputedStyle(tr);
+  const padS=parseFloat(cs.paddingInlineStart)||0,padE=parseFloat(cs.paddingInlineEnd)||0;
+  const gap=parseFloat(cs.columnGap)||0;
+  const rtl=cs.direction==="rtl";
+  const inner=tr.clientWidth-padS-padE;
+  const cw=n?cards[0].getBoundingClientRect().width:0;
+  const per=cw?Math.max(1,Math.floor((inner+gap)/(cw+gap)+0.02)):1;
+  return {tr,cards,n,padS,padE,rtl,per};
+}
+function lpUpdate(){
+  lpState.raf=0;
+  const tr=lpState.track;
+  if(!tr||!tr.children.length||!tr.offsetParent) return;
+  const m=lpMetrics();
+  lpState.per=m.per;
+  const pages=Math.max(1,Math.ceil(m.n/m.per));
+  if(pages!==lpState.pages||lpState.dots.childElementCount!==pages){
+    lpState.dots.innerHTML=Array.from({length:pages},(_,i)=>`<button type="button" class="lp-dot" data-page="${i}" aria-label="${esc(BazarI18n.t("carousel_page"))} ${i+1}"></button>`).join("");
+    lpState.pages=pages;
+  }
+  const t=tr.getBoundingClientRect();
+  const startEdge=m.rtl?t.right-m.padS:t.left+m.padS;
+  const endEdge=m.rtl?t.left+m.padE:t.right-m.padE;
+  const f=m.cards[0].getBoundingClientRect(),l=m.cards[m.n-1].getBoundingClientRect();
+  const atStart=Math.abs((m.rtl?f.right:f.left)-startEdge)<4;
+  const atEnd=Math.abs((m.rtl?l.left:l.right)-endEdge)<4;
+  let idx=0,best=Infinity;
+  for(let i=0;i<m.n;i++){
+    const r=m.cards[i].getBoundingClientRect();
+    const d=m.per===1?Math.abs((r.left+r.width/2)-(t.left+t.width/2)):Math.abs((m.rtl?r.right:r.left)-startEdge);
+    if(d<best){best=d;idx=i;}
+  }
+  const page=atStart?0:(atEnd?pages-1:Math.min(pages-1,Math.round(idx/m.per)));
+  lpState.page=page;
+  lpState.wrap.classList.toggle("lp-static",atStart&&atEnd);
+  lpState.prev.disabled=atStart;
+  lpState.next.disabled=atEnd;
+  Array.prototype.forEach.call(lpState.dots.children,(d,i)=>{ if(i===page) d.setAttribute("aria-current","true"); else d.removeAttribute("aria-current"); });
+  // flèches centrées verticalement sur l'image
+  const media=m.cards[0].querySelector(".lp-media");
+  if(media){
+    const y=media.getBoundingClientRect().top-lpState.wrap.getBoundingClientRect().top+media.getBoundingClientRect().height/2;
+    lpState.wrap.style.setProperty("--lp-arrow-y",y.toFixed(1)+"px");
+  }
+}
+function lpGoPage(p){
+  const m=lpMetrics();
+  p=Math.max(0,Math.min(Math.ceil(m.n/m.per)-1,p));
+  const idx=Math.max(0,Math.min(p*m.per,m.n-m.per));
+  const c=m.cards[idx].getBoundingClientRect(),t=m.tr.getBoundingClientRect();
+  const delta=m.per===1?(c.left+c.width/2)-(t.left+t.width/2):(m.rtl?c.right-(t.right-m.padS):c.left-(t.left+m.padS));
+  m.tr.scrollBy({left:delta,behavior:lpReduced()?"auto":"smooth"});
+}
+
 function productSlug(name){
   return String(name || "product")
     .trim()

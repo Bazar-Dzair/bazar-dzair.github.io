@@ -836,7 +836,7 @@ document.title=name+" | Bazar Dzair";
 const md=document.getElementById("metaDescription");if(md)md.content=trimMetaDescription(desc);
 applyProductSEO(p,name,desc);
 if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});
-const stockValue=Number(p.stock);
+const stockValue=(p.stock===null||p.stock===undefined||p.stock==="")?NaN:Number(p.stock);
 const outOfStock=Number.isFinite(stockValue)&&stockValue<=0;
 const available=p.published!==false&&!outOfStock;
 // ===== تقييم المنتج: لا نعرض أي شيء إلا إذا توفرت بيانات تقييم حقيقية في المنتج (لا نختلق أرقامًا). =====
@@ -1145,7 +1145,7 @@ function applyProductSEO(p,name,desc){
     }
   };
 
-  if(Number.isFinite(Number(p.stock))&&Number(p.stock)<=0)ld.offers.availability="https://schema.org/OutOfStock";
+  if(p.stock!==null&&p.stock!==undefined&&p.stock!==""&&Number.isFinite(Number(p.stock))&&Number(p.stock)<=0)ld.offers.availability="https://schema.org/OutOfStock";
 
   // نضيف aggregateRating فقط إذا كانت بيانات التقييم الحقيقية موجودة في المنتج.
   const rating = p.aggregateRating || p.rating || {};
