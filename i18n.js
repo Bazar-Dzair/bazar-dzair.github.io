@@ -156,6 +156,8 @@
     search_placeholder:        { ar: "ابحث عن منتج...",                          fr: "Rechercher un produit..." },
     search_aria:               { ar: "بحث عن منتج",                              fr: "Rechercher un produit" },
     search_no_results:         { ar: "لا توجد نتائج مطابقة لبحثك 🔎",              fr: "Aucun résultat pour votre recherche 🔎" },
+    search_results_for:        { ar: "نتائج البحث عن",                          fr: "Résultats pour" },
+    search_results_title:      { ar: "نتائج البحث",                             fr: "Résultats de recherche" },
     badge_unavailable:         { ar: "غير متوفر",                                 fr: "Indisponible" },
     button_unavailable:        { ar: "غير متوفر حاليًا",                          fr: "Actuellement indisponible" },
     ship_unavailable_now:      { ar: "❌ التوصيل غير متوفر لهذه الولاية حالياً.", fr: "❌ Livraison actuellement indisponible pour cette wilaya." },

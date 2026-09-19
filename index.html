@@ -326,6 +326,12 @@ body.category-mode #products{margin-top:6px}
 /* صفحة التصنيف: بدون بطاقة عنوان التصنيف (بطاقة المزايا تبقى ثابتة دائمًا أسفل الصفحة) */
 body.category-mode .cat-head{display:none!important}
 body.cat-boot #productGrid{visibility:hidden;min-height:60vh}
+/* إعادة تحميل رابط بحث (?q=): الشبكة مخفية مع مؤشر تحميل إلى أن تصل المنتجات، بدل ظهور الرئيسية أو منتجات غير مفلترة */
+body.search-boot #productGrid{visibility:hidden;min-height:60vh}
+body.search-boot #loadMoreWrap{display:none!important}
+body.search-boot #products{position:relative}
+body.search-boot #products::after{content:"";position:absolute;top:140px;left:50%;width:34px;height:34px;margin-left:-17px;border:3px solid #ffd9c7;border-top-color:var(--orange);border-radius:50%;animation:sb-spin .8s linear infinite}
+@keyframes sb-spin{to{transform:rotate(360deg)}}
 /* خطوط فاصلة ناعمة في صفحة التصنيف: الهيدر | مسار التنقل | أزرار الفرز */
 body.category-mode .header{border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(7,29,59,.04)}
 body.category-mode #categoryBreadcrumb{margin:0 0 14px!important;padding:12px 2px;border-bottom:1px solid var(--line)}
@@ -532,12 +538,19 @@ body>footer{flex:none;margin-top:auto}
 </head>
 <body>
 <script>
-/* منع وميض الصفحة الرئيسية عند إعادة تحميل صفحة تصنيف (مثلاً عند تغيير اللغة):
+/* منع وميض الصفحة الرئيسية عند إعادة تحميل صفحة تصنيف أو نتيجة بحث (مثلاً عند تغيير اللغة):
    نفعّل وضع التصنيف فورًا قبل أول رسم، ونُخفي الشبكة حتى تصل بيانات التصنيف. */
 (function(){try{
   var m=location.pathname.match(/\/product-category\/([^\/]+)\/?$/);
-  var q=new URLSearchParams(location.search).get("category");
-  if(m||(q&&q!=="all")){
+  var sp=new URLSearchParams(location.search);
+  var q=sp.get("category");
+  var sq=(sp.get("q")||"").replace(/\s+/g," ").trim().slice(0,100);
+  if(sq){
+    /* رابط بحث (/?q=...): نعرض وضع "نتائج البحث" فورًا ونُخفي الشبكة الثابتة حتى تصل المنتجات */
+    document.body.classList.add("products-only","search-boot");
+    setTimeout(function(){document.body.classList.remove("search-boot");},10000);
+    document.addEventListener("DOMContentLoaded",function(){var i=document.getElementById("search");if(i&&!i.value)i.value=sq;});
+  }else if(m||(q&&q!=="all")){
     document.body.classList.add("category-mode","cat-boot");
     setTimeout(function(){document.body.classList.remove("cat-boot");},10000);
   }
@@ -1113,9 +1126,9 @@ async function loadProductsFromFirestore(){
       products=firestoreProducts;
       syncCartWithProducts();
       const key=getUrlCategory();
-      if(key!=="all" && storeCategories.length) applyUrlCategory();
-      else displayProducts();
       if(getUrlSearchQuery()) applyUrlSearch();
+      else if(key!=="all" && storeCategories.length) applyUrlCategory();
+      else displayProducts();
       renderHomeHighlights();
     }
     return true;
@@ -1175,9 +1188,9 @@ async function loadProductsFromFirestore(){
       products=snap.docs.map(mapSnap);
       syncCartWithProducts();
       const key=getUrlCategory();
-      if(key!=="all" && storeCategories.length) applyUrlCategory();
-      else displayProducts();
       if(getUrlSearchQuery()) applyUrlSearch();
+      else if(key!=="all" && storeCategories.length) applyUrlCategory();
+      else displayProducts();
       renderHomeHighlights();
     },async error=>{
       console.warn("Realtime products sync failed; REST fallback",error);
@@ -1319,7 +1332,10 @@ function updateCategorySeo(category){
   document.getElementById("catAvailBtn")?.classList.remove("active");
 }
 function applyUrlCategory(){
+  // البحث (?q=) له الأولوية: وصول بيانات التصنيفات لا يجب أن يمسح نتيجة البحث المعروضة
+  if(getUrlSearchQuery()){ if(products.length) applyUrlSearch(); return; }
   const key=getUrlCategory();
+  if(searchActive){ leaveSearchMode(); document.body.classList.remove("products-only"); } // رجوع من نتيجة بحث إلى الرابط الأصلي
   if(key==="all"){updateCategorySeo(null); if(products.length) displayProducts(products); return;}
   const category=findCategory(key);
   if(!category){
@@ -1330,6 +1346,7 @@ function applyUrlCategory(){
   if(products.length) filterCategory(category.key,true);
 }
 let productsToDisplay=[];
+let searchActive=false; // true أثناء عرض نتيجة بحث
 // 12 منتجًا في البداية (3 أسطر × 4)، وكل ضغطة على "إظهار المزيد" تضيف 8 (سطران × 4) فتبقى الأسطر كاملة دائمًا.
 const PRODUCTS_FIRST_PAGE=12;
 let visibleProductsCount=PRODUCTS_FIRST_PAGE;
@@ -1773,6 +1790,8 @@ function updateTotals(){
 }
 function showHome(e){
   if(e)e.preventDefault();
+  dropSearchFromUrl();
+  if(searchActive||document.body.classList.contains("search-boot")){leaveSearchMode();if(products.length)displayProducts(products);}
   document.body.classList.remove("products-only");
   closeCategoryMenu();
   document.getElementById("home").scrollIntoView({behavior:"smooth",block:"start"});
@@ -1780,12 +1799,15 @@ function showHome(e){
 
 function showProductsOnly(e){
   if(e)e.preventDefault();
+  dropSearchFromUrl();
+  leaveSearchMode();
   const hs=document.getElementById("search"); if(hs) hs.value="";
   document.body.classList.add("products-only");
   closeCategoryMenu();
   displayProducts(products);
   document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
 }
+// زر الرجوع/الأمام: الرابط هو مصدر الحالة (بحث ?q= أو تصنيف أو الرئيسية)
 window.addEventListener("popstate",()=>{ if(products.length) applyUrlCategory(); });
 (function(){
   // تغيّر عدد الأعمدة (هاتف/لوحي/حاسوب) يغيّر حجم الصفحة: نعيد الرسم عند عبور نقاط التوقف فقط
@@ -1830,6 +1852,7 @@ function updateNavActive(){
 
 function filterCategory(category,fromUrl=false){
   document.body.classList.remove("products-only");
+  leaveSearchMode();
   const hs=document.getElementById("search"); if(hs) hs.value="";
   if(category === "all"){
     updateCategorySeo(null);
@@ -1862,24 +1885,86 @@ function filterCategory(category,fromUrl=false){
 }
 
 let searchDebounceTimer=null;
-// ===== منطق البحث الفعلي (بدون تحديث الرابط ولا تمرير) — يُستعمل من searchProducts() وأيضًا لاستعادة البحث بعد إعادة تحميل الصفحة =====
+// ===== البحث: الرابط هو مصدر الحالة =====
+// بحث جديد  → /?q=كلمات+البحث  (رابط قابل للمشاركة وللإضافة إلى المفضلة)
+// إعادة تحميل / رجوع / فتح الرابط مباشرة → نفس نتيجة البحث تُعرض من جديد
+// مسح البحث أو الانتقال للرئيسية/تصنيف → يُحذف ?q= من الرابط.
+const SEARCH_MAX_LEN=100;
+function cleanSearchQuery(s){
+  return String(s==null?"":s).replace(/[\u0000-\u001f\u007f]/g," ").replace(/\s+/g," ").trim().slice(0,SEARCH_MAX_LEN);
+}
+function getUrlSearchQuery(){
+  try{return cleanSearchQuery(new URLSearchParams(location.search).get("q"));}catch(_e){return "";}
+}
+// توحيد النص للمقارنة: حروف صغيرة، بلا تشكيل/علامات لاتينية، وتوحيد أشكال الألف والياء والتاء المربوطة.
+function normalizeSearch(s){
+  return String(s==null?"":s).toLowerCase().normalize("NFKD")
+    .replace(/[\u0300-\u036f\u064b-\u065f\u0670\u0640]/g,"")
+    .replace(/[\u0622\u0623\u0625\u0671]/g,"\u0627").replace(/\u0649/g,"\u064a").replace(/\u0629/g,"\u0647")
+    .replace(/\s+/g," ").trim();
+}
+function productSearchHaystack(p){
+  const tp=BazarI18n.translateProduct(p)||{};
+  return normalizeSearch([tp.name,p.name,p.name_fr].join(" "));
+}
+function searchUrlFor(q){
+  if(!q) return "/";
+  const u=new URLSearchParams(); u.set("q",q);
+  return "/?"+u.toString();
+}
+// يكتب رابط البحث في شريط العنوان. بحث جديد = سجل جديد (زر الرجوع يعيدك لما قبله)،
+// وتعديل بحث قائم = استبدال (حتى لا يمرّ الرجوع على كل تعديل).
+function commitSearchUrl(q){
+  try{
+    const target=searchUrlFor(q);
+    if(location.pathname+location.search===target) return;
+    if(q&&getUrlSearchQuery()) history.replaceState(null,"",target);
+    else history.pushState(null,"",target);
+  }catch(_e){}
+}
+// عند الانتقال للرئيسية/كل المنتجات: نحذف ?q= من الرابط (سجل جديد، فيبقى الرجوع يعيد نتيجة البحث)
+function dropSearchFromUrl(){
+  if(!getUrlSearchQuery()) return;
+  try{history.pushState(null,"",location.pathname);}catch(_e){}
+}
+function leaveSearchMode(){
+  const input=document.getElementById("search"); if(input) input.value="";
+  document.body.classList.remove("search-boot");
+  if(searchActive){searchActive=false;updateCategorySeo(null);}
+}
+function showSearchHeading(q,count){
+  const lang=window.BazarI18n?BazarI18n.getLang():"ar";
+  const title=document.getElementById("categoryPageTitle");
+  const desc=document.getElementById("categoryPageDescription");
+  const crumb=document.getElementById("categoryBreadcrumb");
+  if(title) title.textContent=BazarI18n.t("search_results_for")+" «"+q+"»";
+  if(desc) desc.textContent=count+" "+BazarI18n.t("cat_products_count");
+  if(crumb) crumb.style.display="none";
+  document.title=q+" — "+BazarI18n.t("search_results_title")+" | Bazar Dzair";
+}
+// ===== منطق البحث الفعلي (لا يمس الرابط) — يُستعمل من searchProducts() ومن استعادة البحث عن الرابط =====
 function runProductSearch(q){
-  const input=document.getElementById("search");
-  if(input && input.value!==q) input.value=q;
+  q=cleanSearchQuery(q);
   if(!q){
+    leaveSearchMode();
     document.body.classList.remove("products-only");
     updateCategorySeo(activeCategory);
     displayProducts(activeCategory?products.filter(p=>String(p.category)===String(activeCategory.key)):products);
     return;
   }
   document.body.classList.add("products-only");
-  const qLower=q.toLowerCase();
-  const filtered=products.filter(p=>{
-    const tp=BazarI18n.translateProduct(p);
-    return String(tp.name||"").toLowerCase().includes(qLower)
-      || String(p.name||"").toLowerCase().includes(qLower)
-      || String(p.name_fr||"").toLowerCase().includes(qLower);
-  });
+  if(!products.length){
+    // المنتجات لم تصل بعد: نبقي مؤشر التحميل، وسيُعاد تطبيق البحث تلقائيًا عند وصولها (انظر مستمعي Firestore)
+    document.body.classList.add("search-boot");
+    setTimeout(()=>document.body.classList.remove("search-boot"),10000);
+    return;
+  }
+  if(document.body.classList.contains("category-mode")) updateCategorySeo(null);
+  searchActive=true;
+  document.body.classList.remove("search-boot");
+  const tokens=normalizeSearch(q).split(" ").filter(Boolean);
+  const filtered=products.filter(p=>{const h=productSearchHaystack(p);return tokens.every(t=>h.includes(t));});
+  showSearchHeading(q,filtered.length);
   if(!filtered.length){
     const g=document.getElementById("productGrid");
     if(g) g.innerHTML='<div class="empty" style="grid-column:1/-1">'+esc(BazarI18n.t("search_no_results"))+'</div>';
@@ -1889,21 +1974,13 @@ function runProductSearch(q){
   }
   displayProducts(filtered);
 }
-// يُسجَّل نص البحث في رابط الصفحة (?q=...) حتى لا تضيع نتيجة البحث عند إعادة التحميل.
-function updateSearchUrl(q){
-  try{
-    const url=new URL(location.href);
-    if(q) url.searchParams.set("q",q); else url.searchParams.delete("q");
-    history.replaceState(null,"",url.pathname+url.search+url.hash);
-  }catch(_e){}
-}
-function getUrlSearchQuery(){
-  try{return (new URLSearchParams(location.search).get("q")||"").trim();}catch(_e){return "";}
-}
-// تُستدعى بعد كل تحميل/تحديث للمنتجات لاستعادة نفس نتيجة البحث إذا كانت موجودة في رابط الصفحة.
+// تُستدعى بعد كل تحميل/تحديث للمنتجات وعند الرجوع/الأمام لاستعادة نتيجة البحث المكتوبة في الرابط.
 function applyUrlSearch(){
   const q=getUrlSearchQuery();
   if(!q) return false;
+  const input=document.getElementById("search");
+  // لا نكتب فوق نص يكتبه الزبون الآن (تحديث فوري للمنتجات قد يصل أثناء الكتابة)
+  if(input && document.activeElement!==input && input.value!==q) input.value=q;
   runProductSearch(q);
   return true;
 }
@@ -1912,8 +1989,9 @@ function searchProducts(){
   searchDebounceTimer=setTimeout(()=>{
     const input=document.getElementById("search");
     if(!input)return;
-    const q=input.value.trim();
-    updateSearchUrl(q);
+    const q=cleanSearchQuery(input.value);
+    if(input.value!==q && document.activeElement!==input) input.value=q;
+    commitSearchUrl(q);
     runProductSearch(q);
     if(q) document.getElementById("products")?.scrollIntoView({behavior:"smooth",block:"start"});
   },200);
