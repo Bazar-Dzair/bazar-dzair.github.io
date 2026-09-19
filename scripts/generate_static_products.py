@@ -331,6 +331,9 @@ for p in products:
     # هذا ما يُضمَّن في الصفحة (انظر static_product_data في inject_product_seo).
     static_product_data={**p, 'firestoreId': p['_id']}
     static_product_data.pop('_id', None)
+    # لا نُضمّن في الصفحة الثابتة أي تقييم يدوي قديم (reviewRating/reviewCount/reviews...): التقييمات الحقيقية تُجلب من مجموعة reviews فقط.
+    for _k in ('reviewRating','reviewCount','aggregateRating','rating','ratingValue','ratingCount','reviews'):
+        static_product_data.pop(_k, None)
     template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data)
     (root/'product'/slug).mkdir(parents=True,exist_ok=True)
     (root/'product'/slug/'index.html').write_text(template,encoding='utf-8')
