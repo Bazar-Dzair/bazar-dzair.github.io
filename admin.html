@@ -287,10 +287,6 @@
 
 /* ===== Product presentation fields ===== */
 .field-optional{font-size:10px;color:#98a2b3;font-weight:600;margin-inline-start:4px}
-.rating-admin-card{background:linear-gradient(180deg,#fffaf5,#fff);border:1px solid #ffe3c2;border-radius:14px;padding:12px}
-.rating-input-row{display:flex;align-items:center;gap:7px;direction:ltr;margin-top:7px}
-.rating-input-row input{min-width:0;flex:1}
-.rating-input-row span{font-size:12px;color:#667085;font-weight:700;white-space:nowrap}
 .admin-display-options{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f8fafc;border:1px solid #e6eaf0;border-radius:14px;padding:13px}
 .display-options-title{display:flex;flex-direction:column;gap:3px;margin-inline-end:auto}
 .display-options-title small{font-size:11px;color:#7b8492}
@@ -385,7 +381,6 @@
    <div><label>السعر القديم <span class="field-optional">اختياري</span></label><input id="oldPrice" type="number" min="0" placeholder="مثال: 4800"><small class="hint">يظهر السعر القديم والتخفيض تلقائيًا إذا كان أكبر من السعر الحالي.</small></div>
    <div><label>التصنيف</label><select id="category"></select></div>
    <div><label>المخزون *</label><input id="stock" type="number" min="0" placeholder="20"></div>
-   <div class="rating-admin-card"><label>تقييم المنتج</label><div class="rating-input-row"><input id="reviewRating" type="number" min="0" max="5" step="0.1" placeholder="4.6"><span>/ 5</span><input id="reviewCount" type="number" min="0" step="1" placeholder="24"><span>تقييم</span></div><small class="hint">الأرقام هنا للعرض في صفحة المنتج فقط.</small></div>
    <div class="full admin-display-options"><div class="display-options-title"><b>خيارات العرض في صفحة المنتج</b><small>تحكم في العناصر التي تظهر للزبون.</small></div><label class="check-option"><input id="showOldPrice" type="checkbox" checked><span>إظهار السعر القديم والتخفيض</span></label><label class="check-option"><input id="showReviews" type="checkbox" checked><span>إظهار التقييمات</span></label></div>
    <div class="full"><div class="publish-row"><div><b>نشر المنتج في المتجر</b><small>يمكنك تغيير الحالة لاحقًا من قائمة خيارات المنتج ⋮</small></div><label class="switch"><input id="published" type="checkbox" checked><span></span></label></div></div>
    <div class="full"><div class="publish-row"><div><b>منتج مميز ⭐</b><small>يظهر في قسم "المنتجات المميزة" بالصفحة الرئيسية</small></div><label class="switch"><input id="featured" type="checkbox"><span></span></label></div></div>
@@ -1416,7 +1411,7 @@ renderAddonsGrid();
 </script>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,getDocs,serverTimestamp,setDoc,getDoc}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,getDocs,serverTimestamp,setDoc,getDoc,query,where,deleteField}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 // ملاحظة 17/09/2026: تم حذف import الخاص بـ Firebase Storage (getStorage/uploadBytes/...)
 // من هنا لأنه لم يكن مستعملاً فعليًا فأي مكان — المشروع على خطة Spark المجانية بلا
@@ -1483,8 +1478,6 @@ const priceInput=document.getElementById("price");
 const oldPriceInput=document.getElementById("oldPrice");
 const categoryInput=document.getElementById("category");
 const stockInput=document.getElementById("stock");
-const reviewRatingInput=document.getElementById("reviewRating");
-const reviewCountInput=document.getElementById("reviewCount");
 const showOldPriceInput=document.getElementById("showOldPrice");
 const showReviewsInput=document.getElementById("showReviews");
 const publishedInput=document.getElementById("published");
@@ -2189,29 +2182,54 @@ document.addEventListener("click",(e)=>{
   const menu=document.getElementById("reviewsFilterMenu");
   if(menu && !menu.classList.contains("hidden") && !e.target.closest(".orders-filter-wrap")) menu.classList.add("hidden");
 });
+// نعيد حساب معدل التقييم وعدده تلقائيًا من التقييمات الحقيقية المنشورة فقط،
+// ونكتبهما فوق حقلي reviewRating/reviewCount في وثيقة المنتج — هذان الحقلان
+// لم يعودا يُدخلان يدويًا من لوحة التحكم، بل يُشتقان دائمًا من تقييمات الزبائن
+// الفعلية حتى تبقى بطاقات المنتج في الصفحة الرئيسية والفئات صحيحة وسريعة العرض
+// (دون الحاجة لجلب كل التقييمات عند كل عرض للبطاقة).
+async function syncProductRatingFromReviews(productId){
+  if(!productId) return;
+  try{
+    const q=query(collection(db,"reviews"),where("productId","==",productId),where("approved","==",true));
+    const snap=await getDocs(q);
+    const values=snap.docs.map(d=>Number(d.data()?.ratingValue)).filter(v=>Number.isFinite(v)&&v>=1&&v<=5);
+    if(values.length){
+      const avg=Math.round((values.reduce((s,v)=>s+v,0)/values.length)*10)/10;
+      await updateDoc(doc(db,"products",productId),{reviewRating:avg,reviewCount:values.length});
+    }else{
+      await updateDoc(doc(db,"products",productId),{reviewRating:deleteField(),reviewCount:deleteField()});
+    }
+  }catch(e){console.error("syncProductRatingFromReviews failed",e);}
+}
 window.approveReview=async function(id){
   try{
+    const r=reviewsAll.find(x=>x.id===id);
     await updateDoc(doc(db,"reviews",id),{approved:true,approvedAt:serverTimestamp()});
-    reviewsAll=reviewsAll.map(r=>r.id===id?{...r,approved:true}:r);
+    reviewsAll=reviewsAll.map(x=>x.id===id?{...x,approved:true}:x);
     toast("تم نشر التقييم فصفحة المنتج ✅","ok");
     renderReviews();
+    syncProductRatingFromReviews(r?.productId);
   }catch(e){console.error(e);toast("تعذر نشر التقييم: "+(e.message||"خطأ غير معروف"),"err");}
 };
 window.unapproveReview=async function(id){
   try{
+    const r=reviewsAll.find(x=>x.id===id);
     await updateDoc(doc(db,"reviews",id),{approved:false});
-    reviewsAll=reviewsAll.map(r=>r.id===id?{...r,approved:false}:r);
+    reviewsAll=reviewsAll.map(x=>x.id===id?{...x,approved:false}:x);
     toast("تم إخفاء التقييم عن صفحة المنتج","ok");
     renderReviews();
+    syncProductRatingFromReviews(r?.productId);
   }catch(e){console.error(e);toast("تعذر إخفاء التقييم: "+(e.message||"خطأ غير معروف"),"err");}
 };
 window.deleteReview=async function(id){
   if(!confirm("حذف هذا التقييم نهائيًا؟ لا يمكن التراجع.")) return;
   try{
+    const r=reviewsAll.find(x=>x.id===id);
     await deleteDoc(doc(db,"reviews",id));
-    reviewsAll=reviewsAll.filter(r=>r.id!==id);
+    reviewsAll=reviewsAll.filter(x=>x.id!==id);
     toast("تم حذف التقييم ✅","ok");
     renderReviews();
+    syncProductRatingFromReviews(r?.productId);
   }catch(e){console.error(e);toast("تعذر حذف التقييم: "+(e.message||"خطأ غير معروف"),"err");}
 };
 function renderPagination(id,current,totalPages,stateName){
@@ -2484,8 +2502,6 @@ window.save=async()=>{
   features=String(featuresText?.value||"").split("\n").map(s=>s.trim()).filter(Boolean);
   const currentPrice=Number(priceInput?.value||0);
   const enteredOldPrice=Number(oldPriceInput?.value||0);
-  const safeRating=Math.max(0,Math.min(5,Number(reviewRatingInput?.value||0)));
-  const safeReviewCount=Math.max(0,Math.floor(Number(reviewCountInput?.value||0)));
   let data={
     name:nameInput?.value.trim()||"",
     name_fr:nameFrInput?.value.trim()||"",
@@ -2498,8 +2514,6 @@ window.save=async()=>{
     stock:Number(stockInput?.value),
     published:publishedInput?.checked!==false,
     featured:featuredInput?.checked===true,
-    reviewRating:safeRating,
-    reviewCount:safeReviewCount,
     showOldPrice:showOldPriceInput?.checked!==false,
     showReviews:showReviewsInput?.checked!==false,
     description:descriptionInput?.value.trim()||"",
@@ -2591,8 +2605,6 @@ window.editProduct=id=>{
  if(oldPriceInput)oldPriceInput.value=p.oldPrice??p.compareAtPrice??"";
  renderCategorySelect(p.category||categories[0]?.key||"tools");
  stockInput.value=p.stock??"";
- if(reviewRatingInput)reviewRatingInput.value=p.reviewRating??p.rating??"";
- if(reviewCountInput)reviewCountInput.value=p.reviewCount??p.ratingCount??"";
  if(showOldPriceInput)showOldPriceInput.checked=p.showOldPrice!==false;
  if(showReviewsInput)showReviewsInput.checked=p.showReviews!==false;
  if(featuredInput)featuredInput.checked=p.featured===true;
@@ -2652,8 +2664,6 @@ window.resetForm=()=>{
  titleBox.textContent="➕ إضافة منتج";
  nameInput.value="";if(nameFrInput)nameFrInput.value="";priceInput.value="";if(oldPriceInput)oldPriceInput.value="";
  renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";
- if(reviewRatingInput)reviewRatingInput.value="";
- if(reviewCountInput)reviewCountInput.value="";
  if(showOldPriceInput)showOldPriceInput.checked=true;
  if(showReviewsInput)showReviewsInput.checked=true;
  if(publishedInput)publishedInput.checked=true;if(featuredInput)featuredInput.checked=false;descriptionInput.value="";if(descriptionFrInput)descriptionFrInput.value="";
