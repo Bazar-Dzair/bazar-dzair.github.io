@@ -818,7 +818,7 @@ function previewBrandImage(input,id){
   if(!file||!img)return;
   img.src=URL.createObjectURL(file);img.style.display="block";
 }
-async function uploadBrandFile(input,path){
+async function uploadBrandFile(input,path,maxSide){
   const file=input?.files?.[0];
   if(!file)return "";
   // ⚠️ إصلاح 17/09/2026: كانت هذه الدالة ترفع الشعار/البانر عبر Firebase Storage
@@ -827,7 +827,7 @@ async function uploadBrandFile(input,path){
   // صور المنتجات فالموقع (admin.html نفسه) ترفع فعليًا عبر Cloudinary — نستعمل نفس
   // الآلية هنا عوض Firebase Storage.
   if(!window.bazarUploadToCloudinary||!window.bazarCompressImage) throw new Error("خدمة رفع الصور غير جاهزة");
-  const blob=await window.bazarCompressImage(file,1200,0.8);
+  const blob=await window.bazarCompressImage(file,maxSide||1200,0.82);
   return await window.bazarUploadToCloudinary(blob);
 }
 function closeSetting(){document.getElementById("settingsModal").classList.add("hidden");activeSetting=null}
@@ -837,10 +837,12 @@ async function saveSetting(){
     if(!window.bazarDb||!window.bazarSetDoc||!window.bazarDoc) throw new Error("Firebase غير جاهز");
 
     if(activeSetting==="branding"){
+      const saveBtn=document.querySelector("#settingsModal .modal-actions .green");
+      if(saveBtn){saveBtn.disabled=true;saveBtn.textContent="⏳ جارٍ رفع الصور...";}
       let logoUrl=document.getElementById("logoUrl")?.value.trim()||"";
       let bannerUrl=document.getElementById("bannerUrl")?.value.trim()||"";
-      const logoFile=await uploadBrandFile(document.getElementById("logoFile"),"site/logo");
-      const bannerFile=await uploadBrandFile(document.getElementById("bannerFile"),"site/banner");
+      const logoFile=await uploadBrandFile(document.getElementById("logoFile"),"site/logo",600);
+      const bannerFile=await uploadBrandFile(document.getElementById("bannerFile"),"site/banner",1600);
       if(logoFile)logoUrl=logoFile;
       if(bannerFile)bannerUrl=bannerFile;
       await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","site"),{
@@ -857,6 +859,8 @@ async function saveSetting(){
     alert("تم حفظ الإعدادات بنجاح ✅");
   }catch(e){
     console.error(e);
+    const b=document.querySelector("#settingsModal .modal-actions .green");
+    if(b){b.disabled=false;b.textContent="💾 حفظ الإعدادات";}
     alert("تعذر حفظ الإعدادات: "+e.message);
   }
 }
@@ -1404,25 +1408,32 @@ window.bazarUploadToCloudinary=uploadToCloudinary;window.bazarCompressImage=comp
 const CLOUDINARY_CLOUD_NAME="ehh5xqwc";
 const CLOUDINARY_UPLOAD_PRESET="bazar_dzair";
 async function uploadToCloudinary(blob){
-  const fd=new FormData();
-  fd.append("file",blob);
-  fd.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
-  const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),25000);
-  let res;
-  try{
-    res=await fetch("https://api.cloudinary.com/v1_1/"+CLOUDINARY_CLOUD_NAME+"/image/upload",{method:"POST",body:fd,signal:controller.signal});
-  }catch(e){
-    if(e.name==="AbortError") throw new Error("انتهت مهلة رفع الصورة (25 ثانية). تحقق من الاتصال بالإنترنت.");
-    throw e;
-  }finally{ clearTimeout(timeout); }
-  let json;
-  try{ json=await res.json(); }catch(_e){ throw new Error("رد غير صالح من خدمة رفع الصور."); }
-  if(!res.ok||!json||!json.secure_url){
-    const msg=json&&json.error&&json.error.message?json.error.message:("فشل الرفع (HTTP "+res.status+"). تحقق من إعدادات Cloudinary (Cloud name / Upload preset).");
-    throw new Error(msg);
+  // محاولات متعددة لأن الاتصال (H+/4G) قد ينقطع أثناء الرفع فيظهر "Failed to fetch"
+  let lastErr;
+  for(let attempt=1;attempt<=3;attempt++){
+    const fd=new FormData();
+    fd.append("file",blob);
+    fd.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),45000);
+    try{
+      const res=await fetch("https://api.cloudinary.com/v1_1/"+CLOUDINARY_CLOUD_NAME+"/image/upload",{method:"POST",body:fd,signal:controller.signal});
+      let json;
+      try{ json=await res.json(); }catch(_e){ throw new Error("رد غير صالح من خدمة رفع الصور."); }
+      if(!res.ok||!json||!json.secure_url){
+        // خطأ من Cloudinary نفسه (preset غير موجود/غير Unsigned...) — إعادة المحاولة لن تفيد
+        const err=new Error(json&&json.error&&json.error.message?json.error.message:("فشل الرفع (HTTP "+res.status+"). تحقق من إعدادات Cloudinary (Cloud name / Upload preset)."));
+        err.fatal=true; throw err;
+      }
+      return json.secure_url;
+    }catch(e){
+      if(e.fatal) throw e;
+      lastErr=e;
+      if(attempt<3) await new Promise(r=>setTimeout(r,1500*attempt));
+    }finally{ clearTimeout(timeout); }
   }
-  return json.secure_url;
+  if(lastErr&&lastErr.name==="AbortError") throw new Error("انتهت مهلة رفع الصورة. الاتصال ضعيف — جرّب صورة أصغر أو أعد المحاولة، أو ضع رابط الصورة مباشرة.");
+  throw new Error("تعذر الوصول لخدمة رفع الصور (Cloudinary). تحقق من الإنترنت أو جرّب شبكة أخرى، أو ضع رابط الصورة مباشرة في خانة الرابط.");
 }
 
 const loginBox=document.getElementById("login");

@@ -49,6 +49,8 @@
     align-items:center; gap:18px; position:relative;
   }
   .brand { flex:none; display:flex; align-items:center; gap:10px; }
+  .brand-mark.has-logo{border:0!important;background-color:transparent!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;box-shadow:none!important}
+  .brand-mark.has-logo:before{display:none!important}
   .brand-mark {
     width:58px; height:58px; border:5px solid var(--orange); border-radius:20px 20px 16px 16px;
     position:relative; transform:rotate(0deg);
@@ -834,7 +836,28 @@ async function restGetProducts(){
   }
   return all.map(mapRestProduct);
 }
+function applyBranding(d){
+  // شعار وبانر المتجر يُحفظان من لوحة التحكم في settings/site (logoUrl / bannerUrl)
+  try{
+    const ok=u=>typeof u==="string"&&/^https:\/\//i.test(u.trim());
+    if(ok(d&&d.bannerUrl)){
+      const img=document.querySelector(".hero img");
+      if(img){
+        const pic=img.closest("picture");
+        if(pic)pic.querySelectorAll("source").forEach(x=>x.remove());
+        img.removeAttribute("srcset");
+        img.removeAttribute("width");img.removeAttribute("height");
+        img.src=d.bannerUrl.trim();
+      }
+    }
+    if(ok(d&&d.logoUrl)){
+      const m=document.querySelector(".brand-mark");
+      if(m){m.style.backgroundImage='url("'+d.logoUrl.trim().replace(/"/g,"%22")+'")';m.classList.add("has-logo");}
+    }
+  }catch(e){console.warn("applyBranding failed",e)}
+}
 function applySiteData(d){
+  applyBranding(d);
   d={...siteDefaults,...(d||{})};
   const setText=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value||""};
   const lang=window.BazarI18n?BazarI18n.getLang():"ar";
