@@ -2110,18 +2110,21 @@ window.__adminGoPage=function(type,page){
   if(type==="orders"){ordersPage=n;renderOrders();return;}
 };
 
-// ===== حذف الأرقام اليدوية القديمة (reviewRating/reviewCount) من كل المنتجات دفعة واحدة =====
-// أداة تُستعمل مرة واحدة بعد التحول للتقييمات الحقيقية فقط؛ لا تمسّ مجموعة reviews.
+// ===== حذف التقييمات اليدوية القديمة من كل المنتجات دفعة واحدة =====
+// تحذف من وثائق products الحقول: reviewRating, reviewCount (الأرقام اليدوية) وأي تقييم/مراجعة قديمة مخزّنة داخل المنتج
+// (aggregateRating, rating, ratingValue, ratingCount, reviews). لا تمسّ مجموعة reviews (تقييمات الزبائن الحقيقية) ولا خيار showReviews.
+const LEGACY_RATING_KEYS=["reviewRating","reviewCount","aggregateRating","rating","ratingValue","ratingCount","reviews"];
 window.wipeOldManualRatings=async function(){
-  if(!confirm("سيتم حذف رقم التقييم اليدوي القديم وعدد التقييمات اليدوي من كل المنتجات نهائيًا. لن تتأثر تقييمات الزبائن الحقيقية. متابعة؟")) return;
+  if(!confirm("سيتم حذف كل التقييمات اليدوية القديمة (الرقم والعدد وأي مراجعة قديمة) من كل المنتجات نهائيًا. لن تتأثر تقييمات الزبائن الحقيقية ولا ميزة التقييمات الجديدة. متابعة؟")) return;
   try{
     const snap=await getDocs(collection(db,"products"));
-    const targets=snap.docs.filter(d=>{const x=d.data()||{}; return x.reviewRating!==undefined||x.reviewCount!==undefined;});
+    const targets=snap.docs.filter(d=>{const x=d.data()||{}; return LEGACY_RATING_KEYS.some(k=>x[k]!==undefined);});
     if(!targets.length){ toast("لا توجد تقييمات يدوية قديمة لحذفها ✅","ok"); return; }
-    const chunkSize=400; // حد أقصى آمن لكل دفعة Firestore (450)
+    const upd={}; LEGACY_RATING_KEYS.forEach(k=>{upd[k]=deleteField();});
+    const chunkSize=400; // حد أقصى آمن لكل دفعة Firestore (500)
     for(let i=0;i<targets.length;i+=chunkSize){
       const batch=writeBatch(db);
-      targets.slice(i,i+chunkSize).forEach(d=>batch.update(doc(db,"products",d.id),{reviewRating:deleteField(),reviewCount:deleteField()}));
+      targets.slice(i,i+chunkSize).forEach(d=>batch.update(doc(db,"products",d.id),upd));
       await batch.commit();
     }
     toast(`تم حذف التقييمات اليدوية من ${targets.length} منتج ✅`,"ok");

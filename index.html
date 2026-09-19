@@ -936,8 +936,6 @@ function mapRestProduct(docSnap,index){
     featured:data.featured===true,
     published:data.published!==false,
     stock:(data.stock===undefined||data.stock===null||data.stock==="")?null:Number(data.stock),
-    reviewRating:Number(data.reviewRating)||0,
-    reviewCount:Number(data.reviewCount)||0,
     showReviews:data.showReviews!==false,
     // timestampValue في REST نص ISO جاهز؛ Date.parse يحوّله مباشرة إلى رقم مللي ثانية.
     createdAtMs:data.createdAt?(Date.parse(data.createdAt)||0):0
@@ -1169,8 +1167,6 @@ async function loadProductsFromFirestore(){
       shippingOffice:data.shippingOffice||"",
       deliveryMethod:data.deliveryMethod||"",
       featured:data.featured===true,
-      reviewRating:Number(data.reviewRating)||0,
-      reviewCount:Number(data.reviewCount)||0,
       showReviews:data.showReviews!==false,
       // createdAt يصل كـ Firestore Timestamp عبر SDK (له toMillis)؛ نحوّله إلى رقم بسيط
       // لاستعماله في ترتيب "أحدث المنتجات" دون تحميل استعلام إضافي منفصل.
@@ -1546,12 +1542,9 @@ function lpWishRead(){try{const a=JSON.parse(localStorage.getItem(LP_WISH_KEY)||
 function lpWishWrite(a){try{localStorage.setItem(LP_WISH_KEY,JSON.stringify(a));}catch(_e){}}
 function lpReduced(){return !!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);}
 
-// Même règle que product.html : on n'affiche que de vraies données d'avis.
-function lpRating(p){
-  if(p.showReviews===false) return null;
-  const v=Number(p.reviewRating),c=Number(p.reviewCount);
-  return (Number.isFinite(v)&&v>=1&&v<=5&&Number.isFinite(c)&&c>0)?{value:v,count:c}:null;
-}
+// Les cartes de la boutique n'affichent aucune note : les anciens chiffres saisis à la main sont ignorés,
+// et les vrais avis clients (collection reviews, approuvés) sont affichés dans la page produit.
+function lpRating(_p){ return null; }
 function lpStars(r){
   const row='<svg class="lp-svg lp-star" viewBox="0 0 24 24" aria-hidden="true"><use href="#lp-i-star"/></svg>'.repeat(5);
   return `<span class="lp-stars" role="img" aria-label="${r.value.toFixed(1)} / 5"><span class="lp-stars-bg">${row}</span><span class="lp-stars-fg" style="width:${(r.value/5*100).toFixed(1)}%"><span>${row}</span></span></span>`;
