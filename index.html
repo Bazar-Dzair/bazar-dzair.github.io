@@ -736,7 +736,53 @@ function renderDeliveryOptions(opts){
 }
 window.selectDeliveryType=function(k){selectedDeliveryType=k;updateTotals();};
 
-let cart=[],selected=null,dQty=1;
+// ===== السلة الدائمة (مشتركة بين الرئيسية وصفحة المنتج عبر localStorage) =====
+const CART_KEY="bazar_cart_v1",CART_TTL=30*24*3600*1000;
+let cartLastSaved="";
+function cartSerialize(items){return JSON.stringify(items.map(x=>({firestoreId:x.firestoreId,quantity:x.quantity,name:x.name,name_fr:x.name_fr||"",price:x.price,image:x.image,category:x.category||"",stock:(x.stock===undefined?null:x.stock)})));}
+function loadStoredCart(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(CART_KEY)||"null");
+    if(!raw||!Array.isArray(raw.items)||Date.now()-(raw.t||0)>CART_TTL)return [];
+    const seen=new Set();
+    return raw.items.filter(i=>i&&i.firestoreId&&!seen.has(i.firestoreId)&&seen.add(i.firestoreId))
+      .map((i,n)=>({...i,id:-(n+1),price:Number(i.price)||0,quantity:Math.max(1,Math.floor(Number(i.quantity))||1)}));
+  }catch(_e){return [];}
+}
+function saveCart(){
+  try{
+    if(!cart.length){localStorage.removeItem(CART_KEY);cartLastSaved="";return;}
+    const ser=cartSerialize(cart);
+    if(ser===cartLastSaved)return;
+    cartLastSaved=ser;
+    localStorage.setItem(CART_KEY,JSON.stringify({t:Date.now(),items:JSON.parse(ser)}));
+  }catch(_e){}
+}
+// مطابقة عناصر السلة المحفوظة مع بيانات المنتجات الحالية (السعر/المخزون/الصورة) بعد تحميل المتجر
+function syncCartWithProducts(){
+  if(!Array.isArray(products)||!products.length||!cart.length)return;
+  cart=cart.map(it=>{
+    const p=products.find(x=>x.firestoreId&&x.firestoreId===it.firestoreId);
+    if(!p||p.published===false)return null;
+    const maxQty=Number.isFinite(Number(p.stock))&&Number(p.stock)>0?Number(p.stock):Infinity;
+    return {...it,...p,quantity:Math.max(1,Math.min(maxQty,it.quantity))};
+  }).filter(Boolean);
+  updateCount();
+  const ov=document.getElementById("cartOverlay");
+  if(ov&&ov.style.display==="block")renderCart();
+}
+function reloadCartFromStorage(){
+  cart=loadStoredCart();cartLastSaved=cart.length?cartSerialize(cart):"";
+  syncCartWithProducts();updateCount();
+  const ov=document.getElementById("cartOverlay");
+  if(ov&&ov.style.display==="block")renderCart();
+}
+let cart=loadStoredCart(),selected=null,dQty=1;
+cartLastSaved=cart.length?cartSerialize(cart):"";
+window.addEventListener("storage",e=>{if(e.key===CART_KEY||e.key===null)reloadCartFromStorage();});
+// الرجوع من صفحة المنتج (bfcache) قد يعيد الصفحة القديمة بسلة قديمة في الذاكرة
+window.addEventListener("pageshow",e=>{if(e.persisted)reloadCartFromStorage();});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")reloadCartFromStorage();});
 
 const footerDefaults={
  description:"متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.",
@@ -978,6 +1024,7 @@ async function loadProductsFromFirestore(){
     const firestoreProducts=await restGetProducts();
     if(firestoreProducts.length){
       products=firestoreProducts;
+      syncCartWithProducts();
       const key=getUrlCategory();
       if(key!=="all" && storeCategories.length) applyUrlCategory();
       else displayProducts();
@@ -1038,6 +1085,7 @@ async function loadProductsFromFirestore(){
     firestoreReady=true;
     onSnapshot(collection(db,"products"),snap=>{
       products=snap.docs.map(mapSnap);
+      syncCartWithProducts();
       const key=getUrlCategory();
       if(key!=="all" && storeCategories.length) applyUrlCategory();
       else displayProducts();
@@ -1567,7 +1615,9 @@ function addCart(id,q=1){
 function buyNow(id){
   goToProduct(id);
 }
-function updateCount(){document.getElementById("cartCount").textContent=cart.reduce((s,x)=>s+x.quantity,0)}
+function updateCount(){const c=document.getElementById("cartCount");if(c)c.textContent=cart.reduce((s,x)=>s+x.quantity,0);saveCart()}
+updateCount();
+if(new URLSearchParams(location.search).get("cart")==="1"){window.addEventListener("load",()=>{setTimeout(()=>{try{openCart();history.replaceState(null,"",location.pathname+location.hash)}catch(_e){}},400)});}
 function openCart(){renderCart();document.getElementById("cartOverlay").style.display="block";document.body.style.overflow="hidden";
  if(window.bazarTrackEvent && cart.length)window.bazarTrackEvent("InitiateCheckout",{total:cart.reduce((s,x)=>s+x.price*x.quantity,0),content_name:cart.map(x=>x.name).join(", ")});}
 function closeModal(id){document.getElementById(id).style.display="none";document.body.style.overflow=""}
