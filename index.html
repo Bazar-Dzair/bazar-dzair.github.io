@@ -42,6 +42,7 @@
   }
   .topbar .item { display:flex; gap:10px; align-items:center; opacity:.95; }
   .truck { color:var(--orange); font-size:22px; }
+  .topbar .ti { font-size:16px; line-height:1; flex:none; }
   .icon { width:24px; height:24px; display:inline-block; flex:none; }
 
   .header {
@@ -529,7 +530,7 @@ body>footer{flex:none;margin-top:auto}
 </div>
 
 <header>
-  <div class="topbar"><div class="item">🎧 <span id="topText1">خدمة عملاء مميزة</span></div><div class="item"><span class="truck">🚚</span><span id="topText2">توصيل إلى جميع الولايات</span></div><div class="item">🛡️ <span id="topText3">الدفع عند الاستلام</span></div></div>
+  <div class="topbar"><div class="item"><span class="ti" aria-hidden="true">🎧</span><span id="topText1">خدمة عملاء مميزة</span></div><div class="item"><span class="ti" aria-hidden="true">🚚</span><span id="topText2">توصيل إلى جميع الولايات</span></div><div class="item"><span class="ti" aria-hidden="true">💵</span><span id="topText3">الدفع عند الاستلام</span></div></div>
   <div class="header">
     <div class="header-actions">
       <button class="circle-btn" id="cartBtn" onclick="openCart()" aria-label="السلة">🛒<span class="badge" id="cartCount">0</span></button>
@@ -808,7 +809,7 @@ const footerDefaults={
 
 
 const siteDefaults={
-  topTexts:["🎧 خدمة عملاء سريعة","🚚 توصيل إلى جميع الولايات","💵 الدفع عند الاستلام"],
+  topTexts:["خدمة عملاء سريعة","توصيل إلى جميع الولايات","الدفع عند الاستلام"],
   brand:"Bazar Dzair",
   subtitle:"متجر إلكتروني",
   heroTitle1:"",
@@ -915,6 +916,10 @@ function applyBranding(d){
     }
   }catch(e){console.warn("applyBranding failed",e)}
 }
+function stripLeadingEmoji(t){
+  // الأيقونات موجودة في الـ HTML (span.ti) — أي إيموجي في بداية النص المحفوظ يُحذف لتفادي تكرارها
+  return String(t==null?"":t).replace(/^[\s\p{Extended_Pictographic}\p{Emoji_Presentation}\uFE0F\u200D]+/u,"").trim();
+}
 function applySiteData(d){
   applyBranding(d);
   d={...siteDefaults,...(d||{})};
@@ -932,9 +937,9 @@ function applySiteData(d){
     setText("heroDescription",d.heroDescription||siteDefaults.heroDescription); setText("heroButton",d.heroButton||siteDefaults.heroButton);
     return;
   }
-  setText("topText1",d.topTexts?.[0]||siteDefaults.topTexts[0]);
-  setText("topText2",d.topTexts?.[1]||siteDefaults.topTexts[1]);
-  setText("topText3",d.topTexts?.[2]||siteDefaults.topTexts[2]);
+  setText("topText1",stripLeadingEmoji(d.topTexts?.[0]||siteDefaults.topTexts[0]));
+  setText("topText2",stripLeadingEmoji(d.topTexts?.[1]||siteDefaults.topTexts[1]));
+  setText("topText3",stripLeadingEmoji(d.topTexts?.[2]||siteDefaults.topTexts[2]));
   setBrandName(d.brand||siteDefaults.brand); setText("siteSubtitle",d.subtitle||siteDefaults.subtitle);
   setText("heroTitle1",d.heroTitle1||siteDefaults.heroTitle1); setText("heroTitle2",d.heroTitle2||siteDefaults.heroTitle2);
   setText("heroDescription",d.heroDescription||siteDefaults.heroDescription); setText("heroButton",d.heroButton||siteDefaults.heroButton);
