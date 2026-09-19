@@ -1,4 +1,4 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,follow"><title>Bazar Dzair</title></head><body><p id="msg">جارٍ تحويل الصفحة...</p><script>
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,follow"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"><title>Bazar Dzair</title></head><body><p id="msg">جارٍ تحويل الصفحة...</p><script>
 (function(){
  // الصفحة تُحوَّل فورًا ولا تبقى ظاهرة، لكن نطابق لغتها مع تفضيل الزبون المحفوظ
  // (نفس مفتاح localStorage "bazarLang" الذي يستخدمه i18n.js) دون تحميل أي ملف إضافي،
@@ -19,12 +19,17 @@
   "/category/هاتف/":"/category/telephones/"
  };
  // إعادة تحميل رابط تصنيف بلا مجلد ثابت مطابق (/product-category/xxx/): نفتح التصنيف في المتجر بدل الرئيسية
+ // ✅ تحصين إضافي: cm[1]/pm[1] مصدرهما مباشرة من location.pathname (غير مُرمَّز)، وإدراجهما
+ // خامًا داخل رابط تحويل جديد كان يسمح لجزء المسار (لو احتوى &, #, = ...) بحقن معاملات
+ // إضافية فرابط الوجهة (مثال: /product/x&evil=1 يعيد التوجيه فعليًا إلى
+ // /product.html?id=x&evil=1). لا يوجد استغلال فعلي حاليًا (product.html يقرأ id فقط)،
+ // لكن ترميزها بـ encodeURIComponent يمنع أي مفاجأة مستقبلية بدون أي أثر على الروابط السليمة.
  const cm=location.pathname.match(/^\/product-category\/([^\/]+)\/?/);
- if(cm){location.replace("/?category="+cm[1]);return;}
+ if(cm){location.replace("/?category="+encodeURIComponent(cm[1]));return;}
  if(map[p]){location.replace(map[p]);return;}
  // رابط منتج بلا صفحة ثابتة (منتج جديد لم تُولَّد صفحته بعد، أو رابط قديم): نفتحه في الصفحة الديناميكية بدل الرئيسية.
  const pm=location.pathname.match(/^\/product\/([^\/]+)\/?$/);
- if(pm){location.replace("/product.html?id="+pm[1]);return;}
+ if(pm){location.replace("/product.html?id="+encodeURIComponent(pm[1]));return;}
  location.replace("/");
 })();
 </script></body></html>
