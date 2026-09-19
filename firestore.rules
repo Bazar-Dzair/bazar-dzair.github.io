@@ -65,6 +65,16 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ✅ الأرقام المحظورة — لوحة تحكم الأدمن (admin.html) تقرأ/تكتب هنا مباشرة
+    // عبر Firestore SDK (setDoc/deleteDoc/getDocs) لإدارة الحظر. بدون هذه
+    // القاعدة الصريحة، كانت القاعدة العامة "deny-by-default" في آخر الملف
+    // تمنع الوصول حتى على الأدمن نفسه فتتعطّل ميزة الحظر بالكامل. القراءة
+    // العامة غير مطلوبة هنا أصلاً (الـ Worker يقرأها بصلاحيات Service Account
+    // المتجاوزة لهذه القواعد أساسًا).
+    match /blockedPhones/{phone} {
+      allow read, write: if isAdmin();
+    }
+
     // ✅ الطلبات — لم يعد المتصفح يكتب هنا مباشرة إطلاقًا. كل طلب يمرّ إجباريًا عبر
     // Cloudflare Worker (worker/create-order.js) الذي يتحقق من Turnstile من جهة السيرفر
     // ثم يكتب الطلب بصلاحيات Service Account (تتجاوز هذه القواعد أصلاً، فهي غير خاضعة لها).
