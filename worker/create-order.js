@@ -102,6 +102,16 @@ export async function handleCreateOrder(request, env) {
     return json({ error: validationError }, 400, cors);
   }
 
+  // تنظيف الحقول النصية: isValidOrder/validateOrder يرفض القيم الفارغة بعد
+  // trim()، لكن دون هذا السطر كانت القيمة الأصلية (بمسافات محتملة في البداية
+  // أو النهاية) هي ما يُحفظ فعليًا في Firestore ويُرسل إلى Telegram — تحقق
+  // ناقص التطبيق. نطبّق trim() فعليًا على كل الحقول النصية بعد نجاح التحقق.
+  const customerNameClean = customerName.trim();
+  const wilayaClean = wilaya.trim();
+  const addressClean = address.trim();
+  const productClean = product.trim();
+  const productIdClean = productId.trim();
+
   // 2) الحصول على توكن Service Account مبكرًا — يُستخدم لفحص الحظر ثم للكتابة لاحقًا
   let accessToken;
   try {
@@ -124,7 +134,7 @@ export async function handleCreateOrder(request, env) {
   // 4) مطابقة السعر الحقيقي — نفس منطق get(...).data.price == d.price في القواعد
   let realPrice;
   try {
-    realPrice = await getProductPrice(env, productId);
+    realPrice = await getProductPrice(env, productIdClean);
   } catch {
     return json({ error: "تعذّر التحقق من المنتج" }, 502, cors);
   }
@@ -153,12 +163,12 @@ export async function handleCreateOrder(request, env) {
   let doc;
   try {
     doc = await createOrderDoc(env, accessToken, {
-      customerName,
+      customerName: customerNameClean,
       customerPhone,
-      wilaya,
-      address,
-      product,
-      productId,
+      wilaya: wilayaClean,
+      address: addressClean,
+      product: productClean,
+      productId: productIdClean,
       quantity: Number(quantity),
       price: Number(price),
       shipping: Number(shipping || 0),
@@ -175,11 +185,11 @@ export async function handleCreateOrder(request, env) {
   // 6) إشعار Telegram — لا يفشل الطلب لو تعطّل الإشعار
   try {
     await sendTelegram(env, {
-      customerName,
+      customerName: customerNameClean,
       customerPhone,
-      wilaya,
-      address,
-      product,
+      wilaya: wilayaClean,
+      address: addressClean,
+      product: productClean,
       quantity,
       total,
     });
