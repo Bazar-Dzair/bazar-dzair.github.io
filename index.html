@@ -303,7 +303,7 @@ body>footer{flex:none;margin-top:auto}
 .cat-filter-btn.active{border-color:var(--orange);background:#fff2e9;color:var(--orange)}
 .cat-filter-btn:hover{border-color:var(--orange)}
 
-.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .cat-grid .lp-card{height:100%}
 .cat-empty{grid-column:1/-1;text-align:center;padding:40px 10px;color:var(--muted);font-weight:700}
 
@@ -1150,6 +1150,8 @@ function catRender(){
   catState.filtered=arr;
   const countEl=document.getElementById("catHeadCount");
   if(countEl) countEl.textContent=arr.length?("("+arr.length+" "+esc(BazarI18n.t("cat_products_count"))+")"):"";
+  // 3 بطاقات في السطر على الشاشات الكبيرة (9 = 3 أسطر كاملة)، وبطاقتان على الهاتف (8 = 4 أسطر كاملة)
+  catState.pageSize=(window.matchMedia&&window.matchMedia("(min-width:901px)").matches)?9:8;
   const totalPages=Math.max(1,Math.ceil(arr.length/catState.pageSize));
   if(catState.page>totalPages) catState.page=totalPages;
   if(catState.page<1) catState.page=1;
