@@ -331,7 +331,7 @@ body>footer{flex:none;margin-top:auto}
 .cat-filter-btn.active{border-color:var(--orange);background:#fff2e9;color:var(--orange)}
 .cat-filter-btn:hover{border-color:var(--orange)}
 
-.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.cat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
 .cat-grid .lp-card{height:100%}
 .cat-empty{grid-column:1/-1;text-align:center;padding:40px 10px;color:var(--muted);font-weight:700}
 
@@ -340,7 +340,8 @@ body>footer{flex:none;margin-top:auto}
 .cat-page-num.active{border-color:var(--orange);background:var(--orange);color:#fff}
 .cat-page-arrow[disabled]{opacity:.4}
 
-@media(max-width:900px){.cat-grid{grid-template-columns:repeat(2,1fr)}.cat-head{flex-wrap:wrap}.cat-head-count{width:100%}}
+@media(max-width:900px){.cat-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.cat-head{flex-wrap:wrap}.cat-head-count{width:100%}}
+@media(max-width:600px){.cat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
 @media(max-width:560px){
   #catTopbar{flex-wrap:wrap;gap:10px;padding:12px 4%}
   #catTopbarTitle{order:1;max-width:60vw}
@@ -1144,9 +1145,24 @@ function catName(c){
   if(lang==="fr" && c.name_fr) return String(c.name_fr).trim();
   return String(c.name||"").trim();
 }
+// نفس منطق slugify في scripts/generate_static_products.py حتى يطابق رابط التصنيف اسم مجلد الصفحة الثابتة
+function categorySlug(x){
+  let t=String(x==null?"":x).normalize("NFKD").replace(/\p{M}/gu,"").toLowerCase().trim();
+  return t.replace(/[^\p{L}\p{N}_\u0600-\u06ff]+/gu,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
+}
+function categoryPath(c){
+  const seg=categorySlug(c&&c.name)||String(c&&c.key||"");
+  return "/product-category/"+encodeURIComponent(seg)+"/";
+}
 function findCategory(key){
   const wanted=String(key||"").trim().toLowerCase();
-  return storeCategories.find(c=>String(c.key).toLowerCase()===wanted || String(c.name).trim().toLowerCase()===wanted) || null;
+  if(!wanted) return null;
+  const ws=categorySlug(wanted);
+  return storeCategories.find(c=>String(c.key).toLowerCase()===wanted)
+    || storeCategories.find(c=>String(c.name).trim().toLowerCase()===wanted)
+    || storeCategories.find(c=>categorySlug(c.name)===ws)
+    || storeCategories.find(c=>c.name_fr&&categorySlug(c.name_fr)===ws)
+    || null;
 }
 function updateCategorySeo(category){
   const title=document.getElementById("categoryPageTitle");
@@ -1316,8 +1332,9 @@ function catRender(){
   catState.filtered=arr;
   const countEl=document.getElementById("catHeadCount");
   if(countEl) countEl.textContent=arr.length?("("+arr.length+" "+esc(BazarI18n.t("cat_products_count"))+")"):"";
-  // 3 بطاقات في السطر على الشاشات الكبيرة (9 = 3 أسطر كاملة)، وبطاقتان على الهاتف (8 = 4 أسطر كاملة)
-  catState.pageSize=(window.matchMedia&&window.matchMedia("(min-width:901px)").matches)?9:8;
+  // 4 بطاقات في السطر على الشاشات الكبيرة (12 = 3 أسطر كاملة)، 3 على الجهاز اللوحي (9)، وبطاقتان على الهاتف (8 = 4 أسطر كاملة)
+  const _mq=q=>!!(window.matchMedia&&window.matchMedia(q).matches);
+  catState.pageSize=_mq("(min-width:901px)")?12:(_mq("(min-width:601px)")?9:8);
   const totalPages=Math.max(1,Math.ceil(arr.length/catState.pageSize));
   if(catState.page>totalPages) catState.page=totalPages;
   if(catState.page<1) catState.page=1;
@@ -1665,6 +1682,15 @@ function showProductsOnly(e){
   document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
 }
 window.addEventListener("popstate",()=>{ if(products.length) applyUrlCategory(); });
+(function(){
+  // تغيّر عدد الأعمدة (هاتف/لوحي/حاسوب) يغيّر حجم الصفحة: نعيد الرسم عند عبور نقاط التوقف فقط
+  if(!window.matchMedia) return;
+  const rr=()=>{ if(document.body.classList.contains("category-mode")&&typeof catRender==="function") catRender(); };
+  ["(min-width:901px)","(min-width:601px)"].forEach(q=>{
+    const m=window.matchMedia(q);
+    if(m.addEventListener) m.addEventListener("change",rr); else if(m.addListener) m.addListener(rr);
+  });
+})();
 
 // ===== شريط التنقل: الخط السفلي ينتقل بين "الرئيسية" و"المنتجات" حسب العرض الحالي =====
 // العرض الحالي يُستنتج من class "products-only" على body (يضيفه زر "المنتجات" والبحث، ويزيله زر "الرئيسية" والتصنيفات).
@@ -1716,9 +1742,12 @@ function filterCategory(category,fromUrl=false){
     return;
   }
   updateCategorySeo(resolved);
-  if(!fromUrl){
-    history.pushState(null,"","/product-category/"+encodeURIComponent(resolved.key)+"/");
-  }
+  // الرابط الجميل يطابق مجلد الصفحة الثابتة؛ وعند الدخول عبر ?category= أو 404.html نُصحّح الرابط دون إضافة سجل جديد
+  const prettyPath=categoryPath(resolved);
+  try{
+    if(!fromUrl) history.pushState(null,"",prettyPath);
+    else if(decodeURIComponent(location.pathname)!==decodeURIComponent(prettyPath)) history.replaceState(null,"",prettyPath);
+  }catch(_e){}
   const wanted=String(resolved.key).trim().toLowerCase();
   const result=products.filter(p=>String(p.category||"").trim().toLowerCase()===wanted);
   displayProducts(result);

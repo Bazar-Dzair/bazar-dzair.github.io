@@ -18,6 +18,9 @@
   "/category/هواتف/":"/category/telephones/",
   "/category/هاتف/":"/category/telephones/"
  };
+ // إعادة تحميل رابط تصنيف بلا مجلد ثابت مطابق (/product-category/xxx/): نفتح التصنيف في المتجر بدل الرئيسية
+ const cm=location.pathname.match(/^\/product-category\/([^\/]+)\/?/);
+ if(cm){location.replace("/?category="+cm[1]);return;}
  if(map[p]){location.replace(map[p]);return;}
  location.replace("/");
 })();
