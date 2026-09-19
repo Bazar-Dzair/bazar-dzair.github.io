@@ -1145,13 +1145,33 @@ function catName(c){
   if(lang==="fr" && c.name_fr) return String(c.name_fr).trim();
   return String(c.name||"").trim();
 }
-// نفس منطق slugify في scripts/generate_static_products.py حتى يطابق رابط التصنيف اسم مجلد الصفحة الثابتة
+// categorySlug: الصيغة القديمة (من الاسم العربي) — نُبقيها فقط لفهم الروابط القديمة المفهرسة سابقًا (/product-category/<عربي>/).
 function categorySlug(x){
   let t=String(x==null?"":x).normalize("NFKD").replace(/\p{M}/gu,"").toLowerCase().trim();
   return t.replace(/[^\p{L}\p{N}_\u0600-\u06ff]+/gu,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
 }
+// ===== روابط المنتجات والتصنيفات بالفرنسية (أحرف لاتينية a-z0-9 و"-" فقط) =====
+// المنتج: name_fr، وإن كان فارغًا واسم المنتج بلا حروف عربية نستعمل name، وإلا "produit-<6 أحرف من المعرّف>".
+// نفس المنطق حرفيًا في index.html / product.html / admin.html / scripts/generate_static_products.py
+// حتى يتطابق الرابط المبني في المتصفح مع مجلد الصفحة الثابتة المولَّدة.
+function frSlug(x){
+  return String(x==null?"":x).toLowerCase()
+    .replace(/\u0153/g,"oe").replace(/\u00e6/g,"ae").replace(/\u00df/g,"ss")
+    .normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+}
+function productSlugOf(p){
+  p=p||{};
+  const nm=String(p.name||p.product||"");
+  let s=frSlug(p.name_fr);
+  if(!s&&!/[\u0600-\u06ff]/.test(nm)) s=frSlug(nm);
+  if(!s) s=("produit-"+frSlug(p.firestoreId||p.id||"").slice(0,6)).replace(/-+$/,"");
+  return s;
+}
+// التصنيف: name_fr، وإلا المعرّف (key) اللاتيني، وإلا "categorie".
+function categoryFrSlug(c){return frSlug(c&&c.name_fr)||frSlug(c&&c.key)||"categorie";}
 function categoryPath(c){
-  const seg=categorySlug(c&&c.name)||String(c&&c.key||"");
+  const seg=categoryFrSlug(c);
   return "/product-category/"+encodeURIComponent(seg)+"/";
 }
 function findCategory(key){
@@ -1162,6 +1182,7 @@ function findCategory(key){
     || storeCategories.find(c=>String(c.name).trim().toLowerCase()===wanted)
     || storeCategories.find(c=>categorySlug(c.name)===ws)
     || storeCategories.find(c=>c.name_fr&&categorySlug(c.name_fr)===ws)
+    || storeCategories.find(c=>categoryFrSlug(c)===frSlug(wanted))
     || null;
 }
 function updateCategorySeo(category){
@@ -1561,6 +1582,7 @@ function lpGoPage(p){
   m.tr.scrollBy({left:delta,behavior:lpReduced()?"auto":"smooth"});
 }
 
+// productSlug: الصيغة القديمة (من الاسم العربي) — للتوافق مع الروابط القديمة فقط. الروابط الجديدة: productSlugOf(p).
 function productSlug(name){
   return String(name || "product")
     .trim()
@@ -1601,7 +1623,7 @@ async function goToProduct(id){
     return;
   }
 
-  const slug = productSlug(product.name);
+  const slug = productSlugOf(product);
   try{ localStorage.setItem("bazar_selected_product", JSON.stringify(product)); }catch(_e){}
 
   // الصفحة الجميلة /product/<slug>/ تُنشأ فقط عند تشغيل GitHub Action (كل 6 ساعات أو يدويًا).

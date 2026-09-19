@@ -22,6 +22,9 @@
  const cm=location.pathname.match(/^\/product-category\/([^\/]+)\/?/);
  if(cm){location.replace("/?category="+cm[1]);return;}
  if(map[p]){location.replace(map[p]);return;}
+ // رابط منتج بلا صفحة ثابتة (منتج جديد لم تُولَّد صفحته بعد، أو رابط قديم): نفتحه في الصفحة الديناميكية بدل الرئيسية.
+ const pm=location.pathname.match(/^\/product\/([^\/]+)\/?$/);
+ if(pm){location.replace("/product.html?id="+pm[1]);return;}
  location.replace("/");
 })();
 </script></body></html>

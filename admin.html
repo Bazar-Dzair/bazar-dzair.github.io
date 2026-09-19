@@ -379,7 +379,7 @@
  <div class="page-head"><div><h1 id="title">＋ إضافة منتج</h1><p>أدخل معلومات المنتج الأساسية ثم احفظه مباشرة في Firestore.</p></div></div>
  <div class="panel"><div id="status" class="status hidden"></div><div class="grid">
    <div><label>اسم المنتج *</label><input id="name" placeholder="مثال: Lantern LED"></div>
-   <div><label>اسم المنتج بالفرنسية (اختياري)</label><input id="name_fr" placeholder="مثال: Lanterne LED"><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا.</small></div>
+   <div><label>اسم المنتج بالفرنسية (اختياري)</label><input id="name_fr" placeholder="مثال: Lanterne LED"><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا. هذا الاسم هو الذي يُبنى منه رابط المنتج (بالفرنسية)، فإن تُرك فارغًا يصبح الرابط بالشكل produit-xxxxxx.</small></div>
    <div><label>السعر بالدج *</label><input id="price" type="number" min="0" placeholder="3500"></div>
    <div><label>السعر القديم <span class="field-optional">اختياري</span></label><input id="oldPrice" type="number" min="0" placeholder="مثال: 4800"><small class="hint">يظهر السعر القديم والتخفيض تلقائيًا إذا كان أكبر من السعر الحالي.</small></div>
    <div><label>التصنيف</label><select id="category"></select></div>
@@ -1838,7 +1838,7 @@ window.migrateProductSlugs=async function(){
   let fixed=0, failed=0;
   for(const d of snap.docs){
     const p=d.data();
-    const correctSlug=productSlug(p.name||p.product||"");
+    const correctSlug=productSlugOf({...p,id:d.id});
     if(p.slug===correctSlug) continue; // محدَّث أصلاً
     setStatus(`⏳ جاري إصلاح: ${p.name||p.product||d.id}...`,"");
     try{
@@ -2190,11 +2190,30 @@ window.blockPhoneManual=function(){
   window.blockPhone(p,"").then(()=>{if(input)input.value=""});
 };
 
+// ===== روابط المنتجات والتصنيفات بالفرنسية (أحرف لاتينية a-z0-9 و"-" فقط) =====
+// المنتج: name_fr، وإن كان فارغًا واسم المنتج بلا حروف عربية نستعمل name، وإلا "produit-<6 أحرف من المعرّف>".
+// نفس المنطق حرفيًا في index.html / product.html / admin.html / scripts/generate_static_products.py
+// حتى يتطابق الرابط المبني في المتصفح مع مجلد الصفحة الثابتة المولَّدة.
+function frSlug(x){
+  return String(x==null?"":x).toLowerCase()
+    .replace(/\u0153/g,"oe").replace(/\u00e6/g,"ae").replace(/\u00df/g,"ss")
+    .normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+}
+function productSlugOf(p){
+  p=p||{};
+  const nm=String(p.name||p.product||"");
+  let s=frSlug(p.name_fr);
+  if(!s&&!/[\u0600-\u06ff]/.test(nm)) s=frSlug(nm);
+  if(!s) s=("produit-"+frSlug(p.firestoreId||p.id||"").slice(0,6)).replace(/-+$/,"");
+  return s;
+}
+// productSlug: الصيغة القديمة (من الاسم العربي) — لم تعد تُستعمل في الروابط الجديدة.
 function productSlug(name){
   return String(name||"product").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-+|-+$/g,"")||"product";
 }
 function getProductStoreUrl(p){
-  const slug=productSlug(p?.name);
+  const slug=productSlugOf(p);
   return new URL("product/"+encodeURIComponent(slug)+"/",window.location.origin+window.location.pathname.replace(/[^/]*$/,"")).href;
 }
 window.openProductStore=function(id){
@@ -2314,7 +2333,7 @@ window.save=async()=>{
     name_fr:nameFrInput?.value.trim()||"",
     // يُحفظ مع كل إضافة/تعديل حتى تتمكن صفحة المنتج من جلب الوثيقة مباشرة
     // (استعلام على حقل slug) بدل تحميل مجموعة products كاملة عند كل زيارة.
-    slug:productSlug(nameInput?.value.trim()||""),
+    slug:productSlugOf({name:nameInput?.value.trim()||"",name_fr:nameFrInput?.value.trim()||"",id:editing||""}),
     price:currentPrice,
     oldPrice:enteredOldPrice>currentPrice?enteredOldPrice:0,
     category:categoryInput?.value||"tools",
@@ -2385,6 +2404,9 @@ window.save=async()=>{
     // إضافة واحدة فقط مهما ضغط المستخدم على الزر بسرعة.
     data.createdAt=serverTimestamp();
     const newRef=await addDoc(collection(db,"products"),data);
+    // المنتج بلا اسم فرنسي واسمه عربي: الرابط يحتاج معرّف الوثيقة (produit-xxxxxx) الذي لا يتوفر إلا بعد الإضافة.
+    const finalSlug=productSlugOf({name:data.name,name_fr:data.name_fr,id:newRef.id});
+    if(finalSlug!==data.slug){ try{ await updateDoc(newRef,{slug:finalSlug}); data.slug=finalSlug; }catch(_e){} }
     products.push({id:newRef.id,...data});
   }
 
