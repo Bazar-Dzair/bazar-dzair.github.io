@@ -1115,6 +1115,7 @@ async function loadProductsFromFirestore(){
       const key=getUrlCategory();
       if(key!=="all" && storeCategories.length) applyUrlCategory();
       else displayProducts();
+      if(getUrlSearchQuery()) applyUrlSearch();
       renderHomeHighlights();
     }
     return true;
@@ -1176,6 +1177,7 @@ async function loadProductsFromFirestore(){
       const key=getUrlCategory();
       if(key!=="all" && storeCategories.length) applyUrlCategory();
       else displayProducts();
+      if(getUrlSearchQuery()) applyUrlSearch();
       renderHomeHighlights();
     },async error=>{
       console.warn("Realtime products sync failed; REST fallback",error);
@@ -1860,34 +1862,60 @@ function filterCategory(category,fromUrl=false){
 }
 
 let searchDebounceTimer=null;
+// ===== منطق البحث الفعلي (بدون تحديث الرابط ولا تمرير) — يُستعمل من searchProducts() وأيضًا لاستعادة البحث بعد إعادة تحميل الصفحة =====
+function runProductSearch(q){
+  const input=document.getElementById("search");
+  if(input && input.value!==q) input.value=q;
+  if(!q){
+    document.body.classList.remove("products-only");
+    updateCategorySeo(activeCategory);
+    displayProducts(activeCategory?products.filter(p=>String(p.category)===String(activeCategory.key)):products);
+    return;
+  }
+  document.body.classList.add("products-only");
+  const qLower=q.toLowerCase();
+  const filtered=products.filter(p=>{
+    const tp=BazarI18n.translateProduct(p);
+    return String(tp.name||"").toLowerCase().includes(qLower)
+      || String(p.name||"").toLowerCase().includes(qLower)
+      || String(p.name_fr||"").toLowerCase().includes(qLower);
+  });
+  if(!filtered.length){
+    const g=document.getElementById("productGrid");
+    if(g) g.innerHTML='<div class="empty" style="grid-column:1/-1">'+esc(BazarI18n.t("search_no_results"))+'</div>';
+    const wrap=document.getElementById("loadMoreWrap");
+    if(wrap) wrap.style.display="none";
+    return;
+  }
+  displayProducts(filtered);
+}
+// يُسجَّل نص البحث في رابط الصفحة (?q=...) حتى لا تضيع نتيجة البحث عند إعادة التحميل.
+function updateSearchUrl(q){
+  try{
+    const url=new URL(location.href);
+    if(q) url.searchParams.set("q",q); else url.searchParams.delete("q");
+    history.replaceState(null,"",url.pathname+url.search+url.hash);
+  }catch(_e){}
+}
+function getUrlSearchQuery(){
+  try{return (new URLSearchParams(location.search).get("q")||"").trim();}catch(_e){return "";}
+}
+// تُستدعى بعد كل تحميل/تحديث للمنتجات لاستعادة نفس نتيجة البحث إذا كانت موجودة في رابط الصفحة.
+function applyUrlSearch(){
+  const q=getUrlSearchQuery();
+  if(!q) return false;
+  runProductSearch(q);
+  return true;
+}
 function searchProducts(){
   clearTimeout(searchDebounceTimer);
   searchDebounceTimer=setTimeout(()=>{
     const input=document.getElementById("search");
     if(!input)return;
-    const q=input.value.trim().toLowerCase();
-    if(!q){
-      document.body.classList.remove("products-only");
-      updateCategorySeo(activeCategory);
-      displayProducts(activeCategory?products.filter(p=>String(p.category)===String(activeCategory.key)):products);
-      return;
-    }
-    document.body.classList.add("products-only");
-    const filtered=products.filter(p=>{
-      const tp=BazarI18n.translateProduct(p);
-      return String(tp.name||"").toLowerCase().includes(q)
-        || String(p.name||"").toLowerCase().includes(q)
-        || String(p.name_fr||"").toLowerCase().includes(q);
-    });
-    if(!filtered.length){
-      const g=document.getElementById("productGrid");
-      if(g) g.innerHTML='<div class="empty" style="grid-column:1/-1">'+esc(BazarI18n.t("search_no_results"))+'</div>';
-      const wrap=document.getElementById("loadMoreWrap");
-      if(wrap) wrap.style.display="none";
-      return;
-    }
-    displayProducts(filtered);
-    document.getElementById("products")?.scrollIntoView({behavior:"smooth",block:"start"});
+    const q=input.value.trim();
+    updateSearchUrl(q);
+    runProductSearch(q);
+    if(q) document.getElementById("products")?.scrollIntoView({behavior:"smooth",block:"start"});
   },200);
 }
 window.submitOrder=async function(){
