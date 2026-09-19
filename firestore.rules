@@ -32,6 +32,30 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    // التقييمات — كل تقييم حقيقي فقط. أي زائر (بدون تسجيل دخول) يقدر يضيف
+    // تقييمًا جديدًا لمنتج موجود فعلاً، لكن يُحفظ دائمًا بحالة "قيد المراجعة"
+    // (approved == false إجباريًا عند الإنشاء) ولا يظهر للزبائن إلا بعد موافقة
+    // الأدمن من لوحة التحكم. القراءة العامة تقتصر على التقييمات المنشورة فقط؛
+    // الأدمن وحده يقرأ/ينشر/يحذف أي تقييم (بما فيها قيد المراجعة).
+    function isValidReview(d) {
+      return
+        d.keys().hasOnly(['productId','productName','authorName','ratingValue','text','approved','createdAt']) &&
+        d.keys().hasAll(['productId','authorName','ratingValue','text','approved']) &&
+        d.approved == false &&
+        d.productId is string && d.productId.size() > 0 && d.productId.size() < 200 &&
+        exists(/databases/$(database)/documents/products/$(d.productId)) &&
+        d.authorName is string && d.authorName.size() > 0 && d.authorName.size() < 60 &&
+        d.text is string && d.text.size() >= 3 && d.text.size() < 600 &&
+        (d.ratingValue is int || d.ratingValue is float) &&
+        d.ratingValue >= 1 && d.ratingValue <= 5 &&
+        (!('productName' in d) || (d.productName is string && d.productName.size() < 200));
+    }
+    match /reviews/{id} {
+      allow read: if resource.data.approved == true || isAdmin();
+      allow create: if isValidReview(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
     // الإعدادات — كل مستند settings/{id} قراءته عامة (اسم المتجر، الشعار،
     // أسعار التوصيل...)، ما عدا settings/email الذي يحتوي بيانات SMTP
     // الحساسة (smtpHost/smtpUser/smtpPassword) والذي يبقى Admin-only حتى
