@@ -1340,33 +1340,28 @@ const orderPayload={
   shippingCompany: carrierNames,
   total: total
 };
-// ✅ التسجيل الفعلي للطلب يمر إجباريًا عبر Cloudflare Worker (نفس آلية index.html):
-// الـ Worker يتحقق من صحة البيانات، يطابق السعر الحقيقي، يتأكد أن الرقم غير محظور،
-// ثم يكتب الطلب بصلاحيات Service Account. كان هذا الكود سابقًا يكتب مباشرة فـ
-// Firestore عبر addDoc، لكن firestore.rules الحالي يمنع أي كتابة مباشرة غير الأدمن
-// فـ orders (allow create: if isAdmin() فقط) — ما كان يجعل كل طلب من هذه الصفحة
-// يفشل حتمًا بخطأ permission-denied. الآن نعتمد على الـ Worker حصرًا، وننتظر رده
-// فعليًا (بدل fire-and-forget) لنعرف هل نجح الطلب قبل تحويل الزبون لصفحة النجاح.
-let resp;
+// ✅ الكتابة تتم من المتصفح مباشرة فـ Firestore، لكن firestore.rules هي من تتحقق
+// فعليًا وتفرض كل الشروط (شكل البيانات، صحة رقم الهاتف، أن الرقم غير محظور، وأن
+// السعر يطابق سعر المنتج الحقيقي المخزّن فعليًا) — لا يمكن لأي عميل (حتى لو عدّل
+// الكود من جهته) تجاوز هذه الشروط، لأنها مفروضة من جهة الخادم (Firestore) نفسها.
+const {addDoc,collection,serverTimestamp}=await getFirebase();
+const db=window.__bazarDb;
+if(!db){throw new Error(pt("db_connect_error"))}
 try{
-  resp=await fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/create-order",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(orderPayload)
-  });
-}catch(netErr){
-  console.error("order worker request failed:",netErr);
+  await addDoc(collection(db,"orders"),{...orderPayload,status:"جديد",createdAt:serverTimestamp()});
+}catch(fireErr){
+  console.error("firestore order write failed:",fireErr);
   const e=new Error(pt("order_write_failed"));
-  e.userMessage=pt("order_write_failed_generic");
+  e.userMessage=(fireErr&&fireErr.code==="permission-denied")?pt("order_write_failed_detail"):pt("order_write_failed_generic");
   throw e;
 }
-if(!resp.ok){
-  const errBody=await resp.json().catch(()=>({}));
-  console.error("order worker rejected:",errBody);
-  const e=new Error(errBody.error||("HTTP "+resp.status));
-  e.userMessage=errBody.error||pt("order_write_failed_generic");
-  throw e;
-}
+// ✅ إشعار Telegram فقط — لا يفشل تسجيل الطلب لو تعطّل هذا الاستدعاء، لأن الطلب
+// سُجّل فعليًا فـ Firestore أعلاه (وهذا ما يظهره لوحة التحكم).
+fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/create-order",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify(orderPayload)
+}).catch(()=>{});
 try{
   const addonsCfg=window.__bazarAddons||{};
   const gs=addonsCfg.googleSheets||{};
