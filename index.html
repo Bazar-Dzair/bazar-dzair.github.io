@@ -540,7 +540,7 @@ body>footer{flex:none;margin-top:auto}
     </div>
     <nav aria-label="التنقل"><a class="active" href="#home" onclick="showHome(event)" data-i18n="nav_home">الرئيسية</a><a href="#products" onclick="showProductsOnly(event)" data-i18n="nav_products">المنتجات</a><span class="nav-ink" aria-hidden="true"></span></nav>
     <form class="header-search" role="search" onsubmit="event.preventDefault();searchProducts();document.getElementById('search').blur();">
-      <input type="search" id="search" data-i18n-ph="search_placeholder" data-i18n-aria="search_aria" placeholder="ابحث عن منتج..." aria-label="بحث عن منتج" enterkeyhint="search" autocomplete="off" oninput="searchProducts()">
+      <input type="search" id="search" data-i18n-ph="search_placeholder" data-i18n-aria="search_aria" placeholder="ابحث عن منتج..." aria-label="بحث عن منتج" enterkeyhint="search" autocomplete="off" onsearch="searchProducts()">
       <button type="submit" aria-label="بحث"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
     </form>
     <a class="brand" href="#home" onclick="showHome(event)"><div class="brand-mark"></div><div><div class="brand-text"><b id="siteBrand">Bazar</b> <b id="siteBrand2">Dzair</b></div><div class="brand-sub" id="siteSubtitle" data-i18n="brand_subtitle">متجر إلكتروني</div></div></a>
