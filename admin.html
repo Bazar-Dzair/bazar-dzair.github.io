@@ -1459,6 +1459,13 @@ storageBucket:"bazar-dzair-33816.firebasestorage.app",
 messagingSenderId:"51073161969",
 appId:"1:51073161969:web:cb75a3224bdca11ea8e750"};
 const firebaseApp=initializeApp(config),db=getFirestore(firebaseApp),auth=getAuth(firebaseApp);
+// نفس UID المستخدم فـ isAdmin() فـ firestore.rules/storage.rules. Firestore Rules هي خط
+// الدفاع الحقيقي (أي طلب قراءة/كتابة من حساب غير هذا الـ UID يُرفض هناك مهما فعل الكود هنا)،
+// لكن بدون هذا الفحص هنا كان أي حساب Firebase آخر (لو تم إنشاؤه، مثلاً عبر REST API
+// لـ Identity Toolkit باستخدام apiKey العام لو كان تسجيل حسابات جديدة مفعّلاً فمشروع
+// Firebase) يقدر يسجّل دخول ويشوف هيكل لوحة التحكم كاملاً (حتى لو كل القراءات فشلت
+// بـ permission-denied) — تسريب غير ضروري لبنية اللوحة لأي حساب غير الأدمن.
+const ADMIN_UID="GOBngnCP2eMTLZrJpf72GOmXvvO2";
 window.bazarDb=db;window.bazarDoc=doc;window.bazarSetDoc=setDoc;window.bazarGetDoc=getDoc;window.bazarServerTimestamp=serverTimestamp;window.bazarAuth=auth;
 // إتاحة دوال رفع Cloudinary/ضغط الصور (معرّفة أدناه فنفس هذا الـ module) للـ <script>
 // العادي الأول فالصفحة (لي فيه uploadBrandFile) — السكربتات من نوع module لها نطاق
@@ -1719,7 +1726,16 @@ imageFilesInput?.addEventListener("change",()=>{
 
 window.login=async()=>{const e=emailInput.value.trim(),p=passwordInput.value;loginErrBox.classList.add("hidden");if(!e||!p){loginErrBox.textContent="اكتب البريد الإلكتروني وكلمة المرور.";loginErrBox.classList.remove("hidden");return}try{await signInWithEmailAndPassword(auth,e,p)}catch(x){console.error("Firebase login error:",x);loginErrBox.textContent="فشل الدخول: "+(x.code==="auth/invalid-credential"||x.code==="auth/wrong-password"||x.code==="auth/user-not-found"?"البريد أو كلمة المرور غير صحيحة.":x.message);loginErrBox.classList.remove("hidden")}};
 window.logout=()=>signOut(auth);
-onAuthStateChanged(auth,u=>{document.body.classList.remove("auth-check");if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
+onAuthStateChanged(auth,u=>{document.body.classList.remove("auth-check");
+  if(u && u.uid!==ADMIN_UID){
+    // حساب Firebase صحيح لكن ليس حساب الأدمن — لا نعرض حتى هيكل اللوحة، نسجّل خروجه فورًا.
+    console.error("Auth: non-admin account signed in, forcing sign-out:",u.uid);
+    signOut(auth);
+    appBox.classList.add("hidden");loginBox.classList.remove("hidden");
+    loginErrBox.textContent="هذا الحساب غير مصرّح له بالدخول إلى لوحة التحكم.";loginErrBox.classList.remove("hidden");
+    return;
+  }
+  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
 
 function categoryKeySafe(value){return String(value||"").trim().toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}\-_]+/gu,"-").replace(/^-+|-+$/g,"");}
 function renderCategorySelect(selectedValue){if(!categoryInput)return;const current=selectedValue!==undefined?String(selectedValue):String(categoryInput.value||"");categoryInput.innerHTML=categories.map(c=>`<option value="${esc(c.key)}">${esc(c.icon||"🛍️")} ${esc(c.name)}</option>`).join("");if(categories.some(c=>String(c.key)===current))categoryInput.value=current;else if(categories.length)categoryInput.value=categories[0].key;}
