@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<!-- ✅ كانت هذه الصفحة الوحيدة (مع 404.html) بدون رأس Content-Security-Policy رغم وجوده
+     في كل صفحة أخرى بالموقع (index.html, product.html, admin.html, orders.html) — عدم
+     تناسق أمني. الصفحة هنا ثابتة تماماً (لا Firebase، لا سكربتات تتبع خارجية)، فـ CSP
+     أشد تقييداً ممكن هنا مقارنة ببقية الصفحات. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1">
