@@ -266,6 +266,12 @@ body.products-only .hero,body.products-only .home-features,body.products-only .n
 #catTopbar{display:none!important}
 body.category-mode .topbar,body.category-mode header nav,body.category-mode .hero,body.category-mode .home-highlights,body.category-mode .newsletter,body.category-mode .section-head{display:none!important}
 body.category-mode #products{margin-top:6px}
+/* صفحة التصنيف: بدون بطاقة عنوان التصنيف وبدون بطاقات المزايا */
+body.category-mode .cat-head,body.category-mode .benefits{display:none!important}
+/* تذييل ثابت في أسفل الصفحة حتى لو كان المحتوى قصيرًا */
+body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+body>main{flex:1 0 auto;width:100%;margin:0 auto}
+body>footer{flex:none;margin-top:auto}
 #categoryBreadcrumb{margin:14px 0 14px;color:#6f7d91;font-size:14px;align-items:center;gap:6px}
 #categoryBreadcrumb a{color:var(--orange);font-weight:700;display:flex;align-items:center;gap:4px}
 #categoryBreadcrumb .crumb-sep{color:#b7bfcc}
