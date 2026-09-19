@@ -2256,7 +2256,7 @@ function getFilteredProducts(){
     if(q && !hay.includes(q))return false;
     if(lowStockFilter && Number(p.stock||0)>5)return false;
     return true;
-  });
+  }).sort((a,b)=>(b.createdAt?.seconds||b._localCreatedAtSeconds||0)-(a.createdAt?.seconds||a._localCreatedAtSeconds||0));
 }
 window.toggleLowStockFilter=function(){
   lowStockFilter=!lowStockFilter;
@@ -2574,7 +2574,7 @@ window.save=async()=>{
     // المنتج بلا اسم فرنسي واسمه عربي: الرابط يحتاج معرّف الوثيقة (produit-xxxxxx) الذي لا يتوفر إلا بعد الإضافة.
     const finalSlug=productSlugOf({name:data.name,name_fr:data.name_fr,id:newRef.id});
     if(finalSlug!==data.slug){ try{ await updateDoc(newRef,{slug:finalSlug}); data.slug=finalSlug; }catch(_e){} }
-    products.push({id:newRef.id,...data});
+    products.push({id:newRef.id,...data,_localCreatedAtSeconds:Math.floor(Date.now()/1000)});
   }
 
   render();
