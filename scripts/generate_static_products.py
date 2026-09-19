@@ -42,6 +42,39 @@ def slugify(x, fallback='item'):
     return s or fallback
 
 
+def fr_slug(x):
+    """slug لاتيني (a-z0-9 و "-" فقط). نفس منطق frSlug في index.html/product.html/admin.html حرفيًا."""
+    s=str(x or '').lower().replace('œ','oe').replace('æ','ae').replace('ß','ss')
+    s=unicodedata.normalize('NFKD',s)
+    s=''.join(c for c in s if not unicodedata.combining(c))
+    return re.sub(r'[^a-z0-9]+','-',s).strip('-')
+
+
+def product_slug_base(p):
+    """المنتج: name_fr، وإلا name إن كان بلا حروف عربية، وإلا produit-<6 أحرف من المعرّف>."""
+    s=fr_slug(p.get('name_fr'))
+    nm=str(p.get('name') or p.get('product') or '')
+    if not s and not re.search(r'[\u0600-\u06ff]',nm): s=fr_slug(nm)
+    return s or ('produit-'+fr_slug(p.get('_id'))[:6]).rstrip('-')
+
+
+def category_slug_base(c):
+    """التصنيف: name_fr، وإلا المعرّف (key) اللاتيني، وإلا categorie."""
+    return fr_slug(c.get('name_fr')) or fr_slug(c.get('_id')) or 'categorie'
+
+
+def redirect_stub_html(target):
+    """صفحة تحويل خفيفة توضع في مسار الرابط العربي القديم (GitHub Pages لا يدعم 301): canonical + meta refresh + JS."""
+    t=html.escape(target,quote=True)
+    rel=target[len(SITE)-1:] if target.startswith(SITE) else target  # مسار نسبي للجذر: يعمل على أي دومين
+    r=html.escape(rel,quote=True)
+    return ('<!doctype html><html lang="fr"><head><meta charset="utf-8">'
+            f'<title>Redirection | Bazar Dzair</title><link rel="canonical" href="{t}">'
+            f'<meta http-equiv="refresh" content="0;url={r}">'
+            f'<script>location.replace({json.dumps(rel)}+location.hash);</script></head>'
+            f'<body><p><a href="{r}">Bazar Dzair</a></p></body></html>')
+
+
 def money(x):
     try: return f'{int(float(x or 0)):,} دج'.replace(',', '٬')
     except: return 'السعر عند الطلب'
@@ -267,12 +300,15 @@ for folder in (root/'product',root/'product-category'):
     if folder.exists():
         import shutil; shutil.rmtree(folder)
 
-seen={}; product_urls=[]
+seen={}; legacy_seen={}; product_urls=[]; legacy_product_redirects=[]
 for p in products:
     name=str(p.get('name') or p.get('product'))
-    base=slugify(name,'product')
+    base=product_slug_base(p)
     n=seen.get(base,0); seen[base]=n+1
     slug=base if n==0 else f'{base}-{n+1}'
+    # الرابط القديم (من الاسم العربي، بنفس ترقيم التكرار القديم) → صفحة تحويل إلى الرابط الفرنسي الجديد.
+    lbase=slugify(name,'product'); ln=legacy_seen.get(lbase,0); legacy_seen[lbase]=ln+1
+    legacy_product_redirects.append((lbase if ln==0 else f'{lbase}-{ln+1}',slug))
     url=SITE+'product/'+urllib.parse.quote(slug,safe='-._~')+'/'
     desc=str(p.get('description') or p.get('desc') or f'شراء {name} من متجر Bazar Dzair.')
     price=float(p.get('price') or 0)
@@ -304,10 +340,12 @@ for p in products:
 # ملاحظة الفرنسية: لا نُخمّن أي ترجمة. نستخدم name_fr/description_fr فقط إن كانت
 # موجودة فعلاً في مستند الفئة أو المنتج في Firestore، وإلا يبقى النص عربيًا كما هو —
 # نفس فلسفة translateProduct في i18n.js تمامًا.
-cat_seen={}; cat_urls=[]; cat_url_map={}
+cat_seen={}; cat_legacy_seen={}; cat_urls=[]; cat_url_map={}; legacy_category_redirects=[]
 for c in categories:
-    name=str(c['name']); base=slugify(name,'category'); n=cat_seen.get(base,0); cat_seen[base]=n+1
+    name=str(c['name']); base=category_slug_base(c); n=cat_seen.get(base,0); cat_seen[base]=n+1
     slug=base if n==0 else f'{base}-{n+1}'
+    lbase=slugify(name,'category'); ln=cat_legacy_seen.get(lbase,0); cat_legacy_seen[lbase]=ln+1
+    legacy_category_redirects.append((lbase if ln==0 else f'{lbase}-{ln+1}',slug))
     cid=str(c['_id'])
     name_fr=str(c.get('name_fr') or '').strip()
     desc_fr=str(c.get('description_fr') or '').strip()
@@ -341,6 +379,23 @@ for c in categories:
     write_page(root/'product-category'/slug/'index.html',name+' | Bazar Dzair',desc,url,body,ld)
     cat_urls.append((url,name))
     cat_url_map[cid]=url
+
+# ===== تحويل الروابط العربية القديمة إلى الروابط الفرنسية الجديدة =====
+# المجلدات القديمة حُذفت أعلاه، فنضع مكانها صفحات تحويل (لا تدخل في sitemap) حتى لا تنكسر
+# الروابط المفهرسة في Google أو المشاركة على واتساب/فيسبوك. لا نكتب فوق أي صفحة جديدة.
+def write_redirect_stubs(folder, redirects, pretty_prefix):
+    new_slugs={new for _,new in redirects}; done=0
+    for old,new in redirects:
+        if old==new or old in new_slugs: continue
+        d=root/folder/old
+        if (d/'index.html').exists(): continue
+        d.mkdir(parents=True,exist_ok=True)
+        (d/'index.html').write_text(redirect_stub_html(SITE+pretty_prefix+urllib.parse.quote(new,safe='-._~')+'/'),encoding='utf-8')
+        done+=1
+    return done
+n_ps=write_redirect_stubs('product',legacy_product_redirects,'product/')
+n_cs=write_redirect_stubs('product-category',legacy_category_redirects,'product-category/')
+print(f'Wrote {n_ps} product and {n_cs} category redirect stubs for legacy Arabic URLs.')
 
 # Sitemap index-like single sitemap with all public SEO URLs.
 today=datetime.now(timezone.utc).date().isoformat()
