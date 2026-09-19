@@ -541,7 +541,7 @@ body>footer{flex:none;margin-top:auto}
       <input type="search" id="search" data-i18n-ph="search_placeholder" data-i18n-aria="search_aria" placeholder="ابحث عن منتج..." aria-label="بحث عن منتج" enterkeyhint="search" autocomplete="off" oninput="searchProducts()">
       <button type="submit" aria-label="بحث"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
     </form>
-    <a class="brand" href="#home" onclick="showHome(event)"><div class="brand-mark"></div><div><div class="brand-text"><b id="siteBrand">Bazar</b> <b>Dzair</b></div><div class="brand-sub" id="siteSubtitle" data-i18n="brand_subtitle">متجر إلكتروني</div></div></a>
+    <a class="brand" href="#home" onclick="showHome(event)"><div class="brand-mark"></div><div><div class="brand-text"><b id="siteBrand">Bazar</b> <b id="siteBrand2">Dzair</b></div><div class="brand-sub" id="siteSubtitle" data-i18n="brand_subtitle">متجر إلكتروني</div></div></a>
   </div>
 </header>
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeCategoryMenu()"></div>
@@ -836,6 +836,15 @@ async function restGetProducts(){
   }
   return all.map(mapRestProduct);
 }
+function setBrandName(name){
+  // الشعار مكوّن من كلمتين: الأولى في #siteBrand والأخيرة (بلون مختلف) في #siteBrand2.
+  // كان الاسم الكامل "Bazar Dzair" يوضع في #siteBrand فيظهر "Bazar Dzair Dzair".
+  const parts=String(name||"").trim().split(/\s+/).filter(Boolean);
+  const a=document.getElementById("siteBrand"),b=document.getElementById("siteBrand2");
+  if(!a)return;
+  if(parts.length<=1){a.textContent=parts[0]||"Bazar";if(b)b.textContent=parts.length?"":"Dzair";return;}
+  a.textContent=parts.slice(0,-1).join(" ");if(b)b.textContent=parts[parts.length-1];
+}
 function applyBranding(d){
   // شعار وبانر المتجر يُحفظان من لوحة التحكم في settings/site (logoUrl / bannerUrl)
   try{
@@ -851,8 +860,12 @@ function applyBranding(d){
       }
     }
     if(ok(d&&d.logoUrl)){
-      const m=document.querySelector(".brand-mark");
+      const m=document.querySelector("header .brand-mark")||document.querySelector(".brand-mark");
       if(m){m.style.backgroundImage='url("'+d.logoUrl.trim().replace(/"/g,"%22")+'")';m.classList.add("has-logo");}
+    }
+    if(ok(d&&d.footerLogoUrl)){
+      const fm=document.querySelector("#footer .brand-mark");
+      if(fm){fm.style.backgroundImage='url("'+d.footerLogoUrl.trim().replace(/"/g,"%22")+'")';fm.classList.add("has-logo");}
     }
   }catch(e){console.warn("applyBranding failed",e)}
 }
@@ -868,7 +881,7 @@ function applySiteData(d){
     setText("topText1",BazarI18n.t("topbar_service"));
     setText("topText2",BazarI18n.t("topbar_delivery"));
     setText("topText3",BazarI18n.t("topbar_cod"));
-    setText("siteBrand",d.brand||siteDefaults.brand); setText("siteSubtitle",BazarI18n.t("brand_subtitle"));
+    setBrandName(d.brand||siteDefaults.brand); setText("siteSubtitle",BazarI18n.t("brand_subtitle"));
     setText("heroTitle1",d.heroTitle1||siteDefaults.heroTitle1); setText("heroTitle2",d.heroTitle2||siteDefaults.heroTitle2);
     setText("heroDescription",d.heroDescription||siteDefaults.heroDescription); setText("heroButton",d.heroButton||siteDefaults.heroButton);
     return;
@@ -876,7 +889,7 @@ function applySiteData(d){
   setText("topText1",d.topTexts?.[0]||siteDefaults.topTexts[0]);
   setText("topText2",d.topTexts?.[1]||siteDefaults.topTexts[1]);
   setText("topText3",d.topTexts?.[2]||siteDefaults.topTexts[2]);
-  setText("siteBrand",d.brand||siteDefaults.brand); setText("siteSubtitle",d.subtitle||siteDefaults.subtitle);
+  setBrandName(d.brand||siteDefaults.brand); setText("siteSubtitle",d.subtitle||siteDefaults.subtitle);
   setText("heroTitle1",d.heroTitle1||siteDefaults.heroTitle1); setText("heroTitle2",d.heroTitle2||siteDefaults.heroTitle2);
   setText("heroDescription",d.heroDescription||siteDefaults.heroDescription); setText("heroButton",d.heroButton||siteDefaults.heroButton);
 }
