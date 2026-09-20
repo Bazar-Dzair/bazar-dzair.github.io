@@ -108,6 +108,53 @@
   }
   .header-search button svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; }
 
+  /* ===== اقتراحات البحث المباشر + حالة "لا نتائج" ===== */
+  .header-search { position:relative; }
+  .header-search .hs-clear,
+  .header-search:focus-within .hs-clear {
+    flex:none; width:28px; height:28px; padding:0; border:0; border-radius:50%;
+    background:transparent; color:#8a97aa; font-size:21px; line-height:1;
+    display:grid; place-items:center;
+  }
+  .header-search .hs-clear:hover { color:var(--orange); background:#fff1e8; }
+  .header-search input:placeholder-shown ~ .hs-clear { display:none; }
+  .hs-panel {
+    position:absolute; top:calc(100% + 8px); inset-inline:0; min-width:min(360px,calc(100vw - 20px));
+    background:#fff; border:1px solid var(--line); border-radius:18px; box-shadow:0 16px 44px rgba(7,29,59,.18);
+    max-height:min(72vh,470px); overflow-y:auto; overscroll-behavior:contain; z-index:60;
+    text-align:right; color:var(--text);
+  }
+  .hs-panel[hidden] { display:none; }
+  .hs-sec { padding:10px 14px 5px; font-size:11.5px; font-weight:800; color:var(--muted); }
+  .hs-note { padding:9px 14px; font-size:12.5px; font-weight:700; color:#8a5a00; background:#fff8e6; border-bottom:1px solid #f6e8c2; }
+  .hs-item { display:flex; align-items:center; gap:12px; padding:9px 12px; color:var(--text); cursor:pointer; border-bottom:1px solid #f1f3f7; }
+  .hs-item:hover, .hs-item.active { background:#fff3ea; }
+  .hs-thumb { width:54px; height:54px; flex:none; border-radius:12px; object-fit:cover; background:#f2f4f8; border:1px solid #edf0f4; }
+  .hs-cat-ic { width:54px; height:54px; flex:none; border-radius:12px; background:#fff1e8; display:grid; place-items:center; font-size:24px; }
+  .hs-info { flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
+  .hs-name { font-size:14px; font-weight:700; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
+  .hs-sub { font-size:12px; color:var(--muted); }
+  .hs-price { display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+  .hs-now { font-size:14px; font-weight:900; color:var(--orange); }
+  .hs-old { font-size:12px; font-weight:600; color:#8b95a5; }
+  .hs-off { font-style:normal; font-size:10.5px; font-weight:800; line-height:1; padding:3px 6px; border-radius:999px; background:#fdeceb; color:#e0332a; }
+  .hs-tag { font-size:10.5px; font-weight:800; line-height:1; padding:3px 7px; border-radius:999px; background:#eef0f4; color:#6f7d91; }
+  .hs-all { display:block; padding:13px; text-align:center; font-size:14px; font-weight:800; color:var(--orange); background:#fffaf6; cursor:pointer; }
+  .hs-all:hover, .hs-all.active { background:#fff1e6; }
+  .sr-empty { text-align:center; padding:38px 16px 30px; color:var(--muted); }
+  .sr-empty-ic { font-size:44px; line-height:1; margin-bottom:12px; }
+  .sr-empty-t { font-size:19px; font-weight:900; color:var(--navy); }
+  .sr-empty-s { margin-top:6px; font-size:14px; }
+  .sr-chips { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:18px; }
+  .sr-chip { display:inline-flex; align-items:center; gap:6px; padding:9px 14px; border:1px solid var(--line); border-radius:999px; background:#fff; color:var(--navy); font-size:13.5px; font-weight:700; transition:border-color .15s,color .15s; }
+  .sr-chip:hover { border-color:var(--orange); color:var(--orange); }
+  .sr-all { display:inline-block; margin-top:16px; padding:11px 22px; border-radius:999px; background:var(--orange); color:#fff; font-size:14px; font-weight:800; }
+  .hs-panel .sr-empty { padding:22px 14px 18px; }
+  .hs-panel .sr-empty-ic { font-size:34px; }
+  .hs-panel .sr-empty-t { font-size:16px; }
+  .hs-panel .sr-chip { padding:7px 11px; font-size:12.5px; }
+  .hs-panel .sr-all { padding:9px 18px; font-size:13px; }
+
   main { max-width:960px; margin:auto; padding:0 0 20px; }
   .hero { border-radius:28px; overflow:hidden; box-shadow:var(--shadow); background:#fff; }
   .hero img { display:block; width:100%; height:auto; }
@@ -640,9 +687,11 @@ body>footer{flex:none;margin-top:auto}
       <button class="circle-btn" id="langToggleBtn" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية" style="font-size:14px;font-weight:900">FR</button>
     </div>
     <nav aria-label="التنقل"><a class="active" href="#home" onclick="showHome(event)" data-i18n="nav_home">الرئيسية</a><a href="#products" onclick="showProductsOnly(event)" data-i18n="nav_products">المنتجات</a><span class="nav-ink" aria-hidden="true"></span></nav>
-    <form class="header-search" role="search" onsubmit="event.preventDefault();searchProducts();document.getElementById('search').blur();">
-      <input type="search" id="search" data-i18n-ph="search_placeholder" data-i18n-aria="search_aria" placeholder="ابحث عن منتج..." aria-label="بحث عن منتج" enterkeyhint="search" autocomplete="off" onsearch="searchProducts()">
+    <form class="header-search" role="search" onsubmit="event.preventDefault()">
+      <input type="search" id="search" data-i18n-ph="search_placeholder" data-i18n-aria="search_aria" placeholder="ابحث عن منتج..." aria-label="بحث عن منتج" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="100" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="searchPanel">
+      <button type="button" class="hs-clear" id="searchClear" aria-label="مسح البحث">×</button>
       <button type="submit" aria-label="بحث"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <div class="hs-panel" id="searchPanel" role="listbox" hidden></div>
     </form>
     <a class="brand" href="#home" onclick="showHome(event)"><div class="brand-mark"></div><div><div class="brand-text"><b id="siteBrand">Bazar</b> <b id="siteBrand2">Dzair</b></div><div class="brand-sub" id="siteSubtitle" data-i18n="brand_subtitle">متجر إلكتروني</div></div></a>
   </div>
@@ -999,6 +1048,7 @@ function mapRestProduct(docSnap,index){
   return {
     id:index+1,
     firestoreId:(docSnap.name||"").split("/").pop(),
+    sku:String(data.sku||data.SKU||data.reference||data.ref||data.code||"").trim(),
     name:data.name||data.product||"منتج بدون اسم",
     name_fr:data.name_fr||"",
     price:Number(data.price||0),
@@ -1231,6 +1281,7 @@ async function loadProductsFromFirestore(){
     return {
       id:i+1,
       firestoreId:d.id,
+      sku:String(data.sku||data.SKU||data.reference||data.ref||data.code||"").trim(),
       name:data.name||data.product||"منتج بدون اسم",
       name_fr:data.name_fr||"",
       price:Number(data.price||0),
@@ -1481,7 +1532,7 @@ function productCardHtml(p){
 
 // الأحدث أولًا في شبكة "منتجاتنا" (createdAtMs يأتي من تاريخ إضافة المنتج؛ المنتجات بلا تاريخ تبقى بترتيبها في الآخر)
 function sortNewestFirst(arr){return arr.slice().sort((a,b)=>(b.createdAtMs||0)-(a.createdAtMs||0));}
-function displayProducts(list=products,reset=true){
+function displayProducts(list=products,reset=true,keepOrder=false){
  if(document.body.classList.contains("category-mode")){
    if(reset) catState.baseList=Array.isArray(list)?list.slice():[];
    catState.page=1;
@@ -1489,7 +1540,8 @@ function displayProducts(list=products,reset=true){
    return;
  }
  const g=document.getElementById("productGrid");
- if(reset){productsToDisplay=Array.isArray(list)?sortNewestFirst(list):[];visibleProductsCount=PRODUCTS_FIRST_PAGE;}
+ const cpg=document.getElementById("catPagination"); if(cpg){cpg.style.display="none";cpg.innerHTML="";} // ترقيم التصنيف لا يظهر خارج وضع التصنيف (كان يبقى ظاهرًا بعد الانتقال من تصنيف إلى بحث)
+ if(reset){productsToDisplay=Array.isArray(list)?(keepOrder?list.slice():sortNewestFirst(list)):[];visibleProductsCount=PRODUCTS_FIRST_PAGE;}
  else {productsToDisplay=Array.isArray(list)?list:productsToDisplay;}
  if(!productsToDisplay.length){
    g.innerHTML='<div class="empty" style="grid-column:1/-1">'+esc(BazarI18n.t("empty_products"))+'</div>';
@@ -1538,10 +1590,7 @@ function catRender(){
   let arr=catState.baseList.slice();
   if(catState.query){
     const q=catState.query;
-    arr=arr.filter(p=>{
-      const tp=BazarI18n.translateProduct(p);
-      return String(tp.name||"").toLowerCase().includes(q)||String(p.name||"").toLowerCase().includes(q)||String(p.name_fr||"").toLowerCase().includes(q);
-    });
+    arr=arr.filter(p=>productMatchesQuery(p,q)); // نفس محرك البحث الرئيسي (عربي/فرنسي/SKU...)
   }
   if(catState.availOnly) arr=arr.filter(p=>lpAvailable(p));
   if(catState.sort==="asc") arr=arr.slice().sort((a,b)=>Number(a.price)-Number(b.price));
@@ -2069,29 +2118,356 @@ function filterCategory(category,fromUrl=false){
   document.getElementById("products").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
-let searchDebounceTimer=null;
-// ===== البحث: الرابط هو مصدر الحالة =====
-// بحث جديد  → /?q=كلمات+البحث  (رابط قابل للمشاركة وللإضافة إلى المفضلة)
-// إعادة تحميل / رجوع / فتح الرابط مباشرة → نفس نتيجة البحث تُعرض من جديد
-// مسح البحث أو الانتقال للرئيسية/تصنيف → يُحذف ?q= من الرابط.
+// ================================================================
+// ===== البحث في المتجر (محرك واحد يخدم: الاقتراحات + صفحة النتائج + بحث التصنيف) =====
+// - يبحث في: اسم المنتج (العربي والفرنسي) + رمز SKU + اسم التصنيف.
+// - رمز SKU = حقل sku/reference/code إن وُجد في Firestore، وإلا نفس الرمز الظاهر في لوحة التحكم
+//   (أول 9 أحرف من معرّف المنتج بأحرف كبيرة)، ويُقبل المعرّف الكامل أيضًا.
+// - توحيد النص: عربي/فرنسي بلا تشكيل ولا لهجات كتابة (أ/إ/آ، ى/ي، ة/ه، é/è...)، الأرقام الهندية = لاتينية،
+//   إزالة "ال" والجمع البسيط (ات / s / x)، وتجاهل الفواصل والشرطات (x3-manette = x3 manette).
+// - قاموس مرادفات عربي ⇄ فرنسي صغير (SEARCH_SYNONYMS) يُوسّع الكلمة إلى ما يقابلها في اللغة الأخرى.
+// - ترتيب حسب الصلة (وليس الأحدث فقط)، وعند عدم وجود أي نتيجة دقيقة نُجرّب تصحيح الأخطاء الإملائية البسيطة.
+// - الرابط هو مصدر الحالة: بحث جديد → /?q=كلمات (قابل للمشاركة، ويعمل مع الرجوع وإعادة التحميل).
+// ================================================================
 const SEARCH_MAX_LEN=100;
+const SEARCH_MAX_TOKENS=8;
+const SEARCH_SUGGEST_MAX=6;
+
+// نصوص واجهة البحث (محلية هنا حتى لا نحتاج تعديل i18n.js)
+const SEARCH_TXT={
+  no_title:{ar:"لم نجد ما تبحث عنه",fr:"Nous n'avons rien trouvé"},
+  no_hint:{ar:"جرب اسمًا آخر أو تصفح الفئات.",fr:"Essayez un autre nom ou parcourez les catégories."},
+  browse_all:{ar:"تصفح كل المنتجات",fr:"Voir tous les produits"},
+  show_all:{ar:"عرض كل النتائج",fr:"Voir tous les résultats"},
+  categories:{ar:"الفئات",fr:"Catégories"},
+  products:{ar:"المنتجات",fr:"Produits"},
+  view_category:{ar:"عرض الفئة",fr:"Voir la catégorie"},
+  clear:{ar:"مسح البحث",fr:"Effacer la recherche"},
+  approx:{ar:"لا توجد نتائج مطابقة تمامًا — إليك أقرب النتائج",fr:"Aucun résultat exact — voici les plus proches"}
+};
+function stxt(k){
+  const e=SEARCH_TXT[k]||{};
+  let l="ar";
+  try{l=window.BazarI18n?BazarI18n.getLang():(localStorage.getItem("bazarLang")==="fr"?"fr":"ar");}catch(_e){}
+  return e[l]||e.ar||k;
+}
+
+// كل سطر = مجموعة كلمات مترادفة (عربي / دارجة / فرنسي / إنجليزي). أضف أسطرًا جديدة بنفس الشكل متى شئت.
+// كلمة واحدة فقط لكل عنصر (بلا مسافات)، ولا تُكتب المرادفات الملتبسة حتى لا تظهر نتائج غير منطقية.
+const SEARCH_SYNONYMS=[
+  "هاتف هواتف تلفون تليفون جوال telephone phone smartphone mobile",
+  "شاحن شواحن chargeur charger",
+  "سماعة سماعات ecouteur casque earphones headphones airpods",
+  "مكبر مكبرات enceinte speaker parleur",
+  "كابل كابلات cable سلك",
+  "بطارية بطاريات batterie pile powerbank",
+  "حاسوب حواسيب كمبيوتر لابتوب ordinateur laptop pc",
+  "شاشة شاشات ecran",
+  "طابعة imprimante",
+  "كاميرا camera",
+  "ساعة ساعات montre watch",
+  "حقيبة حقائب شنطة sac cartable bag",
+  "حذاء احذية صباط chaussure basket sneakers",
+  "ملابس لباس vetement habit",
+  "بدلة بدلات ensemble survetement jogging",
+  "رجال رجالي رجالية homme",
+  "نساء نسائي نسائية نسوية femme",
+  "اطفال طفل رضع رضيع bebe enfant",
+  "رياضة رياضي رياضية sport",
+  "سيارة سيارات voiture auto automobile",
+  "قطع piece",
+  "غيار detachee rechange",
+  "اطار اطارات عجلة pneu tyre roue",
+  "مصباح مصابيح لمبة لمبات lampe ampoule lanterne lamp",
+  "شمسي solaire",
+  "كهربائي كهربائية كهرباء electrique",
+  "ادوات اداة outil outillage",
+  "مفك مفكات visseuse tournevis",
+  "مثقاب perceuse",
+  "مجلخ مجلخة meuleuse",
+  "كريك رافعة cric",
+  "ضغط pression",
+  "عالي عالية haut haute",
+  "غسالة غسالات nettoyeur",
+  "غسالة غسالات laver lavage",
+  "تنظيف نظافة nettoyage nettoyeur",
+  "ماكينة ماكينات آلة آلات machine",
+  "حلاقة حلاق rasoir raser tondeuse",
+  "مطبخ مطابخ cuisine",
+  "طهي طبخ cuisson cuiseur multicuiseur",
+  "طباخة موقد cuisiniere",
+  "محمصة toaster grille",
+  "خبز pain",
+  "منزل بيت maison",
+  "مكتب bureau",
+  "جهاز appareil",
+  "تحكم manette",
+  "العاب لعبة jeux jeu jouet",
+  "هدية هدايا cadeau",
+  "كتاب كتب livre",
+  "مجوهرات مجوهرة bijou",
+  "طبي طبية medical",
+  "جمال beaute",
+  "صحة sante",
+  "عطر parfum",
+  "صيف صيفي صيفية ete",
+  "تصفية destockage",
+  "عقار عقارات immobilier",
+  "ارض اراضي terrain",
+  "ثلاجة frigo refrigerateur",
+  "تلفاز تلفزيون television tv",
+  "مروحة ventilateur",
+  "مكيف climatiseur",
+  "خلاط mixeur blender",
+  "مكنسة aspirateur"
+];
+// كلمات لا قيمة لها في البحث (أدوات ربط)، تُتجاهل ما دامت هناك كلمات أخرى في الاستعلام
+const SEARCH_STOP=new Set(("و في من على الى عن مع de du des le la les un une et ou pour en au aux d l a avec sans sur the and")
+  .split(" ").map(w=>stemWord(normalizeSearch(w))));
+
 function cleanSearchQuery(s){
   return String(s==null?"":s).replace(/[\u0000-\u001f\u007f]/g," ").replace(/\s+/g," ").trim().slice(0,SEARCH_MAX_LEN);
 }
 function getUrlSearchQuery(){
   try{return cleanSearchQuery(new URLSearchParams(location.search).get("q"));}catch(_e){return "";}
 }
-// توحيد النص للمقارنة: حروف صغيرة، بلا تشكيل/علامات لاتينية، وتوحيد أشكال الألف والياء والتاء المربوطة.
+// توحيد النص للمقارنة: حروف صغيرة، بلا تشكيل/علامات لاتينية، أرقام لاتينية، توحيد أشكال الألف والياء والتاء المربوطة،
+// وكل ما ليس حرفًا أو رقمًا (شرطات، نقاط، فواصل، رموز...) يصبح مسافة.
 function normalizeSearch(s){
-  return String(s==null?"":s).toLowerCase().normalize("NFKD")
-    .replace(/[\u0300-\u036f\u064b-\u065f\u0670\u0640]/g,"")
-    .replace(/[\u0622\u0623\u0625\u0671]/g,"\u0627").replace(/\u0649/g,"\u064a").replace(/\u0629/g,"\u0647")
-    .replace(/\s+/g," ").trim();
+  return String(s==null?"":s).toLowerCase()
+    .replace(/\u0153/g,"oe").replace(/\u00e6/g,"ae").replace(/\u00df/g,"ss")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f\u064b-\u065f\u0670\u06d6-\u06ed\u0640]/g,"")
+    .replace(/[\u0660-\u0669]/g,d=>String(d.charCodeAt(0)-0x0660))
+    .replace(/[\u06f0-\u06f9]/g,d=>String(d.charCodeAt(0)-0x06f0))
+    .replace(/[\u0622\u0623\u0625\u0671]/g,"\u0627")
+    .replace(/[\u0649\u06cc]/g,"\u064a").replace(/\u06a9/g,"\u0643")
+    .replace(/\u0629/g,"\u0647")
+    .replace(/[^\p{L}\p{N}]+/gu," ").trim();
 }
-function productSearchHaystack(p){
-  const tp=BazarI18n.translateProduct(p)||{};
-  return normalizeSearch([tp.name,p.name,p.name_fr].join(" "));
+// تجذيع خفيف جدًا (يُطبَّق على الاستعلام وعلى أسماء المنتجات بنفس الطريقة، فيتطابق المفرد والجمع):
+// عربي: إزالة ال / لل / بال / وال... ثم الجمع "ات" أو التاء المربوطة. لاتيني: إزالة s/x الأخيرة من الكلمات الحرفية فقط.
+function stemWord(w){
+  if(!w) return w;
+  if(/^[\u0621-\u064a]+$/.test(w)){
+    if(w.length>5&&/^(\u0644\u0644)/.test(w)) w=w.slice(2);
+    else if(w.length>5&&/^(\u0628\u0627\u0644|\u0648\u0627\u0644|\u0643\u0627\u0644|\u0641\u0627\u0644)/.test(w)) w=w.slice(3);
+    else if(w.length>4&&w.startsWith("\u0627\u0644")) w=w.slice(2);
+    if(w.length>4&&w.endsWith("\u0627\u062a")) w=w.slice(0,-2);
+    else if(w.length>3&&w.endsWith("\u0647")) w=w.slice(0,-1);
+    return w;
+  }
+  if(w.length>3&&/^[a-z]+$/.test(w)&&/[sx]$/.test(w)) return w.slice(0,-1);
+  return w;
 }
+// كلمات النص بعد التوحيد والتجذيع (بلا تكرار)
+function searchWords(s){
+  const seen=new Set(),out=[];
+  normalizeSearch(s).split(" ").forEach(w=>{
+    if(!w) return;
+    w=stemWord(w);
+    if(w&&!seen.has(w)){seen.add(w);out.push(w);}
+  });
+  return out;
+}
+function searchTokens(q){
+  const all=searchWords(q);
+  const kept=all.filter(w=>!SEARCH_STOP.has(w));
+  return (kept.length?kept:all).slice(0,SEARCH_MAX_TOKENS);
+}
+const compactSearch=s=>normalizeSearch(s).replace(/ /g,"");
+
+// ---- المرادفات ----
+let _synMap=null;
+function synonymsOf(tok){
+  if(!_synMap){
+    _synMap=new Map();
+    SEARCH_SYNONYMS.forEach(line=>{
+      const ws=line.split(/\s+/).map(w=>stemWord(normalizeSearch(w))).filter(Boolean);
+      ws.forEach(w=>{
+        if(!_synMap.has(w)) _synMap.set(w,new Set());
+        ws.forEach(x=>{if(x!==w)_synMap.get(w).add(x);});
+      });
+    });
+  }
+  const s=_synMap.get(tok);
+  return s?Array.from(s):[];
+}
+
+// ---- فهرس المنتج (يُبنى مرة واحدة لكل كائن منتج؛ كل تحديث من Firestore ينشئ كائنات جديدة فيُبنى الفهرس من جديد تلقائيًا) ----
+const _searchIdx=new WeakMap();
+function productSearchIndex(p){
+  let ix=_searchIdx.get(p);
+  if(ix) return ix;
+  const tp=(window.BazarI18n&&BazarI18n.translateProduct(p))||{};
+  const words=searchWords([p.name,p.name_fr,tp.name].join(" "));
+  const fid=String(p.firestoreId||"");
+  ix={
+    words,
+    text:words.join(" "),
+    title:searchWords(tp.name||p.name).join(" "),
+    flat:compactSearch([p.name,p.name_fr].join(" ")),
+    skuReal:compactSearch(p.sku),
+    code:compactSearch(fid.slice(0,9)),
+    id:compactSearch(fid)
+  };
+  _searchIdx.set(p,ix);
+  return ix;
+}
+// فهرس التصنيف (يُعاد بناؤه فقط عند وصول قائمة تصنيفات جديدة)
+let _catIdx={ref:null,map:new Map()};
+function categorySearchInfo(key){
+  if(_catIdx.ref!==storeCategories) _catIdx={ref:storeCategories,map:new Map()};
+  const k=String(key==null?"":key);
+  if(!_catIdx.map.has(k)){
+    const c=storeCategories.find(x=>String(x.key)===k);
+    _catIdx.map.set(k,c?{words:searchWords([c.name,c.name_fr].join(" "))}:null);
+  }
+  return _catIdx.map.get(k);
+}
+
+// ---- التقييم ----
+const hasDigit=s=>/\d/.test(s);
+function nameScore(tok,ix,k){
+  let s=0;
+  if(ix.words.includes(tok)) s=60;
+  else if(tok.length>=2&&ix.words.some(w=>w.startsWith(tok))) s=48;
+  else if(tok.length>=3&&ix.text.includes(tok)) s=32;
+  else if(tok.length>=3&&hasDigit(tok)&&ix.flat.includes(tok)) s=28;
+  return s*k;
+}
+// المرادف يُطابق الكلمة كاملة، أو بادئةً/جزءًا منها إذا كان طويلًا بما يكفي (حتى لا يطابق auto كلمة automatique)
+function synonymScore(e,ix){
+  if(ix.words.includes(e)) return 36;
+  if(e.length>=5&&ix.words.some(w=>w.startsWith(e))) return 28;
+  if(e.length>=6&&ix.text.includes(e)) return 19;
+  return 0;
+}
+function tokenScore(tok,ix,cat){
+  let best=0;
+  // SKU
+  if(ix.skuReal){
+    if(ix.skuReal===tok) best=130;
+    else if(tok.length>=2&&ix.skuReal.startsWith(tok)) best=100;
+    else if(tok.length>=3&&ix.skuReal.includes(tok)) best=70;
+  }
+  if(tok.length>=4){
+    if(ix.code&&ix.code===tok) best=Math.max(best,120);
+    else if(ix.code&&ix.code.startsWith(tok)) best=Math.max(best,95);
+    else if(ix.id&&ix.id.startsWith(tok)) best=Math.max(best,90);
+  }
+  // الاسم (عربي/فرنسي)
+  best=Math.max(best,nameScore(tok,ix,1));
+  // المرادفات (على الأسماء فقط، بوزن أقل)
+  synonymsOf(tok).forEach(e=>{best=Math.max(best,synonymScore(e,ix));});
+  // التصنيف (تطابق مباشر فقط)
+  if(cat){
+    if(cat.words.includes(tok)) best=Math.max(best,24);
+    else if(tok.length>=2&&cat.words.some(w=>w.startsWith(tok))) best=Math.max(best,18);
+  }
+  return best;
+}
+// تطابق الاستعلام كاملًا مع رمز SKU (مثلاً كتابته بشرطة أو مسافة: "HC-123" ⇒ hc123)
+function skuWholeScore(flatQ,ix){
+  if(flatQ.length<3) return 0;
+  if(ix.skuReal){
+    if(ix.skuReal===flatQ) return 140;
+    if(ix.skuReal.includes(flatQ)) return 90;
+  }
+  if(flatQ.length>=4){
+    if(ix.code&&ix.code===flatQ) return 130;
+    if(ix.code&&ix.code.startsWith(flatQ)) return 105;
+    if(ix.id&&ix.id.startsWith(flatQ)) return 100;
+  }
+  return 0;
+}
+// 0 = لا يطابق. كل كلمات الاستعلام يجب أن تطابق (AND)، والمنتج غير المتوفر يُؤخَّر قليلًا.
+function scoreProduct(p,tokens,flatQ){
+  const ix=productSearchIndex(p),cat=categorySearchInfo(p.category);
+  let total=0,ok=true;
+  for(let i=0;i<tokens.length;i++){
+    const s=tokenScore(tokens[i],ix,cat);
+    if(!s){ok=false;break;}
+    total+=s;
+  }
+  if(ok){
+    if(tokens.length>1&&ix.text.includes(tokens.join(" "))) total+=30;
+    if(tokens.length&&ix.title.startsWith(tokens[0])) total+=12;
+  }else total=0;
+  const whole=skuWholeScore(flatQ,ix);
+  if(whole>total) total=whole;
+  if(total>0&&!lpAvailable(p)) total=Math.max(1,total-12);
+  return total;
+}
+// ---- تصحيح الأخطاء الإملائية البسيطة (يُستعمل فقط إذا لم توجد أي نتيجة دقيقة) ----
+function withinEdits(a,b,max){
+  if(Math.abs(a.length-b.length)>max) return false;
+  let prev=[];
+  for(let j=0;j<=b.length;j++) prev[j]=j;
+  for(let i=1;i<=a.length;i++){
+    const cur=[i];
+    let rowMin=i;
+    for(let j=1;j<=b.length;j++){
+      const v=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+      cur[j]=v;
+      if(v<rowMin) rowMin=v;
+    }
+    if(rowMin>max) return false;
+    prev=cur;
+  }
+  return prev[b.length]<=max;
+}
+function fuzzyScore(p,tokens){
+  const ix=productSearchIndex(p),cat=categorySearchInfo(p.category);
+  const pool=cat?ix.words.concat(cat.words):ix.words;
+  let total=0;
+  for(let i=0;i<tokens.length;i++){
+    const tok=tokens[i];
+    let s=tokenScore(tok,ix,cat);
+    if(!s&&tok.length>=4&&!hasDigit(tok)){
+      const max=tok.length>=7?2:1;
+      if(pool.some(w=>withinEdits(tok,w,max)||(w.length>tok.length&&withinEdits(tok,w.slice(0,tok.length),max)))) s=20;
+    }
+    if(!s) return 0;
+    total+=s;
+  }
+  return lpAvailable(p)?total:Math.max(1,total-12);
+}
+function rankBy(list,fn){
+  const out=[];
+  list.forEach(p=>{const s=fn(p);if(s>0)out.push({p,s});});
+  out.sort((a,b)=>(b.s-a.s)||((b.p.createdAtMs||0)-(a.p.createdAtMs||0)));
+  return out.map(x=>x.p);
+}
+// المحرك الوحيد: يرجع {items: منتجات مرتبة حسب الصلة, approx: هل هي نتائج تقريبية (بعد تصحيح الإملاء)}
+function searchCatalog(q,list){
+  list=Array.isArray(list)?list:products;
+  const tokens=searchTokens(q);
+  if(!tokens.length) return {items:[],approx:false};
+  const flatQ=compactSearch(q);
+  let items=rankBy(list,p=>scoreProduct(p,tokens,flatQ));
+  if(items.length) return {items,approx:false};
+  items=rankBy(list,p=>fuzzyScore(p,tokens));
+  return {items,approx:items.length>0};
+}
+// استعمال المحرك نفسه لتصفية منتجات تصنيف (بحث داخل التصنيف)
+function productMatchesQuery(p,q){
+  const tokens=searchTokens(q);
+  if(!tokens.length) return true;
+  return scoreProduct(p,tokens,compactSearch(q))>0;
+}
+function visibleSearchCategories(){
+  return (Array.isArray(storeCategories)?storeCategories:[]).filter(c=>c&&c.hidden!==true&&c.name);
+}
+function matchSearchCategories(tokens){
+  if(!tokens.length) return [];
+  return visibleSearchCategories().filter(c=>{
+    const info=categorySearchInfo(c.key);
+    return info&&tokens.every(t=>info.words.includes(t)||(t.length>=2&&info.words.some(w=>w.startsWith(t))));
+  }).slice(0,2);
+}
+
+// ---- الرابط (مصدر الحالة) ----
 function searchUrlFor(q){
   if(!q) return "/";
   const u=new URLSearchParams(); u.set("q",q);
@@ -2117,16 +2493,36 @@ function leaveSearchMode(){
   document.body.classList.remove("search-boot");
   if(searchActive){searchActive=false;updateCategorySeo(null);}
 }
-function showSearchHeading(q,count){
-  const lang=window.BazarI18n?BazarI18n.getLang():"ar";
+function showSearchHeading(q,count,approx){
   const title=document.getElementById("categoryPageTitle");
   const desc=document.getElementById("categoryPageDescription");
   const crumb=document.getElementById("categoryBreadcrumb");
   if(title) title.textContent=BazarI18n.t("search_results_for")+" «"+q+"»";
-  if(desc) desc.textContent=count+" "+BazarI18n.t("cat_products_count");
+  if(desc) desc.textContent=approx?stxt("approx"):(count+" "+BazarI18n.t("cat_products_count"));
   if(crumb) crumb.style.display="none";
   document.title=q+" — "+BazarI18n.t("search_results_title")+" | Bazar Dzair";
 }
+
+// ---- واجهة "لا نتائج" (تُستعمل في صفحة النتائج وفي قائمة الاقتراحات) ----
+function searchChipsHtml(cats){
+  return cats.map(c=>'<a class="sr-chip" href="'+esc(categoryPath(c))+'" data-sr="cat" data-key="'+esc(c.key)+'"><span aria-hidden="true">'+esc(c.icon||"🛍️")+'</span>'+esc(catName(c))+'</a>').join("");
+}
+function searchEmptyHtml(){
+  const cats=visibleSearchCategories().slice(0,8);
+  return '<div class="sr-empty-ic" aria-hidden="true">🔍</div>'
+    +'<div class="sr-empty-t">'+esc(stxt("no_title"))+'</div>'
+    +'<div class="sr-empty-s">'+esc(stxt("no_hint"))+'</div>'
+    +(cats.length?'<div class="sr-chips">'+searchChipsHtml(cats)+'</div>':'')
+    +'<a class="sr-all" href="/" data-sr="all">'+esc(stxt("browse_all"))+'</a>';
+}
+function renderSearchEmpty(){
+  const g=document.getElementById("productGrid"); if(!g) return;
+  g.innerHTML='<div class="sr-empty" style="grid-column:1/-1">'+searchEmptyHtml()+'</div>';
+  productsToDisplay=[];
+  visibleProductsCount=PRODUCTS_FIRST_PAGE;
+  updateLoadMoreButton();
+}
+
 // ===== منطق البحث الفعلي (لا يمس الرابط) — يُستعمل من searchProducts() ومن استعادة البحث عن الرابط =====
 function runProductSearch(q){
   q=cleanSearchQuery(q);
@@ -2147,17 +2543,10 @@ function runProductSearch(q){
   if(document.body.classList.contains("category-mode")) updateCategorySeo(null);
   searchActive=true;
   document.body.classList.remove("search-boot");
-  const tokens=normalizeSearch(q).split(" ").filter(Boolean);
-  const filtered=products.filter(p=>{const h=productSearchHaystack(p);return tokens.every(t=>h.includes(t));});
-  showSearchHeading(q,filtered.length);
-  if(!filtered.length){
-    const g=document.getElementById("productGrid");
-    if(g) g.innerHTML='<div class="empty" style="grid-column:1/-1">'+esc(BazarI18n.t("search_no_results"))+'</div>';
-    const wrap=document.getElementById("loadMoreWrap");
-    if(wrap) wrap.style.display="none";
-    return;
-  }
-  displayProducts(filtered);
+  const res=searchCatalog(q);
+  showSearchHeading(q,res.items.length,res.approx);
+  if(!res.items.length){renderSearchEmpty();return;}
+  displayProducts(res.items,true,true); // true الأخيرة: نُبقي ترتيب الصلة (لا نُعيد الترتيب بالأحدث)
 }
 // تُستدعى بعد كل تحميل/تحديث للمنتجات وعند الرجوع/الأمام لاستعادة نتيجة البحث المكتوبة في الرابط.
 function applyUrlSearch(){
@@ -2169,18 +2558,136 @@ function applyUrlSearch(){
   runProductSearch(q);
   return true;
 }
+// إرسال البحث (Enter / زر البحث / "عرض كل النتائج"): يكتب الرابط ويعرض صفحة النتائج
 function searchProducts(){
-  clearTimeout(searchDebounceTimer);
-  searchDebounceTimer=setTimeout(()=>{
-    const input=document.getElementById("search");
-    if(!input)return;
-    const q=cleanSearchQuery(input.value);
-    if(input.value!==q && document.activeElement!==input) input.value=q;
-    commitSearchUrl(q);
-    runProductSearch(q);
-    if(q) document.getElementById("products")?.scrollIntoView({behavior:"smooth",block:"start"});
-  },200);
+  const input=document.getElementById("search"); if(!input) return;
+  const q=cleanSearchQuery(input.value);
+  if(input.value!==q) input.value=q;
+  hsClose();
+  input.blur();
+  commitSearchUrl(q);
+  runProductSearch(q);
+  if(q) document.getElementById("products")?.scrollIntoView({behavior:"smooth",block:"start"});
 }
+
+// ===== الاقتراحات المباشرة أثناء الكتابة (قائمة تحت شريط البحث) =====
+const hsState={timer:null,hideTimer:null,active:-1,open:false};
+function hsEls(){return{form:document.querySelector(".header-search"),input:document.getElementById("search"),panel:document.getElementById("searchPanel")};}
+function hsOptions(panel){return Array.prototype.slice.call(panel.querySelectorAll('[role="option"]'));}
+function hsClose(){
+  clearTimeout(hsState.timer);
+  const {input,panel}=hsEls();
+  hsState.active=-1;hsState.open=false;
+  if(panel){panel.hidden=true;panel.innerHTML="";}
+  if(input){input.setAttribute("aria-expanded","false");input.removeAttribute("aria-activedescendant");}
+}
+function hsSetActive(i){
+  const {input,panel}=hsEls(); if(!panel||!input) return;
+  const opts=hsOptions(panel);
+  opts.forEach((o,k)=>{o.classList.toggle("active",k===i);o.setAttribute("aria-selected",k===i?"true":"false");});
+  hsState.active=i;
+  if(i>=0&&opts[i]){input.setAttribute("aria-activedescendant",opts[i].id);opts[i].scrollIntoView({block:"nearest"});}
+  else input.removeAttribute("aria-activedescendant");
+}
+function hsPriceHtml(p){
+  const d=pcDiscount(p);
+  return '<b class="hs-now">'+money(p.price)+'</b>'+(d?'<s class="hs-old">'+money(d.old)+'</s><i class="hs-off">-'+d.pct+'%</i>':'');
+}
+function hsProductRow(p,n){
+  const tp=BazarI18n.translateProduct(p);
+  const off=lpAvailable(p)?'':'<span class="hs-tag">'+esc(BazarI18n.t("badge_unavailable"))+'</span>';
+  return '<a class="hs-item" role="option" id="hs-o-'+n+'" href="/product/'+encodeURIComponent(productSlugOf(p))+'/" data-sr="product" data-pid="'+esc(p.id)+'">'
+    +'<img class="hs-thumb" src="'+safeImg(p.image)+'" alt="" loading="lazy" decoding="async">'
+    +'<span class="hs-info"><span class="hs-name">'+esc(tp.name)+'</span><span class="hs-price">'+hsPriceHtml(p)+off+'</span></span></a>';
+}
+function hsRender(){
+  const {input,panel}=hsEls(); if(!input||!panel) return;
+  const q=cleanSearchQuery(input.value);
+  if(document.activeElement!==input||normalizeSearch(q).length<2||!products.length){hsClose();return;}
+  const tokens=searchTokens(q);
+  const res=searchCatalog(q);
+  const cats=matchSearchCategories(tokens);
+  const shown=res.items.slice(0,SEARCH_SUGGEST_MAX);
+  let html="",n=0;
+  if(!shown.length&&!cats.length){
+    html='<div class="sr-empty">'+searchEmptyHtml()+'</div>';
+  }else{
+    if(res.approx) html+='<div class="hs-note" role="presentation">'+esc(stxt("approx"))+'</div>';
+    if(cats.length){
+      html+='<div class="hs-sec" role="presentation">'+esc(stxt("categories"))+'</div>';
+      cats.forEach(c=>{
+        html+='<a class="hs-item" role="option" id="hs-o-'+(n++)+'" href="'+esc(categoryPath(c))+'" data-sr="cat" data-key="'+esc(c.key)+'">'
+          +'<span class="hs-cat-ic" aria-hidden="true">'+esc(c.icon||"🛍️")+'</span>'
+          +'<span class="hs-info"><span class="hs-name">'+esc(catName(c))+'</span><span class="hs-sub">'+esc(stxt("view_category"))+'</span></span></a>';
+      });
+    }
+    if(shown.length){
+      if(cats.length) html+='<div class="hs-sec" role="presentation">'+esc(stxt("products"))+'</div>';
+      shown.forEach(p=>{html+=hsProductRow(p,n++);});
+      html+='<a class="hs-all" role="option" id="hs-o-'+(n++)+'" href="'+esc(searchUrlFor(q))+'" data-sr="results">'+esc(stxt("show_all"))+' ('+res.items.length+')</a>';
+    }
+  }
+  panel.innerHTML=html;
+  panel.hidden=false;
+  hsState.open=true;hsState.active=-1;
+  input.setAttribute("aria-expanded","true");
+  input.removeAttribute("aria-activedescendant");
+}
+function initSearchUI(){
+  const {form,input,panel}=hsEls();
+  if(!form||!input||!panel||form.dataset.hsInit) return;
+  form.dataset.hsInit="1";
+  const clr=document.getElementById("searchClear");
+  if(clr) clr.setAttribute("aria-label",stxt("clear"));
+
+  form.addEventListener("submit",e=>{e.preventDefault();searchProducts();});
+  input.addEventListener("input",()=>{clearTimeout(hsState.timer);hsState.timer=setTimeout(hsRender,120);});
+  input.addEventListener("focus",()=>{clearTimeout(hsState.hideTimer);hsRender();});
+  input.addEventListener("blur",()=>{clearTimeout(hsState.hideTimer);hsState.hideTimer=setTimeout(hsClose,140);});
+  input.addEventListener("keydown",e=>{
+    const k=e.key;
+    if(k==="ArrowDown"||k==="ArrowUp"){
+      if(!hsState.open){if(k==="ArrowDown"){e.preventDefault();hsRender();}return;}
+      const opts=hsOptions(panel); if(!opts.length) return;
+      e.preventDefault();
+      let i=hsState.active+(k==="ArrowDown"?1:-1);
+      if(i>=opts.length) i=0;
+      if(i<0) i=opts.length-1;
+      hsSetActive(i);
+    }else if(k==="Enter"){
+      if(hsState.open&&hsState.active>=0){
+        const el=hsOptions(panel)[hsState.active];
+        if(el){e.preventDefault();el.click();}
+      }
+    }else if(k==="Escape"){
+      if(hsState.open){e.preventDefault();e.stopPropagation();hsClose();}
+    }else if(k==="Tab"){
+      hsClose();
+    }
+  });
+  // الضغط داخل القائمة أو على زر المسح لا يسحب التركيز من حقل البحث (وإلا تُغلق القائمة قبل وصول النقرة)
+  panel.addEventListener("mousedown",e=>e.preventDefault());
+  if(clr){
+    clr.addEventListener("mousedown",e=>e.preventDefault());
+    clr.addEventListener("click",()=>{input.value="";hsClose();input.focus();});
+  }
+  // إغلاق عند النقر خارج الشريط
+  document.addEventListener("pointerdown",e=>{if(hsState.open&&!form.contains(e.target))hsClose();});
+  // النقر على أي عنصر مرتبط بالبحث (اقتراح منتج/تصنيف، "عرض كل النتائج"، فئات وزر "لا نتائج")
+  document.addEventListener("click",e=>{
+    const el=e.target.closest?e.target.closest("[data-sr]"):null;
+    if(!el) return;
+    if(e.button>0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey) return; // فتح في تبويب جديد: نترك المتصفح يتصرف
+    e.preventDefault();
+    const kind=el.dataset.sr;
+    if(kind==="product"){hsClose();goToProduct(Number(el.dataset.pid));}
+    else if(kind==="cat"){hsClose();input.blur();filterCategory(el.dataset.key);}
+    else if(kind==="results"){searchProducts();}
+    else if(kind==="all"){hsClose();input.blur();showProductsOnly();}
+  });
+}
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initSearchUI);
+else initSearchUI();
 window.submitOrder=async function(){
  if(!cart.length){toast(BazarI18n.t("toast_cart_empty"));return}
  if(window.__bazarSubmittingOrder)return;
