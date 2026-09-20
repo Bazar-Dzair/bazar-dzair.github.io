@@ -24,8 +24,14 @@
  // إضافية فرابط الوجهة (مثال: /product/x&evil=1 يعيد التوجيه فعليًا إلى
  // /product.html?id=x&evil=1). لا يوجد استغلال فعلي حاليًا (product.html يقرأ id فقط)،
  // لكن ترميزها بـ encodeURIComponent يمنع أي مفاجأة مستقبلية بدون أي أثر على الروابط السليمة.
- const cm=location.pathname.match(/^\/product-category\/([^\/]+)\/?/);
- if(cm){location.replace("/?category="+encodeURIComponent(cm[1]));return;}
+ const cm=location.pathname.match(/^\/(?:product-category|category)\/([^\/]+)\/?/);
+ if(cm){
+   // location.pathname يكون مُرمَّزًا (%D8%A7...) لأي رابط عربي قديم؛ لو مرّرناه كما هو إلى encodeURIComponent
+   // يُرمَّز مرتين فلا يجد index.html أي فئة مطابقة. لذلك نفكّ الترميز أولًا ثم نرمّز مرة واحدة.
+   let seg=cm[1];
+   try{seg=decodeURIComponent(seg);}catch(_e){}
+   location.replace("/?category="+encodeURIComponent(seg));return;
+ }
  if(map[p]){location.replace(map[p]);return;}
  // رابط منتج بلا صفحة ثابتة (منتج جديد لم تُولَّد صفحته بعد، أو رابط قديم): نفتحه في الصفحة الديناميكية بدل الرئيسية.
  const pm=location.pathname.match(/^\/product\/([^\/]+)\/?$/);

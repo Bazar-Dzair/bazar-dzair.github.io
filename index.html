@@ -1333,8 +1333,10 @@ function productSlugOf(p){
   if(!s) s=("produit-"+frSlug(p.firestoreId||p.id||"").slice(0,6)).replace(/-+$/,"");
   return s;
 }
-// التصنيف: name_fr، وإلا المعرّف (key) اللاتيني، وإلا "categorie".
-function categoryFrSlug(c){return frSlug(c&&c.name_fr)||frSlug(c&&c.key)||"categorie";}
+// التصنيف: رابط واحد ثابت لكل فئة (/product-category/<slug>/) مهما كانت لغة العرض.
+// الأولوية: حقل slug المحفوظ في Firestore (يُثبَّت من لوحة التحكم ولا يتغيّر بتعديل الاسم)،
+// وإلا (فئات قديمة بلا slug) نشتقّه كما كان: name_fr، وإلا المعرّف (key) اللاتيني، وإلا "categorie".
+function categoryFrSlug(c){return frSlug(c&&c.slug)||frSlug(c&&c.name_fr)||frSlug(c&&c.key)||"categorie";}
 function categoryPath(c){
   const seg=categoryFrSlug(c);
   return "/product-category/"+encodeURIComponent(seg)+"/";
