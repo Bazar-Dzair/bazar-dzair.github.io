@@ -40,14 +40,15 @@ service cloud.firestore {
     function isValidReview(d) {
       return
         d.keys().hasOnly(['productId','productName','authorName','ratingValue','text','approved','createdAt']) &&
-        d.keys().hasAll(['productId','authorName','ratingValue','text','approved']) &&
+        d.keys().hasAll(['productId','authorName','ratingValue','text','approved','createdAt']) &&
+        // التاريخ يضعه الخادم فقط (serverTimestamp)
+        d.createdAt == request.time &&
         d.approved == false &&
         d.productId is string && d.productId.size() > 0 && d.productId.size() < 200 &&
         exists(/databases/$(database)/documents/products/$(d.productId)) &&
-        d.authorName is string && d.authorName.size() > 0 && d.authorName.size() < 60 &&
-        d.text is string && d.text.size() >= 3 && d.text.size() < 600 &&
-        (d.ratingValue is int || d.ratingValue is float) &&
-        d.ratingValue >= 1 && d.ratingValue <= 5 &&
+        d.authorName is string && d.authorName.size() >= 2 && d.authorName.size() <= 60 &&
+        d.text is string && d.text.size() >= 3 && d.text.size() <= 600 &&
+        d.ratingValue is int && d.ratingValue >= 1 && d.ratingValue <= 5 &&
         (!('productName' in d) || (d.productName is string && d.productName.size() < 200));
     }
     match /reviews/{id} {
@@ -65,15 +66,15 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // ✅ الطلبات — الكتابة الفعلية تتم مباشرة من المتصفح (addDoc في product.html/index.html)
-    // وليس فقط عبر الـ Worker (الـ Worker يُستدعى بعدها فقط لإرسال إشعار Telegram، بدون
-    // انتظار نتيجته). لذلك "allow create" هنا يجب أن يسمح لأي زائر غير مسجّل دخول بإنشاء
-    // طلب بشرط أن يجتاز isValidOrder() كل التحقّقات (شكل البيانات، رقم الهاتف، تطابق
-    // السعر الحقيقي...). كانت هذه القاعدة مضبوطة خطأً على "if isAdmin()" فقط، وهو ما كان
-    // يمنع كل زبون (غير مسجّل دخول بحساب الأدمن) من تسجيل أي طلب إطلاقًا.
+    // ✅ الطلبات — إنشاء الطلب يتم حصرًا عبر Cloudflare Worker (مسار /create-order) الذي
+    // يعمل بصلاحيات Service Account (تتجاوز هذه القواعد أصلاً). لهذا السبب لا يقدر أي
+    // متصفح/سكربت الكتابة مباشرة في Firestore: هذا شرط أساسي لعمل حظر الـ IP، لأن
+    // عنوان IP لا يراه إلا الـ Worker (رأس CF-Connecting-IP) ولا توجد أي طريقة
+    // لفحصه داخل Security Rules. لو بقي الإنشاء المباشر مسموحًا، لكفى المزعج أن يتجاوز
+    // موقعك ويكتب في Firestore مباشرة ليتفادى الحظر بالكامل.
+    // الأدمن وحده يقرأ ويعدّل ويحذف الطلبات (ويقدر ينشئ يدويًا من لوحة التحكم إن احتاج).
     match /orders/{id} {
-      allow create: if isValidOrder(request.resource.data);
-      allow read, update, delete: if isAdmin();
+      allow create, read, update, delete: if isAdmin();
     }
 
     // ⚠️ أرقام الهواتف المحظورة — كانت هذه القاعدة ناقصة تمامًا (لا يوجد أي match
@@ -85,9 +86,18 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
-    // نفس شروط isValidOrder() تُستخدم الآن فعليًا في allow create أعلاه، وتبقى أيضًا
-    // مرجعًا يعيد الـ Worker (create-order.js) نفس التحقق يدويًا قبل الكتابة بصلاحيات
-    // Service Account.
+    // 🚫 عناوين IP المحظورة — معرّف الوثيقة = مفتاح الـ IP (IPv4 كما هو، أو أول 64 بت
+    // من IPv6 على شكل v6-2001-db8-1-2). الأدمن وحده يقرأ ويكتب من لوحة التحكم
+    // (admin.html)، والـ Worker يقرأها بصلاحيات Service Account قبل قبول أي طلب. لا
+    // قراءة عامة إطلاقًا حتى لا يعرف المزعج أن IP الخاص به محظور من هذه القائمة.
+    match /blockedIps/{key} {
+      allow read, write: if isAdmin();
+    }
+
+    // isValidOrder() لم تعد مستعملة في أي قاعدة (إنشاء الطلب صار عبر الـ Worker فقط)،
+    // لكنها تبقى مرجعًا موثّقًا لنفس الشروط التي يعيد الـ Worker (create-order.js)
+    // تطبيقها يدويًا قبل الكتابة بصلاحيات Service Account. لا تحذفها: أي تعديل على شروط
+    // الطلب يجب أن يُطبَّق في الاثنين معًا.
     function isValidOrder(d) {
       return
         // الحقول المسموحة فقط — أي حقل إضافي (adminNotes، role، isAdmin...) يرفض الطلب
