@@ -1713,7 +1713,21 @@ async function goSimilar(ev,i){
   location.href=target;
 }
 window.goSimilar=goSimilar;
+async function redirectLegacyIdToStaticPage(){
+  // روابط قديمة من نوع product.html?id=xxx: إن كانت الصفحة الثابتة الجميلة
+  // /product/xxx/ موجودة فعلاً (SSG)، نحوّل إليها فورًا قبل أي محاولة اتصال
+  // بـ Firestore — فلا تتأثر هذه الروابط القديمة بأي عطل في الشبكة أو القاعدة،
+  // ولا تظهر رسالة "تعذر تحميل المنتج" ما دامت الصفحة الثابتة موجودة.
+  if(!queryId || pathMatch) return false;
+  const candidate="/product/"+encodeURIComponent(queryId)+"/";
+  try{
+    const res=await fetch(candidate,{method:"HEAD",cache:"no-store"});
+    if(res.ok){ location.replace(candidate+location.hash); return true; }
+  }catch(_e){ /* لا اتصال أو فشل الطلب: نكمل بالمسار الديناميكي المعتاد أدناه */ }
+  return false;
+}
 async function load(){
+  if(await redirectLegacyIdToStaticPage()) return;
   let cachedProduct=null;
   try{
     const cp=JSON.parse(localStorage.getItem("bazar_selected_product")||"null");
