@@ -222,7 +222,7 @@ def static_product_html(name, desc, price, images, available=True, badge=None, o
         action_row = (
             '<div class="action-row">'
             '<button type="button" class="btn-cart">🛒 إضافة إلى السلة</button>'
-            '<button type="button" class="btn-buy">⚡ اشترِ الآن</button>'
+            '<button type="button" class="btn-buy">⚡ اطلب الآن</button>'
             '</div>'
         )
     else:
