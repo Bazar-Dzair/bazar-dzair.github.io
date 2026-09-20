@@ -320,15 +320,13 @@ body.products-only .hero,body.products-only .home-features,body.products-only .n
 .hcat-grid-ic{flex:none;width:30px;height:30px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:4px}
 .hcat-grid-ic span{background:var(--orange,#ff5a0a);border-radius:5px}
 .hcat-wrap{position:relative;margin-top:16px;padding:0 46px}
-.hcat-track{--hcat-w:132px;display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x proximity;scroll-padding-inline:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 2px 8px}
+.hcat-track{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x proximity;scroll-padding-inline:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 2px 8px}
 .hcat-track::-webkit-scrollbar{display:none}
-.hcat-card{flex:0 0 var(--hcat-w);scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 8px 14px;color:inherit;text-decoration:none;cursor:pointer;box-shadow:0 4px 14px rgba(7,29,59,.05);position:relative;transition:border-color .2s,box-shadow .2s,transform .2s}
-.hcat-card:hover,.hcat-card:focus-visible{border-color:var(--orange,#ff5a0a);box-shadow:0 10px 22px rgba(7,29,59,.1);transform:translateY(-2px)}
-.hcat-card::after{content:"";position:absolute;left:14px;right:14px;bottom:-1px;height:3px;border-radius:3px;background:var(--orange,#ff5a0a);opacity:0;transform:scaleX(.4);transition:.2s}
-.hcat-card:hover::after,.hcat-card:focus-visible::after{opacity:1;transform:scaleX(1)}
-.hcat-card .hcc-ic{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;flex:none}
-.hcat-card .hcc-name{font-size:13.5px;font-weight:800;line-height:1.4;color:var(--navy,#061e3d);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;min-height:19px}
-.hcat-card .hcc-go{width:26px;height:26px;border-radius:50%;background:var(--orange,#ff5a0a);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+.hcat-card{flex:0 0 auto;scroll-snap-align:start;display:flex;flex-direction:row;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 8px;color:inherit;text-decoration:none;cursor:pointer;box-shadow:0 4px 14px rgba(7,29,59,.05);position:relative;transition:border-color .2s,box-shadow .2s,transform .2s;white-space:nowrap}
+.hcat-card:hover,.hcat-card:focus-visible{border-color:var(--orange,#ff5a0a);box-shadow:0 8px 18px rgba(7,29,59,.09);transform:translateY(-1px)}
+.hcat-card .hcc-ic{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+.hcat-card .hcc-name{font-size:13px;font-weight:800;line-height:1.3;color:var(--navy,#061e3d)}
+.hcat-card .hcc-go{width:22px;height:22px;border-radius:50%;background:var(--orange,#ff5a0a);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none}
 .hcat-arrow{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--navy,#061e3d);font-size:19px;box-shadow:0 4px 14px rgba(7,29,59,.1);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;transition:.2s}
 .hcat-arrow:hover{background:var(--orange,#ff5a0a);border-color:var(--orange,#ff5a0a);color:#fff}
 .hcat-arrow:disabled{opacity:.35;cursor:default;background:#fff;color:var(--navy,#061e3d);border-color:var(--line)}
@@ -339,10 +337,11 @@ body.products-only .hero,body.products-only .home-features,body.products-only .n
 .hcat-dots button[aria-current="true"]{background:var(--orange,#ff5a0a);width:20px;border-radius:4px}
 @media(max-width:560px){
   .hcat-wrap{padding:0 40px}
-  .hcat-track{--hcat-w:112px;gap:10px}
-  .hcat-card{padding:14px 6px 12px;border-radius:15px}
-  .hcat-card .hcc-ic{width:52px;height:52px;font-size:23px}
+  .hcat-track{gap:9px}
+  .hcat-card{padding:5px 6px;gap:8px}
+  .hcat-card .hcc-ic{width:34px;height:34px;font-size:15px}
   .hcat-card .hcc-name{font-size:12px}
+  .hcat-card .hcc-go{width:19px;height:19px;font-size:10px}
   .hcat-arrow{width:32px;height:32px;font-size:16px}
 }
 
