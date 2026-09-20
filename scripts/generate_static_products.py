@@ -64,12 +64,20 @@ def category_slug_base(c):
 
 
 def redirect_stub_html(target):
-    """صفحة تحويل خفيفة توضع في مسار الرابط العربي القديم (GitHub Pages لا يدعم 301): canonical + meta refresh + JS."""
+    """صفحة تحويل خفيفة توضع في مسار الرابط العربي القديم (GitHub Pages لا يدعم 301): canonical + meta refresh + JS.
+    كل فئة/منتج له سلاغ واحد حقيقي فقط (الفرنسي)؛ هذه الصفحة ليست نسخة ثانية من
+    المحتوى، بل مجرد جسر تحويل للروابط القديمة المفهرسة/المشارَكة سابقًا. لذلك:
+    - noindex صريح: تمنع نهائيًا أي احتمال فهرسة Google لهذا المسار كصفحة مستقلة،
+      حتى قبل أن ينفّذ الزاحف التحويل (canonical وحده لا يضمن ذلك دائمًا).
+    - غير مُدرجة في أي sitemap (انظر أدناه) وغير مرتبطة من أي مكان في الموقع —
+      لا يصل إليها أحد إلا عبر رابط قديم مباشر.
+    النتيجة: سلاغ واحد فعلي لكل فئة/منتج (/product-category/outils/ مثلاً)، بلا أي ازدواجية SEO حقيقية."""
     t=html.escape(target,quote=True)
     rel=target[len(SITE)-1:] if target.startswith(SITE) else target  # مسار نسبي للجذر: يعمل على أي دومين
     r=html.escape(rel,quote=True)
     return ('<!doctype html><html lang="fr"><head><meta charset="utf-8">'
             f'<title>Redirection | Bazar Dzair</title><link rel="canonical" href="{t}">'
+            '<meta name="robots" content="noindex,follow">'
             f'<meta http-equiv="refresh" content="0;url={r}">'
             f'<script>location.replace({json.dumps(rel)}+location.hash);</script></head>'
             f'<body><p><a href="{r}">Bazar Dzair</a></p></body></html>')
