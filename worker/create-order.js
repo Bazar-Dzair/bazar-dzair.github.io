@@ -10,7 +10,10 @@
 // ما يفعله هذا المسار:
 //   1) يعيد نفس التحقق الموجود في firestore.rules (شكل البيانات، الهاتف، الكمية...).
 //   2) يتحقق أن رقم هاتف الزبون غير موجود في قائمة الأرقام المحظورة (collection
-//      blockedPhones يديرها الأدمن من لوحة التحكم).
+//      blockedPhones يديرها الأدمن من لوحة التحكم)، وأن عنوان IP الخاص بالزائر غير
+//      محظور (collection blockedIps). عنوان IP يقرؤه الـ Worker من رأس
+//      CF-Connecting-IP الذي يضعه Cloudflare نفسه — لا يمكن للزبون تزويره — ويُحفظ
+//      مع كل طلب (حقول ip / ipKey / country) ليظهر في لوحة التحكم ويُحظر بضغطة زر.
 //   3) يجلب السعر الحقيقي للمنتج من Firestore ويقارنه بالسعر المُرسل.
 //   4) يكتب الطلب في Firestore بصلاحيات Service Account (تتجاوز Security Rules
 //      تمامًا، وهذا مقصود ومتوقَّع لأي Admin SDK / Service Account).
@@ -33,6 +36,74 @@
 // الدومين الوحيد المسموح له بإرسال طلبات إلى هذا الـ Worker.
 // إذا أضفت دومينًا مخصصًا (custom domain) للموقع لاحقًا، أضفه هنا أيضًا.
 const ALLOWED_ORIGINS = ["https://bazar-dzair.github.io"];
+
+// ---------------------------------------------------------------------
+// عنوان IP الخاص بالزائر
+// ---------------------------------------------------------------------
+// ⚠️ لا نأخذ IP من المتصفح ولا من body الطلب ولا من X-Forwarded-For (كلها قابلة
+// للتزوير). Cloudflare وحده يضع CF-Connecting-IP، وأي قيمة يرسلها الزائر بنفس
+// الاسم تُستبدل تلقائيًا عند عبور الطلب عبر شبكة Cloudflare.
+//
+// مفتاح الحظر (ipKey) يُستعمل كمعرّف وثيقة في collection "blockedIps":
+//   • IPv4  → العنوان نفسه، مثال: 41.111.22.33
+//   • IPv6  → أول 64 بت فقط (/64) على شكل v6-2001-db8-1-2، لأن أي مشترك IPv6
+//     يملك عادةً /64 كاملة ويقدر يغيّر آخر 64 بت متى شاء؛ حظر العنوان الكامل
+//     وحده لا يفيد. (نفس دالة التطبيع موجودة في admin.html — يجب أن تبقى متطابقة.)
+function parseIpv6(ip) {
+  ip = ip.split("%")[0];
+  const m = ip.match(/^(.*:)(\d{1,3}(?:\.\d{1,3}){3})$/);
+  if (m) {
+    const p = m[2].split(".").map(Number);
+    if (p.some((n) => n > 255)) return null;
+    ip = m[1] + ((p[0] << 8) | p[1]).toString(16) + ":" + ((p[2] << 8) | p[3]).toString(16);
+  }
+  const halves = ip.split("::");
+  if (halves.length > 2) return null;
+  const head = halves[0] ? halves[0].split(":") : [];
+  const tail = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  let groups;
+  if (halves.length === 2) {
+    const missing = 8 - head.length - tail.length;
+    if (missing < 1) return null;
+    groups = [...head, ...Array(missing).fill("0"), ...tail];
+  } else {
+    groups = head;
+  }
+  if (groups.length !== 8) return null;
+  const out = [];
+  for (const g of groups) {
+    if (!/^[0-9a-f]{1,4}$/.test(g)) return null;
+    out.push(parseInt(g, 16));
+  }
+  return out;
+}
+
+function normalizeIp(raw) {
+  if (!raw || typeof raw !== "string") return null;
+  const ip = raw.trim().toLowerCase();
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) {
+    const parts = ip.split(".").map(Number);
+    if (parts.some((n) => n > 255)) return null;
+    const v4 = parts.join(".");
+    return { raw: v4, key: v4, display: v4 };
+  }
+  if (ip.includes(":")) {
+    const g = parseIpv6(ip);
+    if (!g) return null;
+    // ::ffff:a.b.c.d (IPv4 داخل IPv6) → نعامله كـ IPv4 عادي
+    if (g.slice(0, 5).every((x) => x === 0) && g[5] === 0xffff) {
+      const v4 = [g[6] >> 8, g[6] & 255, g[7] >> 8, g[7] & 255].join(".");
+      return { raw: v4, key: v4, display: v4 };
+    }
+    const prefix = g.slice(0, 4).map((x) => x.toString(16));
+    return { raw: ip, key: "v6-" + prefix.join("-"), display: prefix.join(":") + "::/64" };
+  }
+  return null;
+}
+
+function getClientIp(request) {
+  return normalizeIp(request.headers.get("CF-Connecting-IP"));
+}
 
 function corsHeaders(request) {
   const origin = request.headers.get("Origin");
@@ -61,6 +132,16 @@ export async function handleCreateOrder(request, env) {
   const origin = request.headers.get("Origin");
   if (origin && !ALLOWED_ORIGINS.includes(origin)) {
     return json({ error: "Origin not allowed" }, 403, cors);
+  }
+
+  // فحص إعداد الـ Worker: لو نقص أي سر (Secret) نرد بوضوح بدل فشل غامض. أسماء الأسرار
+  // ليست سرًّا (مكتوبة في هذا الملف) ولا تُكشف قيمها أبدًا.
+  const missing = ["FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"].filter(
+    (k) => !env[k]
+  );
+  if (missing.length) {
+    console.error("Missing Worker secrets:", missing.join(", "));
+    return json({ error: "إعداد الخادم ناقص", code: "config_missing", detail: missing.join(", ") }, 500, cors);
   }
 
   let body;
@@ -112,31 +193,62 @@ export async function handleCreateOrder(request, env) {
   const productClean = product.trim();
   const productIdClean = productId.trim();
 
-  // 2) الحصول على توكن Service Account مبكرًا — يُستخدم لفحص الحظر ثم للكتابة لاحقًا
+  // 2) عنوان IP الحقيقي للزائر (يضعه Cloudflare — لا يمكن تزويره من المتصفح)
+  const clientIp = getClientIp(request);
+
+  // 3) الحصول على توكن Service Account مبكرًا — يُستخدم لفحص الحظر ثم للكتابة لاحقًا
   let accessToken;
   try {
     accessToken = await getGoogleAccessToken(env);
   } catch (e) {
-    return json({ error: "تعذّر الاتصال بالخادم" }, 502, cors);
+    console.error("Google auth failed:", e);
+    return json({ error: "تعذّر الاتصال بالخادم", code: "auth_failed", detail: errDetail(e) }, 502, cors);
   }
 
-  // 3) رفض الطلب إذا كان رقم الهاتف محظورًا من لوحة تحكم الأدمن
-  let phoneBlocked;
+  // 4) رفض الطلب إذا كان عنوان IP أو رقم الهاتف محظورًا من لوحة تحكم الأدمن.
+  //    الفحصان يجريان بالتوازي؛ وأي فشل في القراءة يرفض الطلب (fail-closed) بدل أن
+  //    يمرّره، حتى لا يستغل مزعج عطلًا مؤقتًا لتجاوز الحظر.
+  let ipBlocked = false;
+  let phoneBlocked = false;
   try {
-    phoneBlocked = await isPhoneBlocked(env, accessToken, customerPhone);
+    [ipBlocked, phoneBlocked] = await Promise.all([
+      clientIp ? isIpBlocked(env, accessToken, clientIp.key) : false,
+      isPhoneBlocked(env, accessToken, customerPhone),
+    ]);
   } catch (e) {
-    return json({ error: "تعذّر التحقق من رقم الهاتف" }, 502, cors);
+    console.error("Block-list check failed:", e);
+    return json({ error: "تعذّر التحقق من الطلب", code: "blocklist_check_failed", detail: errDetail(e) }, 502, cors);
+  }
+  if (ipBlocked) {
+    // رسالة تتيح لزبون حقيقي (مثلاً يشارك نفس IP مع مزعج عبر شبكة الهاتف) أن يتواصل معك.
+    return json(
+      {
+        error: "تعذّر تسجيل الطلب. إن كنت زبونًا حقيقيًا تواصل معنا هاتفيًا لإتمام طلبك.",
+        code: "ip_blocked",
+      },
+      403,
+      cors
+    );
   }
   if (phoneBlocked) {
-    return json({ error: "لا يمكن تسجيل الطلب بهذا الرقم" }, 403, cors);
+    // نفس رسالة حظر الـ IP عمدًا: لا نكشف للمزعج أي شرط بالضبط منعه.
+    return json(
+      {
+        error: "تعذّر تسجيل الطلب. إن كنت زبونًا حقيقيًا تواصل معنا هاتفيًا لإتمام طلبك.",
+        code: "phone_blocked",
+      },
+      403,
+      cors
+    );
   }
 
-  // 4) مطابقة السعر الحقيقي — نفس منطق get(...).data.price == d.price في القواعد
+  // 5) مطابقة السعر الحقيقي — نفس منطق get(...).data.price == d.price في القواعد
   let realPrice;
   try {
     realPrice = await getProductPrice(env, productIdClean);
-  } catch {
-    return json({ error: "تعذّر التحقق من المنتج" }, 502, cors);
+  } catch (e) {
+    console.error("Product lookup failed:", e);
+    return json({ error: "تعذّر التحقق من المنتج", code: "product_check_failed", detail: errDetail(e) }, 502, cors);
   }
   if (realPrice === null || Math.abs(realPrice - Number(price)) > 0.001) {
     return json({ error: "السعر لا يطابق المنتج الحقيقي" }, 400, cors);
@@ -159,7 +271,7 @@ export async function handleCreateOrder(request, env) {
     return json({ error: "المجموع غير صحيح" }, 400, cors);
   }
 
-  // 5) الكتابة في Firestore عبر Service Account
+  // 6) الكتابة في Firestore عبر Service Account
   let doc;
   try {
     doc = await createOrderDoc(env, accessToken, {
@@ -177,12 +289,17 @@ export async function handleCreateOrder(request, env) {
       total: Number(total),
       status: "جديد",
       createdAt: new Date(),
+      // بيانات الزائر (تظهر في لوحة التحكم لتحظر IP أي طلب وهمي بضغطة زر)
+      ip: clientIp ? clientIp.raw : "",
+      ipKey: clientIp ? clientIp.key : "",
+      country: (request.cf && request.cf.country) || "",
     });
   } catch (e) {
-    return json({ error: "تعذّر حفظ الطلب" }, 502, cors);
+    console.error("Order write failed:", e);
+    return json({ error: "تعذّر حفظ الطلب", code: "firestore_write", detail: errDetail(e) }, 502, cors);
   }
 
-  // 6) إشعار Telegram — لا يفشل الطلب لو تعطّل الإشعار
+  // 7) إشعار Telegram — لا يفشل الطلب لو تعطّل الإشعار
   try {
     await sendTelegram(env, {
       customerName: customerNameClean,
@@ -192,6 +309,8 @@ export async function handleCreateOrder(request, env) {
       product: productClean,
       quantity,
       total,
+      ip: clientIp ? clientIp.display : "",
+      country: (request.cf && request.cf.country) || "",
     });
   } catch (e) {
     console.error("Telegram notify failed:", e);
@@ -208,15 +327,28 @@ export async function handleCreateOrder(request, env) {
 // ---------------------------------------------------------------------
 async function isPhoneBlocked(env, accessToken, phone) {
   if (!phone || typeof phone !== "string") return false;
+  return docExists(env, accessToken, "blockedPhones", phone);
+}
+
+// ---------------------------------------------------------------------
+// يتحقق هل عنوان IP (بعد التطبيع → ipKey) موجود في collection "blockedIps"
+// (معرّف الوثيقة = ipKey). نفس صلاحيات Service Account أعلاه.
+// ---------------------------------------------------------------------
+async function isIpBlocked(env, accessToken, ipKey) {
+  if (!ipKey || typeof ipKey !== "string") return false;
+  return docExists(env, accessToken, "blockedIps", ipKey);
+}
+
+async function docExists(env, accessToken, collectionName, id) {
   const projectId = env.FIREBASE_PROJECT_ID;
-  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/blockedPhones/${encodeURIComponent(
-    phone
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}/${encodeURIComponent(
+    id
   )}`;
   const resp = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (resp.status === 404) return false;
-  if (!resp.ok) throw new Error("blockedPhones lookup failed: " + resp.status);
+  if (!resp.ok) throw new Error(collectionName + " lookup failed: " + resp.status);
   return true;
 }
 
@@ -301,7 +433,15 @@ async function getProductPrice(env, productId) {
 // OAuth2 عبر Service Account (JWT Bearer flow) — يعمل داخل Workers runtime
 // بالكامل عبر Web Crypto، بدون الحاجة لـ firebase-admin (غير متوافق مع Workers).
 // ---------------------------------------------------------------------
+// توكن Service Account صالح ساعة كاملة؛ نحتفظ به بين الطلبات داخل نفس Isolate بدل
+// توقيع JWT وطلب OAuth جديد مع كل طلب (كل طلب زبون الآن يفحص الحظر أيضًا، وأي
+// مزعج يرسل مئات الطلبات كان سيكلّف مئات الجولات نحو Google بلا داعٍ).
+let cachedToken = null; // { value, expiresAt(ms) }
+
 async function getGoogleAccessToken(env) {
+  if (cachedToken && cachedToken.expiresAt - 60000 > Date.now()) {
+    return cachedToken.value;
+  }
   const now = Math.floor(Date.now() / 1000);
   const header = { alg: "RS256", typ: "JWT" };
   const claims = {
@@ -335,11 +475,20 @@ async function getGoogleAccessToken(env) {
   if (!resp.ok || !data.access_token) {
     throw new Error("OAuth token error: " + JSON.stringify(data));
   }
+  cachedToken = {
+    value: data.access_token,
+    expiresAt: Date.now() + (Number(data.expires_in) || 3600) * 1000,
+  };
   return data.access_token;
 }
 
 async function importPrivateKey(pem) {
-  const pemContents = pem
+  // المفتاح يُنسخ غالبًا من ملف JSON بأسطره على شكل \n نصية (backslash + n) أو بين علامتي
+  // اقتباس؛ نحوّلها إلى أسطر حقيقية قبل فك الترميز، وإلا يفشل atob() ويتعطل كل طلب.
+  const pemContents = String(pem)
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .replace(/\\n/g, "\n")
     .replace(/-----BEGIN PRIVATE KEY-----/, "")
     .replace(/-----END PRIVATE KEY-----/, "")
     .replace(/\s+/g, "");
@@ -399,7 +548,8 @@ async function sendTelegram(env, o) {
   const text =
     `🛒 طلب جديد\n👤 الاسم: ${o.customerName}\n📞 الهاتف: ${o.customerPhone}\n` +
     `📍 الولاية: ${o.wilaya}\n🏠 العنوان: ${o.address}\n📦 المنتج: ${o.product}\n` +
-    `🔢 الكمية: ${o.quantity}\n💰 المجموع: ${o.total} دج`;
+    `🔢 الكمية: ${o.quantity}\n💰 المجموع: ${o.total} دج` +
+    (o.ip ? `\n🌐 IP: ${o.ip}${o.country ? " (" + o.country + ")" : ""}` : "");
   await fetch(
     `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
     {
@@ -408,6 +558,11 @@ async function sendTelegram(env, o) {
       body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text }),
     }
   );
+}
+
+// تفصيل قصير وغير حساس للخطأ (نوع الخطأ من Google فقط) يظهر في رد الـ Worker لتسهيل التشخيص.
+function errDetail(e) {
+  return String((e && e.message) || e).slice(0, 200);
 }
 
 function json(obj, status, extraHeaders) {
@@ -430,3 +585,16 @@ function json(obj, status, extraHeaders) {
 //     }
 //   };
 // ---------------------------------------------------------------------
+
+// ---------------------------------------------------------------------
+// نقطة الدخول: تجعل هذا الملف قابلًا للنشر وحده كـ Worker كامل (Cloudflare Dashboard >
+// Workers > Edit code، الصق الملف كاملاً). لو كان لديك Worker رئيسي فيه راوتر، تجاهل هذا
+// الجزء واستورد handleCreateOrder فقط كما في المثال أعلاه.
+// ---------------------------------------------------------------------
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    if (url.pathname === "/create-order") return handleCreateOrder(request, env);
+    return new Response("Not found", { status: 404 });
+  },
+};
