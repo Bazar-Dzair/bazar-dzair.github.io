@@ -211,7 +211,7 @@ export async function handleCreateOrder(request, env) {
     // رسالة تتيح لزبون حقيقي (مثلاً يشارك نفس IP مع مزعج عبر شبكة الهاتف) أن يتواصل معك.
     return json(
       {
-        error: "تعذّر تسجيل الطلب من هذه الشبكة. إن كنت زبونًا حقيقيًا تواصل معنا هاتفيًا لإتمام طلبك.",
+        error: "تعذّر تسجيل الطلب. إن كنت زبونًا حقيقيًا تواصل معنا هاتفيًا لإتمام طلبك.",
         code: "ip_blocked",
       },
       403,
@@ -219,7 +219,15 @@ export async function handleCreateOrder(request, env) {
     );
   }
   if (phoneBlocked) {
-    return json({ error: "لا يمكن تسجيل الطلب بهذا الرقم" }, 403, cors);
+    // نفس رسالة حظر الـ IP عمدًا: لا نكشف للمزعج أي شرط بالضبط منعه.
+    return json(
+      {
+        error: "تعذّر تسجيل الطلب. إن كنت زبونًا حقيقيًا تواصل معنا هاتفيًا لإتمام طلبك.",
+        code: "phone_blocked",
+      },
+      403,
+      cors
+    );
   }
 
   // 5) مطابقة السعر الحقيقي — نفس منطق get(...).data.price == d.price في القواعد
