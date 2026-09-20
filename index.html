@@ -160,8 +160,9 @@
   #loadMoreProducts { cursor:pointer; min-width:170px; box-shadow:0 4px 12px rgba(7,29,59,.08); }
   #loadMoreProducts:hover { background:#fff7f1; }
 
-  /* ===== Trust strip (توصيل / منتجات أصلية / خدمة عملاء) ===== */
+  /* ===== Trust strip (توصيل / الدفع عند الاستلام / منتجات مختارة / خدمة العملاء) ===== */
   .trust-strip { margin:26px 0 18px; margin-top:auto; }
+  .trust-strip-title { margin:0 0 14px; text-align:center; font-size:19px; font-weight:800; color:var(--navy,#0f1f33); }
   .trust-card {
     position:relative; overflow:hidden; display:flex; align-items:center; justify-content:space-between;
     gap:10px; background:linear-gradient(180deg,#ffffff,#fbfcfe); border:1px solid rgba(7,29,59,.06);
@@ -177,6 +178,7 @@
   .trust-card.in-view .trust-item { opacity:1; transform:translateY(0); }
   .trust-card.in-view .trust-item:nth-child(5) { transition-delay:.08s; }
   .trust-card.in-view .trust-item:nth-child(7) { transition-delay:.16s; }
+  .trust-card.in-view .trust-item:nth-child(9) { transition-delay:.24s; }
   .trust-icon {
     flex:none; width:58px; height:58px; border-radius:17px; display:flex; align-items:center; justify-content:center;
     transition:transform .25s ease; box-shadow:0 6px 16px rgba(7,29,59,.06);
@@ -184,18 +186,12 @@
   .trust-icon svg { width:28px; height:28px; }
   .trust-item:hover .trust-icon { transform:translateY(-3px) scale(1.05); }
   .trust-icon-orange { background:linear-gradient(155deg,#fff1de,#ffdfb0); color:var(--orange); }
+  .trust-icon-teal   { background:linear-gradient(155deg,#e3fbf7,#bdf0e6); color:#0d9488; }
   .trust-icon-green  { background:linear-gradient(155deg,#e3fbec,#bdf3d2); color:#16a34a; }
   .trust-icon-blue   { background:linear-gradient(155deg,#e8f1ff,#cfe3ff); color:#2563eb; }
   .trust-text { min-width:0; display:flex; flex-direction:column; }
   .trust-text strong { font-size:16px; color:var(--navy,#0f1f33); }
   .trust-text small { color:#6b7c93; font-size:12.5px; margin-top:3px; }
-  .trust-badge {
-    display:inline-flex; align-items:center; gap:6px; margin-top:9px; align-self:flex-start;
-    background:#fff3e3; color:#b5590a; border:1px solid #ffdfb0; border-radius:20px; padding:5px 11px 5px 8px;
-    font-size:11.5px; font-weight:800; white-space:nowrap;
-  }
-  .trust-badge-ic { display:flex; width:15px; height:15px; }
-  .trust-badge-ic svg { width:15px; height:15px; }
   .trust-divider { flex:none; width:1px; align-self:stretch; margin:2px 22px; background:rgba(7,29,59,.08); }
   @media (prefers-reduced-motion: reduce) {
     .trust-item { opacity:1 !important; transform:none !important; transition:none !important; }
@@ -243,10 +239,11 @@
     .topbar .item:nth-child(2) { display:none; }
     .products { grid-template-columns:1fr; }
     .product-img { height:300px; }
+    .trust-strip-title { font-size:17px; margin-bottom:12px; }
     .trust-card { flex-direction:column; align-items:stretch; gap:16px; padding:22px 18px; border-radius:22px; }
     .trust-item { gap:12px; }
     .trust-divider { display:none; }
-    .trust-item:nth-child(5), .trust-item:nth-child(7) { padding-top:16px; border-top:1px dashed rgba(7,29,59,.1); }
+    .trust-item:nth-child(5), .trust-item:nth-child(7), .trust-item:nth-child(9) { padding-top:16px; border-top:1px dashed rgba(7,29,59,.1); }
     .trust-icon { width:50px; height:50px; border-radius:15px; }
     .trust-icon svg { width:24px; height:24px; }
     .section-head { align-items:center; }
@@ -702,6 +699,7 @@ body>footer{flex:none;margin-top:auto}
 <div class="cat-pagination" id="catPagination" style="display:none"></div>
 </section>
 <section class="trust-strip" aria-label="مزايا المتجر">
+  <h2 class="trust-strip-title" data-i18n="home_why_title">لماذا تختار Bazar Dzair؟</h2>
   <div class="trust-card" id="trustCard">
     <span class="trust-corner trust-corner-tl" aria-hidden="true"></span>
     <span class="trust-corner trust-corner-br" aria-hidden="true"></span>
@@ -709,9 +707,18 @@ body>footer{flex:none;margin-top:auto}
     <div class="trust-item">
       <div class="trust-icon trust-icon-orange" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v8H3z"/><path d="M14 10h4l3 3v2h-7z"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg></div>
       <div class="trust-text">
-        <strong data-i18n="benefit_delivery_title">توصيل سريع</strong>
-        <small data-i18n="benefit_delivery_desc">إلى جميع الولايات</small>
-        <span class="trust-badge"><span class="trust-badge-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="6" width="13" height="9" rx="1.5"/><circle cx="13.5" cy="10.5" r="2"/><path d="M3 9c3 1.5 3 7 0 9"/></svg></span><span data-i18n="benefit_cod_title">الدفع عند الاستلام</span></span>
+        <strong data-i18n="benefit_delivery_title">توصيل 58 ولاية</strong>
+        <small data-i18n="benefit_delivery_desc">نوصل طلبك لباب دارك حسب منطقة التوصيل.</small>
+      </div>
+    </div>
+
+    <span class="trust-divider" aria-hidden="true"></span>
+
+    <div class="trust-item">
+      <div class="trust-icon trust-icon-teal" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="6" width="13" height="9" rx="1.5"/><circle cx="13.5" cy="10.5" r="2"/><path d="M3 9c3 1.5 3 7 0 9"/></svg></div>
+      <div class="trust-text">
+        <strong data-i18n="benefit_cod_title">الدفع عند الاستلام</strong>
+        <small data-i18n="benefit_cod_desc">تدفع عند استلام طلبك.</small>
       </div>
     </div>
 
@@ -720,8 +727,8 @@ body>footer{flex:none;margin-top:auto}
     <div class="trust-item">
       <div class="trust-icon trust-icon-green" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
       <div class="trust-text">
-        <strong data-i18n="benefit_genuine_title">منتجات أصلية</strong>
-        <small data-i18n="benefit_genuine_desc">جودة مضمونة</small>
+        <strong data-i18n="benefit_genuine_title">منتجات مختارة</strong>
+        <small data-i18n="benefit_genuine_desc">نختار المنتجات بعناية قبل عرضها.</small>
       </div>
     </div>
 
@@ -730,8 +737,8 @@ body>footer{flex:none;margin-top:auto}
     <div class="trust-item">
       <div class="trust-icon trust-icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0116 0v1"/><rect x="2.5" y="13" width="4" height="6" rx="1.6"/><rect x="17.5" y="13" width="4" height="6" rx="1.6"/><path d="M20 19v1a3 3 0 01-3 3h-3"/></svg></div>
       <div class="trust-text">
-        <strong data-i18n="benefit_service_title">خدمة عملاء</strong>
-        <small data-i18n="benefit_service_desc">نحن في خدمتكم 7/7</small>
+        <strong data-i18n="benefit_service_title">خدمة العملاء</strong>
+        <small data-i18n="benefit_service_desc">نحن في خدمتك قبل وبعد الطلب.</small>
       </div>
     </div>
   </div>
