@@ -66,23 +66,31 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // ✅ الطلبات — مساران لإنشاء الطلب:
-    //   1) الأساسي: عبر Cloudflare Worker (مسار /create-order) بصلاحيات Service Account
-    //      (تتجاوز هذه القواعد). هو الوحيد الذي يرى عنوان IP الحقيقي، فيطبّق حظر الـ IP.
-    //   2) الاحتياطي: كتابة مباشرة من المتصفح، مسموحة فقط ما دام "الوضع الصارم" مُطفأً
-    //      وبشرط اجتياز isValidOrder() (شكل البيانات، الهاتف غير محظور، السعر حقيقي...).
-    //      هذا المسار يضمن ألا تتوقف الطلبات أبدًا لو تعطّل الـ Worker أو نُشر بشكل ناقص.
-    // "الوضع الصارم" = وثيقة settings/security بحقل strictOrders == true، يفعّله الأدمن من
-    // لوحة التحكم (تبويب المحظورون) بعد التأكد أن الـ Worker سليم. حينها يُمنع الإنشاء
-    // المباشر تمامًا فيصبح حظر الـ IP مُلزِمًا (لا يمكن تجاوزه بالكتابة المباشرة في Firestore).
-    // الأدمن وحده يقرأ ويعدّل ويحذف الطلبات.
-    function strictOrders() {
-      return exists(/databases/$(database)/documents/settings/security)
-             && get(/databases/$(database)/documents/settings/security).data.get('strictOrders', false) == true;
-    }
+    // ✅ الطلبات — المسار الأساسي لإنشاء الطلب هو Cloudflare Worker (مسار /create-order)
+    // الذي يعمل بصلاحيات Service Account (تتجاوز هذه القواعد أصلاً) ويطبّق حظر IP/الهاتف
+    // فعليًا لأن عنوان IP لا يراه إلا الـ Worker (رأس CF-Connecting-IP) ولا توجد أي طريقة
+    // لفحصه داخل Security Rules.
+    //
+    // 🔧 إصلاح: هذه القاعدة كانت مضبوطة create: if isAdmin() فقط — أي أنها تمنع أي
+    // كتابة مباشرة من المتصفح دائمًا، بغض النظر عن مفتاح settings/security.strictOrders
+    // الذي تعرضه وتبدّله admin.html ("الوضع الصارم" 🔒 مقابل "الوضع المرن" 🟢). نتيجة
+    // ذلك: لوحة التحكم كانت تعرض "🟢 مرن — الطلبات تعمل دائمًا" بينما الطلبات كانت في
+    // الحقيقة تفشل بالكامل (permission-denied) لحظة تعطّل الـ Worker، مهما كان الإعداد.
+    // الإصلاح يربط القاعدة فعليًا بنفس المفتاح الذي تقرؤه/تكتبه admin.html:
+    //   • strictOrders == true  → لا كتابة مباشرة إطلاقًا (فقط الـ Worker)، حظر IP مُلزِم.
+    //   • غير موجود أو false (الافتراضي) → يُسمح بكتابة مباشرة تحترم isValidOrder() فقط،
+    //     كمسار احتياطي عند تعطّل الـ Worker — بنفس القبول الواعي بأن حظر IP لا يشمل هذا
+    //     المسار تحديدًا، وهو بالضبط ما توضحه رسالة "الوضع المرن" في لوحة التحكم.
+    // الأدمن دائمًا يقرأ/يعدّل/يحذف الطلبات (ويقدر ينشئ يدويًا من لوحة التحكم إن احتاج).
     match /orders/{id} {
-      allow create: if isAdmin() || (!strictOrders() && isValidOrder(request.resource.data));
       allow read, update, delete: if isAdmin();
+      allow create: if isAdmin() || (
+        !(
+          exists(/databases/$(database)/documents/settings/security) &&
+          get(/databases/$(database)/documents/settings/security).data.strictOrders == true
+        ) &&
+        isValidOrder(request.resource.data)
+      );
     }
 
     // ⚠️ أرقام الهواتف المحظورة — كانت هذه القاعدة ناقصة تمامًا (لا يوجد أي match
@@ -102,8 +110,9 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
-    // isValidOrder(): شروط الطلب في المسار الاحتياطي (الكتابة المباشرة). الـ Worker يعيد نفس
-    // الشروط يدويًا (create-order.js › validateOrder) قبل الكتابة — أي تعديل هنا يُطبَّق هناك أيضًا.
+    // تُستعمل في قاعدة إنشاء /orders أعلاه (المسار الاحتياطي وقت الوضع المرن)، وهي أيضًا
+    // نفس الشروط التي يعيد الـ Worker (create-order.js) تطبيقها يدويًا قبل الكتابة
+    // بصلاحيات Service Account. أي تعديل على شروط الطلب يجب أن يُطبَّق في الاثنين معًا.
     function isValidOrder(d) {
       return
         // الحقول المسموحة فقط — أي حقل إضافي (adminNotes، role، isAdmin...) يرفض الطلب
