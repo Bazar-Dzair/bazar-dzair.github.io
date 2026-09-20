@@ -185,7 +185,7 @@
 .order-status-badge.st-completed{background:#e9f8ef;color:#17803a}
 .order-status-badge.st-cancelled{background:#feeceb;color:#c62828}
 .orders-panel{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.orders-table-head,.order-row-pro{min-width:980px;display:grid;grid-template-columns:34px 90px minmax(140px,1.3fr) minmax(220px,1.7fr) 70px 110px 130px 130px 140px;gap:0;align-items:center}
+.orders-table-head,.order-row-pro{min-width:1040px;display:grid;grid-template-columns:34px 90px minmax(140px,1.3fr) minmax(220px,1.7fr) 70px 110px 130px 130px 184px;gap:0;align-items:center}
 .orders-table-head{background:#f8fafc;border:1px solid #e5e9ef;border-radius:12px 12px 0 0;padding:0 14px;min-height:52px;color:#667085;font-size:11px;font-weight:800}
 .orders-table-head>div{text-align:center;padding:0 6px}
 .orders-table-head>div:nth-child(3),.orders-table-head>div:nth-child(4){text-align:right}
@@ -203,7 +203,7 @@
 .order-date-cell b{font-size:12px;color:#20242a}
 .order-actions-cell{display:flex;align-items:center;justify-content:center;gap:6px}
 .order-select-cell{display:flex;align-items:center;justify-content:center}
-@media(max-width:1050px){.orders-table-head,.order-row-pro{grid-template-columns:34px 80px minmax(120px,1.2fr) minmax(190px,1.6fr) 60px 100px 120px 120px 120px}}
+@media(max-width:1050px){.orders-table-head,.order-row-pro{grid-template-columns:34px 80px minmax(120px,1.2fr) minmax(190px,1.6fr) 60px 100px 120px 120px 170px}}
 @media(max-width:760px){
   .orders-table-head{display:none}
   .orders-panel{overflow-x:visible}
@@ -354,7 +354,7 @@
     <button class="nav-item" data-view="sections" onclick="showView('sections',this);loadHomeSections()">▦ <span>أقسام المتجر</span></button>
     <button class="nav-item" data-view="footer" onclick="showView('footer',this)">▤ <span>تذييل المتجر</span></button>
     <button class="nav-item" data-view="users" onclick="showView('users',this)">♧ <span>المستخدمون</span></button>
-    <button class="nav-item" data-view="blocked" onclick="showView('blocked',this)">🚫 <span>أرقام محظورة</span></button>
+    <button class="nav-item" data-view="blocked" onclick="showView('blocked',this)">🚫 <span>المحظورون</span></button>
   </nav>
   <div class="nav-title">النظام</div><nav class="nav">
     <button class="nav-item" data-view="settings" onclick="showView('settings',this)">⚙ <span>الإعدادات</span></button>
@@ -532,7 +532,9 @@
   </div>
 </section>
 
-<section id="view-blocked" class="view hidden"><div class="page-head"><div><h1>أرقام محظورة</h1><p>هذه الأرقام لا يمكنها تسجيل أي طلب جديد فالمتجر.</p></div></div><div class="panel"><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>رقم الهاتف<input id="blockPhoneInput" placeholder="مثال: 0551234567" inputmode="tel"></label></div><div class="form-actions"><button class="green" type="button" onclick="window.blockPhoneManual()">🚫 حظر هذا الرقم</button></div></div><div id="blockedList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الأرقام المحظورة...</div></div></div></section>
+<section id="view-blocked" class="view hidden"><div class="page-head"><div><h1>المحظورون</h1><p>أرقام الهاتف وعناوين IP هذه لا يمكنها تسجيل أي طلب جديد فالمتجر.</p></div></div>
+<div class="panel"><h3 style="margin:0 0 14px;font-size:16px">📞 أرقام الهاتف المحظورة</h3><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>رقم الهاتف<input id="blockPhoneInput" placeholder="مثال: 0551234567" inputmode="tel"></label></div><div class="form-actions"><button class="green" type="button" onclick="window.blockPhoneManual()">🚫 حظر هذا الرقم</button></div></div><div id="blockedList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الأرقام المحظورة...</div></div></div>
+<div class="panel" style="margin-top:16px"><h3 style="margin:0 0 6px;font-size:16px">🌐 عناوين IP المحظورة</h3><p style="margin:0 0 14px;color:#8a93a0;font-size:13px;line-height:1.7">يظهر عنوان IP لكل طلب جديد في صفحة الطلبات، ويمكنك حظره بضغطة على زر 🌐. الطلبات القديمة (قبل تفعيل هذه الخاصية) لا تحمل عنوان IP. انتبه: شبكات الهاتف قد تتشارك نفس العنوان بين عدة زبائن، فاستعمل حظر IP للمزعجين المتكررين فقط.</p><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>عنوان IP<input id="blockIpInput" dir="ltr" placeholder="مثال: 41.111.22.33" autocomplete="off" spellcheck="false"></label></div><div class="form-actions"><button class="green" type="button" onclick="window.blockIpManual()">🚫 حظر هذا الـ IP</button></div></div><div id="blockedIpList" class="categories-list"><div class="empty-card">⏳ جاري تحميل عناوين IP المحظورة...</div></div></div></section>
 <section id="view-categories" class="view hidden"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><button class="orange-btn" type="button" onclick="openCategoryForm()">＋ إضافة فئة</button></div><div class="panel"><div id="categoryForm" class="category-form hidden"><input id="categoryId" type="hidden"><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"></label><label>اسم الفئة بالفرنسية (اختياري)<input id="categoryNameFr" placeholder="مثال: Outils"></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"></label><label>الأيقونة<input id="categoryIcon" placeholder="🔧" maxlength="4"></label></div><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا.</small><div class="form-actions"><button class="green" type="button" onclick="saveCategory()">💾 حفظ الفئة</button><button class="gray" type="button" onclick="closeCategoryForm()">إلغاء</button></div><div id="categoryStatus" class="status hidden"></div></div><div id="categoriesList" class="categories-list"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
 
 <section id="view-shipping-rates" class="view hidden">
@@ -634,7 +636,7 @@ function showView(name, el, createNew=false, updateUrl=true){
   if(name==="product" && !createNew && window.bazarLoadProducts) window.bazarLoadProducts();
   if(name==="orders" && window.bazarLoadOrders) window.bazarLoadOrders();
   if(name==="reviews" && window.bazarLoadReviews) window.bazarLoadReviews();
-  if(name==="blocked" && window.bazarLoadBlockedPhones) window.bazarLoadBlockedPhones();
+  if(name==="blocked"){ if(window.bazarLoadBlockedPhones) window.bazarLoadBlockedPhones(); if(window.bazarLoadBlockedIps) window.bazarLoadBlockedIps(); }
   if(name==="shipping-rates" && window.bazarLoadShippingRates) window.bazarLoadShippingRates();
   if(name==="addons" && window.bazarLoadAddons) window.bazarLoadAddons();
   if(name==="footer") setTimeout(loadFooterSetting,0);
@@ -1990,6 +1992,7 @@ window.bazarLoadOrders=async function(force=false){
       window.adminOrders.sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return tb-ta;});
       ordersLoaded=true;
       ordersPage=1; selectedOrders.clear(); renderOrders();
+      if(window.bazarLoadBlockedIps && !blockedIpsLoaded) window.bazarLoadBlockedIps().then(()=>{ if(document.getElementById("view-orders")&&!document.getElementById("view-orders").classList.contains("hidden")) renderOrders(); }).catch(()=>{});
       if(window.bazarLoadProducts && !productsLoaded){
         window.bazarLoadProducts().then(()=>{ if(document.getElementById("view-orders")&&!document.getElementById("view-orders").classList.contains("hidden")) renderOrders(); }).catch(()=>{});
       }
@@ -2035,9 +2038,14 @@ function renderOrders(){
     renderPagination("ordersPagination",1,0,"ordersPage"); updateBulkUi("orders"); return;
   }
   const start=(ordersPage-1)*ITEMS_PER_PAGE, pageRows=rows.slice(start,start+ITEMS_PER_PAGE);
+  const ipCounts=orderIpCounts(all);
   box.innerHTML=pageRows.map(o=>{
     const img=findOrderProductImage(o.product);
     const statusTxt=String(o.status||"جديد");
+    const ipN=o.ip?normalizeIp(o.ip):null;
+    const ipCnt=ipN?(ipCounts[ipN.key]||1):0;
+    const ipBlocked=!!(ipN&&blockedIpKeys.has(ipN.key));
+    const ipBtn=ipN?`<button class="icon-action-btn" title="${ipBlocked?"هذا الـ IP محظور":esc("حظر IP الزبون ("+ipN.display+")"+(ipCnt>1?" — "+ipCnt+" طلبات من نفس الـ IP":""))}" type="button" ${ipBlocked?'style="opacity:.45"':""} onclick="window.blockOrderIp('${esc(o.id)}')">🌐${ipCnt>1?`<sup style="color:#c62828;font-weight:800">${ipCnt}</sup>`:""}</button>`:"";
     return `<div class="order-row-pro" style="cursor:pointer" onclick="window.openOrderDetail('${esc(o.id)}')">
       <div class="order-cell oc-select" onclick="event.stopPropagation()"><label class="item-check"><input type="checkbox" ${selectedOrders.has(o.id)?"checked":""} onchange="window.toggleOrderSelection('${esc(o.id)}',this.checked)"></label></div>
       <div class="order-cell oc-num">${esc(orderDisplayId(o))}</div>
@@ -2050,6 +2058,7 @@ function renderOrders(){
       <div class="order-cell oc-actions" onclick="event.stopPropagation()"><div class="order-actions-cell">
         <button class="icon-action-btn view-icon" title="عرض الطلبية" type="button" onclick="window.openOrderDetail('${esc(o.id)}')">👁</button>
         <button class="icon-action-btn" title="حظر رقم الزبون" type="button" onclick="window.blockPhone('${escJs(o.customerPhone||o.phone||"")}','${escJs(o.customerName||o.name||"")}')">🚫</button>
+        ${ipBtn}
         <button class="icon-action-btn delete-icon" title="حذف" type="button" onclick="deleteOrder('${esc(o.id)}')">🗑</button>
       </div></div>
     </div>`;
@@ -2095,6 +2104,18 @@ window.openOrderDetail=function(id){
 };
 window.backToOrders=function(){ showView("orders",document.querySelector('.nav-item[onclick*="orders"]')); };
 function renderOrderDetail(o){
+  window.__detailOrderId=o.id;
+  const ipN=o.ip?normalizeIp(o.ip):null;
+  if(ipN&&!blockedIpsLoaded&&!blockedIpsTried){
+    blockedIpsTried=true;
+    window.bazarLoadBlockedIps().then(()=>{ if(window.__detailOrderId===o.id) renderOrderDetail(o); }).catch(()=>{});
+  }
+  const ipRows=ipN?(()=>{
+    const cnt=orderIpCounts(window.adminOrders||[])[ipN.key]||1;
+    const blocked=blockedIpKeys.has(ipN.key);
+    return `<div class="order-detail-row"><span>عنوان IP</span><span dir="ltr">${esc(ipN.display)}${o.country?` · ${esc(o.country)}`:""} ${blocked?'<b style="color:#c62828">محظور ✅</b>':`<button class="edit-cat" type="button" style="margin-inline-start:8px" onclick="window.blockOrderIp('${esc(o.id)}')">🚫 حظر</button>`}</span></div>`
+      +(cnt>1?`<div class="order-detail-row"><span>طلبات من نفس الـ IP</span><span style="color:#c62828">${cnt}</span></div>`:"");
+  })():"";
   const infoBox=document.getElementById("orderDetailInfo");
   const custBox=document.getElementById("orderDetailCustomer");
   const prodBox=document.getElementById("orderDetailProducts");
@@ -2113,6 +2134,7 @@ function renderOrderDetail(o){
     <div class="order-detail-row"><span>رقم الهاتف</span><span>${esc(o.customerPhone||o.phone||"غير متوفر")} <button class="edit-cat" type="button" style="margin-inline-start:8px" onclick="window.blockPhone('${escJs(o.customerPhone||o.phone||"")}','${escJs(o.customerName||o.name||"")}')">🚫 حظر</button></span></div>
     ${o.wilaya?`<div class="order-detail-row"><span>الولاية</span><span>${esc(o.wilaya)}</span></div>`:""}
     ${o.address?`<div class="order-detail-row"><span>العنوان</span><span>${esc(o.address)}</span></div>`:""}
+    ${ipRows}
   `;
   const img=findOrderProductImage(o.product);
   const lineTotal=Number(o.price||0)*Number(o.quantity||1);
@@ -2426,6 +2448,168 @@ window.blockPhoneManual=function(){
   const p=normalizePhone(input?.value);
   if(!/^0[5-7][0-9]{8}$/.test(p)){alert("أدخل رقم هاتف جزائري صحيح (مثال: 0551234567)");return}
   window.blockPhone(p,"").then(()=>{if(input)input.value=""});
+};
+
+// ===== عناوين IP المحظورة: منع عنوان IP من تسجيل أي طلب جديد =====
+// كل IP محظور = وثيقة فـ collection "blockedIps" معرّفها هو مفتاح الـ IP (ipKey).
+// عنوان IP لا يعرفه إلا الـ Worker (worker/create-order.js) الذي يحفظه مع كل طلب
+// (الحقل ip) ويرفض أي طلب قادم من IP محظور.
+// ⚠️ دوال التطبيع التالية منسوخة حرفيًا من normalizeIp() في worker/create-order.js:
+// يجب أن تبقى متطابقة، وإلا لن يتطابق مفتاح الحظر هنا مع ما يفحصه الـ Worker.
+function parseIpv6(ip) {
+  ip = ip.split("%")[0];
+  const m = ip.match(/^(.*:)(\d{1,3}(?:\.\d{1,3}){3})$/);
+  if (m) {
+    const p = m[2].split(".").map(Number);
+    if (p.some((n) => n > 255)) return null;
+    ip = m[1] + ((p[0] << 8) | p[1]).toString(16) + ":" + ((p[2] << 8) | p[3]).toString(16);
+  }
+  const halves = ip.split("::");
+  if (halves.length > 2) return null;
+  const head = halves[0] ? halves[0].split(":") : [];
+  const tail = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  let groups;
+  if (halves.length === 2) {
+    const missing = 8 - head.length - tail.length;
+    if (missing < 1) return null;
+    groups = [...head, ...Array(missing).fill("0"), ...tail];
+  } else {
+    groups = head;
+  }
+  if (groups.length !== 8) return null;
+  const out = [];
+  for (const g of groups) {
+    if (!/^[0-9a-f]{1,4}$/.test(g)) return null;
+    out.push(parseInt(g, 16));
+  }
+  return out;
+}
+
+function normalizeIp(raw) {
+  if (!raw || typeof raw !== "string") return null;
+  const ip = raw.trim().toLowerCase();
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) {
+    const parts = ip.split(".").map(Number);
+    if (parts.some((n) => n > 255)) return null;
+    const v4 = parts.join(".");
+    return { raw: v4, key: v4, display: v4 };
+  }
+  if (ip.includes(":")) {
+    const g = parseIpv6(ip);
+    if (!g) return null;
+    // ::ffff:a.b.c.d (IPv4 داخل IPv6) → نعامله كـ IPv4 عادي
+    if (g.slice(0, 5).every((x) => x === 0) && g[5] === 0xffff) {
+      const v4 = [g[6] >> 8, g[6] & 255, g[7] >> 8, g[7] & 255].join(".");
+      return { raw: v4, key: v4, display: v4 };
+    }
+    const prefix = g.slice(0, 4).map((x) => x.toString(16));
+    return { raw: ip, key: "v6-" + prefix.join("-"), display: prefix.join(":") + "::/64" };
+  }
+  return null;
+}
+
+let blockedIps=[];
+let blockedIpKeys=new Set();
+let blockedIpsLoaded=false;
+let blockedIpsTried=false;
+function orderIpCounts(orders){
+  const c={};
+  (orders||[]).forEach(o=>{const n=o.ip?normalizeIp(o.ip):null; if(n)c[n.key]=(c[n.key]||0)+1;});
+  return c;
+}
+window.bazarLoadBlockedIps=async function(){
+  const box=document.getElementById("blockedIpList");
+  try{
+    const snap=await getDocs(collection(db,"blockedIps"));
+    blockedIps=snap.docs.map(d=>({key:d.id,...(d.data()||{})})).sort((a,b)=>(b.blockedAt?.seconds||0)-(a.blockedAt?.seconds||0));
+    blockedIpKeys=new Set(blockedIps.map(b=>b.key));
+    blockedIpsLoaded=true;
+    renderBlockedIps();
+  }catch(e){
+    console.error("blockedIps load",e);
+    if(box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل عناوين IP المحظورة. تحقق من نشر Firestore Rules (يجب أن تحتوي على blockedIps).</div>';
+    throw e;
+  }
+};
+function renderBlockedIps(){
+  const box=document.getElementById("blockedIpList");
+  if(!box)return;
+  if(!blockedIps.length){box.innerHTML='<div class="empty-card">لا توجد عناوين IP محظورة حاليًا.</div>';return}
+  box.innerHTML=blockedIps.map(b=>{
+    const who=[b.customerName,b.customerPhone,b.country].filter(Boolean).map(esc).join(" · ");
+    return `<div class="category-row"><div class="category-info"><span class="category-icon">🌐</span><div><b dir="ltr">${esc(b.ip||b.key)}</b>${who?`<small>${who}</small>`:""}</div></div><div class="category-actions"><button class="edit-cat" type="button" onclick="unblockIp('${esc(b.key)}')">✅ إلغاء الحظر</button></div></div>`;
+  }).join("");
+}
+async function saveBlockedIp(n,meta){
+  meta=meta||{};
+  await setDoc(doc(db,"blockedIps",n.key),{ip:n.display,ipKey:n.key,customerName:meta.customerName||"",customerPhone:meta.customerPhone||"",country:meta.country||"",blockedAt:serverTimestamp()});
+  blockedIpKeys.add(n.key);
+  blockedIps=[{key:n.key,ip:n.display,customerName:meta.customerName||"",customerPhone:meta.customerPhone||"",country:meta.country||"",blockedAt:{seconds:Math.floor(Date.now()/1000)}},...blockedIps.filter(b=>b.key!==n.key)];
+  renderBlockedIps();
+}
+function ipRiskNote(n){
+  return n.key.startsWith("v6-")
+    ? "\n(عنوان IPv6: سيُحظر كل نطاق الشبكة /64 الذي ينتمي إليه.)"
+    : "\n⚠️ قد يشترك زبائن آخرون في نفس العنوان (خاصة عبر شبكات الهاتف).";
+}
+// حظر IP الطلب: يحظر عنوانه ثم يعرض حذف كل الطلبات القادمة من نفس العنوان
+window.blockOrderIp=async function(orderId){
+  const o=(window.adminOrders||[]).find(x=>x.id===orderId);
+  const n=o&&o.ip?normalizeIp(o.ip):null;
+  if(!n){alert("لا يوجد عنوان IP محفوظ لهذا الطلب (الطلبات القديمة لا تحمله).");return}
+  const related=(window.adminOrders||[]).filter(x=>{const m=x.ip?normalizeIp(x.ip):null;return m&&m.key===n.key;});
+  const already=blockedIpKeys.has(n.key);
+  if(!already){
+    if(!confirm(`حظر عنوان IP ‏${n.display}؟ لن يتمكن أي جهاز بهذا العنوان من تسجيل طلب جديد.`+ipRiskNote(n)))return;
+    try{
+      await saveBlockedIp(n,{customerName:o.customerName||o.name||"",customerPhone:o.customerPhone||o.phone||"",country:o.country||""});
+      show("تم حظر عنوان IP ✅","ok");
+    }catch(e){alert("تعذر حظر عنوان IP: "+(e.message||"خطأ غير معروف"));return}
+  }else if(related.length<1){
+    show("هذا العنوان محظور مسبقًا","ok");return;
+  }
+  if(related.length>0&&confirm(`يوجد ${related.length} طلب${related.length>1?"ات":""} من عنوان IP ‏${n.display}.\nهل تريد حذفها نهائيًا (إن كانت طلبات وهمية)؟`)){
+    try{
+      await Promise.all(related.map(x=>deleteDoc(doc(db,"orders",x.id))));
+      const gone=new Set(related.map(x=>x.id));
+      window.adminOrders=(window.adminOrders||[]).filter(x=>!gone.has(x.id));
+      gone.forEach(id=>selectedOrders.delete(id));
+      const total=Math.max(1,Math.ceil((window.adminOrders||[]).length/ITEMS_PER_PAGE));if(ordersPage>total)ordersPage=total;
+      updateOrderStats((window.adminOrders||[]).length);
+      show(`تم حذف ${related.length} طلب ✅`,"ok");
+      if(gone.has(window.__detailOrderId)){window.backToOrders();return}
+    }catch(e){console.error(e);show("تعذر حذف بعض الطلبات: "+(e.message||"خطأ غير معروف"),"err")}
+  }
+  renderOrders();
+  if(window.__detailOrderId&&(window.adminOrders||[]).some(x=>x.id===window.__detailOrderId)){
+    const cur=window.adminOrders.find(x=>x.id===window.__detailOrderId);
+    const dv=document.getElementById("view-order-detail");
+    if(cur&&dv&&!dv.classList.contains("hidden"))renderOrderDetail(cur);
+  }
+};
+window.unblockIp=async function(key){
+  const b=blockedIps.find(x=>x.key===key);
+  if(!confirm(`إلغاء حظر عنوان IP ‏${(b&&b.ip)||key}؟`))return;
+  try{
+    await deleteDoc(doc(db,"blockedIps",key));
+    blockedIps=blockedIps.filter(x=>x.key!==key);
+    blockedIpKeys.delete(key);
+    renderBlockedIps();
+    show("تم إلغاء الحظر ✅","ok");
+  }catch(e){alert("تعذر إلغاء الحظر: "+(e.message||"خطأ غير معروف"))}
+};
+window.blockIpManual=async function(){
+  const input=document.getElementById("blockIpInput");
+  const n=normalizeIp(input?.value);
+  if(!n){alert("أدخل عنوان IP صحيحًا (IPv4 مثل 41.111.22.33 أو IPv6)");return}
+  if(blockedIpKeys.has(n.key)){show("هذا العنوان محظور مسبقًا","ok");return}
+  if(!confirm(`حظر عنوان IP ‏${n.display}؟ لن يتمكن أي جهاز بهذا العنوان من تسجيل طلب جديد.`+ipRiskNote(n)))return;
+  try{
+    await saveBlockedIp(n,{});
+    if(input)input.value="";
+    show("تم حظر عنوان IP ✅","ok");
+    renderOrders();
+  }catch(e){alert("تعذر حظر عنوان IP: "+(e.message||"خطأ غير معروف"))}
 };
 
 // ===== روابط المنتجات والتصنيفات بالفرنسية (أحرف لاتينية a-z0-9 و"-" فقط) =====

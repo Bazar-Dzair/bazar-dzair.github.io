@@ -151,6 +151,7 @@
     toast_invalid_phone:       { ar: "رقم الهاتف غير صحيح ⚠️",                    fr: "Numéro de téléphone invalide ⚠️" },
     toast_delivery_unavailable:{ ar: "التوصيل غير متوفر لهذه الولاية ❌",         fr: "Livraison indisponible pour cette wilaya ❌" },
     toast_order_failed:        { ar: "تعذر إرسال الطلب، تحقق من الاتصال وحاول مجددًا ⚠️", fr: "Échec de l'envoi de la commande, vérifiez votre connexion et réessayez ⚠️" },
+    toast_order_blocked:       { ar: "تعذّر تسجيل الطلب. إن كنت زبونًا حقيقيًا تواصل معنا هاتفيًا لإتمام طلبك", fr: "Impossible d'enregistrer la commande. Si vous êtes un vrai client, contactez-nous par téléphone pour finaliser votre commande" },
     toast_product_not_found:   { ar: "المنتج غير موجود",                          fr: "Produit introuvable" },
     toast_category_not_found:  { ar: "التصنيف غير موجود",                        fr: "Catégorie introuvable" },
     empty_products:            { ar: "لم نجد المنتج 🔎",                          fr: "Aucun produit trouvé 🔎" },

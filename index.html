@@ -2801,8 +2801,10 @@ window.submitOrder=async function(){
    });
    if(!resp.ok){
     const errBody=await resp.json().catch(()=>({}));
+    console.error("create-order rejected:",resp.status,errBody);
     const e=new Error(errBody.error||("HTTP "+resp.status));
-    if(errBody.error)e.userMessage=errBody.error;
+    if(errBody.code==="ip_blocked"||errBody.code==="phone_blocked")e.userMessage=BazarI18n.t("toast_order_blocked");
+    else e.userMessage=BazarI18n.t("toast_order_failed").replace(/\s*⚠️\s*$/,"")+" ["+(errBody.code||resp.status)+"]";
     throw e;
    }
   }
@@ -2811,12 +2813,12 @@ window.submitOrder=async function(){
   
  }catch(err){
   console.error("order submit failed:",err);
-  toast(err&&err.userMessage?err.userMessage+" ⚠️":BazarI18n.t("toast_order_failed"));
+  toast(err&&err.userMessage?err.userMessage+" ⚠️":BazarI18n.t("toast_order_failed")+" [network]",7000);
  }finally{
   window.__bazarSubmittingOrder=false;if(btn){btn.disabled=false;btn.style.opacity="";btn.style.pointerEvents=""}
  }
 }
-function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),2200)}
+function toast(t,ms){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),ms||2200)}
 </script>
 </body>
 </html>
