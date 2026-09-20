@@ -107,8 +107,8 @@
       fr: "Les prix affichés sont en dinars algériens (DA) et peuvent être modifiés sans préavis.\n\nLe seul mode de paiement disponible actuellement est le paiement à la livraison (COD).\n\nLes photos des produits sont indicatives et certains détails mineurs (comme la couleur) peuvent différer du produit réel.\n\nLe client a le droit d'annuler sa commande avant son expédition en nous contactant directement.\n\nEn utilisant ce site et en passant une commande, vous acceptez ces conditions."
     },
     faq_text: {
-      ar: "🛒 كيف أطلب؟\nاختر المنتج، ثم اضغط \"اطلب الآن\" وأدخل معلوماتك (الاسم، الهاتف، الولاية، العنوان).\n\n💵 ما هي طريقة الدفع؟\nالدفع عند الاستلام فقط — تدفع نقدًا عند وصول الطلب لبابك، بلا حاجة لبطاقة بنكية أو دفع مسبق.\n\n🚚 كم يستغرق التوصيل؟\nيختلف حسب الولاية، عادة بين 2 إلى 7 أيام عمل.\n\n↩️ هل أقدر أرجع المنتج؟\nنعم، تواصل معنا عبر الهاتف أو واتساب قبل استلام الطلب أو خلال مدة قصيرة بعده، وسنوضح لك خطوات الإرجاع.",
-      fr: "🛒 Comment commander ?\nChoisissez le produit, puis cliquez sur \"Commander maintenant\" et entrez vos informations (nom, téléphone, wilaya, adresse).\n\n💵 Quel est le mode de paiement ?\nPaiement à la livraison uniquement — vous payez en espèces à la réception de votre commande, sans carte bancaire ni paiement anticipé.\n\n🚚 Combien de temps prend la livraison ?\nCela varie selon la wilaya, généralement entre 2 et 7 jours ouvrables.\n\n↩️ Puis-je retourner le produit ?\nOui, contactez-nous par téléphone ou WhatsApp avant la réception de la commande ou peu après, et nous vous expliquerons les étapes du retour."
+      ar: "🛒 كيف أطلب؟\nاختر المنتج، ثم اضغط \"اشترِ الآن\" وأدخل معلوماتك (الاسم، الهاتف، الولاية، العنوان).\n\n💵 ما هي طريقة الدفع؟\nالدفع عند الاستلام فقط — تدفع نقدًا عند وصول الطلب لبابك، بلا حاجة لبطاقة بنكية أو دفع مسبق.\n\n🚚 كم يستغرق التوصيل؟\nيختلف حسب الولاية، عادة بين 2 إلى 7 أيام عمل.\n\n↩️ هل أقدر أرجع المنتج؟\nنعم، تواصل معنا عبر الهاتف أو واتساب قبل استلام الطلب أو خلال مدة قصيرة بعده، وسنوضح لك خطوات الإرجاع.",
+      fr: "🛒 Comment commander ?\nChoisissez le produit, puis cliquez sur \"Acheter maintenant\" et entrez vos informations (nom, téléphone, wilaya, adresse).\n\n💵 Quel est le mode de paiement ?\nPaiement à la livraison uniquement — vous payez en espèces à la réception de votre commande, sans carte bancaire ni paiement anticipé.\n\n🚚 Combien de temps prend la livraison ?\nCela varie selon la wilaya, généralement entre 2 et 7 jours ouvrables.\n\n↩️ Puis-je retourner le produit ?\nOui, contactez-nous par téléphone ou WhatsApp avant la réception de la commande ou peu après, et nous vous expliquerons les étapes du retour."
     },
     track_text: {
       ar: "لمتابعة حالة طلبك، تواصل معنا مباشرة عبر الهاتف أو واتساب مع ذكر اسمك ورقم هاتفك المسجل في الطلب، وسنعطيك آخر تحديث عن حالة التوصيل.",
@@ -120,7 +120,7 @@
     },
 
     detail_alt:        { ar: "تفاصيل المنتج",              fr: "Détails du produit" },
-    detail_buy_now:    { ar: "⚡ اطلب الآن",                fr: "⚡ Commander maintenant" },
+    detail_buy_now:    { ar: "⚡ اشترِ الآن",               fr: "⚡ Acheter maintenant" },
     detail_add_cart:   { ar: "🛒 أضف إلى السلة",           fr: "🛒 Ajouter au panier" },
 
     cart_title:            { ar: "🛒 سلة المشتريات",        fr: "🛒 Panier" },
