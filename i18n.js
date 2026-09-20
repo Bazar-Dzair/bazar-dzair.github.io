@@ -166,6 +166,8 @@
 
     aria_add_to_cart: { ar: "إضافة إلى السلة", fr: "Ajouter au panier" },
     buy_button:       { ar: "شراء",            fr: "Acheter" },
+    order_now:          { ar: "⚡ اطلب الآن",       fr: "⚡ Commander" },
+    delivery_available: { ar: "متوفر للتوصيل",     fr: "Livraison disponible" },
     back_to_store:    { ar: "← العودة للمتجر", fr: "← Retour à la boutique" },
     default_product_name: { ar: "منتج بدون اسم", fr: "Produit sans nom" },
     default_product_desc: { ar: "منتج متوفر في متجر Bazar Dzair.", fr: "Produit disponible sur Bazar Dzair." },
