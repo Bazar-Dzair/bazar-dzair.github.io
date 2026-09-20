@@ -394,6 +394,7 @@
  <div class="panel"><div id="status" class="status hidden"></div><div class="grid">
    <div><label>اسم المنتج *</label><input id="name" placeholder="مثال: Lantern LED"></div>
    <div><label>اسم المنتج بالفرنسية (اختياري)</label><input id="name_fr" placeholder="مثال: Lanterne LED"><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا. هذا الاسم هو الذي يُبنى منه رابط المنتج (بالفرنسية)، فإن تُرك فارغًا يصبح الرابط بالشكل produit-xxxxxx.</small></div>
+   <div><label>رمز المنتج SKU <span class="field-optional">اختياري</span></label><input id="sku" placeholder="مثال: BZ-001"><small class="hint">إذا تركته فارغًا، يُستخدم معرّف المنتج تلقائيًا كرمز افتراضي.</small></div>
    <div><label>السعر بالدج *</label><input id="price" type="number" min="0" placeholder="3500"></div>
    <div><label>السعر القديم <span class="field-optional">اختياري</span></label><input id="oldPrice" type="number" min="0" placeholder="مثال: 4800"><small class="hint">يظهر السعر القديم والتخفيض تلقائيًا إذا كان أكبر من السعر الحالي.</small></div>
    <div><label>التصنيف</label><select id="category"></select></div>
@@ -1513,6 +1514,7 @@ const passwordInput=document.getElementById("password");
 const loginErrBox=document.getElementById("loginErr");
 const nameInput=document.getElementById("name");
 const nameFrInput=document.getElementById("name_fr");
+const skuInput=document.getElementById("sku");
 const priceInput=document.getElementById("price");
 const oldPriceInput=document.getElementById("oldPrice");
 const categoryInput=document.getElementById("category");
@@ -2488,7 +2490,7 @@ window.render=()=>{
     const stock=Number(p.stock||0);
     const stockClass=stock<=0?"danger":stock<=5?"warning":"good";
     const stockText=stock<=0?"نفد المخزون":stock<=5?"منخفض":"متوفر";
-    const sku=esc(String(p.id||"").slice(0,9).toUpperCase());
+    const sku=esc(p.sku||String(p.id||"").slice(0,9).toUpperCase());
     return `<article class="product-row">
       <div class="product-image-wrap">
         <label class="product-select-overlay" title="تحديد المنتج"><input type="checkbox" ${selectedProducts.has(p.id)?"checked":""} onchange="window.toggleProductSelection('${esc(p.id)}',this.checked)"></label>
@@ -2568,6 +2570,7 @@ window.save=async()=>{
     // يُحفظ مع كل إضافة/تعديل حتى تتمكن صفحة المنتج من جلب الوثيقة مباشرة
     // (استعلام على حقل slug) بدل تحميل مجموعة products كاملة عند كل زيارة.
     slug:productSlugOf({name:nameInput?.value.trim()||"",name_fr:nameFrInput?.value.trim()||"",id:editing||""}),
+    sku:skuInput?.value.trim()||"",
     price:currentPrice,
     oldPrice:enteredOldPrice>currentPrice?enteredOldPrice:0,
     category:categoryInput?.value||"tools",
@@ -2661,6 +2664,7 @@ window.editProduct=id=>{
  titleBox.textContent="✏️ تعديل المنتج";
  nameInput.value=p.name||"";
  if(nameFrInput)nameFrInput.value=p.name_fr||"";
+ if(skuInput)skuInput.value=p.sku||"";
  priceInput.value=p.price??"";
  if(oldPriceInput)oldPriceInput.value=p.oldPrice??p.compareAtPrice??"";
  renderCategorySelect(p.category||categories[0]?.key||"tools");
@@ -2722,7 +2726,7 @@ window.removeProduct=async id=>{
 window.resetForm=()=>{
  editing=null;
  titleBox.textContent="➕ إضافة منتج";
- nameInput.value="";if(nameFrInput)nameFrInput.value="";priceInput.value="";if(oldPriceInput)oldPriceInput.value="";
+ nameInput.value="";if(nameFrInput)nameFrInput.value="";if(skuInput)skuInput.value="";priceInput.value="";if(oldPriceInput)oldPriceInput.value="";
  renderCategorySelect(categories[0]?.key||"tools");stockInput.value="";
  if(showOldPriceInput)showOldPriceInput.checked=true;
  if(showReviewsInput)showReviewsInput.checked=true;
