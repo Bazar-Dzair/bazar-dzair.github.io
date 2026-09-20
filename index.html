@@ -861,6 +861,10 @@ const firebaseConfig = {
 
 let db = null;
 let firestoreReady = false;
+// تُصبح true فور وصول أول دفعة بيانات حقيقية من Firestore الفوري (onSnapshot)،
+// لمنع أي استجابة REST سريعة متأخرة من الكتابة فوق بيانات أحدث وصلت بالفعل.
+let realtimeProductsLoaded = false;
+let realtimeCategoriesLoaded = false;
 // Firestore هو المصدر الوحيد للمنتجات. لا توجد بيانات ثابتة هنا،
 // ولا ذاكرة تخزين مؤقت محلية تعيد عرض منتجات محذوفة.
 let products=[];
@@ -1240,23 +1244,57 @@ async function loadFastSettings(){
       if(d.rates) shippingRatesData=d.rates;
       if(document.getElementById("wilaya")) updateTotals();
     }
-    if(site.status==="fulfilled") applySiteData(firestoreDocData(site.value));
+    if(site.status==="fulfilled"){
+      const siteData=firestoreDocData(site.value);
+      applySiteData(siteData);
+      // نحفظ إعدادات البانر/الشعار محليًا لعرضها فورًا في الزيارة القادمة (بدون وميض الصورة الافتراضية).
+      try{localStorage.setItem("bazarSiteSettings",JSON.stringify(siteData));}catch(_e){}
+    }
     if(footer.status==="fulfilled") applyFooterData(firestoreDocData(footer.value));
   }catch(e){console.warn("Fast settings load failed",e)}
+}
+
+// ===== دوال تطبيق موحّدة لقائمة المنتجات وقائمة الفئات =====
+// تُستدعى من ثلاثة مصادر (الكاش المحلي، REST السريع، Firestore الفوري) بنفس المنطق
+// بالضبط، لتفادي أي تكرار/تعارض بين طريقة عرض كل مصدر.
+function applyProductsList(list){
+  products=Array.isArray(list)?list:[];
+  syncCartWithProducts();
+  const key=getUrlCategory();
+  if(getUrlSearchQuery()) applyUrlSearch();
+  else if(key!=="all" && storeCategories.length) applyUrlCategory();
+  else displayProducts();
+  renderHomeHighlights();
+}
+function applyStoreCategories(rawCategories){
+  const box=document.getElementById("storeCategories");
+  const seen=new Set();
+  storeCategories=(Array.isArray(rawCategories)?rawCategories:[])
+    .filter(c=>c&&c.name&&!seen.has(c.key)&&seen.add(c.key))
+    .sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));
+  const visibleCategories=storeCategories.filter(c=>c.hidden!==true);
+  if(box) box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>'+escapeHtml(BazarI18n.t("drawer_all"))+'</div>'+(visibleCategories.length?visibleCategories.map(c=>`<div class="cat" onclick="filterCategory('${escapeHtml(c.key)}')"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(catName(c))}</div>`).join(""):'<div class="cat"><i>📂</i>'+escapeHtml(BazarI18n.t("drawer_none"))+'</div>');
+  renderHomeCategories(visibleCategories);
+  applyUrlCategory();
+}
+
+async function restGetCategories(){
+  let url=FIRESTORE_REST_BASE+"categories?pageSize=300";
+  const all=[];
+  while(url){
+    const r=await fetch(url,{cache:"no-store"});
+    if(!r.ok) throw new Error("Firestore categories "+r.status);
+    const d=await r.json();
+    (d.documents||[]).forEach(x=>all.push(x));
+    url=d.nextPageToken?FIRESTORE_REST_BASE+"categories?pageSize=300&pageToken="+encodeURIComponent(d.nextPageToken):null;
+  }
+  return all.map(docSnap=>({key:(docSnap.name||"").split("/").pop(),...firestoreDocData(docSnap)}));
 }
 
 async function loadProductsFromFirestore(){
   try{
     const firestoreProducts=await restGetProducts();
-    if(firestoreProducts.length){
-      products=firestoreProducts;
-      syncCartWithProducts();
-      const key=getUrlCategory();
-      if(getUrlSearchQuery()) applyUrlSearch();
-      else if(key!=="all" && storeCategories.length) applyUrlCategory();
-      else displayProducts();
-      renderHomeHighlights();
-    }
+    if(firestoreProducts.length) applyProductsList(firestoreProducts);
     return true;
   }catch(error){
     console.warn("Fast products load failed; using Firebase fallback",error);
@@ -1264,10 +1302,44 @@ async function loadProductsFromFirestore(){
   }
 }
 
+// ===== تحميل سريع عبر REST لقسمي "تسوّق حسب الفئة" و"أحدث المنتجات" =====
+// السبب الجذري للتأخير: كانا يعتمدان حصريًا على تحميل حزمة Firebase SDK كاملة
+// (استيراد وحدتين من CDN ثم فتح قناة Listen) قبل ظهور أي فئة أو منتج، وهو ما يستغرق
+// ثوانٍ على شبكة الجوال. هنا نطلب نفس البيانات مباشرة عبر REST بالتوازي مع تحميل
+// الحزمة، فتظهر الفئات والمنتجات فور وصول أول استجابة (REST أو Firestore الفوري،
+// أيهما أسرع)، ثم يتولى الاتصال الفوري لاحقًا التحديث الحي كالمعتاد دون أي تغيير
+// في السلوك أو في مصدر البيانات النهائي.
+async function loadFastCatalog(){
+  try{
+    const [cats,prods]=await Promise.allSettled([restGetCategories(),restGetProducts()]);
+    if(cats.status==="fulfilled"&&!realtimeCategoriesLoaded){
+      applyStoreCategories(cats.value);
+      if(cats.value.length){try{localStorage.setItem("bazarCategoriesCache",JSON.stringify(cats.value));}catch(_e){}}
+    }
+    if(prods.status==="fulfilled"&&prods.value.length&&!realtimeProductsLoaded){
+      applyProductsList(prods.value);
+      try{localStorage.setItem("bazarProductsCache",JSON.stringify(prods.value));}catch(_e){}
+    }
+  }catch(e){console.warn("Fast catalog load failed",e)}
+}
+
 // اقرأ الكاش فورًا، ثم اطلب البيانات مباشرة بدون انتظار تحميل Firebase SDK.
 (function loadLocalFooterFirst(){
   try{const local=JSON.parse(localStorage.getItem("bazarFooterSettings")||"null");if(local)applyFooterData(local);}catch(_e){}
 })();
+
+// نفس مبدأ الكاش الفوري أعلاه، لكن للبانر/الشعار والفئات وأحدث المنتجات: نعرض آخر
+// نسخة محفوظة محليًا من زيارة سابقة لنفس المتصفح فور اكتمال تحميل الصفحة (بدل أي
+// فراغ أو وميض)، وتُستبدل تلقائيًا حالما تصل البيانات الحقيقية عبر REST أو Firestore
+// الفوري. تُؤجَّل إلى DOMContentLoaded لأن applyStoreCategories/renderHomeHighlights
+// تعرضان نصوصًا مترجمة من i18n.js (مُحمَّل بـ defer، فقد لا يكون جاهزًا فورًا).
+function loadLocalCatalogFirst(){
+  try{const s=JSON.parse(localStorage.getItem("bazarSiteSettings")||"null");if(s)applySiteData(s);}catch(_e){}
+  try{const c=JSON.parse(localStorage.getItem("bazarCategoriesCache")||"null");if(Array.isArray(c)&&c.length)applyStoreCategories(c);}catch(_e){}
+  try{const p=JSON.parse(localStorage.getItem("bazarProductsCache")||"null");if(Array.isArray(p)&&p.length)applyProductsList(p);}catch(_e){}
+}
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",loadLocalCatalogFirst);
+else loadLocalCatalogFirst();
 
 // ===== المصدر الوحيد للمنتجات: Firestore (Realtime onSnapshot) =====
 // المنتجات تُقرأ مباشرة من Firestore في الوقت الحقيقي. لا يوجد LocalStorage للمنتجات،
@@ -1311,31 +1383,18 @@ async function loadProductsFromFirestore(){
     try{db=initializeFirestore(app,{localCache:persistentLocalCache({})});}catch(_e){db=getFirestore(app)}
     firestoreReady=true;
     onSnapshot(collection(db,"products"),snap=>{
-      products=snap.docs.map(mapSnap);
-      syncCartWithProducts();
-      const key=getUrlCategory();
-      if(getUrlSearchQuery()) applyUrlSearch();
-      else if(key!=="all" && storeCategories.length) applyUrlCategory();
-      else displayProducts();
-      renderHomeHighlights();
+      applyProductsList(snap.docs.map(mapSnap));
+      realtimeProductsLoaded=true;
     },async error=>{
       console.warn("Realtime products sync failed; REST fallback",error);
       const ok=await loadProductsFromFirestore();
       if(!ok){products=[];displayProducts();}
       renderHomeHighlights();
     });
-    const renderStoreCategories=(snap)=>{
-      const box=document.getElementById("storeCategories");
-      const seen=new Set();
-      storeCategories=snap.docs.map(d=>({key:d.id,...(d.data()||{})}))
-        .filter(c=>c.name&&!seen.has(c.key)&&seen.add(c.key))
-        .sort((a,b)=>String(a.name).localeCompare(String(b.name),"ar"));
-      const visibleCategories=storeCategories.filter(c=>c.hidden!==true);
-      if(box) box.innerHTML='<div class="cat" onclick="filterCategory(\'all\')"><i>▦</i>'+escapeHtml(BazarI18n.t("drawer_all"))+'</div>'+(visibleCategories.length?visibleCategories.map(c=>`<div class="cat" onclick="filterCategory('${escapeHtml(c.key)}')"><i>${escapeHtml(c.icon||"🛍️")}</i>${escapeHtml(catName(c))}</div>`).join(""):'<div class="cat"><i>📂</i>'+escapeHtml(BazarI18n.t("drawer_none"))+'</div>');
-      renderHomeCategories(visibleCategories);
-      applyUrlCategory();
-    };
-    onSnapshot(collection(db,"categories"),renderStoreCategories,error=>{const box=document.getElementById("storeCategories");if(box)box.innerHTML='<div class="cat"><i>⚠️</i>'+escapeHtml(BazarI18n.t("drawer_error"))+'</div>';});
+    onSnapshot(collection(db,"categories"),snap=>{
+      applyStoreCategories(snap.docs.map(d=>({key:d.id,...(d.data()||{})})));
+      realtimeCategoriesLoaded=true;
+    },error=>{const box=document.getElementById("storeCategories");if(box)box.innerHTML='<div class="cat"><i>⚠️</i>'+escapeHtml(BazarI18n.t("drawer_error"))+'</div>';});
   }catch(error){
     console.warn("Firebase SDK init failed; REST fallback",error);
     const ok=await loadProductsFromFirestore();
@@ -1345,6 +1404,8 @@ async function loadProductsFromFirestore(){
 })();
 
 loadFastSettings();
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",loadFastCatalog);
+else loadFastCatalog();
 
 const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):(Number(n).toLocaleString("ar-DZ")+" دج");
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
