@@ -627,6 +627,29 @@ body{padding-bottom:96px}
   .sticky-buy .sb-price{min-width:66px;font-size:13px}
 }
 
+/* ===== Hero CTA: «⚡ اطلب الآن» هو الزر الرئيسي، والسلة زر ثانوي أصغر ===== */
+/* نفس الترتيب في كل المقاسات: الصف 1 = الكمية + السلة (ثانوية)، الصف 2 = زر الطلب بعرض كامل وأكبر. */
+.purchase-controls{grid-template-columns:118px minmax(0,1fr);grid-template-rows:auto auto;gap:10px}
+.purchase-controls .action-row{display:contents!important}
+.purchase-controls .qty{grid-column:1;grid-row:1}
+.purchase-controls .btn-cart{grid-column:2;grid-row:1;min-height:44px;padding:8px 10px;border-radius:12px;background:#fff;color:var(--navy);border:1.5px solid #cfd8e3;box-shadow:none;font-size:13.5px;font-weight:800}
+.purchase-controls .btn-cart:hover{background:#f6f8fb;border-color:var(--navy)}
+.purchase-controls .btn-buy{grid-column:1/-1;grid-row:2;min-height:58px;padding:15px 16px;border-radius:14px;font-size:18px;font-weight:900;box-shadow:0 12px 26px rgba(255,106,0,.36)}
+.purchase-controls .btn-buy:hover{box-shadow:0 16px 32px rgba(255,106,0,.44)}
+.purchase-controls .btn-cart:disabled,.purchase-controls .btn-buy:disabled{box-shadow:none;transform:none}
+.purchase-controls .btn-cart:disabled{background:#f3f5f8}
+.sticky-buy .sb-btn{font-weight:900}
+@media(max-width:800px){
+  .purchase-controls{grid-template-columns:108px minmax(0,1fr);gap:8px}
+  .purchase-controls .btn-cart{min-height:42px;font-size:12.5px}
+  .purchase-controls .btn-buy{min-height:54px;font-size:16.5px;padding:13px 14px;box-shadow:0 10px 22px rgba(255,106,0,.32)}
+}
+@media(max-width:380px){
+  .purchase-controls{grid-template-columns:100px minmax(0,1fr)}
+  .purchase-controls .btn-cart{font-size:11.5px;padding:6px}
+  .purchase-controls .btn-buy{font-size:15.5px}
+}
+
 </style>
 </head>
 <body>
@@ -696,7 +719,7 @@ body{padding-bottom:96px}
 <div id="stickyBuy" class="sticky-buy">
   <span class="sb-price" id="sbPrice">—</span>
   <button type="button" class="sb-cart" onclick="addToCartUI()" aria-label="إضافة إلى السلة">🛒</button>
-  <button type="button" class="sb-btn" onclick="showCheckout()" data-i18n="detail_buy_now">⚡ اشترِ الآن</button>
+  <button type="button" class="sb-btn" onclick="showCheckout()" data-i18n="detail_buy_now">⚡ اطلب الآن</button>
 </div>
 <div id="imageLightbox" class="image-lightbox" onclick="if(event.target===this)closeImageLightbox()"><button type="button" class="lightbox-close" onclick="closeImageLightbox()">×</button><img id="lightboxImg" src="" alt=""><button type="button" class="lightbox-prev" onclick="galleryMove(-1);syncLightbox()">‹</button><button type="button" class="lightbox-next" onclick="galleryMove(1);syncLightbox()">›</button></div><div id="toast" class="toast"></div>
 <script type="module">
@@ -1025,7 +1048,7 @@ const discountPct=hasDiscount?Math.round((oldPrice-Number(p.price||0))/oldPrice*
 const buyHtml=available?
   `<div class="action-row">
      <button type="button" class="btn-cart" onclick="addToCartUI()"><span aria-hidden="true">🛒</span> ${esc(pt("add_to_cart_btn"))}</button>
-     <button type="button" class="btn-buy" onclick="showCheckout()"><span aria-hidden="true">⚡</span> ${esc(pt("detail_buy_now"))}</button>
+     <button type="button" class="btn-buy" onclick="showCheckout()">${esc(pt("detail_buy_now"))}</button>
    </div>`
   :`<div class="action-row">
      <button type="button" class="btn-cart" disabled>${esc(pt("button_unavailable"))}</button>
