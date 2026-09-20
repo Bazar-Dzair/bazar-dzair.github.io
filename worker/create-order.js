@@ -595,6 +595,29 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/create-order") return handleCreateOrder(request, env);
+    if (url.pathname === "/health") return handleHealth(env);
     return new Response("Not found", { status: 404 });
   },
 };
+
+// فحص سريع للإعداد: افتح /health في المتصفح. يعرض فقط true/false لوجود كل سر، ونتيجة محاولة
+// الاتصال بـ Google — لا يكشف أي قيمة سرية. إن لم يظهر version فالـ Worker المنشور ليس هذا الملف.
+async function handleHealth(env) {
+  const names = ["FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"];
+  const configured = {};
+  for (const k of names) configured[k] = !!env[k];
+  let auth = "skipped (missing secrets)";
+  if (names.every((k) => env[k])) {
+    try {
+      await getGoogleAccessToken(env);
+      auth = "ok";
+    } catch (e) {
+      auth = "failed: " + errDetail(e);
+    }
+  }
+  return json(
+    { ok: true, version: "ip-ban-v2", configured, telegram: !!(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID), auth },
+    200,
+    { "Cache-Control": "no-store" }
+  );
+}
