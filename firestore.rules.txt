@@ -66,15 +66,23 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // ✅ الطلبات — إنشاء الطلب يتم حصرًا عبر Cloudflare Worker (مسار /create-order) الذي
-    // يعمل بصلاحيات Service Account (تتجاوز هذه القواعد أصلاً). لهذا السبب لا يقدر أي
-    // متصفح/سكربت الكتابة مباشرة في Firestore: هذا شرط أساسي لعمل حظر الـ IP، لأن
-    // عنوان IP لا يراه إلا الـ Worker (رأس CF-Connecting-IP) ولا توجد أي طريقة
-    // لفحصه داخل Security Rules. لو بقي الإنشاء المباشر مسموحًا، لكفى المزعج أن يتجاوز
-    // موقعك ويكتب في Firestore مباشرة ليتفادى الحظر بالكامل.
-    // الأدمن وحده يقرأ ويعدّل ويحذف الطلبات (ويقدر ينشئ يدويًا من لوحة التحكم إن احتاج).
+    // ✅ الطلبات — مساران لإنشاء الطلب:
+    //   1) الأساسي: عبر Cloudflare Worker (مسار /create-order) بصلاحيات Service Account
+    //      (تتجاوز هذه القواعد). هو الوحيد الذي يرى عنوان IP الحقيقي، فيطبّق حظر الـ IP.
+    //   2) الاحتياطي: كتابة مباشرة من المتصفح، مسموحة فقط ما دام "الوضع الصارم" مُطفأً
+    //      وبشرط اجتياز isValidOrder() (شكل البيانات، الهاتف غير محظور، السعر حقيقي...).
+    //      هذا المسار يضمن ألا تتوقف الطلبات أبدًا لو تعطّل الـ Worker أو نُشر بشكل ناقص.
+    // "الوضع الصارم" = وثيقة settings/security بحقل strictOrders == true، يفعّله الأدمن من
+    // لوحة التحكم (تبويب المحظورون) بعد التأكد أن الـ Worker سليم. حينها يُمنع الإنشاء
+    // المباشر تمامًا فيصبح حظر الـ IP مُلزِمًا (لا يمكن تجاوزه بالكتابة المباشرة في Firestore).
+    // الأدمن وحده يقرأ ويعدّل ويحذف الطلبات.
+    function strictOrders() {
+      return exists(/databases/$(database)/documents/settings/security)
+             && get(/databases/$(database)/documents/settings/security).data.get('strictOrders', false) == true;
+    }
     match /orders/{id} {
-      allow create, read, update, delete: if isAdmin();
+      allow create: if isAdmin() || (!strictOrders() && isValidOrder(request.resource.data));
+      allow read, update, delete: if isAdmin();
     }
 
     // ⚠️ أرقام الهواتف المحظورة — كانت هذه القاعدة ناقصة تمامًا (لا يوجد أي match
@@ -94,10 +102,8 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
-    // isValidOrder() لم تعد مستعملة في أي قاعدة (إنشاء الطلب صار عبر الـ Worker فقط)،
-    // لكنها تبقى مرجعًا موثّقًا لنفس الشروط التي يعيد الـ Worker (create-order.js)
-    // تطبيقها يدويًا قبل الكتابة بصلاحيات Service Account. لا تحذفها: أي تعديل على شروط
-    // الطلب يجب أن يُطبَّق في الاثنين معًا.
+    // isValidOrder(): شروط الطلب في المسار الاحتياطي (الكتابة المباشرة). الـ Worker يعيد نفس
+    // الشروط يدويًا (create-order.js › validateOrder) قبل الكتابة — أي تعديل هنا يُطبَّق هناك أيضًا.
     function isValidOrder(d) {
       return
         // الحقول المسموحة فقط — أي حقل إضافي (adminNotes، role، isAdmin...) يرفض الطلب
