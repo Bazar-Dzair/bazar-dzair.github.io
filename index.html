@@ -2691,13 +2691,18 @@ else initSearchUI();
 window.submitOrder=async function(){
  if(!cart.length){toast(BazarI18n.t("toast_cart_empty"));return}
  if(window.__bazarSubmittingOrder)return;
- const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim();
+ const n=document.getElementById("customerName").value.trim(),
+ // ⚠️ إصلاح مهم: نفس عطل الهاتف الموجود في product.html — كان يُنظَّف من المسافات فقط
+ // أثناء التحقق، بينما القيمة الفعلية المُرسَلة للـ Worker/Firestore تبقى بمسافاتها لو
+ // كتبها الزبون بها (شائع: "0555 12 34 56")، فيرفضها الـ Worker (نفس نمط صارم بلا
+ // مسافات) ويفشل الطلب عند "تأكيد الطلب" دون سبب واضح. الحل: تنظيف الرقم فور قراءته.
+ ph=document.getElementById("customerPhone").value.trim().replace(/\s+/g,""),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim();
  // ⚠️ مهم: اسم الولاية المُرسَل إلى Telegram/Firestore يجب أن يبقى دائمًا بالعربية
  // وبنفس صيغة "كود - اسم" الأصلية، بغض النظر عن لغة واجهة الزبون الحالية.
  // لهذا لا نأخذه من نص الخيار المعروض (الذي يتغير بصريًا بالفرنسية) بل نبنيه دائمًا بالعربية.
  const wn=w?BazarI18n.wilayaOptionLabel(w,"ar"):"";
  if(!n||!ph||!w||!a){toast(BazarI18n.t("toast_incomplete"));return}
- if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast(BazarI18n.t("toast_invalid_phone"));return}
+ if(!/^0[5-7][0-9]{8}$/.test(ph)){toast(BazarI18n.t("toast_invalid_phone"));return}
  const opts=computeDeliveryOptions(w);
  const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
  if(!chosen){toast(BazarI18n.t("toast_delivery_unavailable"));return}

@@ -1417,12 +1417,20 @@ function updateTotal(){
 }
 document.getElementById("wilaya").addEventListener("change",()=>{selectedDeliveryType=null;updateTotal();});
 
-window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),ph=document.getElementById("customerPhone").value.trim(),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim();
+window.submitOrder=async()=>{if(!product)return;if(window.__bazarSubmittingOrder)return;const n=document.getElementById("customerName").value.trim(),
+// ⚠️ إصلاح مهم: الهاتف كان يُنظَّف من المسافات فقط أثناء التحقق أدناه، بينما القيمة
+// الفعلية المُرسَلة لاحقًا لـ Firestore (orderPayload.customerPhone) كانت تبقى بمسافاتها
+// الأصلية إن كتبها الزبون كذلك (شائع جدًا: "0555 12 34 56"). التحقق كان ينجح، لكن
+// firestore.rules (نمط صارم ^0[5-7][0-9]{8}$ بلا مسافات) كان يرفض الكتابة فعليًا —
+// فيفشل كل طلب من زبون كتب رقمه بمسافات، بالضبط عند خطوة "تأكيد الطلب" الأخيرة، دون
+// أي سبب واضح للزبون أو للأدمن. الحل: تنظيف الرقم من كل مسافة فور قراءته، حتى تتطابق
+// القيمة المُتحقَّق منها مع القيمة المُرسَلة فعليًا حرفًا بحرف.
+ph=document.getElementById("customerPhone").value.trim().replace(/\s+/g,""),w=document.getElementById("wilaya").value,a=document.getElementById("address").value.trim();
 // ⚠️ مهم: اسم الولاية المُرسَل إلى Telegram/Firestore يجب أن يبقى دائمًا بالعربية،
 // بغض النظر عن لغة واجهة الزبون الحالية (نفس المنطق المستعمل في index.html).
 const wn=w&&window.BazarI18n?BazarI18n.wilayaOptionLabel(w,"ar"):"";
 if(!n||!ph||!w||!a){toast(pt("toast_incomplete"));return}
-if(!/^0[5-7][0-9]{8}$/.test(ph.replace(/\s+/g,""))){toast(pt("toast_invalid_phone"));return}
+if(!/^0[5-7][0-9]{8}$/.test(ph)){toast(pt("toast_invalid_phone"));return}
 const opts=computeDeliveryOptions(w);
 const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
 if(!chosen){toast(pt("toast_delivery_unavailable"));return}
