@@ -1483,6 +1483,16 @@ if(!orderResp.ok){
   e.userMessage=(errBody.code==="ip_blocked"||errBody.code==="phone_blocked")?pt("order_blocked"):((orderResp.status>=400&&orderResp.status<500)?pt("order_write_failed_detail"):pt("order_write_failed_generic"))+" ["+(errBody.code||orderResp.status)+"]";
   throw e;
 }
+// لا نُظهر نجاح الطلب إلا إذا أكّد الـ Worker أنه حُفظ فعلًا في Firestore (يعيد id الوثيقة).
+// نسخة Worker قديمة (تُرسل إشعار Telegram فقط) ترد بـ 200 دون حفظ: كانت ستُظهر للزبون نجاحًا
+// وهميًا بينما لا يصلك أي طلب في لوحة التحكم.
+const okBody=await orderResp.json().catch(()=>null);
+if(!okBody||okBody.ok!==true||!okBody.id){
+  console.error("create-order: no save confirmation (outdated Worker?)",okBody);
+  const e=new Error("Worker did not confirm the order");
+  e.userMessage=pt("order_write_failed_generic")+" [no_confirmation]";
+  throw e;
+}
 try{
   const addonsCfg=window.__bazarAddons||{};
   const gs=addonsCfg.googleSheets||{};
