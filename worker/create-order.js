@@ -110,7 +110,7 @@ function corsHeaders(request) {
   const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     "Access-Control-Allow-Origin": allowOrigin,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Vary": "Origin",
   };
@@ -595,29 +595,50 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/create-order") return handleCreateOrder(request, env);
-    if (url.pathname === "/health") return handleHealth(env);
+    if (url.pathname === "/health") return handleHealth(request, env);
     return new Response("Not found", { status: 404 });
   },
 };
 
-// فحص سريع للإعداد: افتح /health في المتصفح. يعرض فقط true/false لوجود كل سر، ونتيجة محاولة
-// الاتصال بـ Google — لا يكشف أي قيمة سرية. إن لم يظهر version فالـ Worker المنشور ليس هذا الملف.
-async function handleHealth(env) {
+// فحص سريع للإعداد: افتح /health في المتصفح (أو من لوحة التحكم ← المحظورون ← فحص الـ Worker).
+// يعرض فقط true/false لوجود كل سر، ونتيجة الاتصال بـ Google وبـ Firestore — لا يكشف أي قيمة
+// سرية. إن لم يظهر version فالـ Worker المنشور ليس هذا الملف.
+async function handleHealth(request, env) {
+  const cors = corsHeaders(request);
   const names = ["FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"];
   const configured = {};
   for (const k of names) configured[k] = !!env[k];
   let auth = "skipped (missing secrets)";
+  let firestore = "skipped";
   if (names.every((k) => env[k])) {
+    let token = null;
     try {
-      await getGoogleAccessToken(env);
+      token = await getGoogleAccessToken(env);
       auth = "ok";
     } catch (e) {
       auth = "failed: " + errDetail(e);
     }
+    if (token) {
+      // قراءة وثيقة غير موجودة: 404 = الصلاحيات سليمة، 403 = الحساب لا يملك صلاحية Firestore.
+      try {
+        await docExists(env, token, "blockedIps", "health-check");
+        firestore = "ok";
+      } catch (e) {
+        firestore = "failed: " + errDetail(e);
+      }
+    }
   }
   return json(
-    { ok: true, version: "ip-ban-v2", configured, telegram: !!(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID), auth },
+    {
+      ok: true,
+      version: "ip-ban-v3",
+      configured,
+      telegram: !!(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID),
+      auth,
+      firestore,
+      ready: names.every((k) => env[k]) && auth === "ok" && firestore === "ok",
+    },
     200,
-    { "Cache-Control": "no-store" }
+    { ...cors, "Cache-Control": "no-store" }
   );
 }
