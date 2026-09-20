@@ -230,6 +230,22 @@ main{max-width:1180px;width:94%;margin:6px auto 60px}
 .review-text{color:var(--text);font-size:13.5px;line-height:1.8;margin:4px 0}
 .review-date{color:var(--muted);font-size:11.5px}
 
+.write-review-card{grid-column:1/-1;border-top:1px solid var(--border);margin-top:6px;padding:20px 24px 4px}
+.write-review-card h4{margin:0 0 12px;color:var(--navy);font-size:14.5px;font-weight:800}
+.star-picker{font-size:26px;letter-spacing:4px;color:#d9dde5;cursor:pointer;margin-bottom:12px;user-select:none}
+.star-picker span{transition:color .1s}
+.star-picker span.on{color:var(--orange)}
+.review-form-row{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;max-width:440px}
+.review-form-row input,.review-form-row textarea{border:1px solid var(--border);border-radius:10px;padding:11px 13px;font-family:inherit;font-size:13.5px;color:var(--text);resize:vertical}
+.review-form-row textarea{min-height:84px}
+.review-submit-btn{background:var(--orange);color:#fff;border:0;border-radius:10px;padding:11px 20px;font-weight:800;cursor:pointer;font-size:13.5px;font-family:inherit}
+.review-submit-btn:disabled{opacity:.6;cursor:default}
+.review-form-msg{padding:10px 13px;border-radius:10px;font-size:13px;margin-bottom:12px;font-weight:700;max-width:440px}
+.review-form-msg.ok{background:#eafbf0;color:#16a34a}
+.review-form-msg.err{background:#fdecec;color:#d33}
+.review-honeypot{position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;width:0;pointer-events:none}
+@media(max-width:800px){.write-review-card{padding:16px 4px 4px}.review-form-row,.review-form-msg{max-width:100%}}
+
 /* ===== Footer ===== */
 .site-footer{background:var(--navy);color:#fff;margin-top:40px;position:fixed;left:0;right:0;bottom:0;width:100%;z-index:9999;box-shadow:0 -4px 18px rgba(0,0,0,.12)}
 .footer-in{max-width:1180px;width:94%;margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:18px 0}
@@ -641,7 +657,7 @@ body{padding-bottom:96px}
 </main>
 <footer class="site-footer"><div class="footer-in">
   <div class="footer-item"><span class="fi-ic">🛡️</span><div><b data-i18n="footer_quality_title">جودة مضمونة</b><span data-i18n="footer_quality_sub">منتجات أصلية ومختارة بعناية</span></div></div>
-  <div class="footer-item"><span class="fi-ic">👥</span><div><b data-i18n="footer_customers_title">آلاف الزبائن الراضين</b><span data-i18n="footer_customers_sub">ثقتكم سر نجاحنا</span></div></div>
+  <div class="footer-item"><span class="fi-ic">⭐</span><div><b data-i18n="footer_customers_title">ثقة زبائننا أولويتنا</b><span data-i18n="footer_customers_sub">نلتزم بالمصداقية والوضوح في كل طلب</span></div></div>
   <div class="footer-item"><span class="fi-ic">🚚</span><div><b data-i18n="footer_delivery_title">توصيل سريع</b><span data-i18n="footer_delivery_sub">إلى جميع ولايات الوطن</span></div></div>
 </div></footer>
 <div id="stickyBuy" class="sticky-buy">
@@ -731,8 +747,8 @@ const PAGE_DICT={
   view_all_reviews:{ar:"عرض جميع التقييمات",fr:"Voir tous les avis"},
   footer_quality_title:{ar:"جودة مضمونة",fr:"Qualité garantie"},
   footer_quality_sub:{ar:"منتجات أصلية ومختارة بعناية",fr:"Produits authentiques et sélectionnés avec soin"},
-  footer_customers_title:{ar:"آلاف الزبائن الراضين",fr:"Des milliers de clients satisfaits"},
-  footer_customers_sub:{ar:"ثقتكم سر نجاحنا",fr:"Votre confiance est notre succès"},
+  footer_customers_title:{ar:"ثقة زبائننا أولويتنا",fr:"Votre confiance, notre priorité"},
+  footer_customers_sub:{ar:"نلتزم بالمصداقية والوضوح في كل طلب",fr:"Sérieux et transparence à chaque commande"},
   footer_delivery_title:{ar:"توصيل سريع",fr:"Livraison rapide"},
   footer_delivery_sub:{ar:"إلى جميع ولايات الوطن",fr:"Vers toutes les wilayas du pays"}
 };
@@ -783,6 +799,31 @@ function productSlug(name){
     .trim()
     .replace(/[^\p{L}\p{N}]+/gu,"-")
     .replace(/^-+|-+$/g,"");
+}
+// ===== روابط المنتجات والتصنيفات بالفرنسية (أحرف لاتينية a-z0-9 و"-" فقط) =====
+// المنتج: name_fr، وإن كان فارغًا واسم المنتج بلا حروف عربية نستعمل name، وإلا "produit-<6 أحرف من المعرّف>".
+// نفس المنطق حرفيًا في index.html / product.html / admin.html / scripts/generate_static_products.py
+// حتى يتطابق الرابط المبني في المتصفح مع مجلد الصفحة الثابتة المولَّدة.
+function frSlug(x){
+  return String(x==null?"":x).toLowerCase()
+    .replace(/\u0153/g,"oe").replace(/\u00e6/g,"ae").replace(/\u00df/g,"ss")
+    .normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+}
+function productSlugOf(p){
+  p=p||{};
+  const nm=String(p.name||p.product||"");
+  let s=frSlug(p.name_fr);
+  if(!s&&!/[\u0600-\u06ff]/.test(nm)) s=frSlug(nm);
+  if(!s) s=("produit-"+frSlug(p.firestoreId||p.id||"").slice(0,6)).replace(/-+$/,"");
+  return s;
+}
+// productSlug(name) أعلاه = الصيغة القديمة (من الاسم العربي) — للتوافق مع الروابط المفهرسة سابقًا فقط.
+function slugMatches(p,wanted){
+  if(!p||!wanted) return false;
+  return productSlugOf(p)===String(wanted).toLowerCase()
+    ||productSlug(p.name||p.product)===wanted
+    ||String(p.firestoreId||p.id||"")===String(wanted);
 }
 let galleryImages=[];let galleryIndex=0;
 // ===== ترجمة تلقائية احتياطية للوصف (MyMemory API، مجانية بلا مفتاح) =====
@@ -868,6 +909,20 @@ function trimMetaDescription(desc,limit){
   if(lastSpace>0) cut=cut.slice(0,lastSpace);
   return cut.replace(/[\s,\-–—]+$/,"")+"…";
 }
+// ===== التقييمات: المصدر الوحيد هو تقييمات الزبائن الحقيقية المنشورة (مجموعة reviews في Firestore) =====
+// أي رقم/تقييم قديم أُضيف يدويًا من لوحة التحكم ومخزَّن داخل وثيقة المنتج (reviewRating / reviewCount / reviews ...)
+// يُتجاهل تمامًا: نحذفه من الكائن قبل العرض، فلا يظهر حتى لو بقي في Firestore أو في الصفحة الثابتة أو في الكاش.
+function stripLegacyRatings(o){
+  if(o&&typeof o==="object") ["reviewRating","reviewCount","aggregateRating","rating","ratingValue","ratingCount","reviews"].forEach(k=>{delete o[k];});
+  return o;
+}
+// المعدل والعدد من التقييمات الحقيقية المنشورة فقط (p.reviews تُملأ في load() من مجموعة reviews بعد الفلترة approved == true).
+function bazarRealRating(prod){
+  const list=Array.isArray(prod&&prod.reviews)?prod.reviews.filter(r=>r&&Number.isFinite(Number(r.ratingValue))&&Number(r.ratingValue)>=1&&Number(r.ratingValue)<=5):[];
+  if(!list.length) return null;
+  const sum=list.reduce((s,r)=>s+Number(r.ratingValue),0);
+  return {value:Math.round((sum/list.length)*10)/10,count:list.length};
+}
 function render(p){product=p;
 // tp: الاسم والوصف المعروضان للزبون حسب اللغة الحالية (name_fr/description_fr إن توفرا).
 // هذا للعرض فقط؛ بيانات الطلب المرسلة لاحقًا (Telegram/Firestore) تستعمل دائمًا product.name الأصلي.
@@ -883,16 +938,11 @@ if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.fires
 const stockValue=(p.stock===null||p.stock===undefined||p.stock==="")?NaN:Number(p.stock);
 const outOfStock=Number.isFinite(stockValue)&&stockValue<=0;
 const available=p.published!==false&&!outOfStock;
+productAvailable=available;
 // ===== تقييم المنتج: لا نعرض أي شيء إلا إذا توفرت بيانات تقييم حقيقية في المنتج (لا نختلق أرقامًا). =====
 function getRatingInfo(prod){
-  // دعم كل الصيغ التي تستعملها لوحة التحكم والبيانات القديمة.
-  const rating=prod.aggregateRating||prod.rating||{};
-  const rawValue=rating.ratingValue??rating.value??prod.reviewRating??prod.ratingValue;
-  const rawCount=rating.reviewCount??rating.count??prod.reviewCount??prod.ratingCount;
-  const value=Number(rawValue);
-  const count=Number(rawCount);
-  if(Number.isFinite(value)&&value>=1&&value<=5&&Number.isFinite(count)&&count>0) return {value:value,count:count};
-  return null;
+  // المصدر الوحيد: تقييمات الزبائن الحقيقية المنشورة. لا نقرأ أي رقم تقييم يدوي/قديم من وثيقة المنتج.
+  return bazarRealRating(prod);
 }
 function starsHtml(value){
   const filled=Math.max(0,Math.min(5,Math.round(Number(value)||0)));
@@ -964,7 +1014,19 @@ if(descCard){
   const summaryHtml=ratingInfo?`<div class="rating-summary"><div class="rs-value">${ratingInfo.value}</div><div class="rs-outof">${esc(pt("out_of_5"))}</div><div class="rs-stars">${starsHtml(ratingInfo.value)}</div>${barsHtml}</div>`:"";
   const reviewCardHtml=r=>{const rv=Number(r.ratingValue??r.rating??r.stars);const date=r.datePublished||r.date||r.createdAt||r.created_at||"";return `<div class="review-card"><div class="review-head"><span class="review-avatar">👤</span><span class="review-name">${esc(String(r.author||r.authorName||r.name))}</span>${Number.isFinite(rv)&&rv>=1&&rv<=5?`<span class="review-stars">${starsHtml(rv)}</span>`:""}</div><p class="review-text">${esc(String(r.text||r.reviewBody||r.comment))}</p>${date?`<span class="review-date">${esc(String(date))}</span>`:""}</div>`};
   const shownReviews=validReviewsForUI.slice(0,3), restReviews=validReviewsForUI.slice(3);
-  const reviewsPane=(ratingInfo||validReviewsForUI.length)?`<div id="reviewsPane" class="review-panel"><div class="review-layout">${summaryHtml}<div class="review-list">${shownReviews.map(reviewCardHtml).join("")}<div id="moreReviews" style="display:none">${restReviews.map(reviewCardHtml).join("")}</div>${restReviews.length?`<button type="button" class="reviews-more" id="toggleAllReviewsBtn" onclick="toggleAllReviews()">${esc(pt("view_all_reviews"))} (${validReviewsForUI.length})</button>`:""}</div></div></div>`:`<div id="reviewsPane" class="review-panel"><div class="reviews-empty">⭐ ${esc(pt("reviews_tab_label"))}<br><span style="font-size:12px">لا توجد تقييمات منشورة لهذا المنتج بعد.</span></div></div>`;
+  const writeReviewHtml=`<div class="write-review-card" id="writeReviewCard">
+    <h4>✍️ أضف تقييمك على هذا المنتج</h4>
+    <div id="reviewFormMsg" class="review-form-msg" style="display:none"></div>
+    <div class="star-picker" id="reviewStarPicker" role="radiogroup" aria-label="التقييم من 5 نجوم">${[1,2,3,4,5].map(n=>`<span data-star="${n}" role="radio" aria-checked="false" tabindex="0" onclick="setReviewStars(${n})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setReviewStars(${n})}">★</span>`).join("")}</div>
+    <div class="review-form-row">
+      <input id="reviewAuthorInput" maxlength="60" placeholder="اسمك">
+      <textarea id="reviewTextInput" maxlength="600" placeholder="اكتب ملاحظتك عن المنتج (تجربتك معه، الجودة، التوصيل...)"></textarea>
+      <input type="text" id="reviewHoneypot" class="review-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+    </div>
+    <button type="button" class="review-submit-btn" id="reviewSubmitBtn" onclick="submitProductReview()">إرسال التقييم</button>
+    <p style="font-size:11.5px;color:var(--muted);margin:10px 0 0">تقييمك يظهر في الصفحة بعد مراجعته من فريقنا.</p>
+  </div>`;
+  const reviewsPane=(ratingInfo||validReviewsForUI.length)?`<div id="reviewsPane" class="review-panel"><div class="review-layout">${summaryHtml}<div class="review-list">${shownReviews.map(reviewCardHtml).join("")}<div id="moreReviews" style="display:none">${restReviews.map(reviewCardHtml).join("")}</div>${restReviews.length?`<button type="button" class="reviews-more" id="toggleAllReviewsBtn" onclick="toggleAllReviews()">${esc(pt("view_all_reviews"))} (${validReviewsForUI.length})</button>`:""}</div>${writeReviewHtml}</div></div>`:`<div id="reviewsPane" class="review-panel"><div class="reviews-empty">⭐ ${esc(pt("reviews_tab_label"))}<br><span style="font-size:12px">لا توجد تقييمات منشورة لهذا المنتج بعد.</span></div>${writeReviewHtml}</div>`;
   const intro=descLines.length?descLines[0]:desc;
   const remaining=descLines.length>1?descLines.slice(1):[];
   const featureHtml=featureLines.length?`<div class="product-highlights" style="margin-top:14px"><div class="product-highlights-title">✨ أبرز المميزات</div><ul class="feature-list">${featureLines.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:"";
@@ -984,7 +1046,62 @@ window.switchDetailsTab=tab=>{
   if(d)d.style.display=isR?'none':'block'; if(r)r.classList.toggle('active',isR); if(dt)dt.classList.toggle('active',!isR); if(rt)rt.classList.toggle('active',isR);
 };
 window.toggleAllReviews=()=>{const more=document.getElementById("moreReviews"),btn=document.getElementById("toggleAllReviewsBtn");if(!more||!btn)return;const hidden=more.style.display==="none";more.style.display=hidden?"block":"none";btn.textContent=hidden?"إخفاء التقييمات":pt("view_all_reviews")+" ("+validReviewsForUI.length+")";};
-maybeAutoTranslateDescription(p);}
+// ===== إرسال تقييم حقيقي من الزبون: يُحفظ في Firestore بحالة "قيد المراجعة" =====
+// (approved:false) ولا يظهر لبقية الزوار إلا بعد موافقة الأدمن من لوحة التحكم.
+window.__bazarReviewStars=window.__bazarReviewStars||0;
+window.setReviewStars=function(n){
+  window.__bazarReviewStars=n;
+  document.querySelectorAll("#reviewStarPicker span").forEach(s=>{
+    const on=Number(s.dataset.star)<=n;
+    s.classList.toggle("on",on);
+    s.setAttribute("aria-checked",on&&Number(s.dataset.star)===n?"true":"false");
+  });
+};
+window.submitProductReview=async function(){
+  const btn=document.getElementById("reviewSubmitBtn");
+  const msg=document.getElementById("reviewFormMsg");
+  const nameInput=document.getElementById("reviewAuthorInput");
+  const textInput=document.getElementById("reviewTextInput");
+  const honeypot=document.getElementById("reviewHoneypot");
+  const showMsg=(t,cls)=>{if(!msg)return;msg.textContent=t;msg.className="review-form-msg "+cls;msg.style.display="block";};
+  if(honeypot&&honeypot.value.trim()) return; // على الأرجح بوت — نتجاهل الإرسال بصمت
+  const name=String(nameInput?.value||"").trim();
+  const text=String(textInput?.value||"").trim();
+  const stars=Number(window.__bazarReviewStars||0);
+  const prod=window.__bazarCurrentProduct;
+  if(!prod||!prod.firestoreId){showMsg("تعذر تحديد المنتج، أعد تحميل الصفحة وحاول مجددًا.","err");return;}
+  if(!stars||stars<1||stars>5){showMsg("رجاءً اختر عدد النجوم أولاً ⭐","err");return;}
+  if(name.length<2){showMsg("رجاءً اكتب اسمك.","err");return;}
+  if(text.length<3){showMsg("رجاءً اكتب ملاحظة عن تجربتك مع المنتج.","err");return;}
+  if(btn){btn.disabled=true;btn.textContent="جاري الإرسال...";}
+  try{
+    const {collection,addDoc,serverTimestamp}=await getFirebase();
+    const db=window.__bazarDb;
+    await addDoc(collection(db,"reviews"),{
+      productId:prod.firestoreId,
+      productName:String(prod.name||"").slice(0,200),
+      authorName:name.slice(0,60),
+      ratingValue:stars,
+      text:text.slice(0,600),
+      approved:false,
+      createdAt:serverTimestamp()
+    });
+    showMsg("شكرًا لك! تم استلام تقييمك وسيظهر في الصفحة بعد المراجعة. ✅","ok");
+    if(nameInput)nameInput.value="";
+    if(textInput)textInput.value="";
+    window.__bazarReviewStars=0;
+    document.querySelectorAll("#reviewStarPicker span").forEach(s=>{s.classList.remove("on");s.setAttribute("aria-checked","false");});
+    if(btn)btn.textContent="إرسال التقييم";
+  }catch(e){
+    console.error(e);
+    showMsg("تعذر إرسال التقييم، تحقق من اتصالك وحاول مجددًا.","err");
+    if(btn)btn.textContent="إرسال التقييم";
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+};
+maybeAutoTranslateDescription(p);
+syncStepWithUrl();}
 window.toggleDescription=()=>{
   const pane=document.getElementById("descriptionPane");
   const btn=document.getElementById("descMoreBtn");
@@ -1029,7 +1146,7 @@ window.addToCartUI=()=>{
 };
 window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main)main.src=safeImg(galleryImages[galleryIndex]);const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));if(document.getElementById('imageLightbox')?.classList.contains('open'))window.syncLightbox();};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
 window.openImageLightbox=()=>{const l=document.getElementById('imageLightbox'),i=document.getElementById('lightboxImg');if(!l||!i)return;i.src=safeImg(galleryImages[galleryIndex]);i.alt=document.getElementById('mainProductPhoto')?.alt||'';l.classList.add('open');document.body.style.overflow='hidden';};window.closeImageLightbox=()=>{const l=document.getElementById('imageLightbox');if(l)l.classList.remove('open');document.body.style.overflow='';};window.syncLightbox=()=>{const i=document.getElementById('lightboxImg');if(i)i.src=safeImg(galleryImages[galleryIndex]);};
-window.changeQty=x=>{const stockCap=Number(product?.stock);const maxQty=Number.isFinite(stockCap)&&stockCap>0?stockCap:Infinity;quantity=Math.max(1,Math.min(maxQty,quantity+x));document.getElementById("qty").textContent=quantity;const tp2=window.BazarI18n?BazarI18n.translateProduct(product):{name:product.name||product.product};document.getElementById("checkoutProduct").textContent=tp2.name+" × "+quantity+" — "+money(product.price*quantity);const sbp=document.getElementById("sbPrice");if(sbp)sbp.textContent=money(product.price*quantity);updateTotal()};
+window.changeQty=x=>{const stockCap=Number(product?.stock);const maxQty=Number.isFinite(stockCap)&&stockCap>0?stockCap:Infinity;quantity=Math.max(1,Math.min(maxQty,quantity+x));document.getElementById("qty").textContent=quantity;const tp2=window.BazarI18n?BazarI18n.translateProduct(product):{name:product.name||product.product};document.getElementById("checkoutProduct").textContent=tp2.name+" × "+quantity+" — "+money(product.price*quantity);const sbp=document.getElementById("sbPrice");if(sbp)sbp.textContent=money(product.price*quantity);updateTotal();saveCheckoutDraft()};
 // ===== التبديل بين معلومات المنتج ونموذج COD داخل نفس عمود .info =====
 // hideProductInfo/showProductInfo: يُخفيان أو يُظهران محتوى المنتج (العنوان/السعر/الكمية/الأزرار) فقط،
 // دون لمس عمود الصور أو الوصف أو التقييمات في الأسفل.
@@ -1041,101 +1158,93 @@ function showProductInfo(){
   const ic=document.getElementById("infoContent");if(ic)ic.style.display="";
   const sb=document.getElementById("stickyBuy");if(sb)sb.style.display="";
 }
-function showCODCheckout(){
-  const c=document.getElementById("checkout");c.classList.add("show");
-  c.scrollIntoView({behavior:"smooth",block:"start"});
-  setTimeout(()=>document.getElementById("customerName").focus(),350);
-}
-function hideCODCheckout(){document.getElementById("checkout").classList.remove("show");}
-// ===== خطوة إتمام الطلب: تبقى بعد إعادة التحميل (#checkout) وزر الرجوع يعيد لصفحة المنتج =====
-// - الرابط يحمل #checkout عند فتح النموذج (history.pushState) فيعيد التحميل نفس الخطوة.
-// - بيانات النموذج (الاسم/الهاتف/العنوان/الولاية/طريقة الاستلام/الكمية) تُحفظ مؤقتًا في sessionStorage
-//   لهذا المنتج فقط، وتُمسح عند إرسال الطلب أو إغلاق التبويب.
-const CHK_KEY="bazar_checkout_draft",CHK_TTL=2*3600*1000;
-function chkPid(){return String(product&&(product.firestoreId||product.id||product.name)||"");}
-function checkoutIsOpen(){const c=document.getElementById("checkout");return !!(c&&c.classList.contains("show"));}
+// ===== حالة الصفحة (المنتج ⇄ تأكيد الطلب) =====
+// الحالة تُحفظ في الرابط (#order) عبر History API وليس في متغيّر JS فقط، فتبقى عند:
+//  • إعادة تحميل الصفحة (F5 / سحب للتحديث)
+//  • تبديل اللغة (i18n.js ينفّذ location.reload())
+//  • زر الرجوع/الأمام في المتصفح أو الهاتف (يعمل كخطوة حقيقية بدل مغادرة الصفحة)
+// بيانات الزبون (الاسم/الهاتف/العنوان/الولاية/نوع الاستلام/الكمية) تُحفظ مؤقتًا في
+// sessionStorage (لهذا التبويب فقط) لتُستعاد بعد التحديث، وتُمسح بعد نجاح الطلب.
+const CHECKOUT_HASH="#order",CHECKOUT_DRAFT_KEY="bazar_checkout_draft_v1",CHECKOUT_DRAFT_TTL=2*3600*1000;
+let productAvailable=true,stepInitialized=false;
+function isCheckoutUrl(){return location.hash===CHECKOUT_HASH;}
+function urlWithoutHash(){return location.pathname+location.search;}
 function saveCheckoutDraft(){
   try{
-    if(!product||!checkoutIsOpen())return;
-    sessionStorage.setItem(CHK_KEY,JSON.stringify({pid:chkPid(),t:Date.now(),qty:quantity,
-      name:document.getElementById("customerName").value,phone:document.getElementById("customerPhone").value,
-      address:document.getElementById("address").value,wilaya:document.getElementById("wilaya").value,
-      delivery:selectedDeliveryType||""}));
+    const g=i=>{const e=document.getElementById(i);return e?e.value:"";};
+    sessionStorage.setItem(CHECKOUT_DRAFT_KEY,JSON.stringify({k:String(id||""),t:Date.now(),name:g("customerName"),phone:g("customerPhone"),address:g("address"),wilaya:g("wilaya"),dt:selectedDeliveryType,qty:quantity}));
   }catch(_e){}
 }
-function readCheckoutDraft(){
-  try{
-    const d=JSON.parse(sessionStorage.getItem(CHK_KEY)||"null");
-    if(!d||d.pid!==chkPid()||Date.now()-(d.t||0)>CHK_TTL)return null;
-    return d;
-  }catch(_e){return null;}
-}
-function clearCheckoutDraft(){try{sessionStorage.removeItem(CHK_KEY);}catch(_e){}}
-let chkRestoredFor="";
+function clearCheckoutDraft(){try{sessionStorage.removeItem(CHECKOUT_DRAFT_KEY);}catch(_e){}}
 function restoreCheckoutDraft(){
-  const d=readCheckoutDraft();
-  if(!d||chkRestoredFor===chkPid())return;
-  chkRestoredFor=chkPid();
-  const setIfEmpty=(id,v)=>{const el=document.getElementById(id);if(el&&!el.value&&v)el.value=v;};
-  setIfEmpty("customerName",d.name);setIfEmpty("customerPhone",d.phone);setIfEmpty("address",d.address);
+  let d=null;
+  try{d=JSON.parse(sessionStorage.getItem(CHECKOUT_DRAFT_KEY)||"null");}catch(_e){}
+  if(!d||d.k!==String(id||"")||Date.now()-Number(d.t||0)>CHECKOUT_DRAFT_TTL) return;
+  const fill=(i,v)=>{const e=document.getElementById(i);if(e&&v&&!e.value)e.value=v;};
+  fill("customerName",d.name);fill("customerPhone",d.phone);fill("address",d.address);
   const w=document.getElementById("wilaya");
-  if(w&&!w.value&&d.wilaya)w.value=d.wilaya;
-  if(d.qty>1&&window.changeQty)window.changeQty(Number(d.qty)-quantity);
-  selectedDeliveryType=d.delivery||null;
-  updateTotal();
-  saveCheckoutDraft();
+  if(w&&d.wilaya&&!w.value){
+    w.value=d.wilaya;
+    if(w.value===d.wilaya){
+      selectedDeliveryType=null;updateTotal();
+      if(d.dt){selectedDeliveryType=d.dt;updateTotal();}
+    }
+  }
+  const q=Math.floor(Number(d.qty));
+  if(q>1) changeQty(q-1);
 }
-function openCheckoutView(opts){
-  opts=opts||{};
-  hideProductInfo();
-  const c=document.getElementById("checkout");c.classList.add("show");
-  if(opts.scroll)c.scrollIntoView({behavior:opts.instant?"auto":"smooth",block:"start"});
-  if(opts.focus)setTimeout(()=>{const n=document.getElementById("customerName");if(n)n.focus();},350);
+function showCODCheckout(opts){
+  const c=document.getElementById("checkout");if(!c) return;
+  c.classList.add("show");
+  if(opts&&opts.restore){
+    // استعادة بعد تحديث الصفحة: بدون حركة تمرير ولا فتح لوحة المفاتيح.
+    requestAnimationFrame(()=>{
+      const r=c.getBoundingClientRect();
+      if(r.top<0||r.top>window.innerHeight*.6){
+        try{c.scrollIntoView({behavior:"instant",block:"start"});}catch(_e){c.scrollIntoView(true);}
+      }
+    });
+    return;
+  }
+  c.scrollIntoView({behavior:"smooth",block:"start"});
+  setTimeout(()=>{const n=document.getElementById("customerName");if(n)n.focus();},350);
 }
-function closeCheckoutView(scroll){
-  hideCODCheckout();showProductInfo();
-  if(scroll)document.getElementById("product").scrollIntoView({behavior:"smooth",block:"start"});
+function hideCODCheckout(){const c=document.getElementById("checkout");if(c)c.classList.remove("show");}
+// syncStepWithUrl(): المصدر الوحيد للحقيقة هو الرابط. تُستدعى بعد كل render() وعند popstate.
+function syncStepWithUrl(){
+  if(!product) return;
+  const c=document.getElementById("checkout");if(!c) return;
+  const first=!stepInitialized;stepInitialized=true;
+  const wantCheckout=isCheckoutUrl()&&productAvailable;
+  // رابط #order لمنتج غير متوفر (نفد المخزون/غير منشور): نعود لصفحة المنتج ونُنظّف الرابط.
+  if(isCheckoutUrl()&&!productAvailable){try{history.replaceState(null,"",urlWithoutHash());}catch(_e){}}
+  if(first){ if(wantCheckout) restoreCheckoutDraft(); else clearCheckoutDraft(); }
+  // render() يعيد رسم عنصر الكمية (1) — نُزامنه مع القيمة الفعلية.
+  if(quantity!==1) changeQty(0);
+  const open=c.classList.contains("show");
+  if(wantCheckout){
+    hideProductInfo();
+    if(!open) showCODCheckout({restore:true});
+  }else if(open){
+    hideCODCheckout();showProductInfo();
+    const pc=document.getElementById("product");
+    if(pc) pc.scrollIntoView({behavior:"smooth",block:"start"});
+  }
 }
+window.addEventListener("popstate",syncStepWithUrl);
+(function(){const co=document.getElementById("checkout");if(co)["input","change"].forEach(ev=>co.addEventListener(ev,saveCheckoutDraft));})();
 window.showCheckout=()=>{
-  openCheckoutView({scroll:true,focus:true});
-  if(location.hash!=="#checkout"){try{history.pushState({step:"checkout"},"",location.pathname+location.search+"#checkout");}catch(_e){}}
-  restoreCheckoutDraft();saveCheckoutDraft();
+  if(!product||!productAvailable) return;
+  if(!isCheckoutUrl()){try{history.pushState({bazarStep:"order"},"",urlWithoutHash()+CHECKOUT_HASH);}catch(_e){}}
+  hideProductInfo();showCODCheckout();saveCheckoutDraft();
 };
 window.backToProduct=()=>{
-  if(location.hash==="#checkout"){
-    // فتحنا النموذج من الصفحة نفسها: نتراجع خطوة واحدة في السجل (popstate يعرض المنتج)
-    if(history.state&&history.state.step==="checkout"){history.back();return;}
-    try{history.replaceState(null,"",location.pathname+location.search);}catch(_e){}
-  }
-  closeCheckoutView(true);
+  // إن كانت خطوة الطلب مضافة عبر pushState نرجع خطوة واحدة في السجل (يتولّى popstate العرض)،
+  // وإلا (رابط مفتوح مباشرة على #order) نُنظّف الرابط ونعرض المنتج.
+  if(history.state&&history.state.bazarStep==="order"){history.back();return;}
+  try{history.replaceState(null,"",urlWithoutHash());}catch(_e){}
+  syncStepWithUrl();
 };
-window.addEventListener("popstate",()=>{
-  if(!product)return;
-  if(location.hash==="#checkout"){openCheckoutView({scroll:true});restoreCheckoutDraft();}
-  else closeCheckoutView(true);
-});
-// استعادة الخطوة بعد (إعادة) رسم المنتج: تُستدعى من render()
-function restoreCheckoutView(){
-  if(!product)return;
-  if(location.hash==="#checkout"){
-    const first=!checkoutIsOpen();
-    openCheckoutView({scroll:first,instant:true});
-    restoreCheckoutDraft();
-  }
-}
-(function(){
-  const box=document.getElementById("checkout");
-  if(!box)return;
-  box.addEventListener("input",saveCheckoutDraft);
-  box.addEventListener("change",saveCheckoutDraft);
-  box.addEventListener("click",()=>setTimeout(saveCheckoutDraft,0)); // اختيار طريقة الاستلام
-})();
-{
-  const _origRender=render;
-  render=function(p){_origRender(p);restoreCheckoutView();};
-}
-const _origChangeQty=window.changeQty;
-window.changeQty=x=>{_origChangeQty(x);saveCheckoutDraft();};
 let selectedDeliveryType=null;
 function computeAvail(prod,wil){
   const P=carrierCodes(prod),W=carrierCodes(wil);
@@ -1181,7 +1290,7 @@ function renderDeliveryOptions(opts){
     return `<div class="delivery-opt ${selectedDeliveryType===k?"active":""}" onclick="selectDeliveryType('${k}')"><span>${label} — ${money(o.price)}</span>${logos?`<span class="carrier-logos">${logos}</span>`:""}</div>`;
   }).join("");
 }
-window.selectDeliveryType=k=>{selectedDeliveryType=k;updateTotal();};
+window.selectDeliveryType=k=>{selectedDeliveryType=k;updateTotal();saveCheckoutDraft();};
 function updateTotal(){
   const w=document.getElementById("wilaya").value;
   const base=Number(product?.price||0)*quantity;
@@ -1279,7 +1388,7 @@ function toast(t){const x=document.getElementById("toast");x.textContent=t;x.cla
 
 // ===== SEO حقيقي لكل منتج =====
 function applyProductSEO(p,name,desc){
-  const slug=productSlug(name);
+  const slug=productSlugOf(p);
   const url="https://bazar-dzair.github.io/product/"+encodeURIComponent(slug)+"/";
   const image=(Array.isArray(p.images)&&p.images[0])||p.image||p.imageUrl||p.photo||"https://bazar-dzair.github.io/logo.svg";
   const setMeta=(id,prop,content)=>{let el=document.getElementById(id);if(!el&&prop){el=document.createElement("meta");el.setAttribute(prop?"property":"name",prop||"name");el.id=id;document.head.appendChild(el);}if(el)el.content=content;};
@@ -1313,22 +1422,13 @@ function applyProductSEO(p,name,desc){
 
   if(p.stock!==null&&p.stock!==undefined&&p.stock!==""&&Number.isFinite(Number(p.stock))&&Number(p.stock)<=0)ld.offers.availability="https://schema.org/OutOfStock";
 
-  // نضيف aggregateRating فقط إذا كانت بيانات التقييم الحقيقية موجودة في المنتج.
-  const rating = p.aggregateRating || p.rating || {};
-  const ratingValue = Number(rating?.ratingValue ?? rating?.value ?? p.reviewRating ?? p.ratingValue);
-  const reviewCount = Number(rating?.reviewCount ?? rating?.count ?? p.reviewCount ?? p.ratingCount);
-
-  if(
-    Number.isFinite(ratingValue) &&
-    ratingValue >= 1 &&
-    ratingValue <= 5 &&
-    Number.isFinite(reviewCount) &&
-    reviewCount > 0
-  ){
+  // نضيف aggregateRating فقط من تقييمات الزبائن الحقيقية المنشورة (لا أرقام يدوية).
+  const realRating = bazarRealRating(p);
+  if(realRating){
     ld.aggregateRating={
       "@type":"AggregateRating",
-      "ratingValue":ratingValue,
-      "reviewCount":reviewCount
+      "ratingValue":realRating.value,
+      "reviewCount":realRating.count
     };
   }
 
@@ -1509,7 +1609,7 @@ function simTrim(id,x){
   return {firestoreId:id,name:x.name||x.product||"",name_fr:x.name_fr||"",price:Number(x.price)||0,
     image:x.image||x.imageUrl||x.photo||imgs[0]||"",stock:(x.stock===undefined?null:x.stock),published:x.published!==false,
     oldPrice:x.oldPrice??x.old_price??x.compareAtPrice??x.compare_at_price??null,
-    reviewRating:x.reviewRating??null,reviewCount:x.reviewCount??null,showReviews:x.showReviews!==false,category:x.category||""};
+    showReviews:x.showReviews!==false,category:x.category||""};
 }
 function simCacheRead(scope){
   try{const c=JSON.parse(sessionStorage.getItem("bazar_sim_"+scope)||"null");if(c&&Array.isArray(c.items)&&Date.now()-c.t<600000)return c.items;}catch(_e){}
@@ -1533,13 +1633,13 @@ async function loadSimilarProducts(fb,db,cur){
       pool=[];snap.forEach(d=>pool.push(simTrim(d.id,d.data()||{})));
       simCacheWrite(scope,pool);
     }
-    const curSlug=productSlug(cur.name||cur.product);
+    const curSlug=productSlugOf(cur);
     const curProfile=simProfile(cur);
     const curPrice=Number(cur.price)||0;
     if(!curProfile.words.size){boxEl.hidden=true;return;}
     const ranked=[];
     pool.forEach(x=>{
-      if(!x.name||x.published===false||String(x.firestoreId)===String(cur.firestoreId||"")||productSlug(x.name)===curSlug) return;
+      if(!x.name||x.published===false||String(x.firestoreId)===String(cur.firestoreId||"")||productSlugOf(x)===curSlug) return;
       const sc=simScore(curProfile,simProfile(x));
       if(sc===null) return;
       const px=Number(x.price)||0;
@@ -1563,14 +1663,11 @@ function renderSimilar(boxEl,cat){
     const price=Number(x.price)||0;
     const oldP=Number(x.oldPrice);
     const disc=Number.isFinite(oldP)&&oldP>price&&price>0?Math.round((oldP-price)/oldP*100):0;
-    const rv=Number(x.reviewRating),rc=Number(x.reviewCount);
-    const hasRate=x.showReviews!==false&&Number.isFinite(rv)&&rv>=1&&rv<=5&&Number.isFinite(rc)&&rc>0;
     const badge=!ok?`<span class="sim-badge gray">${esc(pt("badge_unavailable"))}</span>`:(disc?`<span class="sim-badge">-${disc}%</span>`:"");
-    const slug=productSlug(x.name);
+    const slug=productSlugOf(x);
     return `<a class="sim-card${ok?"":" sim-off"}" draggable="false" href="/product.html?id=${encodeURIComponent(slug)}" onclick="goSimilar(event,${i})">`
       +`<div class="sim-media"><img src="${safeImg(x.image)}" alt="${esc(name)}" loading="lazy" decoding="async" draggable="false">${badge}</div>`
       +`<div class="sim-body"><h3 class="sim-name">${esc(name)}</h3>`
-      +(hasRate?`<div class="sim-rate"><span class="st">${"★".repeat(Math.round(rv))}${"☆".repeat(5-Math.round(rv))}</span><span>(${rc})</span></div>`:"")
       +`<div class="sim-price"><span class="sim-now">${money(price)}</span>${disc?`<span class="sim-old">${money(oldP)}</span>`:""}</div></div></a>`;
   }).join("");
   const allLink=(cat&&cat!=="all")?`<a class="sim-all" href="/?category=${encodeURIComponent(cat)}">${esc(pt("similar_view_all"))}</a>`:"";
@@ -1609,18 +1706,32 @@ async function goSimilar(ev,i){
   const x=similarItems[i];
   if(!x) return;
   if(ev) ev.preventDefault();
-  const slug=productSlug(x.name);
+  const slug=productSlugOf(x);
   const pretty=new URL("/product/"+encodeURIComponent(slug)+"/",location.origin).href;
   let target=new URL("/product.html?id="+encodeURIComponent(slug),location.origin).href;
   try{const r=await fetch(pretty,{method:"HEAD",cache:"no-store"});if(r.ok)target=pretty;}catch(_e){}
   location.href=target;
 }
 window.goSimilar=goSimilar;
+async function redirectLegacyIdToStaticPage(){
+  // روابط قديمة من نوع product.html?id=xxx: إن كانت الصفحة الثابتة الجميلة
+  // /product/xxx/ موجودة فعلاً (SSG)، نحوّل إليها فورًا قبل أي محاولة اتصال
+  // بـ Firestore — فلا تتأثر هذه الروابط القديمة بأي عطل في الشبكة أو القاعدة،
+  // ولا تظهر رسالة "تعذر تحميل المنتج" ما دامت الصفحة الثابتة موجودة.
+  if(!queryId || pathMatch) return false;
+  const candidate="/product/"+encodeURIComponent(queryId)+"/";
+  try{
+    const res=await fetch(candidate,{method:"HEAD",cache:"no-store"});
+    if(res.ok){ location.replace(candidate+location.hash); return true; }
+  }catch(_e){ /* لا اتصال أو فشل الطلب: نكمل بالمسار الديناميكي المعتاد أدناه */ }
+  return false;
+}
 async function load(){
+  if(await redirectLegacyIdToStaticPage()) return;
   let cachedProduct=null;
   try{
     const cp=JSON.parse(localStorage.getItem("bazar_selected_product")||"null");
-    if(cp && (!id || productSlug(cp.name||cp.product)===decodeURIComponent(id) || cp.firestoreId===id)) cachedProduct=cp;
+    if(cp && (!id || slugMatches(cp,decodeURIComponent(id)))) cachedProduct=stripLegacyRatings(cp);
   }catch(_e){}
   if(cachedProduct) render(cachedProduct);
 
@@ -1633,7 +1744,7 @@ async function load(){
     const tag=document.getElementById("bazar-static-product");
     if(tag){
       const sp=JSON.parse(tag.textContent);
-      if(sp && sp.firestoreId && (!id || productSlug(sp.name||sp.product)===decodeURIComponent(id))) staticProduct=sp;
+      if(sp && sp.firestoreId && (!id || slugMatches(sp,decodeURIComponent(id)))) staticProduct=stripLegacyRatings(sp);
     }
   }catch(_e){}
   if(staticProduct && !cachedProduct) render(staticProduct);
@@ -1691,13 +1802,32 @@ async function load(){
           all.forEach(snap=>{
             if(p)return;
             const data=snap.data();
-            if(productSlug(data.name||data.product)===wanted || String(data.name||data.product||"").toLowerCase()===wanted.toLowerCase()) p={...data,firestoreId:snap.id};
+            if(slugMatches({...data,firestoreId:snap.id},wanted) || String(data.name||data.product||"").toLowerCase()===wanted.toLowerCase()) p={...data,firestoreId:snap.id};
           });
         }
       }
     }
     if(p){
+      stripLegacyRatings(p); // تجاهل أي تقييم يدوي قديم؛ التقييمات الحقيقية تُضاف بعد قليل من مجموعة reviews
       try{localStorage.setItem("bazar_selected_product",JSON.stringify(p));}catch(_e){}
+      // ===== تقييمات حقيقية منشورة فقط (approved == true) من مجموعة reviews =====
+      // نجلبها قبل render() الأول القائم على بيانات Firestore الحقيقية حتى يظهر
+      // المعدل الحقيقي وبطاقات المراجعات وبيانات SEO (JSON-LD) متطابقة تمامًا.
+      try{
+        if(p.firestoreId){
+          const revQ=query(collection(db,"reviews"),where("productId","==",p.firestoreId),where("approved","==",true));
+          const revSnap=await getDocs(revQ);
+          const raw=revSnap.docs.map(d=>d.data()||{});
+          raw.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+          p.reviews=raw.map(rd=>({
+            author:String(rd.authorName||"").trim()||"زبون",
+            text:String(rd.text||"").trim(),
+            ratingValue:Number(rd.ratingValue),
+            datePublished:rd.createdAt?.seconds?new Date(rd.createdAt.seconds*1000).toLocaleDateString("ar-DZ"):""
+          }));
+        }
+      }catch(e){console.error("reviews fetch failed",e);}
+      window.__bazarCurrentProduct=p;
       render(p);
       loadSimilarProducts({collection,getDocs,query,where,limit},db,p);
       // جلب التصنيف من Firestore حتى يظهر اسم التصنيف الصحيح حتى لو كان
