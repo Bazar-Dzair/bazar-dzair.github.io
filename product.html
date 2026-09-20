@@ -1363,24 +1363,45 @@ const orderPayload={
 // فعليًا وتفرض كل الشروط (شكل البيانات، صحة رقم الهاتف، أن الرقم غير محظور، وأن
 // السعر يطابق سعر المنتج الحقيقي المخزّن فعليًا) — لا يمكن لأي عميل (حتى لو عدّل
 // الكود من جهته) تجاوز هذه الشروط، لأنها مفروضة من جهة الخادم (Firestore) نفسها.
-const {addDoc,collection,serverTimestamp}=await getFirebase();
-const db=window.__bazarDb;
-if(!db){throw new Error(pt("db_connect_error"))}
+// المسار الأول: الكتابة مباشرة في Firestore. إن فشلت لأي سبب (قواعد، اتصال، تعذّر تحميل SDK)
+// نلجأ تلقائيًا إلى مسار الـ Worker (يكتب بصلاحيات Service Account) بدل أن يضيع الطلب.
+const WORKER_ORDER_URL="https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/create-order";
+let savedViaWorker=false;
 try{
+  const {addDoc,collection,serverTimestamp}=await getFirebase();
+  const db=window.__bazarDb;
+  if(!db){throw new Error(pt("db_connect_error"))}
   await addDoc(collection(db,"orders"),{...orderPayload,status:"جديد",createdAt:serverTimestamp()});
 }catch(fireErr){
-  console.error("firestore order write failed:",fireErr);
-  const e=new Error(pt("order_write_failed"));
-  e.userMessage=(fireErr&&fireErr.code==="permission-denied")?pt("order_write_failed_detail"):pt("order_write_failed_generic");
-  throw e;
+  console.error("firestore order write failed, trying worker:",fireErr);
+  const ctrl=(typeof AbortController!=="undefined")?new AbortController():null;
+  const to=ctrl?setTimeout(()=>ctrl.abort(),20000):null;
+  try{
+    const resp=await fetch(WORKER_ORDER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(orderPayload),signal:ctrl?ctrl.signal:undefined});
+    if(!resp.ok){
+      const eb=await resp.json().catch(()=>({}));
+      const e=new Error(pt("order_write_failed"));
+      e.userMessage=eb&&eb.error?eb.error:((fireErr&&fireErr.code==="permission-denied")?pt("order_write_failed_detail"):pt("order_write_failed_generic"));
+      throw e;
+    }
+    savedViaWorker=true; // الـ Worker كتب الطلب وأرسل إشعار Telegram بنفسه
+  }catch(workerErr){
+    console.error("worker order fallback failed:",workerErr);
+    if(workerErr&&workerErr.userMessage) throw workerErr;
+    const e=new Error(pt("order_write_failed"));
+    e.userMessage=pt("order_write_failed_generic");
+    throw e;
+  }finally{ if(to) clearTimeout(to); }
 }
 // ✅ إشعار Telegram فقط — لا يفشل تسجيل الطلب لو تعطّل هذا الاستدعاء، لأن الطلب
-// سُجّل فعليًا فـ Firestore أعلاه (وهذا ما يظهره لوحة التحكم).
-fetch("https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev/create-order",{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify(orderPayload)
-}).catch(()=>{});
+// سُجّل فعليًا أعلاه (وهذا ما يظهره لوحة التحكم). يُتخطّى إن كان الـ Worker هو من سجّل الطلب.
+if(!savedViaWorker){
+  fetch(WORKER_ORDER_URL,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(orderPayload)
+  }).catch(()=>{});
+}
 try{
   const addonsCfg=window.__bazarAddons||{};
   const gs=addonsCfg.googleSheets||{};

@@ -41,18 +41,14 @@ service cloud.firestore {
       return
         d.keys().hasOnly(['productId','productName','authorName','ratingValue','text','approved','createdAt']) &&
         d.keys().hasAll(['productId','authorName','ratingValue','text','approved','createdAt']) &&
-        d.approved == false &&
-        // التاريخ يضعه الخادم فقط (serverTimestamp) — لا يمكن تزوير تاريخ قديم/مستقبلي
+        // التاريخ يضعه الخادم فقط (serverTimestamp)
         d.createdAt == request.time &&
+        d.approved == false &&
         d.productId is string && d.productId.size() > 0 && d.productId.size() < 200 &&
         exists(/databases/$(database)/documents/products/$(d.productId)) &&
         d.authorName is string && d.authorName.size() >= 2 && d.authorName.size() <= 60 &&
         d.text is string && d.text.size() >= 3 && d.text.size() <= 600 &&
-        // عدد صحيح فقط من 1 إلى 5 (لا 4.9 ولا قيم عشرية تشوّه المتوسط)
         d.ratingValue is int && d.ratingValue >= 1 && d.ratingValue <= 5 &&
-        // منع الروابط الإعلانية/الاحتيالية داخل الاسم والنص (ولو على أسطر متعددة)
-        !d.authorName.matches('[\\s\\S]*([Hh][Tt][Tt][Pp][Ss]?:|[Ww][Ww][Ww]\\.)[\\s\\S]*') &&
-        !d.text.matches('[\\s\\S]*([Hh][Tt][Tt][Pp][Ss]?:|[Ww][Ww][Ww]\\.)[\\s\\S]*') &&
         (!('productName' in d) || (d.productName is string && d.productName.size() < 200));
     }
     match /reviews/{id} {
