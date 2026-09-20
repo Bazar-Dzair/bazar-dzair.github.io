@@ -40,14 +40,19 @@ service cloud.firestore {
     function isValidReview(d) {
       return
         d.keys().hasOnly(['productId','productName','authorName','ratingValue','text','approved','createdAt']) &&
-        d.keys().hasAll(['productId','authorName','ratingValue','text','approved']) &&
+        d.keys().hasAll(['productId','authorName','ratingValue','text','approved','createdAt']) &&
         d.approved == false &&
+        // التاريخ يضعه الخادم فقط (serverTimestamp) — لا يمكن تزوير تاريخ قديم/مستقبلي
+        d.createdAt == request.time &&
         d.productId is string && d.productId.size() > 0 && d.productId.size() < 200 &&
         exists(/databases/$(database)/documents/products/$(d.productId)) &&
-        d.authorName is string && d.authorName.size() > 0 && d.authorName.size() < 60 &&
-        d.text is string && d.text.size() >= 3 && d.text.size() < 600 &&
-        (d.ratingValue is int || d.ratingValue is float) &&
-        d.ratingValue >= 1 && d.ratingValue <= 5 &&
+        d.authorName is string && d.authorName.size() >= 2 && d.authorName.size() <= 60 &&
+        d.text is string && d.text.size() >= 3 && d.text.size() <= 600 &&
+        // عدد صحيح فقط من 1 إلى 5 (لا 4.9 ولا قيم عشرية تشوّه المتوسط)
+        d.ratingValue is int && d.ratingValue >= 1 && d.ratingValue <= 5 &&
+        // منع الروابط الإعلانية/الاحتيالية داخل الاسم والنص (ولو على أسطر متعددة)
+        !d.authorName.matches('[\\s\\S]*([Hh][Tt][Tt][Pp][Ss]?:|[Ww][Ww][Ww]\\.)[\\s\\S]*') &&
+        !d.text.matches('[\\s\\S]*([Hh][Tt][Tt][Pp][Ss]?:|[Ww][Ww][Ww]\\.)[\\s\\S]*') &&
         (!('productName' in d) || (d.productName is string && d.productName.size() < 200));
     }
     match /reviews/{id} {
@@ -65,28 +70,29 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // ✅ الأرقام المحظورة — لوحة تحكم الأدمن (admin.html) تقرأ/تكتب هنا مباشرة
-    // عبر Firestore SDK (setDoc/deleteDoc/getDocs) لإدارة الحظر. بدون هذه
-    // القاعدة الصريحة، كانت القاعدة العامة "deny-by-default" في آخر الملف
-    // تمنع الوصول حتى على الأدمن نفسه فتتعطّل ميزة الحظر بالكامل. القراءة
-    // العامة غير مطلوبة هنا أصلاً (الـ Worker يقرأها بصلاحيات Service Account
-    // المتجاوزة لهذه القواعد أساسًا).
+    // ✅ الطلبات — الكتابة الفعلية تتم مباشرة من المتصفح (addDoc في product.html/index.html)
+    // وليس فقط عبر الـ Worker (الـ Worker يُستدعى بعدها فقط لإرسال إشعار Telegram، بدون
+    // انتظار نتيجته). لذلك "allow create" هنا يجب أن يسمح لأي زائر غير مسجّل دخول بإنشاء
+    // طلب بشرط أن يجتاز isValidOrder() كل التحقّقات (شكل البيانات، رقم الهاتف، تطابق
+    // السعر الحقيقي...). كانت هذه القاعدة مضبوطة خطأً على "if isAdmin()" فقط، وهو ما كان
+    // يمنع كل زبون (غير مسجّل دخول بحساب الأدمن) من تسجيل أي طلب إطلاقًا.
+    match /orders/{id} {
+      allow create: if isValidOrder(request.resource.data);
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ⚠️ أرقام الهواتف المحظورة — كانت هذه القاعدة ناقصة تمامًا (لا يوجد أي match
+    // لهذا الـ collection)، فكانت قاعدة الرفض الافتراضي في نهاية الملف تمنع لوحة
+    // التحكم (admin.html: bazarLoadBlockedPhones/blockPhone/unblockPhone) من قراءة
+    // أو كتابة أي رقم محظور رغم تسجيل دخول الأدمن — يعمل الـ Worker فقط لأنه يستخدم
+    // Service Account الذي يتجاوز Security Rules أصلاً.
     match /blockedPhones/{phone} {
       allow read, write: if isAdmin();
     }
 
-    // ✅ الطلبات — لم يعد المتصفح يكتب هنا مباشرة إطلاقًا. كل طلب يمرّ إجباريًا عبر
-    // Cloudflare Worker (worker/create-order.js) الذي يتحقق من Turnstile من جهة السيرفر
-    // ثم يكتب الطلب بصلاحيات Service Account (تتجاوز هذه القواعد أصلاً، فهي غير خاضعة لها).
-    // بقاء "allow create: if isAdmin()" هنا هو فقط شبكة أمان تمنع أي عميل غير موثوق
-    // (متصفح، سكربت، Postman...) من الكتابة المباشرة في orders بأي حال.
-    match /orders/{id} {
-      allow create: if isAdmin();
-      allow read, update, delete: if isAdmin();
-    }
-
-    // محفوظة كمرجع فقط (تُستخدم فعليًا داخل الـ Worker لإعادة التحقق من نفس الشروط
-    // قبل الكتابة). لم تعد تُستدعى من allow create أعلاه.
+    // نفس شروط isValidOrder() تُستخدم الآن فعليًا في allow create أعلاه، وتبقى أيضًا
+    // مرجعًا يعيد الـ Worker (create-order.js) نفس التحقق يدويًا قبل الكتابة بصلاحيات
+    // Service Account.
     function isValidOrder(d) {
       return
         // الحقول المسموحة فقط — أي حقل إضافي (adminNotes، role، isAdmin...) يرفض الطلب
@@ -101,6 +107,8 @@ service cloud.firestore {
         // نصوص أساسية بحدود طول منطقية (تمنع payloads ضخمة أو حقول فارغة)
         d.customerName is string && d.customerName.size() > 0 && d.customerName.size() < 100 &&
         d.customerPhone is string && d.customerPhone.matches('^0[5-7][0-9]{8}$') &&
+        // 🚫 رقم محظور من طرف الأدمن (collection blockedPhones) لا يقدر يسجّل طلب جديد.
+        !exists(/databases/$(database)/documents/blockedPhones/$(d.customerPhone)) &&
         d.wilaya is string && d.wilaya.size() > 0 && d.wilaya.size() < 100 &&
         d.address is string && d.address.size() > 0 && d.address.size() < 300 &&
         d.product is string && d.product.size() > 0 && d.product.size() < 200 &&
