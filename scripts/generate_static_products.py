@@ -59,8 +59,11 @@ def product_slug_base(p):
 
 
 def category_slug_base(c):
-    """التصنيف: name_fr، وإلا المعرّف (key) اللاتيني، وإلا categorie."""
-    return fr_slug(c.get('name_fr')) or fr_slug(c.get('_id')) or 'categorie'
+    """التصنيف: رابط واحد ثابت لكل فئة مهما كانت لغة العرض.
+    الأولوية: حقل slug المحفوظ في Firestore (تُثبّته لوحة التحكم مرة واحدة ولا يتغيّر بتعديل الاسم)،
+    وإلا (فئات قديمة بلا slug) نفس الاشتقاق القديم تمامًا: name_fr، ثم المعرّف (key) اللاتيني، ثم categorie.
+    بهذا لا يتغيّر أي رابط موجود حاليًا، ولا يتبدّل الرابط لاحقًا عند تعديل الاسم الفرنسي."""
+    return fr_slug(c.get('slug')) or fr_slug(c.get('name_fr')) or fr_slug(c.get('_id')) or 'categorie'
 
 
 def redirect_stub_html(target):
@@ -405,7 +408,12 @@ def write_redirect_stubs(folder, redirects, pretty_prefix):
         done+=1
     return done
 n_ps=write_redirect_stubs('product',legacy_product_redirects,'product/')
-n_cs=write_redirect_stubs('product-category',legacy_category_redirects,'product-category/')
+# التصنيفات: مجلد واحد فقط لكل فئة (السلاغ اللاتيني). لا نُنشئ مجلدات عربية مكررة داخل product-category/.
+# الروابط العربية القديمة تبقى تعمل للزائر: 404.html يفكّ ترميزها ويفتح /?category=<الاسم>، و index.html
+# (findCategory) يطابقها مع الفئة الصحيحة ثم يصحّح الرابط إلى /product-category/<slug>/ تلقائيًا.
+# للعودة إلى صفحات التحويل الثابتة (مفيدة فقط لو كانت روابط عربية مفهرسة في Google وتريد نقل إشاراتها) غيّر القيمة إلى True.
+KEEP_LEGACY_CATEGORY_STUBS=False
+n_cs=write_redirect_stubs('product-category',legacy_category_redirects,'product-category/') if KEEP_LEGACY_CATEGORY_STUBS else 0
 print(f'Wrote {n_ps} product and {n_cs} category redirect stubs for legacy Arabic URLs.')
 
 # Sitemap index-like single sitemap with all public SEO URLs.
