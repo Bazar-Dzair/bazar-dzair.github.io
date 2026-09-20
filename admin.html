@@ -1735,7 +1735,7 @@ onAuthStateChanged(auth,u=>{document.body.classList.remove("auth-check");
     loginErrBox.textContent="هذا الحساب غير مصرّح له بالدخول إلى لوحة التحكم.";loginErrBox.classList.remove("hidden");
     return;
   }
-  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
+  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();if(window.bazarStartOrdersLive)window.bazarStartOrdersLive();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{if(window.bazarStopOrdersLive)window.bazarStopOrdersLive();appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
 
 function categoryKeySafe(value){return String(value||"").trim().toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}\-_]+/gu,"-").replace(/^-+|-+$/g,"");}
 function renderCategorySelect(selectedValue){if(!categoryInput)return;const current=selectedValue!==undefined?String(selectedValue):String(categoryInput.value||"");categoryInput.innerHTML=categories.map(c=>`<option value="${esc(c.key)}">${esc(c.icon||"🛍️")} ${esc(c.name)}</option>`).join("");if(categories.some(c=>String(c.key)===current))categoryInput.value=current;else if(categories.length)categoryInput.value=categories[0].key;}
@@ -1957,29 +1957,66 @@ window.bazarLoadProducts=async function(force=false){
   return productsLoading;
 };
 
+// ===== الطلبات: اشتراك لحظي (onSnapshot) =====
+// كانت اللوحة تقرأ الطلبات مرة واحدة فقط (getDocs) وتحتفظ بها في الذاكرة، فلا تظهر أي طلبية جديدة
+// إلا بعد إعادة تحميل الصفحة يدويًا. الآن أي طلبية تصل (من المتصفح أو من الـ Worker) تظهر فورًا.
+let ordersUnsub=null,ordersReady=null;
+function applyOrdersSnapshot(snap,isFirst){
+  const prevIds=new Set((window.adminOrders||[]).map(o=>o.id));
+  const rows=snap.docs.map(d=>({id:d.id,...(d.data({serverTimestamps:"estimate"})||{})}));
+  const ts=o=>{const c=o.createdAt;if(!c)return 0;if(typeof c.seconds==="number")return c.seconds;if(typeof c.toDate==="function")return Math.floor(c.toDate().getTime()/1000);const t=Date.parse(c);return isNaN(t)?0:Math.floor(t/1000);};
+  [...rows].sort((a,b)=>ts(a)-ts(b)).forEach((o,i)=>{o.orderSeq=i+1;});
+  rows.sort((a,b)=>ts(b)-ts(a));
+  window.adminOrders=rows;
+  ordersLoaded=true;
+  updateOrderStats(rows.length);
+  const phones=new Set(rows.map(o=>String(o.phone||o.customerPhone||o.tel||"").trim()).filter(Boolean));
+  const custEl=document.getElementById("statCustomers");
+  if(custEl) custEl.textContent=(phones.size||rows.length).toLocaleString("ar-DZ");
+  const ids=new Set(rows.map(o=>o.id));
+  [...selectedOrders].forEach(id=>{if(!ids.has(id))selectedOrders.delete(id);});
+  if(!isFirst){
+    const fresh=rows.filter(o=>!prevIds.has(o.id)).length;
+    if(fresh>0){
+      try{show(fresh===1?"🛒 وصلت طلبية جديدة":"🛒 وصلت "+fresh+" طلبيات جديدة","ok");}catch(_e){}
+    }
+  }
+  const v=document.getElementById("view-orders");
+  if(v&&!v.classList.contains("hidden")) renderOrders();
+  if(isFirst&&window.bazarLoadProducts&&!productsLoaded){
+    window.bazarLoadProducts().then(()=>{const vv=document.getElementById("view-orders");if(vv&&!vv.classList.contains("hidden"))renderOrders();}).catch(()=>{});
+  }
+}
+window.bazarStartOrdersLive=function(){
+  if(ordersUnsub) return ordersReady;
+  ordersReady=new Promise(resolve=>{
+    let first=true;
+    try{
+      ordersUnsub=onSnapshot(collection(db,"orders"),snap=>{
+        try{applyOrdersSnapshot(snap,first);}catch(e){console.error("orders render failed",e);}
+        if(first){first=false;resolve();}
+      },err=>{
+        console.error("orders listener failed",err);
+        ordersUnsub=null;ordersReady=null;
+        updateOrderStats(0);
+        const box=document.getElementById("orders");
+        if(box)box.innerHTML='<div class="empty-card">❌ تعذر قراءة الطلبات من Firestore. تحقق من Firestore Rules.</div>';
+        resolve();
+      });
+    }catch(e){console.error(e);ordersUnsub=null;ordersReady=null;resolve();}
+  });
+  return ordersReady;
+};
+window.bazarStopOrdersLive=function(){
+  if(ordersUnsub){try{ordersUnsub();}catch(_e){}}
+  ordersUnsub=null;ordersReady=null;ordersLoaded=false;window.adminOrders=undefined;
+};
 window.bazarLoadOrders=async function(force=false){
-  if(ordersLoading)return ordersLoading;
-  if(ordersLoaded&&!force){renderOrders();return;}
   const box=document.getElementById("orders");
   if(!box)return;
-  box.innerHTML='<div class="empty-card">⏳ جاري تحميل الطلبات...</div>';
-  ordersLoading=(async()=>{
-    try{
-      const snap=await getDocs(collection(db,"orders"));
-      updateOrderStats(snap.size);
-      window.adminOrders=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
-      const ascByDate=[...window.adminOrders].sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return ta-tb;});
-      ascByDate.forEach((o,i)=>{o.orderSeq=i+1;});
-      window.adminOrders.sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return tb-ta;});
-      ordersLoaded=true;
-      ordersPage=1; selectedOrders.clear(); renderOrders();
-      if(window.bazarLoadProducts && !productsLoaded){
-        window.bazarLoadProducts().then(()=>{ if(document.getElementById("view-orders")&&!document.getElementById("view-orders").classList.contains("hidden")) renderOrders(); }).catch(()=>{});
-      }
-    }catch(e){console.error(e);updateOrderStats(0);box.innerHTML='<div class="empty-card">❌ تعذر قراءة الطلبات من Firestore. تحقق من Firestore Rules.</div>';
-    }finally{ordersLoading=null;}
-  })();
-  return ordersLoading;
+  if(!ordersLoaded) box.innerHTML='<div class="empty-card">⏳ جاري تحميل الطلبات...</div>';
+  await window.bazarStartOrdersLive();
+  if(ordersLoaded) renderOrders();
 };
 
 function getFilteredOrders(){
