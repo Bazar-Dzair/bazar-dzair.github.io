@@ -82,6 +82,9 @@ service cloud.firestore {
     // التحكم (admin.html: bazarLoadBlockedPhones/blockPhone/unblockPhone) من قراءة
     // أو كتابة أي رقم محظور رغم تسجيل دخول الأدمن — يعمل الـ Worker فقط لأنه يستخدم
     // Service Account الذي يتجاوز Security Rules أصلاً.
+    // كل وثيقة تحمل (اختياريًا): reason، blockedBy، blockedAt، expiresAt (غيابه = حظر دائم)،
+    // status ('lifted' = مرفوع)، liftedAt، liftedBy، attempts، lastAttemptAt، lastAttemptIp.
+    // عدّاد attempts يزيده الـ Worker (Service Account) عند كل محاولة طلب بعد الحظر.
     match /blockedPhones/{phone} {
       allow read, write: if isAdmin();
     }
@@ -94,6 +97,19 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // 🛡️ نظام كشف الإساءة (Fraud / Abuse) — يكتبه الـ Worker حصرًا بصلاحيات Service Account،
+    // فلا يوجد أي create/write من المتصفح هنا إطلاقًا (لو سُمح، لأمكن لأي زائر تزوير الإنذارات
+    // أو إغراق اللوحة). الأدمن يقرأ الإنذارات ويعدّل حالتها (seen/resolved) ويحذفها.
+    match /fraudAlerts/{id} {
+      allow read, update, delete: if isAdmin();
+    }
+
+    // إشارات كل مفتاح (ip / phone / device / addr): آخر الأحداث فقط. للأدمن قراءة وحذف
+    // (تنظيف يدوي)؛ الكتابة للـ Worker فقط. الحقل expireAt يسمح بتفعيل TTL Policy اختياريًا.
+    match /fraudSignals/{id} {
+      allow read, delete: if isAdmin();
+    }
+
     // isValidOrder() لم تعد مستعملة في أي قاعدة (إنشاء الطلب صار عبر الـ Worker فقط)،
     // لكنها تبقى مرجعًا موثّقًا لنفس الشروط التي يعيد الـ Worker (create-order.js)
     // تطبيقها يدويًا قبل الكتابة بصلاحيات Service Account. لا تحذفها: أي تعديل على شروط
@@ -101,7 +117,8 @@ service cloud.firestore {
     function isValidOrder(d) {
       return
         // الحقول المسموحة فقط — أي حقل إضافي (adminNotes، role، isAdmin...) يرفض الطلب
-        d.keys().hasOnly(['customerName','customerPhone','wilaya','address','product','productId','quantity','price','shipping','deliveryType','shippingCompany','total','status','createdAt']) &&
+        // (الحقول الأخيرة ip/ipKey/country/deviceId/addrKey/risk* يضيفها الـ Worker وحده)
+        d.keys().hasOnly(['customerName','customerPhone','wilaya','address','product','productId','quantity','price','shipping','deliveryType','shippingCompany','total','status','createdAt','ip','ipKey','country','deviceId','addrKey','riskLevel','riskScore','riskFlags']) &&
         // ✅ productId أصبح إجباريًا (وليس اختياريًا) لسد ثغرة كانت تسمح بتجاوز
         // التحقق من السعر الحقيقي عبر إرسال طلب بدون productId.
         d.keys().hasAll(['customerName','customerPhone','wilaya','address','product','productId','quantity','price','total','status']) &&
