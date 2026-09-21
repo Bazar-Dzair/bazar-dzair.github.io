@@ -203,6 +203,7 @@ export async function handleCreateOrder(request, env, ctx) {
     deliveryType,
     shippingCompany,
     total,
+    variant,
     deviceId,
     cartId,
   } = body || {};
@@ -233,6 +234,9 @@ export async function handleCreateOrder(request, env, ctx) {
   const addressClean = address.trim();
   const productClean = product.trim();
   const productIdClean = productId.trim();
+  // اللون/القياس (اختياري): يُرسَل كنص حر من صفحة المنتج (مثلاً "اللون: أسود، القياس: L").
+  // قيمة غير نصية أو أطول من الحد تُهمل بصمت (فارغة) ولا ترفض الطلب — نفس منطق deviceId.
+  const variantClean = typeof variant === "string" && variant.trim().length > 0 && variant.length < 200 ? variant.trim() : "";
 
   // 2) عنوان IP الحقيقي للزائر (يضعه Cloudflare — لا يمكن تزويره من المتصفح)
   const clientIp = getClientIp(request);
@@ -361,6 +365,7 @@ export async function handleCreateOrder(request, env, ctx) {
       deliveryType: deliveryType || "",
       shippingCompany: shippingCompany || "",
       total: Number(total),
+      ...(variantClean ? { variant: variantClean } : {}),
       status: "جديد",
       createdAt: new Date(),
       // بيانات الزائر (تظهر في لوحة التحكم لتحظر IP أي طلب وهمي بضغطة زر)
@@ -406,6 +411,7 @@ export async function handleCreateOrder(request, env, ctx) {
       product: productClean,
       quantity,
       total,
+      variant: variantClean,
       ip: clientIp ? clientIp.display : "",
       country,
       risk,
@@ -1002,6 +1008,7 @@ async function sendTelegram(env, o) {
   const text =
     `🛒 طلب جديد\n👤 الاسم: ${o.customerName}\n📞 الهاتف: ${o.customerPhone}\n` +
     `📍 الولاية: ${o.wilaya}\n🏠 العنوان: ${o.address}\n📦 المنتج: ${o.product}\n` +
+    (o.variant ? `🎨 الخيار: ${o.variant}\n` : "") +
     `🔢 الكمية: ${o.quantity}\n💰 المجموع: ${o.total} دج` +
     (o.ip ? `\n🌐 IP: ${o.ip}${o.country ? " (" + o.country + ")" : ""}` : "") +
     (o.risk && (o.risk.level === "medium" || o.risk.level === "high")
