@@ -158,6 +158,12 @@
   main { max-width:960px; margin:auto; padding:0 0 20px; }
   .hero { border-radius:28px; overflow:hidden; box-shadow:var(--shadow); background:#fff; }
   .hero img { display:block; width:100%; height:auto; }
+  /* placeholder البانر: طالما لم يُستبدل بعد بصورة البانر الحقيقية من لوحة التحكم (تحديدًا
+     طالما بقيت خاصيتا width/height الافتراضيتان على #heroImg)، نعرض الشعار المربّع بلا
+     تمديد/تشويه (object-fit:contain) فوق خلفية متناسقة معه، بدل تمديده ليملأ صندوق البانر
+     العريض ويظهر كنص "Bazar Dzair" ممطوط ومشوّه. تُلغى هذه القاعدة تلقائيًا بمجرد وصول
+     البانر الحقيقي، لأن applyBranding() تُزيل width/height من #heroImg حينها. */
+  #heroImg[width][height] { object-fit:contain; background:#f2f4f7; }
   .dots { display:flex; justify-content:center; gap:8px; padding:10px 0 12px; background:#fff; }
   .dot { width:11px; height:11px; border-radius:50%; background:#b8bdc5; }
   .dot.active { background:var(--orange); }
