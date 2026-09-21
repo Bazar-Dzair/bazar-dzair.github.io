@@ -14,6 +14,14 @@
 //      محظور (collection blockedIps). عنوان IP يقرؤه الـ Worker من رأس
 //      CF-Connecting-IP الذي يضعه Cloudflare نفسه — لا يمكن للزبون تزويره — ويُحفظ
 //      مع كل طلب (حقول ip / ipKey / country) ليظهر في لوحة التحكم ويُحظر بضغطة زر.
+//      سجلّ الحظر صار يحمل: السبب، التاريخ، من حظر، مدة الحظر (مؤقت/دائم) وعدد محاولات
+//      الطلب بعد الحظر — والحظر المرفوع (status = lifted) أو المنتهي (expiresAt) لا يمنع شيئًا.
+//   2.b) نظام كشف الإساءة (Fraud / Abuse): لا يعتمد على IP وحده. يسجّل إشارات لكل من
+//      (IP، الهاتف، الجهاز deviceId، العنوان) في collection fraudSignals ويطلق إنذارات في
+//      collection fraudAlerts عند: كثرة الطلبات من نفس IP، تتابع طلبات من نفس الهاتف،
+//      جهاز يجرّب عدة أرقام، كثرة الطلبات لنفس العنوان، أو جهاز يعود بعد محاولة محظورة.
+//      هذه الإشارات إنذار فقط (لا تمنع الطلب) — المنع يبقى للحظر اليدوي من لوحة التحكم.
+//      أي عطل في هذا النظام لا يوقف الطلبات أبدًا (fail-open) عكس فحص الحظر (fail-closed).
 //   3) يجلب السعر الحقيقي للمنتج من Firestore ويقارنه بالسعر المُرسل.
 //   4) يكتب الطلب في Firestore بصلاحيات Service Account (تتجاوز Security Rules
 //      تمامًا، وهذا مقصود ومتوقَّع لأي Admin SDK / Service Account).
@@ -36,6 +44,36 @@
 // الدومين الوحيد المسموح له بإرسال طلبات إلى هذا الـ Worker.
 // إذا أضفت دومينًا مخصصًا (custom domain) للموقع لاحقًا، أضفه هنا أيضًا.
 const ALLOWED_ORIGINS = ["https://bazar-dzair.github.io"];
+
+// ---------------------------------------------------------------------
+// إعدادات كشف الإساءة — عدّل الأرقام هنا فقط (الأزمنة بالمللي ثانية)
+// ---------------------------------------------------------------------
+const FRAUD = {
+  KEEP_MS: 24 * 3600 * 1000, // مدة الاحتفاظ بأحداث كل مفتاح
+  MAX_EVENTS: 40, // أقصى عدد أحداث محفوظة لكل مفتاح
+  IP_BURST: { windowMs: 10 * 60 * 1000, count: 5 }, // 5 طلبات من نفس IP خلال 10 دقائق
+  IP_MANY_PHONES: { distinct: 4 }, // 4 أرقام مختلفة من نفس IP خلال 24 ساعة
+  PHONE_REPEAT: { windowMs: 30 * 60 * 1000, count: 3 }, // 3 طلبات لنفس الهاتف خلال 30 دقيقة
+  DEVICE_MANY_PHONES: { distinct: 3 }, // نفس الجهاز جرّب 3 أرقام مختلفة خلال 24 ساعة
+  DEVICE_BURST: { windowMs: 10 * 60 * 1000, count: 5 }, // 5 طلبات من نفس الجهاز خلال 10 دقائق
+  ADDRESS_REPEAT: { count: 4 }, // 4 طلبات لنفس العنوان خلال 24 ساعة
+  ADDRESS_MIN_LENGTH: 12, // عنوان أقصر من هذا (مثل "الجزائر") لا يُعتبر مفتاحًا موثوقًا
+  BLOCK_EVASION_MS: 30 * 24 * 3600 * 1000, // مدة تذكّر جهاز حاول الطلب وهو محظور
+  SIGNAL_TTL_MS: 30 * 24 * 3600 * 1000, // حقل expireAt (يمكنك لاحقًا تفعيل TTL Policy عليه)
+  ANALYSIS_TIMEOUT_MS: 3500, // لو تأخر التحليل أكثر من هذا نتجاوزه ولا نؤخّر الزبون
+};
+
+// وزن كل إشارة. إشارات IP (viaIp) مجتمعةً لا تتجاوز نقطة واحدة لأن عدة أشخاص قد
+// يتشاركون نفس IP (شبكات الهاتف) — فلا يكفي IP وحده للوصول إلى خطر متوسط أو عالٍ.
+const FLAG_INFO = {
+  ip_burst: { weight: 1, viaIp: true, ar: "عدد كبير من الطلبات من نفس الـ IP في وقت قصير" },
+  ip_many_phones: { weight: 1, viaIp: true, ar: "نفس الـ IP استعمل عدة أرقام هاتف مختلفة" },
+  phone_repeat: { weight: 2, ar: "نفس رقم الهاتف أرسل عدة طلبات متتالية" },
+  device_many_phones: { weight: 3, ar: "نفس الجهاز جرّب أرقام هاتف مختلفة" },
+  device_burst: { weight: 2, ar: "نفس الجهاز أرسل عدد كبير من الطلبات في وقت قصير" },
+  address_repeat: { weight: 2, ar: "عدد كبير من الطلبات لنفس العنوان" },
+  device_evading_block: { weight: 3, ar: "جهاز سبق أن حاول الطلب برقم/IP محظور عاد الآن بمعطيات مختلفة" },
+};
 
 // ---------------------------------------------------------------------
 // عنوان IP الخاص بالزائر
@@ -116,7 +154,7 @@ function corsHeaders(request) {
   };
 }
 
-export async function handleCreateOrder(request, env) {
+export async function handleCreateOrder(request, env, ctx) {
   const cors = corsHeaders(request);
 
   if (request.method === "OPTIONS") {
@@ -164,6 +202,7 @@ export async function handleCreateOrder(request, env) {
     deliveryType,
     shippingCompany,
     total,
+    deviceId,
   } = body || {};
 
   // 1) نفس شروط isValidOrder() في firestore.rules، بالضبط
@@ -205,37 +244,47 @@ export async function handleCreateOrder(request, env) {
     return json({ error: "تعذّر الاتصال بالخادم", code: "auth_failed", detail: errDetail(e) }, 502, cors);
   }
 
+  // معرّف الجهاز (يولّده المتصفح ويحفظه محليًا) وبصمة العنوان — كلاهما لكشف الإساءة فقط.
+  // قيمة غير صالحة تُهمل بصمت ولا ترفض الطلب.
+  const deviceKey = typeof deviceId === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(deviceId) ? deviceId : "";
+  const addrKey = await addressKey(wilayaClean, addressClean);
+  const country = (request.cf && request.cf.country) || "";
+
   // 4) رفض الطلب إذا كان عنوان IP أو رقم الهاتف محظورًا من لوحة تحكم الأدمن.
   //    الفحصان يجريان بالتوازي؛ وأي فشل في القراءة يرفض الطلب (fail-closed) بدل أن
-  //    يمرّره، حتى لا يستغل مزعج عطلًا مؤقتًا لتجاوز الحظر.
-  let ipBlocked = false;
-  let phoneBlocked = false;
+  //    يمرّره، حتى لا يستغل مزعج عطلًا مؤقتًا لتجاوز الحظر. الحظر المرفوع (status =
+  //    lifted) أو المنتهي (expiresAt) يُعتبر غير موجود.
+  let ipBlock = null;
+  let phoneBlock = null;
   try {
-    [ipBlocked, phoneBlocked] = await Promise.all([
-      clientIp ? isIpBlocked(env, accessToken, clientIp.key) : false,
-      isPhoneBlocked(env, accessToken, customerPhone),
+    [ipBlock, phoneBlock] = await Promise.all([
+      clientIp ? getBlockRecord(env, accessToken, "blockedIps", clientIp.key) : null,
+      getBlockRecord(env, accessToken, "blockedPhones", customerPhone),
     ]);
   } catch (e) {
     console.error("Block-list check failed:", e);
     return json({ error: "تعذّر التحقق من الطلب", code: "blocklist_check_failed", detail: errDetail(e) }, 502, cors);
   }
-  if (ipBlocked) {
-    // رسالة تتيح لزبون حقيقي (مثلاً يشارك نفس IP مع مزعج عبر شبكة الهاتف) أن يتواصل معك.
-    return json(
-      {
-        error: "تعذّر تسجيل الطلب. إن كنت زبونًا حقيقيًا تواصل معنا هاتفيًا لإتمام طلبك.",
-        code: "ip_blocked",
-      },
-      403,
-      cors
+  if (ipBlock || phoneBlock) {
+    // نسجّل محاولة الطلب بعد الحظر (عدّاد + آخر محاولة + إنذار) دون تأخير الرد.
+    await background(
+      ctx,
+      handleBlockedAttempt(env, accessToken, {
+        ipBlock,
+        phoneBlock,
+        clientIp,
+        phone: customerPhone,
+        deviceKey,
+        addrKey,
+        country,
+      })
     );
-  }
-  if (phoneBlocked) {
-    // نفس رسالة حظر الـ IP عمدًا: لا نكشف للمزعج أي شرط بالضبط منعه.
+    // نفس الرسالة للحالتين عمدًا: لا نكشف للمزعج أي شرط بالضبط منعه، وتتيح لزبون
+    // حقيقي (مثلاً يشارك نفس IP مع مزعج عبر شبكة الهاتف) أن يتواصل معك.
     return json(
       {
         error: "تعذّر تسجيل الطلب. إن كنت زبونًا حقيقيًا تواصل معنا هاتفيًا لإتمام طلبك.",
-        code: "phone_blocked",
+        code: ipBlock ? "ip_blocked" : "phone_blocked",
       },
       403,
       cors
@@ -271,6 +320,24 @@ export async function handleCreateOrder(request, env) {
     return json({ error: "المجموع غير صحيح" }, 400, cors);
   }
 
+  // 5.b) تقييم الخطر (كشف الإساءة). لا يمنع الطلب أبدًا، ولا يؤخّره أكثر من المهلة.
+  let risk = { flags: [], score: 0, level: "" };
+  try {
+    risk = await withTimeout(
+      assessRisk(env, accessToken, {
+        phone: customerPhone,
+        ipKey: clientIp ? clientIp.key : "",
+        deviceKey,
+        addrKey,
+        blockedAttempt: false,
+      }),
+      FRAUD.ANALYSIS_TIMEOUT_MS,
+      risk
+    );
+  } catch (e) {
+    console.error("Risk assessment failed:", e);
+  }
+
   // 6) الكتابة في Firestore عبر Service Account
   let doc;
   try {
@@ -292,11 +359,34 @@ export async function handleCreateOrder(request, env) {
       // بيانات الزائر (تظهر في لوحة التحكم لتحظر IP أي طلب وهمي بضغطة زر)
       ip: clientIp ? clientIp.raw : "",
       ipKey: clientIp ? clientIp.key : "",
-      country: (request.cf && request.cf.country) || "",
+      country,
+      // بيانات كشف الإساءة (تظهر في لوحة التحكم؛ الحقول الخطرة لا تُضاف إلا عند وجود إشارة)
+      ...(deviceKey ? { deviceId: deviceKey } : {}),
+      ...(addrKey ? { addrKey } : {}),
+      ...(risk.flags.length
+        ? { riskLevel: risk.level, riskScore: risk.score, riskFlags: risk.flags.map((f) => f.code) }
+        : {}),
     });
   } catch (e) {
     console.error("Order write failed:", e);
     return json({ error: "تعذّر حفظ الطلب", code: "firestore_write", detail: errDetail(e) }, 502, cors);
+  }
+
+  const id = doc && doc.name ? doc.name.split("/").pop() : null;
+
+  // 6.b) إنذارات للإدارة (مرة كل ساعة لكل إشارة ومفتاح حتى لا تُغرق اللوحة)
+  if (risk.flags.length) {
+    await background(
+      ctx,
+      createAlerts(env, accessToken, {
+        flags: risk.flags,
+        orderId: id,
+        phone: customerPhone,
+        ip: clientIp ? clientIp.display : "",
+        country,
+        blockedAttempt: false,
+      })
+    );
   }
 
   // 7) إشعار Telegram — لا يفشل الطلب لو تعطّل الإشعار
@@ -310,33 +400,102 @@ export async function handleCreateOrder(request, env) {
       quantity,
       total,
       ip: clientIp ? clientIp.display : "",
-      country: (request.cf && request.cf.country) || "",
+      country,
+      risk,
     });
   } catch (e) {
     console.error("Telegram notify failed:", e);
   }
 
-  const id = doc && doc.name ? doc.name.split("/").pop() : null;
   return json({ ok: true, id }, 200, cors);
 }
 
 // ---------------------------------------------------------------------
-// يتحقق هل رقم الهاتف موجود في collection "blockedPhones" (معرّف الوثيقة =
-// رقم الهاتف نفسه). القراءة تتم بصلاحيات Service Account حتى لو كانت
-// firestore.rules تمنع القراءة العامة لهذا الـ collection.
+// سجلات الحظر: collection "blockedPhones" (معرّف الوثيقة = رقم الهاتف) و "blockedIps"
+// (معرّف الوثيقة = ipKey). القراءة بصلاحيات Service Account حتى لو كانت firestore.rules
+// تمنع القراءة العامة. الحقول الاختيارية (السجلات القديمة التي تفتقدها تُعامل كحظر دائم
+// فعّال): reason, blockedBy, blockedAt, expiresAt (غيابه = دائم), status ("lifted" = مرفوع),
+// liftedAt, liftedBy, attempts, lastAttemptAt, lastAttemptIp, lastAttemptPhone.
 // ---------------------------------------------------------------------
-async function isPhoneBlocked(env, accessToken, phone) {
-  if (!phone || typeof phone !== "string") return false;
-  return docExists(env, accessToken, "blockedPhones", phone);
+async function getBlockRecord(env, accessToken, collectionName, id) {
+  if (!id || typeof id !== "string") return null;
+  const doc = await getDocFields(env, accessToken, collectionName, id);
+  return doc && isBlockActive(doc.data, Date.now()) ? doc : null;
 }
 
-// ---------------------------------------------------------------------
-// يتحقق هل عنوان IP (بعد التطبيع → ipKey) موجود في collection "blockedIps"
-// (معرّف الوثيقة = ipKey). نفس صلاحيات Service Account أعلاه.
-// ---------------------------------------------------------------------
-async function isIpBlocked(env, accessToken, ipKey) {
-  if (!ipKey || typeof ipKey !== "string") return false;
-  return docExists(env, accessToken, "blockedIps", ipKey);
+function isBlockActive(d, now) {
+  if (d.status === "lifted") return false;
+  if (d.expiresAt instanceof Date && d.expiresAt.getTime() <= now) return false;
+  return true;
+}
+
+// يزيد عدّاد المحاولات بعد الحظر ويحدّث آخر محاولة (عملية ذرّية عبر commit).
+async function recordBlockedAttempt(env, accessToken, collectionName, id, info) {
+  const projectId = env.FIREBASE_PROJECT_ID;
+  const name = `projects/${projectId}/databases/(default)/documents/${collectionName}/${id}`;
+  const fields = {
+    lastAttemptIp: { stringValue: info.ip || "" },
+    lastAttemptPhone: { stringValue: info.phone || "" },
+    lastAttemptCountry: { stringValue: info.country || "" },
+  };
+  const resp = await fetch(
+    `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:commit`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        writes: [
+          {
+            update: { name, fields },
+            updateMask: { fieldPaths: Object.keys(fields) },
+            updateTransforms: [
+              { fieldPath: "attempts", increment: { integerValue: "1" } },
+              { fieldPath: "lastAttemptAt", setToServerValue: "REQUEST_TIME" },
+            ],
+            currentDocument: { exists: true },
+          },
+        ],
+      }),
+    }
+  );
+  if (!resp.ok) throw new Error("blocked attempt write failed: " + resp.status);
+}
+
+// كل ما يجب فعله عند محاولة طلب من IP/هاتف محظور: عدّاد + إنذار + تسجيل إشارات الجهاز.
+async function handleBlockedAttempt(env, accessToken, o) {
+  const info = { ip: o.clientIp ? o.clientIp.raw : "", phone: o.phone, country: o.country };
+  const jobs = [];
+  if (o.ipBlock && o.clientIp) jobs.push(recordBlockedAttempt(env, accessToken, "blockedIps", o.clientIp.key, info));
+  if (o.phoneBlock) jobs.push(recordBlockedAttempt(env, accessToken, "blockedPhones", o.phone, info));
+  const results = await Promise.allSettled(jobs);
+  for (const r of results) if (r.status === "rejected") console.error("Blocked attempt record failed:", r.reason);
+
+  let risk = { flags: [], score: 0, level: "" };
+  try {
+    risk = await withTimeout(
+      assessRisk(env, accessToken, {
+        phone: o.phone,
+        ipKey: o.clientIp ? o.clientIp.key : "",
+        deviceKey: o.deviceKey,
+        addrKey: o.addrKey,
+        blockedAttempt: true,
+      }),
+      FRAUD.ANALYSIS_TIMEOUT_MS,
+      risk
+    );
+  } catch (e) {
+    console.error("Risk assessment (blocked) failed:", e);
+  }
+  await createAlerts(env, accessToken, {
+    flags: risk.flags,
+    orderId: "",
+    phone: o.phone,
+    ip: o.clientIp ? o.clientIp.display : "",
+    country: o.country,
+    blockedAttempt: true,
+    blockedBy: [o.phoneBlock ? "phone" : "", o.ipBlock ? "ip" : ""].filter(Boolean),
+    blockKey: o.phoneBlock ? o.phone : o.clientIp ? o.clientIp.key : "",
+  });
 }
 
 async function docExists(env, accessToken, collectionName, id) {
@@ -350,6 +509,289 @@ async function docExists(env, accessToken, collectionName, id) {
   if (resp.status === 404) return false;
   if (!resp.ok) throw new Error(collectionName + " lookup failed: " + resp.status);
   return true;
+}
+
+// ---------------------------------------------------------------------
+// قراءة وثيقة Firestore وتحويل حقولها إلى قيم JS (null لو غير موجودة)
+// ---------------------------------------------------------------------
+async function getDocFields(env, accessToken, collectionName, id) {
+  const projectId = env.FIREBASE_PROJECT_ID;
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}/${encodeURIComponent(
+    id
+  )}`;
+  const resp = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (resp.status === 404) return null;
+  if (!resp.ok) throw new Error(collectionName + " lookup failed: " + resp.status);
+  const data = await resp.json();
+  const out = {};
+  for (const [k, v] of Object.entries(data.fields || {})) out[k] = fromFs(v);
+  return { name: data.name, data: out };
+}
+
+function fromFs(v) {
+  if (!v || typeof v !== "object") return null;
+  if ("stringValue" in v) return v.stringValue;
+  if ("integerValue" in v) return Number(v.integerValue);
+  if ("doubleValue" in v) return Number(v.doubleValue);
+  if ("booleanValue" in v) return v.booleanValue;
+  if ("timestampValue" in v) return new Date(v.timestampValue);
+  if ("arrayValue" in v) return (v.arrayValue.values || []).map(fromFs);
+  if ("mapValue" in v) {
+    const o = {};
+    for (const [k, x] of Object.entries(v.mapValue.fields || {})) o[k] = fromFs(x);
+    return o;
+  }
+  return null;
+}
+
+function fsValue(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (v instanceof Date) return { timestampValue: v.toISOString() };
+  if (typeof v === "boolean") return { booleanValue: v };
+  if (typeof v === "number") return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  if (Array.isArray(v)) return { arrayValue: { values: v.map(fsValue) } };
+  return { stringValue: String(v) };
+}
+
+// ---------------------------------------------------------------------
+// أدوات مساعدة عامة
+// ---------------------------------------------------------------------
+// ينفّذ مهمة جانبية دون تأخير رد الزبون لو توفّر ctx.waitUntil (يمرّره الـ Worker الرئيسي)،
+// وإلا ينتظرها. لا ترمي أبدًا: أي فشل يُسجَّل فقط.
+function background(ctx, promise) {
+  const p = Promise.resolve(promise).catch((e) => console.error("Background task failed:", e));
+  if (ctx && typeof ctx.waitUntil === "function") {
+    ctx.waitUntil(p);
+    return Promise.resolve();
+  }
+  return p;
+}
+
+function withTimeout(promise, ms, fallback) {
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(fallback), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+// بصمة العنوان: تطبيع (تشكيل، ألف/ياء/تاء مربوطة، علامات ترقيم، حالة الأحرف) ثم SHA-256.
+// عنوان قصير جدًا (مثل "الجزائر") لا يصلح مفتاحًا فنرجع "" ولا نسجّله.
+async function addressKey(wilaya, address) {
+  const norm = String(wilaya || "")
+    .concat(" ", String(address || ""))
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f\u064b-\u065f\u0670\u0640]/g, "")
+    .replace(/[إأآ]/g, "ا")
+    .replace(/ى/g, "ي")
+    .replace(/ة/g, "ه")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+  if (norm.length < FRAUD.ADDRESS_MIN_LENGTH) return "";
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(norm));
+  return Array.from(new Uint8Array(buf).slice(0, 8), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// ---------------------------------------------------------------------
+// كشف الإساءة: لكل مفتاح (ip / phone / device / addr) وثيقة في fraudSignals تحمل آخر
+// الأحداث "الوقت|الهاتف|ipKey|deviceId". نضيف حدث الطلب الحالي ثم نحسب الإشارات.
+// القراءة ثم الكتابة غير ذرّية عمدًا (تقدير إحصائي للإنذار فقط، لا قرار منع)، وأي فشل هنا
+// يُسجَّل ويُتجاوز — لا يوقف الطلب.
+// ---------------------------------------------------------------------
+function safeId(str) {
+  return String(str).replace(/[^A-Za-z0-9._-]/g, "_").slice(0, 120);
+}
+
+function parseEvents(arr, now) {
+  return (Array.isArray(arr) ? arr : [])
+    .map((s) => {
+      const [t, p, i, d] = String(s).split("|");
+      return { t: Number(t), p: p || "", i: i || "", d: d || "" };
+    })
+    .filter((e) => Number.isFinite(e.t) && now - e.t <= FRAUD.KEEP_MS);
+}
+
+const inWindow = (evs, ms, now) => evs.filter((e) => now - e.t <= ms);
+const distinctOf = (evs, k) => new Set(evs.map((e) => e[k]).filter(Boolean)).size;
+
+function detectFlags(kind, evs, now, prev, o) {
+  const out = [];
+  if (kind === "ip") {
+    const n = inWindow(evs, FRAUD.IP_BURST.windowMs, now).length;
+    if (n >= FRAUD.IP_BURST.count) out.push({ code: "ip_burst", count: n });
+    const d = distinctOf(evs, "p");
+    if (d >= FRAUD.IP_MANY_PHONES.distinct) out.push({ code: "ip_many_phones", count: d });
+  } else if (kind === "phone") {
+    const n = inWindow(evs, FRAUD.PHONE_REPEAT.windowMs, now).length;
+    if (n >= FRAUD.PHONE_REPEAT.count) out.push({ code: "phone_repeat", count: n });
+  } else if (kind === "device") {
+    const d = distinctOf(evs, "p");
+    if (d >= FRAUD.DEVICE_MANY_PHONES.distinct) out.push({ code: "device_many_phones", count: d });
+    const n = inWindow(evs, FRAUD.DEVICE_BURST.windowMs, now).length;
+    if (n >= FRAUD.DEVICE_BURST.count) out.push({ code: "device_burst", count: n });
+    // جهاز حاول الطلب وهو محظور ثم عاد برقم مختلف وقبل طلبه (لا نفحصه في محاولة محظورة نفسها)
+    const hitAt = prev && prev.blockedHitAt instanceof Date ? prev.blockedHitAt.getTime() : 0;
+    if (!o.blockedAttempt && hitAt && now - hitAt <= FRAUD.BLOCK_EVASION_MS && prev.blockedHitPhone !== o.phone) {
+      out.push({ code: "device_evading_block", count: 1 });
+    }
+  } else if (kind === "addr") {
+    if (evs.length >= FRAUD.ADDRESS_REPEAT.count) out.push({ code: "address_repeat", count: evs.length });
+  }
+  return out;
+}
+
+function scoreFlags(flags) {
+  let ipPart = 0;
+  let other = 0;
+  for (const f of flags) {
+    const info = FLAG_INFO[f.code];
+    if (info.viaIp) ipPart = Math.max(ipPart, info.weight);
+    else other += info.weight;
+  }
+  const score = Math.min(ipPart, 1) + other; // IP وحده لا يتجاوز نقطة واحدة
+  const level = score >= 3 ? "high" : score >= 2 ? "medium" : score >= 1 ? "low" : "";
+  return { score, level };
+}
+
+async function assessRisk(env, accessToken, o) {
+  const now = Date.now();
+  const keys = [];
+  if (o.ipKey) keys.push({ kind: "ip", key: o.ipKey });
+  if (o.phone) keys.push({ kind: "phone", key: o.phone });
+  if (o.deviceKey) keys.push({ kind: "device", key: o.deviceKey });
+  if (o.addrKey) keys.push({ kind: "addr", key: o.addrKey });
+
+  const perKey = await Promise.all(
+    keys.map(async ({ kind, key }) => {
+      try {
+        const id = kind + "_" + safeId(key);
+        const existing = await getDocFields(env, accessToken, "fraudSignals", id);
+        const prev = existing ? existing.data : {};
+        const events = parseEvents(prev.events, now);
+        events.push({ t: now, p: o.phone || "", i: o.ipKey || "", d: o.deviceKey || "" });
+        const trimmed = events.slice(-FRAUD.MAX_EVENTS);
+
+        const fields = {
+          kind,
+          key,
+          events: trimmed.map((e) => `${e.t}|${e.p}|${e.i}|${e.d}`),
+          updatedAt: new Date(now),
+          expireAt: new Date(now + FRAUD.SIGNAL_TTL_MS),
+        };
+        if (kind === "device") {
+          if (o.blockedAttempt) {
+            fields.blockedHitAt = new Date(now);
+            fields.blockedHitPhone = o.phone || "";
+          } else if (prev.blockedHitAt instanceof Date) {
+            fields.blockedHitAt = prev.blockedHitAt;
+            fields.blockedHitPhone = prev.blockedHitPhone || "";
+          }
+        }
+        await patchDoc(env, accessToken, "fraudSignals", id, fields);
+
+        return detectFlags(kind, trimmed, now, prev, o).map((f) => ({ ...f, kind, key }));
+      } catch (e) {
+        console.error("Fraud signal failed (" + kind + "):", e);
+        return [];
+      }
+    })
+  );
+
+  const flags = perKey.flat();
+  return { flags, ...scoreFlags(flags) };
+}
+
+// كتابة/إنشاء وثيقة بحقول محددة فقط (updateMask) دون المساس ببقية حقولها.
+async function patchDoc(env, accessToken, collectionName, id, obj) {
+  const projectId = env.FIREBASE_PROJECT_ID;
+  const fields = {};
+  for (const [k, v] of Object.entries(obj)) fields[k] = fsValue(v);
+  const mask = Object.keys(fields)
+    .map((k) => "updateMask.fieldPaths=" + encodeURIComponent(k))
+    .join("&");
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}/${encodeURIComponent(
+    id
+  )}?${mask}`;
+  const resp = await fetch(url, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ fields }),
+  });
+  if (!resp.ok) throw new Error(collectionName + " write failed: " + resp.status);
+}
+
+// ---------------------------------------------------------------------
+// الإنذارات (collection fraudAlerts) — معرّف الوثيقة = الإشارة + المفتاح + ساعة، فيُنشأ إنذار
+// واحد على الأكثر كل ساعة لنفس الإشارة (409 = موجود مسبقًا = طبيعي).
+// ---------------------------------------------------------------------
+async function createAlerts(env, accessToken, o) {
+  const hour = Math.floor(Date.now() / 3600000);
+  const alerts = o.flags.map((f) => {
+    const w = FLAG_INFO[f.code].weight;
+    return {
+      id: `${f.code}_${safeId(f.key)}_${hour}`,
+      fields: {
+        type: f.code,
+        severity: w >= 3 ? "high" : w >= 2 ? "medium" : "low",
+        keyType: f.kind,
+        key: f.kind === "device" ? String(f.key).slice(0, 12) + "…" : f.key,
+        count: f.count,
+        message: FLAG_INFO[f.code].ar,
+        phone: o.phone || "",
+        ip: o.ip || "",
+        country: o.country || "",
+        orderId: o.orderId || "",
+        blockedAttempt: !!o.blockedAttempt,
+        seen: false,
+        resolved: false,
+        createdAt: new Date(),
+      },
+    };
+  });
+  if (o.blockedAttempt && o.blockKey) {
+    alerts.push({
+      id: `blocked_attempt_${safeId(o.blockKey)}_${hour}`,
+      fields: {
+        type: "blocked_attempt",
+        severity: "medium",
+        keyType: (o.blockedBy || []).join("+"),
+        key: o.blockKey,
+        count: 1,
+        message: "محاولة طلب من رقم أو IP محظور",
+        phone: o.phone || "",
+        ip: o.ip || "",
+        country: o.country || "",
+        orderId: "",
+        blockedAttempt: true,
+        seen: false,
+        resolved: false,
+        createdAt: new Date(),
+      },
+    });
+  }
+  const projectId = env.FIREBASE_PROJECT_ID;
+  await Promise.all(
+    alerts.map(async (a) => {
+      try {
+        const fields = {};
+        for (const [k, v] of Object.entries(a.fields)) fields[k] = fsValue(v);
+        const resp = await fetch(
+          `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/fraudAlerts?documentId=${encodeURIComponent(
+            a.id
+          )}`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ fields }),
+          }
+        );
+        if (!resp.ok && resp.status !== 409) throw new Error("alert write failed: " + resp.status);
+      } catch (e) {
+        console.error("Fraud alert failed:", e);
+      }
+    })
+  );
 }
 
 // ---------------------------------------------------------------------
@@ -519,12 +961,7 @@ async function createOrderDoc(env, accessToken, order) {
   const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/orders`;
   const fields = {};
   for (const [k, v] of Object.entries(order)) {
-    if (v instanceof Date) fields[k] = { timestampValue: v.toISOString() };
-    else if (typeof v === "number")
-      fields[k] = Number.isInteger(v)
-        ? { integerValue: String(v) }
-        : { doubleValue: v };
-    else fields[k] = { stringValue: String(v ?? "") };
+    fields[k] = v === null || v === undefined ? { stringValue: "" } : fsValue(v);
   }
   const resp = await fetch(url, {
     method: "POST",
@@ -549,7 +986,11 @@ async function sendTelegram(env, o) {
     `🛒 طلب جديد\n👤 الاسم: ${o.customerName}\n📞 الهاتف: ${o.customerPhone}\n` +
     `📍 الولاية: ${o.wilaya}\n🏠 العنوان: ${o.address}\n📦 المنتج: ${o.product}\n` +
     `🔢 الكمية: ${o.quantity}\n💰 المجموع: ${o.total} دج` +
-    (o.ip ? `\n🌐 IP: ${o.ip}${o.country ? " (" + o.country + ")" : ""}` : "");
+    (o.ip ? `\n🌐 IP: ${o.ip}${o.country ? " (" + o.country + ")" : ""}` : "") +
+    (o.risk && (o.risk.level === "medium" || o.risk.level === "high")
+      ? `\n⚠️ طلب مشبوه (${o.risk.level === "high" ? "خطر عالٍ" : "خطر متوسط"}): ` +
+        o.risk.flags.map((f) => FLAG_INFO[f.code].ar).join(" — ")
+      : "");
   await fetch(
     `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
     {
@@ -579,7 +1020,7 @@ function json(obj, status, extraHeaders) {
 //   export default {
 //     async fetch(request, env, ctx) {
 //       const url = new URL(request.url);
-//       if (url.pathname === "/create-order") return handleCreateOrder(request, env);
+//       if (url.pathname === "/create-order") return handleCreateOrder(request, env, ctx); // ← مرّر ctx
 //       if (url.pathname === "/send-telegram") return handleSendTelegram(request, env); // الموجودة مسبقًا
 //       return new Response("Not found", { status: 404 });
 //     }
@@ -592,9 +1033,9 @@ function json(obj, status, extraHeaders) {
 // الجزء واستورد handleCreateOrder فقط كما في المثال أعلاه.
 // ---------------------------------------------------------------------
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (url.pathname === "/create-order") return handleCreateOrder(request, env);
+    if (url.pathname === "/create-order") return handleCreateOrder(request, env, ctx);
     if (url.pathname === "/health") return handleHealth(request, env);
     return new Response("Not found", { status: 404 });
   },
@@ -631,7 +1072,7 @@ async function handleHealth(request, env) {
   return json(
     {
       ok: true,
-      version: "ip-ban-v3",
+      version: "fraud-guard-v1",
       configured,
       telegram: !!(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID),
       auth,
