@@ -2807,6 +2807,14 @@ async function bazarSendOrderToWorker(payload){
     return{outcome:"unavailable",code:"network"};
   }finally{clearTimeout(timer);}
 }
+// ✅ حدث Purchase لا يُرسَل قبل التحويل مباشرة (المتصفح قد يقطع الطلب أثناء مغادرة الصفحة فيضيع الحدث).
+// نحفظه مؤقتًا في sessionStorage وتُرسله success.html بعد أن تكتمل الصفحة وتُحمَّل البكسلات هناك.
+// إن تعذّر التخزين (وضع خاص/متصفح مدمج) نرجع للإرسال المباشر كما كان.
+function bazarQueuePurchase(d){
+  try{sessionStorage.setItem("bazar_purchase_pending",JSON.stringify({t:Date.now(),d:d}));return true;}catch(_e){}
+  try{if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",d);}catch(_e){}
+  return false;
+}
 // ===== حالة محاولة السلة (تبقى بين محاولات "تأكيد الطلب") =====
 // عناصر السلة تُرسل كطلبات مستقلة. إن نجح بعضها وفشل غيرها (شبكة/خادم)، تُزال العناصر المسجّلة من السلة
 // فورًا فلا تُرسَل مرة ثانية عند إعادة المحاولة، ويبقى نفس cartId، وتُحسب رسوم التوصيل مرة واحدة فقط
@@ -2911,8 +2919,8 @@ try{
    cart=cart.filter(x=>!same(x));updateCount();
    bazarCartAttemptSave(att);
   }
-  // ✅ اكتمل كل شيء: تتبع Purchase، تنظيف، ثم صفحة التأكيد (نفس سلوك صفحة المنتج)
-  if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:att.names.join(", "),price:att.value,category:"",qty:att.qty});
+  // ✅ اكتمل كل شيء: نُخزّن حدث Purchase لترسله success.html، ثم ننظّف ونحوّل إلى صفحة التأكيد
+  bazarQueuePurchase({content_name:att.names.join(", "),price:att.value,category:"",qty:att.qty});
   bazarCartAttemptClear();
   cart=[];updateCount();renderCart();closeModal("cartOverlay");
   redirected=true;

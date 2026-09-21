@@ -1283,6 +1283,14 @@ function saveCheckoutDraft(){
   }catch(_e){}
 }
 function clearCheckoutDraft(){try{sessionStorage.removeItem(CHECKOUT_DRAFT_KEY);}catch(_e){}}
+// ✅ حدث Purchase لا يُرسَل قبل التحويل مباشرة (المتصفح قد يقطع الطلب أثناء مغادرة الصفحة فيضيع الحدث).
+// نحفظه مؤقتًا في sessionStorage وتُرسله success.html بعد أن تكتمل الصفحة وتُحمَّل البكسلات هناك.
+// إن تعذّر التخزين (وضع خاص/متصفح مدمج) نرجع للإرسال المباشر كما كان.
+function bazarQueuePurchase(d){
+  try{sessionStorage.setItem("bazar_purchase_pending",JSON.stringify({t:Date.now(),d:d}));return true;}catch(_e){}
+  try{if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",d);}catch(_e){}
+  return false;
+}
 function restoreCheckoutDraft(){
   let d=null;
   try{d=JSON.parse(sessionStorage.getItem(CHECKOUT_DRAFT_KEY)||"null");}catch(_e){}
@@ -1540,7 +1548,7 @@ try{
     fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}).catch(()=>{});
   }
 }catch(e){}
-if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:product.name,price:total,category:product.category||"",qty:quantity,id:product.id||""});
+bazarQueuePurchase({content_name:product.name,price:total,category:product.category||"",qty:quantity,id:product.id||""});
 clearCheckoutDraft();
 window.location.href="/success.html";
 

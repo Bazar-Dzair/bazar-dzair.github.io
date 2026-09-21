@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<!-- ✅ كانت هذه الصفحة الوحيدة (مع 404.html) بدون رأس Content-Security-Policy رغم وجوده
-     في كل صفحة أخرى بالموقع (index.html, product.html, admin.html, orders.html) — عدم
-     تناسق أمني. الصفحة هنا ثابتة تماماً (لا Firebase، لا سكربتات تتبع خارجية)، فـ CSP
-     أشد تقييداً ممكن هنا مقارنة ببقية الصفحات. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<!-- CSP: كانت الصفحة بلا بكسلات (default-src/connect-src/img-src ضيقة جدًا). أصبحت تحمّل addons.js
+     لإرسال حدث Purchase (Meta / TikTok) بعد تأكيد الطلب، فتمت مطابقة المصادر المسموحة مع index.html و product.html
+     (نفس النطاقات فقط: Firestore لقراءة إعدادات الإضافات + نطاقات البكسل/التحليلات). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title id="pageTitle">تم تأكيد الطلب | Bazar Dzair</title>
 <meta name="theme-color" content="#061e3d">
 <script src="/i18n.js"></script>
+<script src="/addons.js" defer></script>
 <style>
 :root{--navy:#061e3d;--navy-2:#0b2c56;--orange:#ff5a0a;--orange-2:#ff7a00;--green:#16a34a;--bg:#f7f8fb;--text:#071d3b;--muted:#6f7d91;--border:#e5e9ef;--shadow:0 8px 26px rgba(7,29,59,.08);}
 *{box-sizing:border-box}
@@ -139,6 +139,35 @@ h1{color:var(--navy);margin:20px 0 6px;font-size:24px;font-weight:800}
     document.documentElement.setAttribute("dir",l==="fr"?"ltr":"rtl");
   }
   if(window.BazarI18n){applyPage();}else{document.addEventListener("DOMContentLoaded",applyPage);}
+})();
+</script>
+<script>
+// ✅ حدث Purchase: تضعه صفحة المنتج/السلة في sessionStorage قبل التحويل، ونرسله هنا بعد أن يجهز addons.js
+// (يقرأ إعدادات البكسل من Firestore ثم يعرّف bazarTrackEvent). يُحذف المفتاح قبل الإرسال مباشرة، فتحديث
+// الصفحة لا يكرر الحدث، والدخول المباشر إلى success.html بلا طلب فعلي لا يرسل شيئًا.
+(function(){
+  var K="bazar_purchase_pending",TTL=30*60*1000,pending=null;
+  try{
+    var raw=JSON.parse(sessionStorage.getItem(K)||"null");
+    if(raw&&raw.d&&typeof raw.d==="object"&&Date.now()-(raw.t||0)<TTL)pending=raw.d;
+    else if(raw)sessionStorage.removeItem(K);
+  }catch(e){}
+  if(!pending)return;
+  var data={
+    content_name:String(pending.content_name||"").slice(0,300),
+    price:Number(pending.price)||0,
+    category:String(pending.category||"").slice(0,120),
+    qty:Number(pending.qty)||1,
+    id:String(pending.id||"").slice(0,120)
+  };
+  var tries=0,timer=setInterval(function(){
+    tries++;
+    if(window.bazarTrackEvent){
+      clearInterval(timer);
+      try{sessionStorage.removeItem(K);}catch(e){}
+      window.bazarTrackEvent("Purchase",data);
+    }else if(tries>=120){clearInterval(timer);} // 12 ثانية كحد أقصى
+  },100);
 })();
 </script>
 </body>
