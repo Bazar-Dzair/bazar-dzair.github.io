@@ -59,6 +59,7 @@ const FRAUD = {
   ADDRESS_REPEAT: { count: 4 }, // 4 طلبات لنفس العنوان خلال 24 ساعة
   ADDRESS_MIN_LENGTH: 12, // عنوان أقصر من هذا (مثل "الجزائر") لا يُعتبر مفتاحًا موثوقًا
   BLOCK_EVASION_MS: 30 * 24 * 3600 * 1000, // مدة تذكّر جهاز حاول الطلب وهو محظور
+  CART_DEDUPE_MS: 10 * 60 * 1000, // نفس cartId خلال هذه المدة = نفس عملية الشراء (حدث واحد لا أكثر)
   SIGNAL_TTL_MS: 30 * 24 * 3600 * 1000, // حقل expireAt (يمكنك لاحقًا تفعيل TTL Policy عليه)
   ANALYSIS_TIMEOUT_MS: 3500, // لو تأخر التحليل أكثر من هذا نتجاوزه ولا نؤخّر الزبون
 };
@@ -203,6 +204,7 @@ export async function handleCreateOrder(request, env, ctx) {
     shippingCompany,
     total,
     deviceId,
+    cartId,
   } = body || {};
 
   // 1) نفس شروط isValidOrder() في firestore.rules، بالضبط
@@ -247,6 +249,9 @@ export async function handleCreateOrder(request, env, ctx) {
   // معرّف الجهاز (يولّده المتصفح ويحفظه محليًا) وبصمة العنوان — كلاهما لكشف الإساءة فقط.
   // قيمة غير صالحة تُهمل بصمت ولا ترفض الطلب.
   const deviceKey = typeof deviceId === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(deviceId) ? deviceId : "";
+  // معرّف السلة (اختياري، من المتصفح): يُرسَل بنفس القيمة مع كل منتجات سلة واحدة، ويُستعمل
+  // فقط لمنع كشف الإساءة من احتساب طلبات السلة الواحدة كطلبات متكررة مشبوهة (انظر assessRisk).
+  const cartKey = typeof cartId === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(cartId) ? cartId : "";
   const addrKey = await addressKey(wilayaClean, addressClean);
   const country = (request.cf && request.cf.country) || "";
 
@@ -275,6 +280,7 @@ export async function handleCreateOrder(request, env, ctx) {
         clientIp,
         phone: customerPhone,
         deviceKey,
+        cartKey,
         addrKey,
         country,
       })
@@ -328,6 +334,7 @@ export async function handleCreateOrder(request, env, ctx) {
         phone: customerPhone,
         ipKey: clientIp ? clientIp.key : "",
         deviceKey,
+        cartKey,
         addrKey,
         blockedAttempt: false,
       }),
@@ -477,6 +484,7 @@ async function handleBlockedAttempt(env, accessToken, o) {
         phone: o.phone,
         ipKey: o.clientIp ? o.clientIp.key : "",
         deviceKey: o.deviceKey,
+        cartKey: o.cartKey,
         addrKey: o.addrKey,
         blockedAttempt: true,
       }),
@@ -595,7 +603,8 @@ async function addressKey(wilaya, address) {
 
 // ---------------------------------------------------------------------
 // كشف الإساءة: لكل مفتاح (ip / phone / device / addr) وثيقة في fraudSignals تحمل آخر
-// الأحداث "الوقت|الهاتف|ipKey|deviceId". نضيف حدث الطلب الحالي ثم نحسب الإشارات.
+// الأحداث "الوقت|الهاتف|ipKey|deviceId|cartId". نضيف حدث الطلب الحالي ثم نحسب الإشارات
+// (ما لم يكن جزءًا من نفس سلة حديثة، انظر CART_DEDUPE_MS أدناه).
 // القراءة ثم الكتابة غير ذرّية عمدًا (تقدير إحصائي للإنذار فقط، لا قرار منع)، وأي فشل هنا
 // يُسجَّل ويُتجاوز — لا يوقف الطلب.
 // ---------------------------------------------------------------------
@@ -606,8 +615,8 @@ function safeId(str) {
 function parseEvents(arr, now) {
   return (Array.isArray(arr) ? arr : [])
     .map((s) => {
-      const [t, p, i, d] = String(s).split("|");
-      return { t: Number(t), p: p || "", i: i || "", d: d || "" };
+      const [t, p, i, d, c] = String(s).split("|");
+      return { t: Number(t), p: p || "", i: i || "", d: d || "", c: c || "" };
     })
     .filter((e) => Number.isFinite(e.t) && now - e.t <= FRAUD.KEEP_MS);
 }
@@ -669,13 +678,21 @@ async function assessRisk(env, accessToken, o) {
         const existing = await getDocFields(env, accessToken, "fraudSignals", id);
         const prev = existing ? existing.data : {};
         const events = parseEvents(prev.events, now);
-        events.push({ t: now, p: o.phone || "", i: o.ipKey || "", d: o.deviceKey || "" });
+        // سلة واحدة (نفس cartId) تُرسل عدة طلبات (منتج لكل طلب) خلال ثوانٍ. لو احتسبنا كل
+        // واحد كحدث منفصل لكانت سلة من 3 منتجات كافية وحدها لإطلاق phone_repeat كاذبًا.
+        // فإذا كان آخر حدث مسجَّل يحمل نفس cartId غير الفارغ وحديثًا (CART_DEDUPE_MS)، هذا
+        // الطلب يُعتبر جزءًا من نفس عملية الشراء ولا يُضاف كحدث جديد.
+        const last = events[events.length - 1];
+        const isSameCart = !!(o.cartKey && last && last.c === o.cartKey && now - last.t <= FRAUD.CART_DEDUPE_MS);
+        if (!isSameCart) {
+          events.push({ t: now, p: o.phone || "", i: o.ipKey || "", d: o.deviceKey || "", c: o.cartKey || "" });
+        }
         const trimmed = events.slice(-FRAUD.MAX_EVENTS);
 
         const fields = {
           kind,
           key,
-          events: trimmed.map((e) => `${e.t}|${e.p}|${e.i}|${e.d}`),
+          events: trimmed.map((e) => `${e.t}|${e.p}|${e.i}|${e.d}|${e.c}`),
           updatedAt: new Date(now),
           expireAt: new Date(now + FRAUD.SIGNAL_TTL_MS),
         };
