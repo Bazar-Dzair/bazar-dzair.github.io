@@ -23,7 +23,13 @@ let testEnv;
 before(async () => {
   const rules = fs
     .readFileSync(path.join(__dirname, "..", "storage.rules"), "utf8")
-    .replace(/ADMIN_UID_HERE/g, ADMIN_UID);
+    // ⚠️ إصلاح: كان هذا الاستبدال يبحث عن placeholder قديم "ADMIN_UID_HERE"
+    // لم يعد موجودًا في storage.rules أبدًا (تم استبداله بالـ UID الحقيقي
+    // الثابت GOBngnCP2eMTLZrJpf72GOmXvvO2 عند إصلاح رفع الشعار/البانر) — لذلك
+    // كان .replace() لا يطابق شيئًا، وتُشغَّل القواعد بالـ UID الحقيقي مباشرة
+    // بينما تسجّل الاختبارات الدخول بـ "test-admin-uid"، فتفشل كل اختبارات
+    // الأدمن (assertSucceeds) خطأً لأن isAdmin() لا تتعرف عليه أبدًا.
+    .replace(/GOBngnCP2eMTLZrJpf72GOmXvvO2/g, ADMIN_UID);
   testEnv = await initializeTestEnvironment({
     projectId: PROJECT_ID,
     storage: { rules },
