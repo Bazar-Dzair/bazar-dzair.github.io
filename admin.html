@@ -592,7 +592,7 @@
 </section>
 
 <section id="view-blocked" class="view hidden"><div class="page-head"><div><h1>المحظورون</h1><p>أرقام الهاتف وعناوين IP هذه لا يمكنها تسجيل أي طلب جديد فالمتجر.</p></div></div>
-<div class="panel" style="margin-bottom:16px"><h3 style="margin:0 0 6px;font-size:16px">🛡️ حماية الطلبات (حظر IP)</h3><p style="margin:0 0 12px;color:#8a93a0;font-size:13px;line-height:1.8">الطلبات تمر عبر Cloudflare Worker الذي يرى عنوان IP الحقيقي ويطبّق الحظر. لو تعطّل الـ Worker يعمل الموقع تلقائيًا بمسار احتياطي حتى لا تتوقف الطلبات (لكن حظر IP لا يُطبَّق عليه). بعد أن يعطيك «فحص الـ Worker» نتيجة سليمة يمكنك تفعيل <b>الوضع الصارم</b> ليصبح الحظر مُلزِمًا.</p><div id="workerHealthBox" class="empty-card">لم يتم فحص الـ Worker بعد.</div><div id="strictStateBox" style="margin:12px 0;font-size:13px;line-height:1.8"></div><div class="form-actions" style="display:flex;flex-wrap:wrap;gap:8px"><button class="green" type="button" onclick="window.bazarCheckWorker()">🔍 فحص الـ Worker</button><button id="strictToggleBtn" class="edit-cat" type="button" onclick="window.bazarToggleStrict()">…</button></div></div>
+<div class="panel" style="margin-bottom:16px"><h3 style="margin:0 0 6px;font-size:16px">🛡️ حماية الطلبات (حظر IP)</h3><p style="margin:0 0 12px;color:#8a93a0;font-size:13px;line-height:1.8">كل الطلبات تمر حصرًا عبر Cloudflare Worker الذي يرى عنوان IP الحقيقي ويطبّق الحظر وكشف الإساءة. لا يوجد أي مسار احتياطي للكتابة المباشرة — firestore.rules تمنعها دائمًا، من أي صفحة كانت. لو تعطّل الـ Worker تفشل الطلبات مؤقتًا (يظهر للزبون طلب إعادة المحاولة) بدل أن تُحفظ بلا حماية.</p><div id="workerHealthBox" class="empty-card">لم يتم فحص الـ Worker بعد.</div><div class="form-actions" style="display:flex;flex-wrap:wrap;gap:8px"><button class="green" type="button" onclick="window.bazarCheckWorker()">🔍 فحص الـ Worker</button></div></div>
 <div class="panel"><h3 style="margin:0 0 14px;font-size:16px">📞 أرقام الهاتف المحظورة</h3><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>رقم الهاتف<input id="blockPhoneInput" placeholder="مثال: 0551234567" inputmode="tel"></label></div><div class="form-actions"><button class="green" type="button" onclick="window.blockPhoneManual()">🚫 حظر هذا الرقم</button></div></div><div id="blockedList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الأرقام المحظورة...</div></div></div>
 <div class="panel" style="margin-top:16px"><h3 style="margin:0 0 6px;font-size:16px">🌐 عناوين IP المحظورة</h3><p style="margin:0 0 14px;color:#8a93a0;font-size:13px;line-height:1.7">يظهر عنوان IP لكل طلب جديد في صفحة الطلبات، ويمكنك حظره بضغطة على زر 🌐. الطلبات القديمة (قبل تفعيل هذه الخاصية) لا تحمل عنوان IP. انتبه: شبكات الهاتف قد تتشارك نفس العنوان بين عدة زبائن، فاستعمل حظر IP للمزعجين المتكررين فقط.</p><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>عنوان IP<input id="blockIpInput" dir="ltr" placeholder="مثال: 41.111.22.33" autocomplete="off" spellcheck="false"></label></div><div class="form-actions"><button class="green" type="button" onclick="window.blockIpManual()">🚫 حظر هذا الـ IP</button></div></div><div id="blockedIpList" class="categories-list"><div class="empty-card">⏳ جاري تحميل عناوين IP المحظورة...</div></div></div></section>
 
@@ -718,7 +718,7 @@ function showView(name, el, createNew=false, updateUrl=true){
   if(name==="product" && !createNew && window.bazarLoadProducts) window.bazarLoadProducts();
   if(name==="orders" && window.bazarLoadOrders) window.bazarLoadOrders();
   if(name==="reviews" && window.bazarLoadReviews) window.bazarLoadReviews();
-  if(name==="blocked"){ if(window.bazarLoadBlockedPhones) window.bazarLoadBlockedPhones(); if(window.bazarLoadBlockedIps) window.bazarLoadBlockedIps(); if(window.bazarLoadSecurity) window.bazarLoadSecurity(); }
+  if(name==="blocked"){ if(window.bazarLoadBlockedPhones) window.bazarLoadBlockedPhones(); if(window.bazarLoadBlockedIps) window.bazarLoadBlockedIps(); }
   if(name==="fraud" && window.bazarLoadFraudAlerts) window.bazarLoadFraudAlerts();
   if(name==="shipping-rates" && window.bazarLoadShippingRates) window.bazarLoadShippingRates();
   if(name==="addons" && window.bazarLoadAddons) window.bazarLoadAddons();
@@ -2895,27 +2895,12 @@ window.blockOrderIp=async function(orderId){
   }
 };
 window.unblockIp=function(key){return window.bkLift("ip",key);};
-// ===== حالة الـ Worker + "الوضع الصارم" =====
-// settings/security { strictOrders: true|false }: لو true تمنع firestore.rules أي إنشاء مباشر
-// للطلبات فلا يبقى إلا مسار الـ Worker (حظر IP مُلزِم). لو false (الافتراضي) يعمل المسار
-// الاحتياطي (الكتابة المباشرة) عند تعطل الـ Worker حتى لا تتوقف الطلبات أبدًا.
+// ===== حالة الـ Worker =====
+// لا يوجد أي مسار احتياطي: firestore.rules تمنع أي إنشاء مباشر للطلبات دائمًا (orders:
+// allow create فقط للأدمن)، فالـ Worker هو الطريق الوحيد لتسجيل طلب زبون. هذا الفحص
+// تشخيصي فقط ليتأكد الأدمن أن النسخة المنشورة سليمة ومُعدّة بكل الأسرار اللازمة.
 const BAZAR_WORKER_BASE="https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev";
-let strictOrdersOn=false;
 let workerReady=false;
-function renderSecurity(){
-  const st=document.getElementById("strictStateBox"),btn=document.getElementById("strictToggleBtn");
-  if(st)st.innerHTML=strictOrdersOn
-    ?'الوضع الحالي: <b style="color:#c62828">🔒 صارم</b> — الطلبات تمر عبر الـ Worker فقط، وحظر IP مُلزِم. إن تعطّل الـ Worker ستفشل الطلبات (أطفئ الوضع الصارم عندها).'
-    :'الوضع الحالي: <b style="color:#1b7f3b">🟢 مرن</b> — الطلبات تعمل دائمًا (مسار احتياطي)، لكن من يتجاوز الموقع ويكتب مباشرة في Firestore لا يتأثر بحظر IP.';
-  if(btn)btn.textContent=strictOrdersOn?"🔓 إيقاف الوضع الصارم":"🔒 تفعيل الوضع الصارم";
-}
-window.bazarLoadSecurity=async function(){
-  try{
-    const snap=await getDoc(doc(db,"settings","security"));
-    strictOrdersOn=!!(snap.exists()&&snap.data()&&snap.data().strictOrders===true);
-  }catch(e){console.error("security load",e)}
-  renderSecurity();
-};
 window.bazarCheckWorker=async function(){
   const box=document.getElementById("workerHealthBox");
   if(box)box.innerHTML="⏳ جاري فحص الـ Worker...";
@@ -2936,24 +2921,11 @@ window.bazarCheckWorker=async function(){
       `${yn(j.firestore==="ok")} صلاحية Firestore: ${esc(j.firestore)}`,
       `${j.telegram?"✅":"⚪"} إشعارات Telegram ${j.telegram?"مفعّلة":"غير مُعدّة (اختياري)"}`
     ];
-    if(box)box.innerHTML=`<div style="text-align:right;line-height:2">${lines.join("<br>")}<br><b>${workerReady?"🎉 الـ Worker جاهز — حظر IP يعمل.":"⚠️ الـ Worker غير جاهز بعد: أصلح العناصر ❌ أعلاه. في هذه الأثناء تعمل الطلبات عبر المسار الاحتياطي."}</b></div>`;
+    if(box)box.innerHTML=`<div style="text-align:right;line-height:2">${lines.join("<br>")}<br><b>${workerReady?"🎉 الـ Worker جاهز — حظر IP وكشف الإساءة يعملان.":"⚠️ الـ Worker غير جاهز بعد: أصلح العناصر ❌ أعلاه. الطلبات ستفشل (لا يوجد مسار احتياطي) حتى تُصلَح."}</b></div>`;
   }catch(e){
     console.error("worker health",e);
-    if(box)box.innerHTML='<div style="text-align:right;line-height:2">❌ تعذر الوصول إلى نسخة الـ Worker الجديدة (غير منشورة، أو ما زالت النسخة القديمة، أو الرابط خاطئ).<br><b>الطلبات تعمل حاليًا عبر المسار الاحتياطي، لكن حظر IP غير فعّال حتى تنشر create-order.js.</b></div>';
+    if(box)box.innerHTML='<div style="text-align:right;line-height:2">❌ تعذر الوصول إلى نسخة الـ Worker الجديدة (غير منشورة، أو ما زالت النسخة القديمة، أو الرابط خاطئ).<br><b>الطلبات ستفشل حتى يُنشر create-order.js بشكل سليم — لا يوجد مسار احتياطي.</b></div>';
   }
-};
-window.bazarToggleStrict=async function(){
-  const turnOn=!strictOrdersOn;
-  if(turnOn){
-    if(!workerReady){await window.bazarCheckWorker();}
-    if(!workerReady){alert("لا يمكن تفعيل الوضع الصارم قبل أن يعطي «فحص الـ Worker» نتيجة سليمة (جاهز ✅). وإلا ستتوقف الطلبات.");return}
-    if(!confirm("تفعيل الوضع الصارم؟\nستُقبل الطلبات عبر الـ Worker فقط.\n⚠️ تأكد أن صفحات المنتجات حُدّثت بآخر product.html (يتم توليدها تلقائيًا كل 6 ساعات أو يدويًا من GitHub Actions)، وإلا ستفشل الطلبات من الصفحات القديمة. جرّب طلبًا تجريبيًا بعد التفعيل."))return;
-  }else if(!confirm("إيقاف الوضع الصارم والعودة للوضع المرن (المسار الاحتياطي مسموح)؟"))return;
-  try{
-    await setDoc(doc(db,"settings","security"),{strictOrders:turnOn,updatedAt:serverTimestamp()},{merge:true});
-    strictOrdersOn=turnOn;renderSecurity();
-    show(turnOn?"تم تفعيل الوضع الصارم 🔒":"تم الرجوع للوضع المرن 🟢","ok");
-  }catch(e){alert("تعذر حفظ الإعداد: "+(e.message||"خطأ غير معروف"))}
 };
 window.blockIpManual=async function(){
   const input=document.getElementById("blockIpInput");
