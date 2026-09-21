@@ -118,7 +118,7 @@ service cloud.firestore {
       return
         // الحقول المسموحة فقط — أي حقل إضافي (adminNotes، role، isAdmin...) يرفض الطلب
         // (الحقول الأخيرة ip/ipKey/country/deviceId/addrKey/risk* يضيفها الـ Worker وحده)
-        d.keys().hasOnly(['customerName','customerPhone','wilaya','address','product','productId','quantity','price','shipping','deliveryType','shippingCompany','total','status','createdAt','ip','ipKey','country','deviceId','addrKey','riskLevel','riskScore','riskFlags']) &&
+        d.keys().hasOnly(['customerName','customerPhone','wilaya','address','product','productId','quantity','price','shipping','deliveryType','shippingCompany','total','variant','status','createdAt','ip','ipKey','country','deviceId','addrKey','riskLevel','riskScore','riskFlags']) &&
         // ✅ productId أصبح إجباريًا (وليس اختياريًا) لسد ثغرة كانت تسمح بتجاوز
         // التحقق من السعر الحقيقي عبر إرسال طلب بدون productId.
         d.keys().hasAll(['customerName','customerPhone','wilaya','address','product','productId','quantity','price','total','status']) &&
@@ -137,6 +137,7 @@ service cloud.firestore {
         d.productId is string && d.productId.size() > 0 && d.productId.size() < 200 &&
         (!('deliveryType' in d) || (d.deliveryType is string && d.deliveryType.size() < 50)) &&
         (!('shippingCompany' in d) || (d.shippingCompany is string && d.shippingCompany.size() < 100)) &&
+        (!('variant' in d) || (d.variant is string && d.variant.size() < 200)) &&
 
         // أرقام منطقية — يمنع كمية سالبة أو صفر أو كمية ضخمة (بوت)، وسعر/مجموع سالب
         d.quantity is int && d.quantity > 0 && d.quantity <= 50 &&
