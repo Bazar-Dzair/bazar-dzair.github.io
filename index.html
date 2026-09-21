@@ -339,6 +339,14 @@
 /* بطاقات الـ HTML الثابت (SSG) للزواحف فقط: قد تحوي منتجات حُذفت بعد آخر توليد، فلا تُعرض للزائر
    إلى أن تصل قائمة المنتجات المؤكَّدة من الخادم (visibility يُبقي الحيّز فلا يتحرّك التخطيط). */
 #productGrid[data-ssg-pending]>.product{visibility:hidden}.product:hover{transform:translateY(-3px)}
+/* هياكل تحميل مؤقتة (skeleton) تظهر بدل بطاقات الـ SSG الثابتة إذا تجاوز وصول البيانات 6 ثوانٍ،
+   حتى لا يظهر أي منتج محذوف للزائر مطلقًا؛ لا تحمل أي بيانات منتج حقيقية أو مخزَّنة. */
+.product.skeleton{pointer-events:none}
+.product.skeleton .pic{background:linear-gradient(90deg,#eef1f5 25%,#e3e7ee 37%,#eef1f5 63%);background-size:400% 100%;animation:sk-pulse 1.4s ease infinite}
+.product.skeleton .sk-line{height:14px;border-radius:7px;background:linear-gradient(90deg,#eef1f5 25%,#e3e7ee 37%,#eef1f5 63%);background-size:400% 100%;animation:sk-pulse 1.4s ease infinite;margin:10px auto}
+.product.skeleton .sk-name{width:70%;height:16px}
+.product.skeleton .sk-price{width:40%}
+@keyframes sk-pulse{0%{background-position:100% 50%}100%{background-position:0 50%}}
 .pic{display:block;aspect-ratio:1/1;overflow:hidden;background:#f8fafc;position:relative;cursor:pointer}.pic img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}.new{position:absolute;z-index:2;top:12px;right:12px;background:var(--orange);color:#fff;border-radius:14px;padding:7px 13px;font-weight:800;font-size:13px}
 .info{padding:0 18px 17px}.name{min-height:54px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;line-height:1.55;font-weight:800;cursor:pointer}.name:hover{color:var(--orange)}.price{color:var(--orange);font-weight:900;font-size:20px;margin:4px 0 14px;text-align:center}.buttons{display:flex;gap:10px;align-items:stretch}.btn{border-radius:17px;padding:13px;font-weight:900;min-height:56px;display:flex;align-items:center;justify-content:center;gap:7px}.cartbtn{width:74px;flex:0 0 74px;border:2px solid var(--navy);background:#fff;color:var(--navy);font-size:20px}.cartbtn .plus{font-size:18px;font-weight:900}.buybtn{flex:1;border:0;background:linear-gradient(135deg,var(--orange),#ff7100);color:#fff;width:auto;font-size:16px}.buycart{font-size:19px}
 /* ===== "منتجاتنا": 4 بطاقات في السطر بأبعاد موحّدة (الصورة 1:1، اسم بسطرين، السعر والأزرار في نفس المستوى) ===== */
@@ -1350,8 +1358,20 @@ async function loadFastSettings(){
 // تُستدعى من مصدرين مؤكَّدين فقط (REST السريع، Firestore الفوري) بنفس المنطق
 // بالضبط، لتفادي أي تكرار/تعارض بين طريقة عرض كل مصدر. لا تُستدعى أبدًا ببيانات محفوظة محليًا.
 function revealProductGrid(){const g=document.getElementById("productGrid");if(g)g.removeAttribute("data-ssg-pending");}
-// مهلة أمان: إن لم تصل أي بيانات (بلا اتصال مثلًا) تظهر البطاقات الثابتة بدل شبكة فارغة.
-setTimeout(revealProductGrid,6000);
+// مهلة أمان: إن لم تصل أي بيانات مؤكَّدة خلال 6 ثوانٍ (اتصال بطيء مثلًا)، كانت هذه المهلة
+// تكشف بطاقات الـ SSG الثابتة كما هي — وهي قد تحتوي منتجات حُذفت من لوحة التحكم بعد آخر
+// توليد ثابت، فتظهر للزائر فعليًا ثم تختفي فجأة حين تصل البيانات الحقيقية. هذا هو سبب
+// المشكلة المُبلَّغ عنها. الإصلاح: عند انقضاء المهلة دون بيانات مؤكَّدة، نستبدل بطاقات الـ
+// SSG بهياكل تحميل (skeleton) فارغة تمامًا من أي بيانات منتجات، فلا يظهر أي منتج محذوف
+// إطلاقًا ولو للحظة؛ وتُستبدل هذه الهياكل تلقائيًا بالبيانات الحقيقية فور وصولها كالمعتاد.
+function showProductSkeletonIfStillPending(){
+  if(catalogLoaded) return; // البيانات الحقيقية وصلت بالفعل قبل انقضاء المهلة
+  const g=document.getElementById("productGrid");
+  if(!g) return;
+  g.removeAttribute("data-ssg-pending");
+  g.innerHTML=Array(8).fill('<div class="product skeleton" aria-hidden="true"><div class="pic"></div><div class="info"><div class="sk-line sk-name"></div><div class="sk-line sk-price"></div></div></div>').join("");
+}
+setTimeout(showProductSkeletonIfStillPending,6000);
 function applyProductsList(list){
   products=Array.isArray(list)?list:[];
   catalogLoaded=true;
