@@ -1031,6 +1031,82 @@ function json(obj, status, extraHeaders) {
 }
 
 // ---------------------------------------------------------------------
+// تحديث صفحات SEO فور تغيير البانر: POST /trigger-seo  { "idToken": "<Firebase ID token>" }
+// لوحة التحكم ترسل توكن الأدمن بعد حفظ البانر؛ الـ Worker يتحقق منه عبر Google (Identity Toolkit)
+// ثم يشغّل GitHub Action (generate-seo-pages.yml) عبر workflow_dispatch.
+// أمان: توكن GitHub يبقى سرًا في الـ Worker فقط (لا يوضع أبدًا في admin.html)، ولا يمر الطلب
+// إلا إذا كان uid صاحب التوكن هو الأدمن (نفس UID في firestore.rules و admin.html).
+// الأسرار: GITHUB_TOKEN (إجباري — Fine-grained PAT بصلاحية Actions: Read and write على المستودع
+// فقط). اختياري: GITHUB_REPO (الافتراضي أدناه)، FIREBASE_API_KEY (الافتراضي = المفتاح العام للمشروع).
+// ---------------------------------------------------------------------
+const SEO_ADMIN_UID = "GOBngnCP2eMTLZrJpf72GOmXvvO2";
+const SEO_FIREBASE_WEB_API_KEY = "AIzaSyBWdA_QIy_2gOBl-bP1S1tLaGIqaZjpar8";
+const SEO_DEFAULT_REPO = "bazar-dzair/bazar-dzair.github.io";
+const SEO_WORKFLOW_FILE = "generate-seo-pages.yml";
+const SEO_WORKFLOW_REF = "main";
+
+async function handleTriggerSeo(request, env) {
+  const cors = corsHeaders(request);
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+  if (request.method !== "POST") return json({ error: "Method not allowed" }, 405, cors);
+
+  const origin = request.headers.get("Origin");
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) return json({ error: "Origin not allowed" }, 403, cors);
+
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ error: "Invalid JSON" }, 400, cors);
+  }
+  const idToken = body && typeof body.idToken === "string" ? body.idToken.trim() : "";
+  if (!idToken || idToken.length > 4096) return json({ error: "Missing idToken" }, 401, cors);
+
+  if (!env.GITHUB_TOKEN) return json({ error: "GITHUB_TOKEN is not configured on the Worker" }, 503, cors);
+
+  // 1) التحقق من هوية الأدمن (Google يتحقق من التوقيع والصلاحية وعدم الإلغاء)
+  let uid = null;
+  try {
+    const key = env.FIREBASE_API_KEY || SEO_FIREBASE_WEB_API_KEY;
+    const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(key)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
+    if (!r.ok) return json({ error: "Invalid or expired token" }, 401, cors);
+    const data = await r.json();
+    uid = data && data.users && data.users[0] ? data.users[0].localId : null;
+  } catch (e) {
+    return json({ error: "Auth check failed", detail: errDetail(e) }, 502, cors);
+  }
+  if (uid !== SEO_ADMIN_UID) return json({ error: "Forbidden" }, 403, cors);
+
+  // 2) تشغيل الـ workflow (GitHub يردّ 204 عند النجاح). التشغيلات المتزامنة تُصفّف تلقائيًا
+  //    بفضل concurrency داخل الـ workflow، فلا خطر من ضغطات متكررة.
+  const repo = env.GITHUB_REPO || SEO_DEFAULT_REPO;
+  try {
+    const r = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/${SEO_WORKFLOW_FILE}/dispatches`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "bazar-dzair-worker",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ref: SEO_WORKFLOW_REF }),
+    });
+    if (r.status !== 204) {
+      const t = await r.text().catch(() => "");
+      return json({ error: "GitHub dispatch failed", status: r.status, detail: t.slice(0, 200) }, 502, cors);
+    }
+  } catch (e) {
+    return json({ error: "GitHub request failed", detail: errDetail(e) }, 502, cors);
+  }
+  return json({ ok: true }, 200, { ...cors, "Cache-Control": "no-store" });
+}
+
+// ---------------------------------------------------------------------
 // دمج مع الراوتر الحالي في worker الرئيسي، مثال:
 //
 //   import { handleCreateOrder } from "./create-order.js";
@@ -1053,6 +1129,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === "/create-order") return handleCreateOrder(request, env, ctx);
+    if (url.pathname === "/trigger-seo") return handleTriggerSeo(request, env);
     if (url.pathname === "/health") return handleHealth(request, env);
     return new Response("Not found", { status: 404 });
   },
@@ -1092,6 +1169,7 @@ async function handleHealth(request, env) {
       version: "fraud-guard-v1",
       configured,
       telegram: !!(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID),
+      seoTrigger: !!env.GITHUB_TOKEN,
       auth,
       firestore,
       ready: names.every((k) => env[k]) && auth === "ok" && firestore === "ok",
