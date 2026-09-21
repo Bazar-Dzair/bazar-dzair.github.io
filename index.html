@@ -2807,6 +2807,32 @@ async function bazarSendOrderToWorker(payload){
     return{outcome:"unavailable",code:"network"};
   }finally{clearTimeout(timer);}
 }
+// ===== حالة محاولة السلة (تبقى بين محاولات "تأكيد الطلب") =====
+// عناصر السلة تُرسل كطلبات مستقلة. إن نجح بعضها وفشل غيرها (شبكة/خادم)، تُزال العناصر المسجّلة من السلة
+// فورًا فلا تُرسَل مرة ثانية عند إعادة المحاولة، ويبقى نفس cartId، وتُحسب رسوم التوصيل مرة واحدة فقط
+// (على أول طلب سُجّل). تُربط الحالة برقم الهاتف وتنتهي بعد 30 دقيقة كي لا تتأثر طلبات لاحقة مختلفة.
+const CART_ATTEMPT_KEY="bazar_cart_attempt_v1",CART_ATTEMPT_TTL=30*60*1000;
+function bazarCartAttemptGet(phone){
+  try{
+    const a=JSON.parse(sessionStorage.getItem(CART_ATTEMPT_KEY)||"null");
+    if(a&&a.phone===phone&&/^[A-Za-z0-9_-]{8,64}$/.test(a.cartId||"")&&Date.now()-(a.t||0)<CART_ATTEMPT_TTL){
+      return{phone,cartId:a.cartId,shippingCharged:a.shippingCharged===true,saved:Number(a.saved)||0,qty:Number(a.qty)||0,value:Number(a.value)||0,names:Array.isArray(a.names)?a.names.map(String).slice(0,50):[]};
+    }
+  }catch(_e){}
+  return{phone,cartId:bazarNewCartId(),shippingCharged:false,saved:0,qty:0,value:0,names:[]};
+}
+function bazarCartAttemptSave(a){try{sessionStorage.setItem(CART_ATTEMPT_KEY,JSON.stringify(Object.assign({},a,{t:Date.now()})));}catch(_e){}}
+function bazarCartAttemptClear(){try{sessionStorage.removeItem(CART_ATTEMPT_KEY);}catch(_e){}}
+// نص محلي (لا يحتاج تعديل i18n.js)
+const CART_TXT={
+  partial:{ar:"تم تسجيل جزء من طلبك ✅ وتبقّت منتجات لم تُرسل. اضغط «تأكيد الطلب» مرة أخرى لإكمالها، ولن يتكرر ما سُجّل.",fr:"Une partie de votre commande est enregistrée ✅ mais il reste des articles à envoyer. Cliquez à nouveau sur « Confirmer la commande » : les articles déjà enregistrés ne seront pas renvoyés."}
+};
+function ctxt(k){
+  const e=CART_TXT[k]||{};
+  let l="ar";
+  try{l=window.BazarI18n?BazarI18n.getLang():(localStorage.getItem("bazarLang")==="fr"?"fr":"ar");}catch(_e){}
+  return e[l]||e.ar||k;
+}
 window.submitOrder=async function(){
  if(!cart.length){toast(BazarI18n.t("toast_cart_empty"));return}
  if(window.__bazarSubmittingOrder)return;
@@ -2830,19 +2856,19 @@ window.submitOrder=async function(){
  const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");
  const btn=document.querySelector("#cartOverlay .confirm");
  window.__bazarSubmittingOrder=true;if(btn){btn.disabled=true;btn.style.opacity=".6";btn.style.pointerEvents="none"}
- try{
-  // ✅ نفس آلية إنشاء الطلب المستخدمة في صفحة المنتج: كل عنصر في السلة يُرسل كطلب
-  // مستقل إلى Cloudflare Worker (الذي يتحقق من السعر الحقيقي ويكتب في Firestore)،
+ let redirected=false;
+try{
+  // ✅ كل عنصر في السلة يُرسل كطلب مستقل إلى Cloudflare Worker (الذي يتحقق من السعر الحقيقي ويكتب في Firestore)،
   // لأن مخطط الطلب في الخادم (Worker + firestore.rules) يدعم منتجًا واحدًا لكل طلب.
-  // تُحسب رسوم التوصيل مرة واحدة فقط وتُضاف لأول طلب لتفادي احتسابها عدة مرات.
-  // نفس cartId يُرسَل مع كل عناصر هذه السلة (أُنشئ مرة واحدة قبل الحلقة) حتى يعرف
-  // الـ Worker أنها عملية شراء واحدة ولا يعتبرها طلبات متكررة مشبوهة.
-  const cartId=bazarNewCartId();
+  // رسوم التوصيل تُضاف مرة واحدة فقط (لأول طلب يُسجَّل)، ونفس cartId يُرسَل مع كل عناصر هذه السلة
+  // حتى يعرف الـ Worker أنها عملية شراء واحدة ولا يعتبرها طلبات متكررة مشبوهة.
+  const att=bazarCartAttemptGet(ph);
   const deviceId=bazarDeviceId();
   const failMsg=BazarI18n.t("toast_order_failed").replace(/\s*⚠️\s*$/,"");
-  for(let i=0;i<cart.length;i++){
-   const item=cart[i];
-   const itemShipping=i===0?s:0;
+  const items=cart.slice();
+  for(let i=0;i<items.length;i++){
+   const item=items[i];
+   const itemShipping=att.shippingCharged?0:s;
    const total=Number(item.price||0)*item.quantity+itemShipping;
    const orderPayload={
     customerName:n,
@@ -2858,7 +2884,7 @@ window.submitOrder=async function(){
     shippingCompany:carrierNames,
     total:total,
     deviceId:deviceId,
-    cartId:cartId
+    cartId:att.cartId
    };
    // ✅ المسار الوحيد: Cloudflare Worker (حظر IP/الهاتف + كشف الإساءة). لا كتابة مباشرة في Firestore.
    // إن أعاد الـ Worker خطأ خادم (وليس انقطاع شبكة) نعيد المحاولة مرة واحدة بعد لحظة، لأن هذه الأخطاء
@@ -2869,25 +2895,36 @@ window.submitOrder=async function(){
     wr=await bazarSendOrderToWorker(orderPayload);
    }
    if(wr.outcome==="blocked"){
-    const e=new Error("blocked");e.userMessage=BazarI18n.t("toast_order_blocked");throw e;
-   }
-   if(wr.outcome==="rejected"){
-    console.error("create-order rejected:",wr.code);
-    const e=new Error("rejected");e.userMessage=failMsg+" ["+wr.code+"]";throw e;
+    const e=new Error("blocked");e.userMessage=BazarI18n.t("toast_order_blocked");e.partial=att.saved>0;throw e;
    }
    if(wr.outcome!=="saved"){
-    console.error("create-order unavailable:",wr.code);
-    const e=new Error("unavailable");e.userMessage=failMsg+" ["+wr.code+"]";throw e;
+    console.error("create-order "+wr.outcome+":",wr.code);
+    const e=new Error(wr.outcome);
+    // إن سُجّل بعض العناصر سابقًا نُخبر الزبون بذلك صراحةً بدل رسالة فشل عامة
+    e.userMessage=(att.saved>0?ctxt("partial"):failMsg)+" ["+wr.code+"]";
+    e.partial=att.saved>0;
+    throw e;
    }
+   // ✅ سُجّل هذا العنصر: نحفظ الحالة ونُزيله من السلة فورًا (فلا يُعاد إرساله إن فشل ما بعده)
+   att.shippingCharged=true;att.saved++;att.qty+=Number(item.quantity)||0;att.value+=total;att.names.push(item.name);
+   const same=x=>item.firestoreId?x.firestoreId===item.firestoreId:x.id===item.id;
+   cart=cart.filter(x=>!same(x));updateCount();
+   bazarCartAttemptSave(att);
   }
-  if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:cart.map(x=>x.name).join(", "),price:productTotal()+s,category:"",qty:cart.reduce((sum,x)=>sum+x.quantity,0)});
+  // ✅ اكتمل كل شيء: تتبع Purchase، تنظيف، ثم صفحة التأكيد (نفس سلوك صفحة المنتج)
+  if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:att.names.join(", "),price:att.value,category:"",qty:att.qty});
+  bazarCartAttemptClear();
   cart=[];updateCount();renderCart();closeModal("cartOverlay");
-  
+  redirected=true;
+  window.location.href="/success.html";
  }catch(err){
   console.error("order submit failed:",err);
+  // إن سُجّل جزء من السلة نعرض المتبقي للزبون ليعرف ما بقي
+  if(err&&err.partial){try{renderCart();}catch(_e){}}
   toast(err&&err.userMessage?err.userMessage+" ⚠️":BazarI18n.t("toast_order_failed")+" [network]",7000);
  }finally{
-  window.__bazarSubmittingOrder=false;if(btn){btn.disabled=false;btn.style.opacity="";btn.style.pointerEvents=""}
+  // عند التحويل إلى صفحة النجاح نُبقي الزر معطّلًا كي لا تُرسَل السلة مرة ثانية أثناء انتقال الصفحة
+  if(!redirected){window.__bazarSubmittingOrder=false;if(btn){btn.disabled=false;btn.style.opacity="";btn.style.pointerEvents=""}}
  }
 }
 function toast(t,ms){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),ms||2200)}
