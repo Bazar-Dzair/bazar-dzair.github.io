@@ -2213,7 +2213,7 @@ function renderOrders(){
       <div class="order-cell oc-select" onclick="event.stopPropagation()"><label class="item-check"><input type="checkbox" ${selectedOrders.has(o.id)?"checked":""} onchange="window.toggleOrderSelection('${esc(o.id)}',this.checked)"></label></div>
       <div class="order-cell oc-num">${esc(orderDisplayId(o))}</div>
       <div class="order-cell oc-customer">${esc(o.customerName||o.name||"غير متوفر")}${riskBadgeHtml(o)}</div>
-      <div class="order-cell oc-product"><div class="order-product-cell">${img?`<img class="order-product-img" src="${esc(img)}" onerror="this.style.display='none'">`:`<span class="order-product-img ph">📦</span>`}<span class="order-product-name">${esc(o.product||"منتج غير محدد")}</span></div></div>
+      <div class="order-cell oc-product"><div class="order-product-cell">${img?`<img class="order-product-img" src="${esc(img)}" onerror="this.style.display='none'">`:`<span class="order-product-img ph">📦</span>`}<div><span class="order-product-name">${esc(o.product||"منتج غير محدد")}</span>${o.variant?`<br><small style="color:#7c8798">🎨 ${esc(o.variant)}</small>`:""}</div></div></div>
       <div class="order-cell oc-qty">${Number(o.quantity||1)}</div>
       <div class="order-cell oc-total">${money(o.total)}</div>
       <div class="order-cell oc-status"><span class="order-status-badge ${orderStatusClass(statusTxt)}">${esc(statusTxt)}</span></div>
@@ -2305,7 +2305,7 @@ function renderOrderDetail(o){
   if(prodBox) prodBox.innerHTML=`
     <table class="order-products-table"><thead><tr><th>المنتج</th><th>السعر</th><th>الكمية</th><th>المجموع</th></tr></thead>
     <tbody><tr>
-      <td><div class="order-product-line">${img?`<img class="order-product-img" src="${esc(img)}" onerror="this.style.display='none'">`:`<span class="order-product-img ph">📦</span>`}<span class="order-product-name">${esc(o.product||"منتج غير محدد")}</span></div></td>
+      <td><div class="order-product-line">${img?`<img class="order-product-img" src="${esc(img)}" onerror="this.style.display='none'">`:`<span class="order-product-img ph">📦</span>`}<div><span class="order-product-name">${esc(o.product||"منتج غير محدد")}</span>${o.variant?`<br><small style="color:#7c8798">🎨 ${esc(o.variant)}</small>`:""}</div></div></td>
       <td>${money(o.price)}</td>
       <td>${Number(o.quantity||1)}</td>
       <td>${money(lineTotal)}</td>

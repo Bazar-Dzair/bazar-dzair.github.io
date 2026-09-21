@@ -1043,7 +1043,7 @@ window.selectDeliveryType=function(k){selectedDeliveryType=k;updateTotals();};
 // ===== السلة الدائمة (مشتركة بين الرئيسية وصفحة المنتج عبر localStorage) =====
 const CART_KEY="bazar_cart_v1",CART_TTL=30*24*3600*1000;
 let cartLastSaved="";
-function cartSerialize(items){return JSON.stringify(items.map(x=>({firestoreId:x.firestoreId,quantity:x.quantity,name:x.name,name_fr:x.name_fr||"",price:x.price,image:x.image,category:x.category||"",stock:(x.stock===undefined?null:x.stock)})));}
+function cartSerialize(items){return JSON.stringify(items.map(x=>({firestoreId:x.firestoreId,quantity:x.quantity,name:x.name,name_fr:x.name_fr||"",price:x.price,image:x.image,category:x.category||"",stock:(x.stock===undefined?null:x.stock),variant:x.variant||""})));}
 function loadStoredCart(){
   try{
     const raw=JSON.parse(localStorage.getItem(CART_KEY)||"null");
@@ -2193,7 +2193,7 @@ function removeItem(id){cart=cart.filter(p=>p.id!==id);updateCount();renderCart(
 function productTotal(){return cart.reduce((s,x)=>s+x.price*x.quantity,0)}
 function renderCart(){
  if(!cart.length){document.getElementById("cartItems").innerHTML='<div class="empty">'+esc(BazarI18n.t("cart_empty_title"))+'<br>'+esc(BazarI18n.t("cart_empty_sub"))+'</div>';document.getElementById("summaryBox").innerHTML="";return}
- document.getElementById("cartItems").innerHTML=cart.map(x=>`<div class="cart-row"><img src="${safeImg(x.image)}"><div><h4>${esc(BazarI18n.translateProduct(x).name)}</h4><span class="small">${money(x.price)} ${esc(BazarI18n.t("cart_per_unit"))}</span></div><div class="cq"><button onclick="changeQty(${x.id},-1)">−</button><span>${x.quantity}</span><button onclick="changeQty(${x.id},1)">+</button></div><button class="remove" onclick="removeItem(${x.id})">🗑️</button></div>`).join("");
+ document.getElementById("cartItems").innerHTML=cart.map(x=>`<div class="cart-row"><img src="${safeImg(x.image)}"><div><h4>${esc(BazarI18n.translateProduct(x).name)}</h4>${x.variant?`<span class="small">${esc(x.variant)}</span><br>`:""}<span class="small">${money(x.price)} ${esc(BazarI18n.t("cart_per_unit"))}</span></div><div class="cq"><button onclick="changeQty(${x.id},-1)">−</button><span>${x.quantity}</span><button onclick="changeQty(${x.id},1)">+</button></div><button class="remove" onclick="removeItem(${x.id})">🗑️</button></div>`).join("");
  document.getElementById("summaryBox").innerHTML=`<div class="summary"><div class="line"><span>${esc(BazarI18n.t("summary_products"))}</span><b>${money(productTotal())}</b></div><div class="line"><span>${esc(BazarI18n.t("summary_delivery"))}</span><b id="sumShip">—</b></div><div class="line total"><span>${esc(BazarI18n.t("summary_total"))}</span><b id="sumTotal">${money(productTotal())}</b></div></div>`;
  updateTotals();
 }
@@ -3018,6 +3018,7 @@ try{
     deliveryType:deliveryTypeLabel,
     shippingCompany:carrierNames,
     total:total,
+    variant:item.variant||"",
     deviceId:deviceId,
     cartId:att.cartId
    };
