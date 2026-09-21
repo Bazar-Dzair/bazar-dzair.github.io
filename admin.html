@@ -2497,6 +2497,7 @@ window.bulkDeleteProducts=async()=>{
   const btn=document.getElementById("bulkDeleteProducts"); if(btn)btn.disabled=true;
   try{await Promise.all(ids.map(id=>deleteDoc(doc(db,"products",id)))); products=products.filter(p=>!selectedProducts.has(p.id)); selectedProducts.clear();
     const total=Math.max(1,Math.ceil(getFilteredProducts().length/ITEMS_PER_PAGE)); if(productsPage>total)productsPage=total; render();updateStats();show(`تم حذف ${ids.length} منتج بنجاح ✅`,"ok");
+    window.bazarRefreshSeoAfterDelete();
   }catch(e){console.error(e);show("تعذر حذف بعض المنتجات: "+(e.message||"خطأ غير معروف"),"err");}
   finally{updateBulkUi("products");}
 };
@@ -2975,6 +2976,17 @@ window.bazarTriggerSeo=async function(){
   }finally{
     clearTimeout(timer);
   }
+};
+// بعد حذف منتجات: نُعيد توليد الصفحات الثابتة (الرئيسية + /product/ + خرائط الموقع) عبر نفس الـ Worker،
+// حتى لا تبقى نسخة قديمة فيها منتجات محذوفة حتى الـ cron القادم (6 ساعات). تأخير قصير يجمع حذفات متتالية
+// في تشغيل واحد. لا يرمي خطأ ولا يعطّل الحذف؛ عند الفشل يظهر تنبيه فقط.
+window.bazarRefreshSeoAfterDelete=function(){
+  clearTimeout(window.__bazarSeoDeleteTimer);
+  window.__bazarSeoDeleteTimer=setTimeout(async function(){
+    let r;
+    try{r=await window.bazarTriggerSeo();}catch(e){r={ok:false,message:"خطأ غير متوقع"};}
+    if(!r||!r.ok)show("تم الحذف ✅ لكن تعذر تحديث صفحات المتجر الثابتة فورًا ("+((r&&r.message)||"سبب غير معروف")+"). ستُحدَّث تلقائيًا خلال 6 ساعات كحد أقصى.","err");
+  },4000);
 };
 window.blockIpManual=async function(){
   const input=document.getElementById("blockIpInput");
@@ -3483,6 +3495,7 @@ window.removeProduct=async id=>{
    render();
    updateStats();
    show("تم الحذف ✅","ok");
+   window.bazarRefreshSeoAfterDelete();
  }catch(e){show("تعذر الحذف.","err")}
 };
 

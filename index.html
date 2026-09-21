@@ -1357,6 +1357,9 @@ function applyProductsList(list){
   catalogLoaded=true;
   revealProductGrid();
   syncCartWithProducts();
+  // كتالوج فارغ فعلًا (كل المنتجات حُذفت): نعرض رسالة "لا توجد منتجات" في أي وضع (رئيسية/تصنيف/بحث)،
+  // لأن مسارات التصنيف والبحث تتجاهل القائمة الفارغة فكانت تُبقي البطاقات الثابتة القديمة ظاهرة.
+  if(!products.length){ displayProducts(); renderHomeHighlights(); return; }
   const key=getUrlCategory();
   if(getUrlSearchQuery()) applyUrlSearch();
   else if(key!=="all" && storeCategories.length) applyUrlCategory();
