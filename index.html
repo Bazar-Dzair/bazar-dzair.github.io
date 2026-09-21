@@ -649,6 +649,25 @@ body>footer{flex:none;margin-top:auto}
 </head>
 <body>
 <script>
+/* منع وميض اللغة عند إعادة تحميل الصفحة:
+   محتوى index.html مكتوب افتراضيًا بالعربية (نفس لغة HTML الأصلية)، بينما ترجمته
+   للفرنسية تتم لاحقًا عبر i18n.js (محمّل بـ defer) + applyI18nStatic() عند DOMContentLoaded.
+   بين أول رسم للصفحة (بالعربية دائمًا لأنها هي النص المكتوب في HTML) ولحظة تنفيذ
+   applyI18nStatic()، كان الزبون صاحب تفضيل "فرنسية" يرى وميضًا: عربية ثم فرنسية.
+   الحل: إن كانت اللغة المحفوظة فرنسية، نُخفي الصفحة فورًا (قبل أي رسم، لأن هذا السكربت
+   هو أول عنصر داخل body) ثم نُظهرها فقط بعد أن يُترجم applyI18nStatic() النصوص فعليًا،
+   فلا يرى الزبون سوى الفرنسية مباشرة بلا أي وميض. لا يمس هذا نظام الطلبات أو Telegram أو
+   Firebase إطلاقًا، وهو مستقل تمامًا عن منطق التصنيف/البحث في السكربت الذي يليه.
+   مؤقّت أمان (1.5 ثانية): لو تعذّر تحميل i18n.js أو BazarI18n لأي سبب، تُظهر الصفحة
+   تلقائيًا ولا تبقى مخفية إلى الأبد. */
+(function(){try{
+  if(localStorage.getItem("bazarLang")==="fr"){
+    document.documentElement.style.visibility="hidden";
+    setTimeout(function(){document.documentElement.style.visibility="";},1500);
+  }
+}catch(e){}})();
+</script>
+<script>
 /* منع وميض الصفحة الرئيسية عند إعادة تحميل صفحة تصنيف أو نتيجة بحث (مثلاً عند تغيير اللغة):
    نفعّل وضع التصنيف فورًا قبل أول رسم، ونُخفي الشبكة حتى تصل بيانات التصنيف. */
 (function(){try{
@@ -887,12 +906,20 @@ function translateWilayaSelect(){
   sel.value=current;
 }
 function applyI18nStatic(){
-  if(!window.BazarI18n)return;
-  BazarI18n.applyStatic();
-  document.documentElement.setAttribute("dir","rtl");
-  translateWilayaSelect();
-  const langBtn=document.getElementById("langToggleBtn");
-  if(langBtn) langBtn.textContent=BazarI18n.getLang()==="ar"?"FR":"AR";
+  // نستعمل try/finally لضمان إظهار الصفحة (إلغاء التخفية الموضوعة في سكربت منع وميض
+  // اللغة أعلى الصفحة) في كل الحالات، حتى لو تعذّر تحميل BazarI18n لأي سبب —
+  // فلا تبقى الصفحة مخفية أبدًا بسبب هذه الدالة (مؤقت الأمان بالسكربت أعلاه يبقى
+  // كخط دفاع إضافي في حال لم تُستدعَ هذه الدالة إطلاقًا).
+  try{
+    if(!window.BazarI18n)return;
+    BazarI18n.applyStatic();
+    document.documentElement.setAttribute("dir","rtl");
+    translateWilayaSelect();
+    const langBtn=document.getElementById("langToggleBtn");
+    if(langBtn) langBtn.textContent=BazarI18n.getLang()==="ar"?"FR":"AR";
+  }finally{
+    document.documentElement.style.visibility="";
+  }
 }
 // i18n.js أصبح defer، فتنفيذه يحدث بعد تحليل الصفحة كاملة وقبل DOMContentLoaded مباشرة.
 // لذلك ننتظر نفس الحدث هنا حتى نضمن أن BazarI18n جاهز قبل استدعائه (بدل الاعتماد على ترتيب التحميل).

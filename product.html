@@ -653,6 +653,23 @@ body{padding-bottom:96px}
 </style>
 </head>
 <body>
+<script>
+/* منع وميض اللغة عند إعادة تحميل الصفحة (نفس مبدأ الحل في index.html):
+   محتوى هذه الصفحة مكتوب افتراضيًا بالعربية في HTML، والترجمة للفرنسية تتم لاحقًا
+   عبر applyPageI18n() داخل سكربت type="module" (يُنفَّذ بعد اكتمال تحليل الصفحة).
+   بين أول رسم (عربي دائمًا) وتلك اللحظة، كان الزبون صاحب تفضيل "فرنسية" يرى وميضًا:
+   عربية ثم فرنسية. الحل: نُخفي الصفحة فورًا إن كانت اللغة المحفوظة فرنسية (قبل أي
+   رسم، لأن هذا السكربت هو أول عنصر داخل body) ثم نُظهرها بعد applyPageI18n() مباشرة.
+   لا يمس هذا نظام الطلبات أو Telegram أو Firebase إطلاقًا.
+   مؤقّت أمان (1.5 ثانية): لو تعذّر تحميل i18n.js أو حدث خطأ في الوحدة (module) لأي
+   سبب، تُظهر الصفحة تلقائيًا ولا تبقى مخفية إلى الأبد. */
+(function(){try{
+  if(localStorage.getItem("bazarLang")==="fr"){
+    document.documentElement.style.visibility="hidden";
+    setTimeout(function(){document.documentElement.style.visibility="";},1500);
+  }
+}catch(e){}})();
+</script>
 <header class="topbar"><div class="topbar-in">
   <a class="brand" href="/"><span class="brand-mark"></span><span class="brand-txt">Bazar <b>Dzair</b></span></a>
   <div class="header-right">
@@ -849,8 +866,14 @@ function translateWilayaSelect(){
   });
   sel.value=current;
 }
-applyPageI18n();
-translateWilayaSelect();
+// نستعمل try/finally لضمان إظهار الصفحة (إلغاء التخفية الموضوعة في سكربت منع وميض
+// اللغة أعلى الصفحة) دائمًا، حتى لو رمت applyPageI18n()/translateWilayaSelect() خطأ.
+try{
+  applyPageI18n();
+  translateWilayaSelect();
+}finally{
+  document.documentElement.style.visibility="";
+}
 const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):(Number(n||0).toLocaleString("ar-DZ")+" دج");
 // يمنع بروتوكولات خطيرة (javascript:, data:, vbscript:) في روابط الصور القادمة من Firestore — يسمح فقط بـ https/http أو مسار نسبي.
 const safeImg=u=>{const s=String(u??"").trim();if(!s)return"/logo.svg";if(/^https?:\/\//i.test(s)||s.startsWith("/")||s.startsWith("./"))return esc(s);return"/logo.svg";};
