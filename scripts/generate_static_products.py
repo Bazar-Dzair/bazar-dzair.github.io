@@ -34,6 +34,34 @@ def collection(name):
         if not token: return out
 
 
+def get_document(path):
+    """يجلب وثيقة Firestore مفردة (مثل settings/site). يعيد {} إن لم توجد أو عند أي خطأ شبكة،
+    حتى لا يفشل توليد كامل الموقع بسبب تعذّر الوصول لهذه الوثيقة الاختيارية."""
+    try:
+        req=urllib.request.Request(BASE+'/'+path,headers={'Accept':'application/json'})
+        with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r)
+        return {k:value(v) for k,v in data.get('fields',{}).items()}
+    except Exception as e:
+        print(f'Warning: could not fetch {path}: {e}')
+        return {}
+
+
+def replace_tag_attr(text, elem_id, attr_name, new_value):
+    """يستبدل قيمة خاصية (مثل content أو src) داخل أول وسم يحمل id=elem_id، بغضّ النظر
+    عن ترتيب الخصائص داخل الوسم. يرفع خطأ إن لم يُعثر على id أو على الخاصية، حتى لا يمرّ
+    أي خلل في بنية index.html دون أن يُلاحَظ."""
+    tag_pattern=re.compile(r'<[^>]*\bid="'+re.escape(elem_id)+r'"[^>]*>')
+    m=tag_pattern.search(text)
+    if not m:
+        raise RuntimeError(f'replace_tag_attr: id not found in index.html: {elem_id}')
+    tag=m.group(0)
+    attr_pattern=re.compile(r'(\b'+re.escape(attr_name)+r'=")[^"]*(")')
+    new_tag,n=attr_pattern.subn(lambda mm: mm.group(1)+html.escape(new_value,quote=True)+mm.group(2), tag, count=1)
+    if n==0:
+        raise RuntimeError(f'replace_tag_attr: attribute "{attr_name}" not found in tag with id "{elem_id}"')
+    return text[:m.start()]+new_tag+text[m.end():]
+
+
 def slugify(x, fallback='item'):
     s=unicodedata.normalize('NFKD',str(x or ''))
     s=''.join(c for c in s if not unicodedata.combining(c)).lower().strip()
@@ -481,5 +509,20 @@ home_index_path = root / 'index.html'
 home = home_index_path.read_text(encoding='utf-8')
 home = inject_between_markers(home, '<!--SSG:PRODUCTS_START-->', '<!--SSG:PRODUCTS_END-->', home_products_html)
 home = inject_between_markers(home, '<!--SSG:CATS_START-->', '<!--SSG:CATS_END-->', home_cats_html)
+
+# ===================== بانر الصفحة الرئيسية (og:image / twitter:image / صورة الهيدر) =====================
+# البانر يُدار بالكامل من لوحة التحكم (settings/site → bannerUrl في Firestore)، ولم يعد الموقع
+# يعتمد على ملف ثابت assets/hero.jpg. نضع هنا الرابط الحقيقي الحالي مباشرة داخل الـHTML الخام
+# لأن محركات البحث وبرامج معاينة الروابط (فيسبوك/واتساب) لا تُنفّذ JavaScript عادة، فلا يكفي
+# ترك تحديث og:image لسكربت applyBranding() في المتصفح وحده. عند عدم وجود بانر محفوظ، نستخدم
+# شعار الموقع logo.svg كصورة احتياطية آمنة وموجودة فعلًا بدل رابط مكسور.
+site_settings = get_document('settings/site')
+banner_url = str(site_settings.get('bannerUrl') or '').strip()
+home_banner = banner_url if re.match(r'^https://', banner_url) else (SITE + 'logo.svg')
+home = replace_tag_attr(home, 'homeOgImage', 'content', home_banner)
+home = replace_tag_attr(home, 'homeTwitterImage', 'content', home_banner)
+home = replace_tag_attr(home, 'heroImg', 'src', home_banner)
+
 home_index_path.write_text(home, encoding='utf-8')
 print(f'Injected {len(product_urls[:HOME_MAX_PRODUCTS])} static product cards and {len(home_cats_sorted)} static categories into index.html.')
+print(f'Homepage banner set to: {home_banner}')
