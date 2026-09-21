@@ -311,6 +311,64 @@
 .check-option input{width:17px;height:17px;accent-color:var(--orange);cursor:pointer}
 #featuresText{min-height:145px}
 @media(max-width:760px){.admin-display-options{align-items:stretch}.display-options-title{flex-basis:100%;margin-inline-end:0}.check-option{flex:1}}
+/* ===== نظام الحظر المتقدم + إنذارات الإساءة ===== */
+.nav-badge{background:var(--red);color:#fff;font-size:11px;font-weight:800;border-radius:999px;min-width:20px;height:20px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.bk-card{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 15px;border:1px solid #e8ebf0;border-radius:12px;background:#fff}
+.bk-card.bk-inactive{background:#fafbfc}
+.bk-main{display:flex;gap:11px;flex:1 1 320px;min-width:0}
+.bk-ico{font-size:20px;line-height:1.5}
+.bk-body{min-width:0;flex:1}
+.bk-title{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.bk-title b{font-size:15px;word-break:break-all}
+.bk-state{font-size:11px;font-weight:800;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.bk-st-active{background:#feeceb;color:#c62828}
+.bk-st-expired{background:#fff5db;color:#9a6700}
+.bk-st-lifted{background:#e9f8ef;color:#17803a}
+.bk-tag{font-size:12px;color:var(--muted)}
+.bk-meta{margin-top:5px;font-size:12px;color:#5b6472}
+.bk-details{margin-top:8px;display:grid;gap:4px;font-size:12.5px;color:#3b4350;line-height:1.7}
+.bk-att{color:#c62828}
+.bk-actions{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.bk-btn{border:0;border-radius:9px;padding:9px 11px;font-weight:700;font-size:13px;background:#eef1f5;color:#39424e}
+.bk-btn.ok{background:#e9f8ef;color:#17803a}
+.bk-btn.info{background:#eef6ff;color:#1769aa}
+.bk-btn.warn{background:#fff1e6;color:#b45309}
+.bk-btn.danger{background:#feeceb;color:#c62828}
+.bk-modal{position:fixed;inset:0;background:#000000a6;z-index:300;display:flex;align-items:center;justify-content:center;padding:16px}
+.bk-dialog{background:#fff;border-radius:16px;max-width:460px;width:100%;padding:20px;max-height:90vh;overflow:auto;box-shadow:0 20px 60px #0004}
+.bk-dialog h3{margin:0 0 12px;font-size:18px}
+.bk-dialog label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:13px;margin-top:12px}
+.bk-dialog select,.bk-dialog input{padding:11px;border:1px solid #d9dee7;border-radius:10px;background:#fff}
+.bk-targets{background:#f5f7fa;border:1px solid #e8ebf0;border-radius:10px;padding:10px 12px;font-weight:800;font-size:14px;display:grid;gap:4px;word-break:break-all;unicode-bidi:plaintext}
+.bk-warn{margin-top:10px;background:#fff8e6;border:1px solid #f5dfa0;color:#7a5600;border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.7;white-space:pre-line}
+.risk-badge{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;white-space:nowrap;margin-inline-start:6px;vertical-align:middle}
+.risk-high{background:#feeceb;color:#c62828}
+.risk-medium{background:#fff1e6;color:#b45309}
+.risk-low{background:#f1f3f5;color:#5b6472}
+.fr-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.fr-stat{background:#f5f7fa;border:1px solid #e8ebf0;border-radius:12px;padding:13px;text-align:center}
+.fr-stat b{display:block;font-size:22px;color:#151a20}
+.fr-stat span{font-size:12px;color:var(--muted)}
+.fr-stat.fr-high b{color:#c62828}
+.fr-stat.fr-med b{color:#b45309}
+.fr-stat.fr-new b{color:#2563eb}
+.fr-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.fr-toolbar select{padding:10px;border:1px solid #d9dee7;border-radius:10px;background:#fff}
+.fr-note{margin:0 0 14px;color:#8a93a0;font-size:12.5px;line-height:1.8}
+.fr-item{border:1px solid #e8ebf0;border-inline-start:4px solid #cbd2dc;border-radius:12px;background:#fff;padding:13px 15px;display:grid;gap:9px}
+.fr-item.fr-sev-high{border-inline-start-color:#dc2626}
+.fr-item.fr-sev-medium{border-inline-start-color:#f59e0b}
+.fr-item.fr-new{background:#f8fbff}
+.fr-item.fr-resolved{opacity:.6}
+.fr-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.fr-head .risk-badge{margin-inline-start:0}
+.fr-msg{flex:1 1 220px;font-size:14px;line-height:1.6}
+.fr-time{font-size:12px;color:var(--muted);direction:ltr}
+.fr-chips{display:flex;flex-wrap:wrap;gap:6px}
+.fr-chip{background:#f1f3f5;border-radius:8px;padding:4px 9px;font-size:12px;color:#39424e}
+.fr-chip-red{background:#feeceb;color:#c62828;font-weight:700}
+.fr-done{font-size:12px;color:#17803a;font-weight:700}
+@media(max-width:760px){.fr-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.bk-actions{width:100%}.bk-actions .bk-btn{flex:1 1 auto}}
 </style>
 </head>
 <body class="auth-check">
@@ -355,6 +413,7 @@
     <button class="nav-item" data-view="footer" onclick="showView('footer',this)">▤ <span>تذييل المتجر</span></button>
     <button class="nav-item" data-view="users" onclick="showView('users',this)">♧ <span>المستخدمون</span></button>
     <button class="nav-item" data-view="blocked" onclick="showView('blocked',this)">🚫 <span>المحظورون</span></button>
+    <button class="nav-item" data-view="fraud" onclick="showView('fraud',this)">🛡️ <span>الإنذارات</span><b id="fraudNavBadge" class="nav-badge hidden">0</b></button>
   </nav>
   <div class="nav-title">النظام</div><nav class="nav">
     <button class="nav-item" data-view="settings" onclick="showView('settings',this)">⚙ <span>الإعدادات</span></button>
@@ -536,6 +595,28 @@
 <div class="panel" style="margin-bottom:16px"><h3 style="margin:0 0 6px;font-size:16px">🛡️ حماية الطلبات (حظر IP)</h3><p style="margin:0 0 12px;color:#8a93a0;font-size:13px;line-height:1.8">الطلبات تمر عبر Cloudflare Worker الذي يرى عنوان IP الحقيقي ويطبّق الحظر. لو تعطّل الـ Worker يعمل الموقع تلقائيًا بمسار احتياطي حتى لا تتوقف الطلبات (لكن حظر IP لا يُطبَّق عليه). بعد أن يعطيك «فحص الـ Worker» نتيجة سليمة يمكنك تفعيل <b>الوضع الصارم</b> ليصبح الحظر مُلزِمًا.</p><div id="workerHealthBox" class="empty-card">لم يتم فحص الـ Worker بعد.</div><div id="strictStateBox" style="margin:12px 0;font-size:13px;line-height:1.8"></div><div class="form-actions" style="display:flex;flex-wrap:wrap;gap:8px"><button class="green" type="button" onclick="window.bazarCheckWorker()">🔍 فحص الـ Worker</button><button id="strictToggleBtn" class="edit-cat" type="button" onclick="window.bazarToggleStrict()">…</button></div></div>
 <div class="panel"><h3 style="margin:0 0 14px;font-size:16px">📞 أرقام الهاتف المحظورة</h3><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>رقم الهاتف<input id="blockPhoneInput" placeholder="مثال: 0551234567" inputmode="tel"></label></div><div class="form-actions"><button class="green" type="button" onclick="window.blockPhoneManual()">🚫 حظر هذا الرقم</button></div></div><div id="blockedList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الأرقام المحظورة...</div></div></div>
 <div class="panel" style="margin-top:16px"><h3 style="margin:0 0 6px;font-size:16px">🌐 عناوين IP المحظورة</h3><p style="margin:0 0 14px;color:#8a93a0;font-size:13px;line-height:1.7">يظهر عنوان IP لكل طلب جديد في صفحة الطلبات، ويمكنك حظره بضغطة على زر 🌐. الطلبات القديمة (قبل تفعيل هذه الخاصية) لا تحمل عنوان IP. انتبه: شبكات الهاتف قد تتشارك نفس العنوان بين عدة زبائن، فاستعمل حظر IP للمزعجين المتكررين فقط.</p><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>عنوان IP<input id="blockIpInput" dir="ltr" placeholder="مثال: 41.111.22.33" autocomplete="off" spellcheck="false"></label></div><div class="form-actions"><button class="green" type="button" onclick="window.blockIpManual()">🚫 حظر هذا الـ IP</button></div></div><div id="blockedIpList" class="categories-list"><div class="empty-card">⏳ جاري تحميل عناوين IP المحظورة...</div></div></div></section>
+
+<section id="view-fraud" class="view hidden"><div class="page-head"><div><h1>إنذارات الإساءة</h1><p>يراقب النظام أنماط الطلبات المشبوهة (IP، رقم الهاتف، الجهاز، العنوان) ويسجّل إنذارًا هنا. الإنذار لا يمنع الطلب: القرار لك، احظر الرقم أو الـ IP بعد التأكد.</p></div></div>
+<div class="panel" style="margin-bottom:16px"><div id="fraudStats" class="fr-stats"></div></div>
+<div class="panel"><div class="fr-toolbar">
+<select id="fraudStatusSel" onchange="window.fraudSetFilter('status',this.value)"><option value="open">المفتوحة</option><option value="new">الجديدة (غير المقروءة)</option><option value="resolved">المعالجة</option><option value="all">الكل</option></select>
+<select id="fraudSevSel" onchange="window.fraudSetFilter('sev',this.value)"><option value="all">كل مستويات الخطر</option><option value="high">خطر عالٍ</option><option value="medium">خطر متوسط</option><option value="low">خطر منخفض</option></select>
+<button class="bk-btn info" type="button" onclick="window.bazarLoadFraudAlerts()">🔄 تحديث</button>
+<button class="bk-btn ok" type="button" onclick="window.fraudMarkAllSeen()">👁 تعليم الكل كمقروء</button>
+<button class="bk-btn danger" type="button" onclick="window.fraudDeleteResolved()">🗑 حذف المعالجة</button>
+</div>
+<p class="fr-note">⚠️ عنوان IP وحده مؤشر ضعيف لأن عدة زبائن قد يتشاركون نفس العنوان (خاصة عبر شبكات الهاتف)؛ لذلك يعطي إنذارًا منخفضًا فقط. الإنذارات المتوسطة والعالية تعتمد على الهاتف أو الجهاز أو العنوان.</p>
+<div id="fraudList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الإنذارات...</div></div></div></section>
+
+<div id="blockDialog" class="bk-modal hidden" onclick="if(event.target===this)window.bkDialogCancel()"><div class="bk-dialog" role="dialog" aria-modal="true" aria-labelledby="bkDlgTitle">
+<h3 id="bkDlgTitle">حظر</h3>
+<div id="bkDlgTargets" class="bk-targets"></div>
+<div id="bkDlgWarn" class="bk-warn hidden"></div>
+<label>سبب الحظر<select id="bkReasonSel"></select></label>
+<label>تفاصيل إضافية (اختياري)<input id="bkReasonTxt" maxlength="200" autocomplete="off" placeholder="مثال: 3 طلبات وهمية اليوم"></label>
+<label>مدة الحظر<select id="bkDurSel"></select></label>
+<div class="form-actions"><button class="green" type="button" id="bkDlgOk" onclick="window.bkDialogSubmit()">🚫 تأكيد الحظر</button><button class="bk-btn" type="button" onclick="window.bkDialogCancel()">إلغاء</button></div>
+</div></div>
 <section id="view-categories" class="view hidden"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><button class="orange-btn" type="button" onclick="openCategoryForm()">＋ إضافة فئة</button></div><div class="panel"><div id="categoryForm" class="category-form hidden"><input id="categoryId" type="hidden"><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"></label><label>اسم الفئة بالفرنسية (اختياري)<input id="categoryNameFr" placeholder="مثال: Outils"></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"></label><label>الأيقونة<input id="categoryIcon" placeholder="🔧" maxlength="4"></label></div><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا.</small><div class="form-actions"><button class="green" type="button" onclick="saveCategory()">💾 حفظ الفئة</button><button class="gray" type="button" onclick="closeCategoryForm()">إلغاء</button></div><div id="categoryStatus" class="status hidden"></div></div><div id="categoriesList" class="categories-list"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
 
 <section id="view-shipping-rates" class="view hidden">
@@ -638,6 +719,7 @@ function showView(name, el, createNew=false, updateUrl=true){
   if(name==="orders" && window.bazarLoadOrders) window.bazarLoadOrders();
   if(name==="reviews" && window.bazarLoadReviews) window.bazarLoadReviews();
   if(name==="blocked"){ if(window.bazarLoadBlockedPhones) window.bazarLoadBlockedPhones(); if(window.bazarLoadBlockedIps) window.bazarLoadBlockedIps(); if(window.bazarLoadSecurity) window.bazarLoadSecurity(); }
+  if(name==="fraud" && window.bazarLoadFraudAlerts) window.bazarLoadFraudAlerts();
   if(name==="shipping-rates" && window.bazarLoadShippingRates) window.bazarLoadShippingRates();
   if(name==="addons" && window.bazarLoadAddons) window.bazarLoadAddons();
   if(name==="footer") setTimeout(loadFooterSetting,0);
@@ -652,7 +734,7 @@ window.addEventListener("popstate",()=>{
   try{
     const params=new URLSearchParams(window.location.search);
     let view=params.get("view")||"dashboard";
-    const valid=["dashboard","orders","reviews","product","products","categories","shipping-rates","sections","footer","users","settings","addons","order-detail","blocked"];
+    const valid=["dashboard","orders","reviews","product","products","categories","shipping-rates","sections","footer","users","settings","addons","order-detail","blocked","fraud"];
     if(!valid.includes(view)) view="dashboard";
     const ordersNavItem=document.querySelector('.nav-item[onclick*="orders"]');
     if(view==="order-detail"){
@@ -1447,7 +1529,7 @@ renderAddonsGrid();
 </script>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,getDocs,serverTimestamp,setDoc,getDoc,writeBatch,deleteField}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,getDocs,serverTimestamp,setDoc,getDoc,writeBatch,deleteField,query,orderBy,limit}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 // ملاحظة 17/09/2026: تم حذف import الخاص بـ Firebase Storage (getStorage/uploadBytes/...)
 // من هنا لأنه لم يكن مستعملاً فعليًا فأي مكان — المشروع على خطة Spark المجانية بلا
@@ -1740,7 +1822,7 @@ onAuthStateChanged(auth,u=>{document.body.classList.remove("auth-check");
     loginErrBox.textContent="هذا الحساب غير مصرّح له بالدخول إلى لوحة التحكم.";loginErrBox.classList.remove("hidden");
     return;
   }
-  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
+  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();if(window.bazarLoadFraudAlerts)window.bazarLoadFraudAlerts(true);try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
 
 // الرابط الثابت للتصنيف (/product-category/<slug>/): نفس ترتيب الأولوية في index.html و scripts/generate_static_products.py.
 // slug المحفوظ أولًا (لا يتغيّر بتعديل الاسم)، وإلا الاشتقاق القديم من name_fr ثم المعرّف.
@@ -1844,7 +1926,7 @@ function appPage(){
     const params=new URLSearchParams(window.location.search);
     view=params.get("view")||sessionStorage.getItem("bazarAdminView")||"dashboard";
   }catch(e){}
-  const valid=["dashboard","orders","product","products","categories","shipping-rates","sections","footer","users","settings","addons","order-detail","blocked"];
+  const valid=["dashboard","orders","product","products","categories","shipping-rates","sections","footer","users","settings","addons","order-detail","blocked","fraud"];
   if(!valid.includes(view)) view="dashboard";
   const nav=[...document.querySelectorAll(".nav-item")];
   const ordersNavItem=document.querySelector('.nav-item[onclick*="orders"]');
@@ -2072,7 +2154,7 @@ function renderOrders(){
     return `<div class="order-row-pro" style="cursor:pointer" onclick="window.openOrderDetail('${esc(o.id)}')">
       <div class="order-cell oc-select" onclick="event.stopPropagation()"><label class="item-check"><input type="checkbox" ${selectedOrders.has(o.id)?"checked":""} onchange="window.toggleOrderSelection('${esc(o.id)}',this.checked)"></label></div>
       <div class="order-cell oc-num">${esc(orderDisplayId(o))}</div>
-      <div class="order-cell oc-customer">${esc(o.customerName||o.name||"غير متوفر")}</div>
+      <div class="order-cell oc-customer">${esc(o.customerName||o.name||"غير متوفر")}${riskBadgeHtml(o)}</div>
       <div class="order-cell oc-product"><div class="order-product-cell">${img?`<img class="order-product-img" src="${esc(img)}" onerror="this.style.display='none'">`:`<span class="order-product-img ph">📦</span>`}<span class="order-product-name">${esc(o.product||"منتج غير محدد")}</span></div></div>
       <div class="order-cell oc-qty">${Number(o.quantity||1)}</div>
       <div class="order-cell oc-total">${money(o.total)}</div>
@@ -2158,6 +2240,7 @@ function renderOrderDetail(o){
     ${o.wilaya?`<div class="order-detail-row"><span>الولاية</span><span>${esc(o.wilaya)}</span></div>`:""}
     ${o.address?`<div class="order-detail-row"><span>العنوان</span><span>${esc(o.address)}</span></div>`:""}
     ${ipRows}
+    ${riskDetailRows(o)}
   `;
   const img=findOrderProductImage(o.product);
   const lineTotal=Number(o.price||0)*Number(o.quantity||1);
@@ -2425,16 +2508,198 @@ window.bazarLoadAddons=function(){
 
 window.deleteOrder=async id=>{if(!confirm("حذف هذه الطلبية؟"))return;try{await deleteDoc(doc(db,"orders",id));window.adminOrders=(window.adminOrders||[]).filter(o=>o.id!==id);selectedOrders.delete(id);const total=Math.max(1,Math.ceil((window.adminOrders||[]).length/ITEMS_PER_PAGE));if(ordersPage>total)ordersPage=total;updateOrderStats((window.adminOrders||[]).length);renderOrders();show("تم حذف الطلبية ✅","ok")}catch(e){alert("تعذر حذف الطلبية: "+e.message)}};
 
+// ===== سجل الحظر المتقدم: مشترك بين أرقام الهاتف وعناوين IP =====
+// كل وثيقة فـ collection "blockedPhones" (المعرّف = رقم الهاتف) أو "blockedIps" (المعرّف = ipKey) تحمل:
+//   reason (سبب الحظر)، blockedBy (من حظر)، blockedAt (تاريخ الحظر)، expiresAt (غيابه = حظر دائم)،
+//   status ("lifted" = مرفوع مع بقاء السجل)، liftedAt / liftedBy،
+//   attempts (عدد محاولات الطلب بعد الحظر) + lastAttemptAt / lastAttemptIp / lastAttemptPhone (يكتبها الـ Worker وحده).
+// السجلات القديمة التي لا تحمل هذه الحقول تبقى حظرًا دائمًا فعّالًا.
+// ⚠️ منطق blockState() هنا يجب أن يبقى مطابقًا لـ isBlockActive() في worker/create-order.js.
+function tsMs(v){
+  if(!v)return 0;
+  if(typeof v.toMillis==="function")return v.toMillis();
+  if(v instanceof Date)return v.getTime();
+  if(typeof v.seconds==="number")return v.seconds*1000;
+  if(typeof v==="number")return v;
+  return 0;
+}
+function fmtDT(ms){
+  if(!ms)return"—";
+  const d=new Date(ms);
+  return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())+" "+pad2(d.getHours())+":"+pad2(d.getMinutes());
+}
+function blockState(b){
+  if(!b||b.status==="lifted")return"lifted";
+  const e=tsMs(b.expiresAt);
+  if(e&&e<=Date.now())return"expired";
+  return"active";
+}
+function blockLeftTxt(e){
+  const h=Math.ceil((e-Date.now())/36e5);
+  if(h<=0)return"";
+  return h<48?("باقي "+h+" ساعة"):("باقي "+Math.ceil(h/24)+" يومًا");
+}
+function sortBlocks(arr){
+  const rank=b=>blockState(b)==="active"?0:1;
+  return arr.slice().sort((a,b)=>rank(a)-rank(b)||tsMs(b.blockedAt)-tsMs(a.blockedAt));
+}
+function adminActor(){return(auth.currentUser&&auth.currentUser.email)||"admin";}
+function cleanBlockBase(base){
+  const o={};
+  Object.keys(base||{}).forEach(k=>{const v=base[k];if(v!==""&&v!=null)o[k]=v;});
+  return o;
+}
+// يكتب/يجدّد سجل الحظر (merge: يحتفظ بعدّاد المحاولات والتاريخ القديم) ثم يحدّث الحالة المحلية.
+// keepDate=true عند تعديل حظر قائم (لا يتغيّر تاريخ الحظر ولا من حظر).
+async function bkApply(kind,id,base,res,keepDate){
+  const isIp=kind==="ip";
+  const coll=isIp?"blockedIps":"blockedPhones";
+  const kf=isIp?"key":"phone";
+  base=cleanBlockBase(base);
+  const data={...base,status:"active",reason:res.reason||"",expiresAt:res.expiresAt||deleteField(),liftedAt:deleteField(),liftedBy:deleteField(),updatedAt:serverTimestamp()};
+  if(!keepDate){data.blockedAt=serverTimestamp();data.blockedBy=adminActor();}
+  await setDoc(doc(db,coll,id),data,{merge:true});
+  const list=isIp?blockedIps:blockedPhones;
+  const old=list.find(x=>x[kf]===id)||{};
+  const rec={...old,...base,[kf]:id,status:"active",reason:res.reason||""};
+  delete rec.liftedAt;delete rec.liftedBy;
+  if(res.expiresAt)rec.expiresAt=res.expiresAt;else delete rec.expiresAt;
+  if(!keepDate){rec.blockedAt={seconds:Math.floor(Date.now()/1000)};rec.blockedBy=adminActor();}
+  const next=sortBlocks([rec,...list.filter(x=>x[kf]!==id)]);
+  if(isIp){blockedIps=next;blockedIpKeys=activeIpKeys();renderBlockedIps();}
+  else{blockedPhones=next;renderBlockedPhones();}
+}
+
+// ----- نافذة الحظر: السبب + المدة (دائم أو مؤقت) -----
+const BK_REASONS=["طلبات وهمية / احتيال","رفض استلام الطلبيات المتكرر","طلبات مزعجة أو مكررة","سلوك مشبوه (إنذار النظام)"];
+const BK_DURATIONS=[["perm","دائم"],["24h","24 ساعة"],["3d","3 أيام"],["7d","7 أيام"],["30d","30 يومًا"]];
+const BK_MS={"24h":864e5,"3d":3*864e5,"7d":7*864e5,"30d":30*864e5};
+function bkParseReason(r){
+  r=String(r||"").trim();
+  for(const L of BK_REASONS){
+    if(r===L)return{sel:L,txt:""};
+    if(r.startsWith(L+" — "))return{sel:L,txt:r.slice(L.length+3)};
+  }
+  return{sel:r?"":BK_REASONS[0],txt:r};
+}
+function bkDialog(o){
+  o=o||{};
+  return new Promise(resolve=>{
+    const m=document.getElementById("blockDialog");
+    if(!m){resolve(null);return}
+    if(window.__bkDone)window.__bkDone(null);
+    const set=(id,html)=>{const el=document.getElementById(id);if(el)el.innerHTML=html;};
+    document.getElementById("bkDlgTitle").textContent=o.title||"حظر";
+    set("bkDlgTargets",(o.targets||[]).map(t=>`<div>${esc(t)}</div>`).join(""));
+    const w=document.getElementById("bkDlgWarn");
+    const warn=String(o.warn||"").trim();
+    w.textContent=warn;w.classList.toggle("hidden",!warn);
+    const pr=bkParseReason(o.reason);
+    set("bkReasonSel",BK_REASONS.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join("")+'<option value="">سبب آخر (اكتبه أدناه)</option>');
+    document.getElementById("bkReasonSel").value=pr.sel;
+    document.getElementById("bkReasonTxt").value=pr.txt;
+    set("bkDurSel",(o.edit?[["keep","إبقاء المدة الحالية ("+(o.curDur||"")+")"]]:[]).concat(BK_DURATIONS).map(d=>`<option value="${d[0]}">${esc(d[1])}</option>`).join(""));
+    document.getElementById("bkDurSel").value=o.edit?"keep":"perm";
+    document.getElementById("bkDlgOk").textContent=o.okText||"🚫 تأكيد الحظر";
+    m.classList.remove("hidden");
+    window.__bkDone=v=>{m.classList.add("hidden");window.__bkDone=null;resolve(v);};
+  });
+}
+window.bkDialogSubmit=function(){
+  const sel=document.getElementById("bkReasonSel").value;
+  const txt=document.getElementById("bkReasonTxt").value.trim();
+  const dur=document.getElementById("bkDurSel").value;
+  if(!sel&&!txt){alert("اكتب سبب الحظر");return}
+  const reason=sel?(sel+(txt?" — "+txt:"")):txt;
+  const out={reason,expiresAt:BK_MS[dur]?new Date(Date.now()+BK_MS[dur]):null,keep:dur==="keep"};
+  if(window.__bkDone)window.__bkDone(out);
+};
+window.bkDialogCancel=function(){if(window.__bkDone)window.__bkDone(null);};
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&window.__bkDone)window.bkDialogCancel();});
+
+// ----- بطاقة سجل حظر (هاتف أو IP) -----
+function bkCard(kind,b){
+  const isIp=kind==="ip";
+  const id=isIp?b.key:b.phone;
+  const st=blockState(b);
+  const exp=tsMs(b.expiresAt);
+  const stTxt={active:"محظور",expired:"انتهت مدة الحظر",lifted:"مرفوع"}[st];
+  const dur=exp?("مؤقت حتى "+fmtDT(exp)+(st==="active"?" · "+blockLeftTxt(exp):"")):"دائم";
+  const who=[b.customerName,isIp?b.customerPhone:"",b.country].filter(Boolean).map(esc).join(" · ");
+  const att=Number(b.attempts||0);
+  const lastExtra=isIp?b.lastAttemptPhone:b.lastAttemptIp;
+  const arg=`'${escJs(kind)}','${escJs(id)}'`;
+  const btn=(cls,fn,txt)=>`<button class="bk-btn ${cls}" type="button" onclick="window.${fn}(${arg})">${txt}</button>`;
+  const actions=st==="active"
+    ?btn("ok","bkLift","✅ رفع الحظر")+btn("info","bkEdit","✏️ تعديل")
+    :btn("warn","bkReblock","🚫 إعادة الحظر")+btn("danger","bkDelete","🗑 حذف السجل");
+  const rows=[
+    `<div>📝 السبب: ${b.reason?esc(b.reason):"<i>غير مسجّل</i>"}</div>`,
+    b.blockedAt?`<div>📅 تاريخ الحظر: ${fmtDT(tsMs(b.blockedAt))}${b.blockedBy?` · 👤 ${esc(b.blockedBy)}`:""}</div>`:"",
+    `<div>🔁 محاولات الطلب بعد الحظر: <b class="${att?"bk-att":""}">${att.toLocaleString("ar-DZ")}</b>${att&&b.lastAttemptAt?` (آخرها ${fmtDT(tsMs(b.lastAttemptAt))}${lastExtra?` · <span dir="ltr">${esc(lastExtra)}</span>`:""})`:""}</div>`,
+    b.status==="lifted"?`<div>✅ رُفع الحظر: ${fmtDT(tsMs(b.liftedAt))}${b.liftedBy?` · 👤 ${esc(b.liftedBy)}`:""}</div>`:""
+  ].join("");
+  return `<div class="bk-card ${st==="active"?"":"bk-inactive"}"><div class="bk-main"><span class="bk-ico">${isIp?"🌐":"🚫"}</span><div class="bk-body"><div class="bk-title"><b dir="ltr">${esc(isIp?(b.ip||b.key):b.phone)}</b><span class="bk-state bk-st-${st}">${stTxt}</span><span class="bk-tag">${esc(dur)}</span></div>${who?`<div class="bk-meta">${who}</div>`:""}<div class="bk-details">${rows}</div></div></div><div class="bk-actions">${actions}</div></div>`;
+}
+function bkList(kind){return kind==="ip"?blockedIps:blockedPhones;}
+function bkFind(kind,id){return bkList(kind).find(x=>x[kind==="ip"?"key":"phone"]===id);}
+function bkLabel(kind,b,id){return kind==="ip"?((b&&b.ip)||id):id;}
+function bkRerender(kind){
+  if(kind==="ip"){blockedIps=sortBlocks(blockedIps);blockedIpKeys=activeIpKeys();renderBlockedIps();if(ordersLoaded)renderOrders();}
+  else{blockedPhones=sortBlocks(blockedPhones);renderBlockedPhones();}
+}
+window.bkLift=async function(kind,id){
+  const b=bkFind(kind,id);
+  if(!confirm(`رفع الحظر عن ${kind==="ip"?"عنوان IP":"الرقم"} ${bkLabel(kind,b,id)}؟\nيبقى سجل الحظر (السبب والمحاولات) محفوظًا ويمكنك إعادة الحظر لاحقًا.`))return;
+  try{
+    await updateDoc(doc(db,kind==="ip"?"blockedIps":"blockedPhones",id),{status:"lifted",liftedAt:serverTimestamp(),liftedBy:adminActor()});
+    if(b){b.status="lifted";b.liftedAt={seconds:Math.floor(Date.now()/1000)};b.liftedBy=adminActor();}
+    bkRerender(kind);
+    show("تم رفع الحظر ✅","ok");
+  }catch(e){alert("تعذر رفع الحظر: "+(e.message||"خطأ غير معروف"))}
+};
+window.bkEdit=async function(kind,id){
+  const b=bkFind(kind,id);
+  if(!b)return;
+  const e0=tsMs(b.expiresAt);
+  const res=await bkDialog({title:"تعديل الحظر",targets:[bkLabel(kind,b,id)],reason:b.reason||"",edit:true,curDur:e0?("حتى "+fmtDT(e0)):"دائم",okText:"💾 حفظ التعديل"});
+  if(!res)return;
+  if(res.keep)res.expiresAt=e0?new Date(e0):null;
+  try{await bkApply(kind,id,{},res,true);show("تم تحديث الحظر ✅","ok");}
+  catch(e){alert("تعذر تحديث الحظر: "+(e.message||"خطأ غير معروف"))}
+};
+window.bkReblock=async function(kind,id){
+  const b=bkFind(kind,id);
+  if(!b)return;
+  const res=await bkDialog({title:"إعادة الحظر",targets:[bkLabel(kind,b,id)],warn:kind==="ip"?ipRiskNote({key:id}):"",reason:b.reason||"",okText:"🚫 إعادة الحظر"});
+  if(!res)return;
+  try{await bkApply(kind,id,{},res,false);show("تمت إعادة الحظر ✅","ok");}
+  catch(e){alert("تعذر إعادة الحظر: "+(e.message||"خطأ غير معروف"))}
+};
+window.bkDelete=async function(kind,id){
+  const b=bkFind(kind,id);
+  if(!confirm(`حذف سجل الحظر الخاص بـ ${bkLabel(kind,b,id)} نهائيًا؟\nسيُفقد سببه وتاريخه وعدّاد محاولاته.`))return;
+  try{
+    await deleteDoc(doc(db,kind==="ip"?"blockedIps":"blockedPhones",id));
+    const kf=kind==="ip"?"key":"phone";
+    if(kind==="ip")blockedIps=blockedIps.filter(x=>x[kf]!==id);else blockedPhones=blockedPhones.filter(x=>x[kf]!==id);
+    bkRerender(kind);
+    show("تم حذف السجل ✅","ok");
+  }catch(e){alert("تعذر حذف السجل: "+(e.message||"خطأ غير معروف"))}
+};
+
 // ===== الأرقام المحظورة: منع رقم هاتف من تسجيل أي طلب جديد =====
 // كل رقم محظور = وثيقة فـ collection "blockedPhones" معرّفها هو رقم الهاتف نفسه.
 // الـ Worker (worker/create-order.js) يتحقق من هذا الـ collection قبل قبول أي طلب.
 let blockedPhones=[];
+let blockedPhonesLoaded=false;
 function normalizePhone(p){return String(p||"").replace(/\s+/g,"").trim();}
 window.bazarLoadBlockedPhones=async function(){
   const box=document.getElementById("blockedList");
   try{
     const snap=await getDocs(collection(db,"blockedPhones"));
-    blockedPhones=snap.docs.map(d=>({phone:d.id,...(d.data()||{})})).sort((a,b)=>(b.blockedAt?.seconds||0)-(a.blockedAt?.seconds||0));
+    blockedPhones=sortBlocks(snap.docs.map(d=>({phone:d.id,...(d.data()||{})})));
+    blockedPhonesLoaded=true;
     renderBlockedPhones();
   }catch(e){
     console.error("blockedPhones load",e);
@@ -2445,17 +2710,22 @@ function renderBlockedPhones(){
   const box=document.getElementById("blockedList");
   if(!box)return;
   if(!blockedPhones.length){box.innerHTML='<div class="empty-card">لا توجد أرقام محظورة حاليًا.</div>';return}
-  box.innerHTML=blockedPhones.map(b=>`<div class="category-row"><div class="category-info"><span class="category-icon">🚫</span><div><b>${esc(b.phone)}</b>${b.customerName?`<small>${esc(b.customerName)}</small>`:""}</div></div><div class="category-actions"><button class="edit-cat" type="button" onclick="unblockPhone('${esc(b.phone)}')">✅ إلغاء الحظر</button></div></div>`).join("");
+  box.innerHTML=blockedPhones.map(b=>bkCard("phone",b)).join("");
 }
+function phoneBlockedNow(p){const r=blockedPhones.find(x=>x.phone===p);return !!r&&blockState(r)==="active";}
 window.blockPhone=async function(phone,customerName){
   const p=normalizePhone(phone);
-  if(!p){alert("رقم هاتف غير صالح");return}
-  if(!confirm(`حظر الرقم ${p}؟ لن يتمكن من تسجيل أي طلب جديد.`))return;
+  if(!p){alert("رقم هاتف غير صالح");return false}
+  if(!blockedPhonesLoaded)await window.bazarLoadBlockedPhones();
+  if(phoneBlockedNow(p)){show("هذا الرقم محظور مسبقًا","ok");return false}
+  const cur=blockedPhones.find(x=>x.phone===p);
+  const res=await bkDialog({title:"حظر رقم هاتف",targets:[p],reason:cur?cur.reason:"",okText:"🚫 حظر الرقم"});
+  if(!res)return false;
   try{
-    await setDoc(doc(db,"blockedPhones",p),{phone:p,customerName:customerName||"",blockedAt:serverTimestamp()});
+    await bkApply("phone",p,{phone:p,customerName:customerName||""},res,false);
     show("تم حظر الرقم ✅","ok");
-    if(document.getElementById("blockedList"))window.bazarLoadBlockedPhones();
-  }catch(e){alert("تعذر حظر الرقم: "+(e.message||"خطأ غير معروف"))}
+    return true;
+  }catch(e){alert("تعذر حظر الرقم: "+(e.message||"خطأ غير معروف"));return false}
 };
 // حظر رقم هاتف الزبون + عنوان IP متاع نفس الطلب بضغطة واحدة (زر 🚫 في صفحة الطلبات).
 window.blockOrderPhoneAndIp=async function(orderId){
@@ -2463,29 +2733,28 @@ window.blockOrderPhoneAndIp=async function(orderId){
   const p=normalizePhone(o.customerPhone||o.phone||"");
   const n=o.ip?normalizeIp(o.ip):null;
   if(!p&&!n){alert("لا يوجد رقم هاتف أو عنوان IP صالح لهذا الطلب");return}
-  const parts=[p?`الرقم ${p}`:null,n?`عنوان IP ‏${n.display}`:null].filter(Boolean).join(" و ");
-  if(!confirm(`حظر ${parts}؟ لن يتمكنا من تسجيل أي طلب جديد.`+(n?ipRiskNote(n):"")))return;
+  if(p&&!blockedPhonesLoaded)await window.bazarLoadBlockedPhones();
+  if(n&&!blockedIpsLoaded){try{await window.bazarLoadBlockedIps()}catch(e){}}
+  const doPhone=!!p&&!phoneBlockedNow(p);
+  const doIp=!!n&&!blockedIpKeys.has(n.key);
+  if(!doPhone&&!doIp){show("محظور مسبقًا ✅","ok");return}
+  const targets=[doPhone?`📞 ${p}`:"",doIp?`🌐 ${n.display}`:""].filter(Boolean);
+  const cur=doPhone?blockedPhones.find(x=>x.phone===p):null;
+  const res=await bkDialog({title:"حظر الزبون",targets,warn:doIp?ipRiskNote(n):"",reason:cur?cur.reason:"",okText:"🚫 تأكيد الحظر"});
+  if(!res)return;
   try{
-    if(p)await setDoc(doc(db,"blockedPhones",p),{phone:p,customerName:o.customerName||o.name||"",blockedAt:serverTimestamp()});
-    if(n)await saveBlockedIp(n,{customerName:o.customerName||o.name||"",customerPhone:p,country:o.country||""});
+    const name=o.customerName||o.name||"";
+    if(doPhone)await bkApply("phone",p,{phone:p,customerName:name},res,false);
+    if(doIp)await saveBlockedIp(n,{customerName:name,customerPhone:p,country:o.country||""},res);
     show("تم الحظر ✅","ok");
-    if(document.getElementById("blockedList"))window.bazarLoadBlockedPhones();
   }catch(e){alert("تعذر الحظر: "+(e.message||"خطأ غير معروف"))}
 };
-window.unblockPhone=async function(phone){
-  if(!confirm(`إلغاء حظر الرقم ${phone}؟`))return;
-  try{
-    await deleteDoc(doc(db,"blockedPhones",phone));
-    blockedPhones=blockedPhones.filter(b=>b.phone!==phone);
-    renderBlockedPhones();
-    show("تم إلغاء الحظر ✅","ok");
-  }catch(e){alert("تعذر إلغاء الحظر: "+(e.message||"خطأ غير معروف"))}
-};
+window.unblockPhone=function(phone){return window.bkLift("phone",phone);};
 window.blockPhoneManual=function(){
   const input=document.getElementById("blockPhoneInput");
   const p=normalizePhone(input?.value);
   if(!/^0[5-7][0-9]{8}$/.test(p)){alert("أدخل رقم هاتف جزائري صحيح (مثال: 0551234567)");return}
-  window.blockPhone(p,"").then(()=>{if(input)input.value=""});
+  window.blockPhone(p,"").then(ok=>{if(ok&&input)input.value=""});
 };
 
 // ===== عناوين IP المحظورة: منع عنوان IP من تسجيل أي طلب جديد =====
@@ -2559,8 +2828,8 @@ window.bazarLoadBlockedIps=async function(){
   const box=document.getElementById("blockedIpList");
   try{
     const snap=await getDocs(collection(db,"blockedIps"));
-    blockedIps=snap.docs.map(d=>({key:d.id,...(d.data()||{})})).sort((a,b)=>(b.blockedAt?.seconds||0)-(a.blockedAt?.seconds||0));
-    blockedIpKeys=new Set(blockedIps.map(b=>b.key));
+    blockedIps=sortBlocks(snap.docs.map(d=>({key:d.id,...(d.data()||{})})));
+    blockedIpKeys=activeIpKeys();
     blockedIpsLoaded=true;
     renderBlockedIps();
   }catch(e){
@@ -2569,21 +2838,18 @@ window.bazarLoadBlockedIps=async function(){
     throw e;
   }
 };
+function activeIpKeys(){return new Set(blockedIps.filter(b=>blockState(b)==="active").map(b=>b.key));}
 function renderBlockedIps(){
   const box=document.getElementById("blockedIpList");
   if(!box)return;
+  blockedIpKeys=activeIpKeys();
   if(!blockedIps.length){box.innerHTML='<div class="empty-card">لا توجد عناوين IP محظورة حاليًا.</div>';return}
-  box.innerHTML=blockedIps.map(b=>{
-    const who=[b.customerName,b.customerPhone,b.country].filter(Boolean).map(esc).join(" · ");
-    return `<div class="category-row"><div class="category-info"><span class="category-icon">🌐</span><div><b dir="ltr">${esc(b.ip||b.key)}</b>${who?`<small>${who}</small>`:""}</div></div><div class="category-actions"><button class="edit-cat" type="button" onclick="unblockIp('${esc(b.key)}')">✅ إلغاء الحظر</button></div></div>`;
-  }).join("");
+  box.innerHTML=blockedIps.map(b=>bkCard("ip",b)).join("");
 }
-async function saveBlockedIp(n,meta){
+async function saveBlockedIp(n,meta,res){
   meta=meta||{};
-  await setDoc(doc(db,"blockedIps",n.key),{ip:n.display,ipKey:n.key,customerName:meta.customerName||"",customerPhone:meta.customerPhone||"",country:meta.country||"",blockedAt:serverTimestamp()});
-  blockedIpKeys.add(n.key);
-  blockedIps=[{key:n.key,ip:n.display,customerName:meta.customerName||"",customerPhone:meta.customerPhone||"",country:meta.country||"",blockedAt:{seconds:Math.floor(Date.now()/1000)}},...blockedIps.filter(b=>b.key!==n.key)];
-  renderBlockedIps();
+  res=res||{reason:"",expiresAt:null};
+  await bkApply("ip",n.key,{ip:n.display,ipKey:n.key,customerName:meta.customerName||"",customerPhone:meta.customerPhone||"",country:meta.country||""},res,false);
 }
 function ipRiskNote(n){
   return n.key.startsWith("v6-")
@@ -2598,9 +2864,12 @@ window.blockOrderIp=async function(orderId){
   const related=(window.adminOrders||[]).filter(x=>{const m=x.ip?normalizeIp(x.ip):null;return m&&m.key===n.key;});
   const already=blockedIpKeys.has(n.key);
   if(!already){
-    if(!confirm(`حظر عنوان IP ‏${n.display}؟ لن يتمكن أي جهاز بهذا العنوان من تسجيل طلب جديد.`+ipRiskNote(n)))return;
+    if(!blockedIpsLoaded){try{await window.bazarLoadBlockedIps()}catch(e){}}
+    const cur=blockedIps.find(x=>x.key===n.key);
+    const res=await bkDialog({title:"حظر عنوان IP",targets:[n.display],warn:ipRiskNote(n),reason:cur?cur.reason:"",okText:"🚫 حظر الـ IP"});
+    if(!res)return;
     try{
-      await saveBlockedIp(n,{customerName:o.customerName||o.name||"",customerPhone:o.customerPhone||o.phone||"",country:o.country||""});
+      await saveBlockedIp(n,{customerName:o.customerName||o.name||"",customerPhone:o.customerPhone||o.phone||"",country:o.country||""},res);
       show("تم حظر عنوان IP ✅","ok");
     }catch(e){alert("تعذر حظر عنوان IP: "+(e.message||"خطأ غير معروف"));return}
   }else if(related.length<1){
@@ -2625,17 +2894,7 @@ window.blockOrderIp=async function(orderId){
     if(cur&&dv&&!dv.classList.contains("hidden"))renderOrderDetail(cur);
   }
 };
-window.unblockIp=async function(key){
-  const b=blockedIps.find(x=>x.key===key);
-  if(!confirm(`إلغاء حظر عنوان IP ‏${(b&&b.ip)||key}؟`))return;
-  try{
-    await deleteDoc(doc(db,"blockedIps",key));
-    blockedIps=blockedIps.filter(x=>x.key!==key);
-    blockedIpKeys.delete(key);
-    renderBlockedIps();
-    show("تم إلغاء الحظر ✅","ok");
-  }catch(e){alert("تعذر إلغاء الحظر: "+(e.message||"خطأ غير معروف"))}
-};
+window.unblockIp=function(key){return window.bkLift("ip",key);};
 // ===== حالة الـ Worker + "الوضع الصارم" =====
 // settings/security { strictOrders: true|false }: لو true تمنع firestore.rules أي إنشاء مباشر
 // للطلبات فلا يبقى إلا مسار الـ Worker (حظر IP مُلزِم). لو false (الافتراضي) يعمل المسار
@@ -2700,15 +2959,216 @@ window.blockIpManual=async function(){
   const input=document.getElementById("blockIpInput");
   const n=normalizeIp(input?.value);
   if(!n){alert("أدخل عنوان IP صحيحًا (IPv4 مثل 41.111.22.33 أو IPv6)");return}
+  if(!blockedIpsLoaded){try{await window.bazarLoadBlockedIps()}catch(e){}}
   if(blockedIpKeys.has(n.key)){show("هذا العنوان محظور مسبقًا","ok");return}
-  if(!confirm(`حظر عنوان IP ‏${n.display}؟ لن يتمكن أي جهاز بهذا العنوان من تسجيل طلب جديد.`+ipRiskNote(n)))return;
+  const cur=blockedIps.find(x=>x.key===n.key);
+  const res=await bkDialog({title:"حظر عنوان IP",targets:[n.display],warn:ipRiskNote(n),reason:cur?cur.reason:"",okText:"🚫 حظر الـ IP"});
+  if(!res)return;
   try{
-    await saveBlockedIp(n,{});
+    await saveBlockedIp(n,{},res);
     if(input)input.value="";
     show("تم حظر عنوان IP ✅","ok");
-    renderOrders();
+    if(ordersLoaded)renderOrders();
   }catch(e){alert("تعذر حظر عنوان IP: "+(e.message||"خطأ غير معروف"))}
 };
+
+// ===== إنذارات الإساءة (Fraud / Abuse) =====
+// يكتب الـ Worker الإنذارات في collection "fraudAlerts" (الكتابة له وحده)، والأدمن يقرأها ويغيّر حالتها.
+// ⚠️ نصوص الأسباب هنا منسوخة من FLAG_INFO في worker/create-order.js — أي تعديل هناك يُعدَّل هنا أيضًا.
+const FRAUD_FLAG_AR={
+  ip_burst:"عدد كبير من الطلبات من نفس الـ IP في وقت قصير",
+  ip_many_phones:"نفس الـ IP استعمل عدة أرقام هاتف مختلفة",
+  phone_repeat:"نفس رقم الهاتف أرسل عدة طلبات متتالية",
+  device_many_phones:"نفس الجهاز جرّب أرقام هاتف مختلفة",
+  device_burst:"نفس الجهاز أرسل عدد كبير من الطلبات في وقت قصير",
+  address_repeat:"عدد كبير من الطلبات لنفس العنوان",
+  device_evading_block:"جهاز سبق أن حاول الطلب برقم/IP محظور عاد الآن بمعطيات مختلفة",
+  blocked_attempt:"محاولة طلب من رقم أو IP محظور"
+};
+const FRAUD_SEV={high:"خطر عالٍ",medium:"خطر متوسط",low:"خطر منخفض"};
+const FRAUD_KEY_AR={ip:"IP",phone:"الهاتف",device:"الجهاز",addr:"العنوان"};
+let fraudAlerts=[];
+let fraudLoaded=false;
+let fraudStatusFilter="open";
+let fraudSevFilter="all";
+function alertIpNorm(ip){return normalizeIp(String(ip||"").replace(/\/\d+$/,""));}
+function updateFraudBadge(){
+  const el=document.getElementById("fraudNavBadge");
+  if(!el)return;
+  const n=fraudAlerts.filter(a=>!a.resolved&&!a.seen).length;
+  el.textContent=n>99?"99+":String(n);
+  el.classList.toggle("hidden",n===0);
+}
+async function ensureBlocksLoaded(){
+  const jobs=[];
+  if(!blockedPhonesLoaded)jobs.push(window.bazarLoadBlockedPhones());
+  if(!blockedIpsLoaded)jobs.push(window.bazarLoadBlockedIps());
+  await Promise.allSettled(jobs);
+}
+window.bazarLoadFraudAlerts=async function(quiet){
+  const box=document.getElementById("fraudList");
+  if(!quiet&&box&&!fraudLoaded)box.innerHTML='<div class="empty-card">⏳ جاري تحميل الإنذارات...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,"fraudAlerts"),orderBy("createdAt","desc"),limit(300)));
+    fraudAlerts=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+    fraudLoaded=true;
+    updateFraudBadge();
+    if(!quiet)await ensureBlocksLoaded();
+    renderFraudAlerts();
+  }catch(e){
+    console.error("fraudAlerts load",e);
+    if(!quiet&&box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل الإنذارات. تحقق من نشر Firestore Rules (يجب أن تحتوي على fraudAlerts).</div>';
+  }
+};
+window.fraudSetFilter=function(kind,v){
+  if(kind==="status")fraudStatusFilter=v;else fraudSevFilter=v;
+  renderFraudAlerts();
+};
+function fraudRow(a){
+  const sev=FRAUD_SEV[a.severity]?a.severity:"low";
+  const cls=a.resolved?"fr-resolved":(a.seen?"":"fr-new");
+  const phone=a.phone?normalizePhone(a.phone):"";
+  const ipN=alertIpNorm(a.ip);
+  const phoneBlocked=!!phone&&phoneBlockedNow(phone);
+  const ipBlocked=!!ipN&&blockedIpKeys.has(ipN.key);
+  const id=escJs(a.id);
+  const btn=(c,fn,arg,txt)=>`<button class="bk-btn ${c}" type="button" onclick="window.${fn}(${arg})">${txt}</button>`;
+  const chips=[
+    a.keyType&&FRAUD_KEY_AR[a.keyType]?`<span class="fr-chip">🔑 ${FRAUD_KEY_AR[a.keyType]}</span>`:"",
+    Number(a.count)>1?`<span class="fr-chip">×${Number(a.count).toLocaleString("ar-DZ")}</span>`:"",
+    a.blockedAttempt?'<span class="fr-chip fr-chip-red">🚫 محاولة بعد الحظر</span>':"",
+    phone?`<span class="fr-chip">📞 <span dir="ltr">${esc(phone)}</span></span>`:"",
+    a.ip?`<span class="fr-chip">🌐 <span dir="ltr">${esc(a.ip)}</span>${a.country?` · ${esc(a.country)}`:""}</span>`:""
+  ].join("");
+  const actions=[
+    a.orderId?btn("info","fraudOpenOrder",`'${id}'`,"👁 عرض الطلب"):"",
+    phone?(phoneBlocked?'<span class="fr-done">📞 الرقم محظور ✅</span>':btn("warn","fraudBlock",`'phone','${id}'`,"🚫 حظر الرقم")):"",
+    ipN?(ipBlocked?'<span class="fr-done">🌐 الـ IP محظور ✅</span>':btn("warn","fraudBlock",`'ip','${id}'`,"🌐 حظر الـ IP")):"",
+    !a.seen&&!a.resolved?btn("info","fraudAct",`'seen','${id}'`,"👁 مقروء"):"",
+    a.resolved?btn("info","fraudAct",`'reopen','${id}'`,"↩ إعادة فتح"):btn("ok","fraudAct",`'resolve','${id}'`,"✔ تمت المعالجة"),
+    btn("danger","fraudAct",`'delete','${id}'`,"🗑")
+  ].join("");
+  return `<div class="fr-item fr-sev-${sev} ${cls}"><div class="fr-head"><span class="risk-badge risk-${sev}">⚠ ${FRAUD_SEV[sev]}</span><b class="fr-msg">${esc(a.message||FRAUD_FLAG_AR[a.type]||a.type||"إنذار")}</b><span class="fr-time">${fmtDT(tsMs(a.createdAt))}</span></div><div class="fr-chips">${chips}</div><div class="bk-actions">${actions}</div></div>`;
+}
+function renderFraudAlerts(){
+  const box=document.getElementById("fraudList");
+  if(!box)return;
+  const open=fraudAlerts.filter(a=>!a.resolved);
+  const st=document.getElementById("fraudStats");
+  if(st){
+    const cell=(n,l,c)=>`<div class="fr-stat ${c||""}"><b>${Number(n).toLocaleString("ar-DZ")}</b><span>${l}</span></div>`;
+    st.innerHTML=cell(open.length,"إنذارات مفتوحة")+cell(open.filter(a=>a.severity==="high").length,"خطر عالٍ","fr-high")+cell(open.filter(a=>a.blockedAttempt).length,"محاولات بعد الحظر","fr-med")+cell(open.filter(a=>!a.seen).length,"غير مقروءة","fr-new");
+  }
+  const rows=fraudAlerts.filter(a=>{
+    if(fraudStatusFilter==="open"&&a.resolved)return false;
+    if(fraudStatusFilter==="new"&&(a.resolved||a.seen))return false;
+    if(fraudStatusFilter==="resolved"&&!a.resolved)return false;
+    if(fraudSevFilter!=="all"&&a.severity!==fraudSevFilter)return false;
+    return true;
+  });
+  box.innerHTML=rows.length?rows.map(fraudRow).join(""):'<div class="empty-card">✅ لا توجد إنذارات مطابقة.</div>';
+}
+window.fraudAct=async function(action,id){
+  const a=fraudAlerts.find(x=>x.id===id);
+  if(!a)return;
+  const ref=doc(db,"fraudAlerts",id);
+  try{
+    if(action==="seen"){await updateDoc(ref,{seen:true});a.seen=true;}
+    else if(action==="resolve"){await updateDoc(ref,{resolved:true,seen:true,resolvedAt:serverTimestamp(),resolvedBy:adminActor()});a.resolved=true;a.seen=true;}
+    else if(action==="reopen"){await updateDoc(ref,{resolved:false,resolvedAt:deleteField(),resolvedBy:deleteField()});a.resolved=false;}
+    else if(action==="delete"){
+      if(!confirm("حذف هذا الإنذار؟"))return;
+      await deleteDoc(ref);
+      fraudAlerts=fraudAlerts.filter(x=>x.id!==id);
+    }
+    updateFraudBadge();
+    renderFraudAlerts();
+  }catch(e){alert("تعذر تنفيذ العملية: "+(e.message||"خطأ غير معروف"))}
+};
+window.fraudMarkAllSeen=async function(){
+  const ids=fraudAlerts.filter(a=>!a.seen&&!a.resolved).map(a=>a.id);
+  if(!ids.length){show("لا توجد إنذارات غير مقروءة","ok");return}
+  try{
+    const b=writeBatch(db);
+    ids.forEach(id=>b.update(doc(db,"fraudAlerts",id),{seen:true}));
+    await b.commit();
+    fraudAlerts.forEach(a=>{if(ids.includes(a.id))a.seen=true;});
+    updateFraudBadge();renderFraudAlerts();
+    show("تم تعليم "+ids.length+" إنذار كمقروء ✅","ok");
+  }catch(e){alert("تعذر التحديث: "+(e.message||"خطأ غير معروف"))}
+};
+window.fraudDeleteResolved=async function(){
+  const ids=fraudAlerts.filter(a=>a.resolved).map(a=>a.id);
+  if(!ids.length){show("لا توجد إنذارات معالجة للحذف","ok");return}
+  if(!confirm("حذف "+ids.length+" إنذار معالج نهائيًا؟"))return;
+  try{
+    const b=writeBatch(db);
+    ids.forEach(id=>b.delete(doc(db,"fraudAlerts",id)));
+    await b.commit();
+    fraudAlerts=fraudAlerts.filter(a=>!a.resolved);
+    updateFraudBadge();renderFraudAlerts();
+    show("تم حذف "+ids.length+" إنذار ✅","ok");
+  }catch(e){alert("تعذر الحذف: "+(e.message||"خطأ غير معروف"))}
+};
+window.fraudOpenOrder=async function(orderId){
+  try{if(!ordersLoaded)await window.bazarLoadOrders();}catch(e){}
+  if(!(window.adminOrders||[]).some(x=>x.id===orderId)){show("لم يُعثر على الطلب (ربما حُذف)","err");return}
+  window.openOrderDetail(orderId);
+};
+window.fraudBlock=async function(kind,alertId){
+  const a=fraudAlerts.find(x=>x.id===alertId);
+  if(!a)return;
+  await ensureBlocksLoaded();
+  const reason="سلوك مشبوه (إنذار النظام)"+(a.message?" — "+a.message:"");
+  try{
+    if(kind==="phone"){
+      const p=normalizePhone(a.phone);
+      if(!p)return;
+      if(phoneBlockedNow(p)){show("هذا الرقم محظور مسبقًا","ok");renderFraudAlerts();return}
+      const res=await bkDialog({title:"حظر رقم هاتف",targets:[p],reason,okText:"🚫 حظر الرقم"});
+      if(!res)return;
+      await bkApply("phone",p,{phone:p},res,false);
+    }else{
+      const n=alertIpNorm(a.ip);
+      if(!n)return;
+      if(blockedIpKeys.has(n.key)){show("هذا العنوان محظور مسبقًا","ok");renderFraudAlerts();return}
+      const res=await bkDialog({title:"حظر عنوان IP",targets:[n.display],warn:ipRiskNote(n),reason,okText:"🚫 حظر الـ IP"});
+      if(!res)return;
+      await saveBlockedIp(n,{customerPhone:a.phone||"",country:a.country||""},res);
+    }
+    show("تم الحظر ✅","ok");
+    renderFraudAlerts();
+  }catch(e){alert("تعذر الحظر: "+(e.message||"خطأ غير معروف"))}
+};
+
+// ===== علامة الخطر على الطلبات (الحقول riskLevel / riskFlags يضيفها الـ Worker عند وجود إشارة) =====
+function riskBadgeHtml(o){
+  const lv=o&&o.riskLevel;
+  if(!FRAUD_SEV[lv])return"";
+  const flags=Array.isArray(o.riskFlags)?o.riskFlags.map(c=>FRAUD_FLAG_AR[c]||c).join(" — "):"";
+  return`<span class="risk-badge risk-${lv}" title="${esc(flags)}">⚠ ${FRAUD_SEV[lv]}</span>`;
+}
+function orderFieldCount(field,value){
+  if(!value)return 0;
+  return(window.adminOrders||[]).filter(x=>x&&x[field]===value).length;
+}
+function riskDetailRows(o){
+  const rows=[];
+  if(FRAUD_SEV[o.riskLevel]){
+    rows.push(`<div class="order-detail-row"><span>درجة الخطر</span><span>${riskBadgeHtml(o)}</span></div>`);
+    if(Array.isArray(o.riskFlags)&&o.riskFlags.length){
+      rows.push(`<div class="order-detail-row"><span>أسباب الإنذار</span><span style="font-weight:600;line-height:1.8;text-align:right">${o.riskFlags.map(c=>esc(FRAUD_FLAG_AR[c]||c)).join("<br>")}</span></div>`);
+    }
+  }
+  const ph=normalizePhone(o.customerPhone||o.phone||"");
+  const cP=ph?(window.adminOrders||[]).filter(x=>normalizePhone(x.customerPhone||x.phone||"")===ph).length:0;
+  const cD=orderFieldCount("deviceId",o.deviceId);
+  const cA=orderFieldCount("addrKey",o.addrKey);
+  if(cP>1)rows.push(`<div class="order-detail-row"><span>طلبات من نفس الهاتف</span><span style="color:#c62828">${cP}</span></div>`);
+  if(cD>1)rows.push(`<div class="order-detail-row"><span>طلبات من نفس الجهاز</span><span style="color:#c62828">${cD}</span></div>`);
+  if(cA>1)rows.push(`<div class="order-detail-row"><span>طلبات لنفس العنوان</span><span style="color:#c62828">${cA}</span></div>`);
+  return rows.join("");
+}
 
 // ===== روابط المنتجات والتصنيفات بالفرنسية (أحرف لاتينية a-z0-9 و"-" فقط) =====
 // المنتج: name_fr، وإن كان فارغًا واسم المنتج بلا حروف عربية نستعمل name، وإلا "produit-<6 أحرف من المعرّف>".
