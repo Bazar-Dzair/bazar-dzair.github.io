@@ -934,7 +934,7 @@ async function openSetting(key){
         <div class="brand-upload-card">
           <div class="upload-title">🖼️ بانر المتجر</div>
           <input id="bannerFile" type="file" accept="image/*" onchange="previewBrandImage(this,'bannerPreview')">
-          <input id="bannerUrl" data-brand-key="bannerUrl" type="url" oninput="var i=document.getElementById('bannerPreview');if(this.value.trim()){i.src=this.value.trim();i.style.display='block'}" placeholder="أو ضع رابط البانر" value="${escapeAttr(remote.bannerUrl||"")}">
+          <input id="bannerUrl" data-brand-key="bannerUrl" data-orig="${escapeAttr(remote.bannerUrl||"")}" type="url" oninput="var i=document.getElementById('bannerPreview');if(this.value.trim()){i.src=this.value.trim();i.style.display='block'}" placeholder="أو ضع رابط البانر" value="${escapeAttr(remote.bannerUrl||"")}">
           <div class="brand-actions"><button type="button" class="b-new" onclick="document.getElementById('bannerFile').click()">📁 إضافة / تغيير</button><button type="button" class="b-del" onclick="removeBrandImage('bannerFile','bannerUrl','bannerPreview')">🗑️ حذف</button></div>
           <img id="bannerPreview" class="brand-preview banner-preview" src="${escapeAttr(remote.bannerUrl||"")}" ${remote.bannerUrl?"":"style='display:none'"} alt="">
         </div>
@@ -982,6 +982,7 @@ async function uploadBrandFile(input,path,maxSide){
 function closeSetting(){document.getElementById("settingsModal").classList.add("hidden");activeSetting=null}
 
 async function saveSetting(){
+  let seoNote="";
   try{
     if(!window.bazarDb||!window.bazarSetDoc||!window.bazarDoc) throw new Error("Firebase غير جاهز");
 
@@ -994,9 +995,21 @@ async function saveSetting(){
       const bannerFile=await uploadBrandFile(document.getElementById("bannerFile"),"site/banner",1600);
       if(logoFile)logoUrl=logoFile;
       if(bannerFile)bannerUrl=bannerFile;
+      const bannerBefore=document.getElementById("bannerUrl")?.dataset.orig||"";
       await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","site"),{
         logoUrl,bannerUrl,updatedAt:window.bazarServerTimestamp()
       },{merge:true});
+      // الحفظ في Firestore تم بنجاح هنا. إن تغيّر البانر نشغّل تحديث صفحات SEO فورًا (og:image + بانر الصفحة
+      // الرئيسية) عبر الـ Worker بدل انتظار الـ cron. فشل هذه الخطوة لا يُلغي الحفظ، بل تظهر رسالة تنبيه فقط
+      // والـ cron (كل 6 ساعات) يعوّض تلقائيًا.
+      if(bannerUrl!==bannerBefore){
+        if(saveBtn)saveBtn.textContent="⏳ جارٍ تحديث صفحات SEO...";
+        let seo;
+        try{seo=await window.bazarTriggerSeo();}catch(e){seo={ok:false,message:"خطأ غير متوقع"};}
+        seoNote=seo&&seo.ok
+          ?"\n🔄 بدأ تحديث صفحات SEO الآن، ويظهر التحديث في الموقع خلال دقائق."
+          :"\n⚠️ لكن تعذر تشغيل تحديث SEO فورًا ("+((seo&&seo.message)||"سبب غير معروف")+"). سيُحدَّث تلقائيًا خلال 6 ساعات كحد أقصى.";
+      }
     }else{
       const data={};
       document.querySelectorAll("#settingModalBody [data-key]").forEach(el=>data[el.dataset.key]=el.type==="checkbox"?el.checked:el.value);
@@ -1005,7 +1018,7 @@ async function saveSetting(){
       Object.assign(saved,data);localStorage.setItem("bazarSettings",JSON.stringify(saved));
     }
     closeSetting();
-    alert("تم حفظ الإعدادات بنجاح ✅");
+    alert("تم حفظ الإعدادات بنجاح ✅"+seoNote);
   }catch(e){
     console.error(e);
     const b=document.querySelector("#settingsModal .modal-actions .green");
@@ -2925,6 +2938,42 @@ window.bazarCheckWorker=async function(){
   }catch(e){
     console.error("worker health",e);
     if(box)box.innerHTML='<div style="text-align:right;line-height:2">❌ تعذر الوصول إلى نسخة الـ Worker الجديدة (غير منشورة، أو ما زالت النسخة القديمة، أو الرابط خاطئ).<br><b>الطلبات ستفشل حتى يُنشر create-order.js بشكل سليم — لا يوجد مسار احتياطي.</b></div>';
+  }
+};
+// ===== تشغيل تحديث صفحات SEO بعد تغيير البانر =====
+// POST /trigger-seo على الـ Worker: يتحقق من توكن الأدمن ثم يشغّل GitHub Action. لا يرمي خطأ أبدًا،
+// بل يرجع {ok, message} حتى لا يُفسد مسار حفظ الإعدادات. توكن GitHub يبقى داخل الـ Worker فقط.
+window.bazarTriggerSeo=async function(){
+  const user=window.bazarAuth&&window.bazarAuth.currentUser;
+  if(!user)return{ok:false,message:"جلسة الدخول انتهت، سجّل الدخول من جديد"};
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),15000);
+  try{
+    let idToken;
+    try{idToken=await user.getIdToken(true);}
+    catch(e){console.error("trigger-seo token",e);return{ok:false,message:"تعذر تجديد جلسة الدخول، سجّل الدخول من جديد"};}
+    const r=await fetch(BAZAR_WORKER_BASE+"/trigger-seo",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({idToken}),
+      signal:ctrl.signal
+    });
+    let j=null;
+    try{j=await r.json();}catch(e){}
+    if(r.ok&&j&&j.ok===true)return{ok:true,message:""};
+    const byStatus={
+      401:"انتهت صلاحية الجلسة، سجّل الدخول من جديد",
+      403:"هذا الحساب غير مصرّح له بالتشغيل",
+      404:"نسخة الـ Worker المنشورة قديمة وليس فيها /trigger-seo",
+      503:"سرّ GITHUB_TOKEN غير مضبوط في الـ Worker",
+      502:"تعذر الاتصال بـ GitHub، تحقق من صلاحية التوكن"
+    };
+    return{ok:false,message:byStatus[r.status]||("رد غير متوقع من الـ Worker: "+r.status)};
+  }catch(e){
+    console.error("trigger-seo",e);
+    return{ok:false,message:e&&e.name==="AbortError"?"انتهت مهلة الاتصال بالـ Worker":"تعذر الوصول إلى الـ Worker"};
+  }finally{
+    clearTimeout(timer);
   }
 };
 window.blockIpManual=async function(){
