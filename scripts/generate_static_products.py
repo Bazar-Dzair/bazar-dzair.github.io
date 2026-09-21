@@ -46,6 +46,54 @@ def get_document(path):
         return {}
 
 
+def collection_where_eq(name, field, val):
+    """يجلب وثائق مجموعة عبر Firestore structuredQuery (POST .../:runQuery) مع شرط
+    where(field == val)، بدل التعداد الكامل (collection()) المستخدم لـ products/categories.
+
+    هذا ليس اختيارًا أسلوبيًا بل ضرورة تفرضها firestore.rules: قاعدة القراءة على
+    reviews هي `allow read: if resource.data.approved == true || isAdmin()` (قاعدة
+    شرطية لكل وثيقة)، وليست `allow read: if true` مثل products/categories. طلب سرد
+    كامل المجموعة (بلا فلتر) على قاعدة كهذه يُرفض من محرك القواعد لأنه غير قادر على
+    إثبات أن كل وثيقة محتملة في النتيجة تحقق الشرط. أما استعلام يحمل نفس الفلتر
+    (approved == true) داخل الطلب نفسه فيثبت الشرط مسبقًا فيُقبل — تمامًا كما يفعل
+    العميل (JS) في product.html عبر query(collection(db,"reviews"),where("approved","==",true)).
+    نعيد [] بصمت عند أي خطأ (شبكة، صلاحيات، إلخ) حتى لا يفشل توليد الموقع كاملاً
+    بسبب ميزة التقييمات الاختيارية هذه؛ ببساطة لن تُضاف aggregateRating لأي منتج."""
+    if isinstance(val, bool):
+        fvalue={'booleanValue': val}
+    elif isinstance(val, (int, float)):
+        fvalue={'integerValue': str(int(val))}
+    else:
+        fvalue={'stringValue': str(val)}
+    out=[]; offset=0; page=1000
+    try:
+        while True:
+            body={'structuredQuery':{
+                'from':[{'collectionId':name}],
+                'where':{'fieldFilter':{'field':{'fieldPath':field},'op':'EQUAL','value':fvalue}},
+                'limit':page,
+                'offset':offset,
+            }}
+            req=urllib.request.Request(
+                BASE+':runQuery',
+                data=json.dumps(body).encode('utf-8'),
+                headers={'Content-Type':'application/json','Accept':'application/json'},
+            )
+            with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r)
+            got=0
+            for item in data:
+                doc=item.get('document')
+                if not doc: continue
+                fields=doc.get('fields',{})
+                out.append({k:value(v) for k,v in fields.items()}|{'_id':doc['name'].rsplit('/',1)[-1]})
+                got+=1
+            if got<page: return out
+            offset+=page
+    except Exception as e:
+        print(f'Warning: could not fetch {name} where {field}=={val}: {e}')
+        return out
+
+
 def replace_tag_attr(text, elem_id, attr_name, new_value):
     """يستبدل قيمة خاصية (مثل content أو src) داخل أول وسم يحمل id=elem_id، بغضّ النظر
     عن ترتيب الخصائص داخل الوسم. يرفع خطأ إن لم يُعثر على id أو على الخاصية، حتى لا يمرّ
@@ -285,12 +333,20 @@ def make_meta_description(desc, limit=155):
     return cut.rstrip(' ,-–—') + '…'
 
 
-def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None):
+def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None, aggregate_rating=None):
     d155=make_meta_description(desc)
     title_tag=f'<title>{html.escape(name)} | Bazar Dzair</title>'
     desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
     canonical_tag=f'<link id="canonical" rel="canonical" href="{html.escape(url,quote=True)}">'
     ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':(desc or '')[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':str(price),'availability':'https://schema.org/InStock'}}
+    # aggregateRating فقط عند وجود تقييمات زبائن حقيقية منشورة فعلاً لهذا المنتج (rating_index)؛
+    # لا نضيف رقمًا مختلَقًا أبدًا، ونفس القيم التي سيعيد JS حسابها لاحقًا من مجموعة reviews.
+    if aggregate_rating:
+        ld['aggregateRating']={
+            '@type':'AggregateRating',
+            'ratingValue':aggregate_rating['ratingValue'],
+            'reviewCount':aggregate_rating['reviewCount'],
+        }
     bc={'@context':'https://schema.org','@type':'BreadcrumbList','itemListElement':[{'@type':'ListItem','position':1,'name':'الرئيسية','item':SITE},{'@type':'ListItem','position':2,'name':name,'item':url}]}
     extra=(
         f'<meta id="ogTitle" property="og:title" content="{html.escape(name,quote=True)}">'
@@ -330,9 +386,33 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
     return out
 
 
+def build_rating_index(reviews):
+    """يبني {productId: {ratingValue, reviewCount}} من قائمة تقييمات approved==true،
+    بنفس حسابات bazarRealRating() في product.html بالضبط (نفس شرط قبول ratingValue
+    بين 1 و5، ونفس التقريب لمنزلة عشرية واحدة)، حتى يتطابق aggregateRating المُحقن هنا
+    في الـHTML الثابت تمامًا مع ما يعيد JS حسابه لاحقًا في المتصفح — بلا أي اختلاف قد
+    يُربك محركات البحث أو يبدو كتضارب بيانات."""
+    by_product={}
+    for rv in reviews:
+        pid=str(rv.get('productId') or '').strip()
+        if not pid: continue
+        try: rating=float(rv.get('ratingValue'))
+        except (TypeError, ValueError): continue
+        if not (1 <= rating <= 5): continue
+        by_product.setdefault(pid, []).append(rating)
+    index={}
+    for pid, values in by_product.items():
+        index[pid]={'ratingValue': round((sum(values)/len(values))*10)/10, 'reviewCount': len(values)}
+    return index
+
+
 root=Path(__file__).resolve().parents[1]
 products=[p for p in collection('products') if is_published(p) and (p.get('name') or p.get('product'))]
 categories=[c for c in collection('categories') if c.get('name')]
+# تقييمات الزبائن الحقيقية المنشورة فقط (approved==true)، لإضافة aggregateRating صحيح
+# داخل HTML الثابت من البداية بدل انتظار JS بعد التحميل (نفس مصدر الحقيقة الذي
+# يستعمله product.html، مجموعة reviews في Firestore — لا أرقام يدوية أبدًا).
+rating_index=build_rating_index(collection_where_eq('reviews', 'approved', True))
 
 # Reset only generated SEO folders; never touch the live store files.
 for folder in (root/'product',root/'product-category'):
@@ -373,7 +453,10 @@ for p in products:
     # لا نُضمّن في الصفحة الثابتة أي تقييم يدوي قديم (reviewRating/reviewCount/reviews...): التقييمات الحقيقية تُجلب من مجموعة reviews فقط.
     for _k in ('reviewRating','reviewCount','aggregateRating','rating','ratingValue','ratingCount','reviews'):
         static_product_data.pop(_k, None)
-    template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data)
+    # نفس التقييم المُجمَّع (rating_index) الذي سيحسبه JS من مجموعة reviews — إن وُجد نضيفه هنا
+    # مباشرة في JSON-LD الثابت (raw HTML)، وإلا نتركه غائبًا تمامًا (بدون aggregateRating).
+    agg=rating_index.get(str(p['_id']))
+    template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data,aggregate_rating=agg)
     (root/'product'/slug).mkdir(parents=True,exist_ok=True)
     (root/'product'/slug/'index.html').write_text(template,encoding='utf-8')
     product_urls.append((url,name,p,slug))
