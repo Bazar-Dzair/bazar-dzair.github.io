@@ -2749,8 +2749,44 @@ function initSearchUI(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initSearchUI);
 else initSearchUI();
-// إرسال الطلب إلى Cloudflare Worker (المسار الأساسي). النتائج: saved | blocked | rejected | unavailable
-// (unavailable = الـ Worker غير منشور/غير مُعدّ/قديم/لا يستجيب → ننتقل للكتابة المباشرة).
+// معرّف الجهاز (عشوائي، يُحفظ في المتصفح، لا يحمل أي بيانات شخصية): يستعمله الـ Worker مع IP
+// والهاتف والعنوان لكشف الإساءة (مثلًا جهاز يجرّب عدة أرقام). فشل التخزين لا يوقف الطلب.
+// (نفس الدالة المستعملة في product.html، لتوليد نفس المعرّف بغض النظر عن صفحة الشراء.)
+function bazarDeviceId(){
+  if(window.__bazarDeviceId)return window.__bazarDeviceId;
+  const K="bazar_device_id",OK=/^[A-Za-z0-9_-]{8,64}$/;
+  let id="";
+  try{const v=localStorage.getItem(K);if(v&&OK.test(v))id=v;}catch(_e){}
+  if(!id){
+    try{
+      if(window.crypto&&crypto.randomUUID)id=crypto.randomUUID().replace(/-/g,"");
+      else{const a=new Uint8Array(16);crypto.getRandomValues(a);id=Array.from(a,b=>("0"+b.toString(16)).slice(-2)).join("");}
+    }catch(_e){id="";}
+    if(!id)id=(Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)).slice(0,32);
+    try{localStorage.setItem(K,id);}catch(_e){}
+  }
+  window.__bazarDeviceId=id;
+  return id;
+}
+// معرّف السلة: يُولَّد مرة واحدة فقط عند كل ضغطة "تأكيد الطلب" (وليس محفوظًا)، ويُرسَل
+// مع كل طلب من نفس السلة. يسمح للـ Worker بمعرفة أن عدة طلبات (منتجات مختلفة) تعود
+// لعملية شراء واحدة فعلية، فلا تُحتسب كطلبات متكررة مشبوهة (phone_repeat/ip_burst/
+// device_burst/address_repeat) — السلة الواحدة تبقى حدثًا واحدًا في كشف الإساءة.
+function bazarNewCartId(){
+  try{
+    if(window.crypto&&crypto.randomUUID)return crypto.randomUUID().replace(/-/g,"");
+    const a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a,b=>("0"+b.toString(16)).slice(-2)).join("");
+  }catch(_e){
+    return(Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)).slice(0,32);
+  }
+}
+// إرسال الطلب إلى Cloudflare Worker (المسار الوحيد لتسجيل الطلبات: يقرأ IP الحقيقي، يطبّق حظر
+// IP/الهاتف، يكشف الإساءة، يطابق السعر، يحفظ الطلب ويرسل إشعار Telegram). يعيد إحدى النتائج:
+//   saved       → الـ Worker أكّد حفظ الطلب (يعيد id الوثيقة)
+//   blocked     → الـ IP أو الهاتف محظور
+//   rejected    → بيانات مرفوضة (400)
+//   unavailable → الـ Worker لا يستجيب أو أعاد خطأ خادم: لا يُحفظ شيء ويُطلب من الزبون إعادة المحاولة
+//                 (لا توجد كتابة مباشرة في Firestore: كانت تتجاوز الحظر وكشف الإساءة، وقواعد Firestore ترفضها أصلًا)
 async function bazarSendOrderToWorker(payload){
   const ctrl=new AbortController();
   const timer=setTimeout(()=>ctrl.abort(),15000);
@@ -2770,13 +2806,6 @@ async function bazarSendOrderToWorker(payload){
   }catch(_e){
     return{outcome:"unavailable",code:"network"};
   }finally{clearTimeout(timer);}
-}
-// المسار الاحتياطي: كتابة مباشرة في Firestore (تفرض firestore.rules نفس شروط الطلب).
-async function bazarSaveOrderDirect(payload){
-  const {initializeApp,getApps,getApp}=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
-  const {getFirestore,collection,addDoc,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
-  const app=getApps().length?getApp():initializeApp(firebaseConfig);
-  await addDoc(collection(getFirestore(app),"orders"),{...payload,status:"جديد",createdAt:serverTimestamp()});
 }
 window.submitOrder=async function(){
  if(!cart.length){toast(BazarI18n.t("toast_cart_empty"));return}
@@ -2806,6 +2835,11 @@ window.submitOrder=async function(){
   // مستقل إلى Cloudflare Worker (الذي يتحقق من السعر الحقيقي ويكتب في Firestore)،
   // لأن مخطط الطلب في الخادم (Worker + firestore.rules) يدعم منتجًا واحدًا لكل طلب.
   // تُحسب رسوم التوصيل مرة واحدة فقط وتُضاف لأول طلب لتفادي احتسابها عدة مرات.
+  // نفس cartId يُرسَل مع كل عناصر هذه السلة (أُنشئ مرة واحدة قبل الحلقة) حتى يعرف
+  // الـ Worker أنها عملية شراء واحدة ولا يعتبرها طلبات متكررة مشبوهة.
+  const cartId=bazarNewCartId();
+  const deviceId=bazarDeviceId();
+  const failMsg=BazarI18n.t("toast_order_failed").replace(/\s*⚠️\s*$/,"");
   for(let i=0;i<cart.length;i++){
    const item=cart[i];
    const itemShipping=i===0?s:0;
@@ -2822,12 +2856,18 @@ window.submitOrder=async function(){
     shipping:itemShipping,
     deliveryType:deliveryTypeLabel,
     shippingCompany:carrierNames,
-    total:total
+    total:total,
+    deviceId:deviceId,
+    cartId:cartId
    };
-   const failMsg=BazarI18n.t("toast_order_failed").replace(/\s*⚠️\s*$/,"");
-   // المسار الأساسي: Cloudflare Worker (حظر IP فعّال). لو لم يتوفر → كتابة مباشرة في Firestore
-   // بنفس شروط firestore.rules، فلا تتوقف الطلبات أبدًا بسبب عطل في الـ Worker.
-   const wr=await bazarSendOrderToWorker(orderPayload);
+   // ✅ المسار الوحيد: Cloudflare Worker (حظر IP/الهاتف + كشف الإساءة). لا كتابة مباشرة في Firestore.
+   // إن أعاد الـ Worker خطأ خادم (وليس انقطاع شبكة) نعيد المحاولة مرة واحدة بعد لحظة، لأن هذه الأخطاء
+   // تعني أن الطلب لم يُحفظ. عند انقطاع الشبكة/انتهاء المهلة لا نعيد تلقائيًا كي لا يتكرر طلب حُفظ فعلًا.
+   let wr=await bazarSendOrderToWorker(orderPayload);
+   if(wr.outcome==="unavailable"&&wr.code!=="network"){
+    await new Promise(r=>setTimeout(r,1200));
+    wr=await bazarSendOrderToWorker(orderPayload);
+   }
    if(wr.outcome==="blocked"){
     const e=new Error("blocked");e.userMessage=BazarI18n.t("toast_order_blocked");throw e;
    }
@@ -2835,16 +2875,9 @@ window.submitOrder=async function(){
     console.error("create-order rejected:",wr.code);
     const e=new Error("rejected");e.userMessage=failMsg+" ["+wr.code+"]";throw e;
    }
-   if(wr.outcome==="unavailable"){
-    console.warn("Worker unavailable ("+wr.code+") → direct Firestore write");
-    try{
-     await bazarSaveOrderDirect(orderPayload);
-    }catch(fireErr){
-     console.error("firestore order write failed:",fireErr);
-     const e=new Error("direct write failed");
-     e.userMessage=failMsg+" ["+wr.code+"/"+((fireErr&&fireErr.code)||"err")+"]";
-     throw e;
-    }
+   if(wr.outcome!=="saved"){
+    console.error("create-order unavailable:",wr.code);
+    const e=new Error("unavailable");e.userMessage=failMsg+" ["+wr.code+"]";throw e;
    }
   }
   if(window.bazarTrackEvent)window.bazarTrackEvent("Purchase",{content_name:cart.map(x=>x.name).join(", "),price:productTotal()+s,category:"",qty:cart.reduce((sum,x)=>sum+x.quantity,0)});
