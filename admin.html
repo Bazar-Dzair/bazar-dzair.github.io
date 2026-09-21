@@ -309,6 +309,23 @@
 .display-options-title small{font-size:11px;color:#7b8492}
 .check-option{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid #e3e7ed;border-radius:10px;padding:9px 11px;font-size:12px;font-weight:700;cursor:pointer}
 .check-option input{width:17px;height:17px;accent-color:var(--orange);cursor:pointer}
+.variant-section{border-top:1px solid var(--line);padding-top:16px;margin-top:2px}
+.variant-block{margin-bottom:18px}
+.variant-block:last-child{margin-bottom:0}
+.variant-block>label{display:block;font-weight:700;color:#414955;margin-bottom:8px;font-size:13px}
+.variant-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;min-height:2px}
+.variant-chip{padding:8px 15px;border:1.5px solid #dfe3e8;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;background:#fff;color:#374151;transition:.15s}
+.variant-chip.active{background:var(--orange);border-color:var(--orange);color:#fff}
+.variant-chip-color{display:inline-flex;align-items:center;gap:7px;padding:7px 8px 7px 7px;border:1.5px solid #dfe3e8;border-radius:20px;font-size:13px;font-weight:700;background:#fff;color:#374151}
+.variant-chip-color .dot{width:16px;height:16px;border-radius:50%;border:1px solid #00000022;flex-shrink:0}
+.variant-chip-remove{width:19px;height:19px;border-radius:50%;background:#f0f2f4;border:0;color:#6b7280;font-size:13px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.variant-chip-remove:hover{background:#fee2e2;color:var(--red)}
+.variant-add-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.variant-add-row input[type="text"]{flex:1;min-width:140px;padding:10px 12px;border:1px solid #dfe3e8;border-radius:8px;outline:none}
+.variant-add-row input[type="text"]:focus{border-color:var(--orange);box-shadow:0 0 0 3px #ff6a0012}
+.variant-add-row input[type="color"]{width:42px;height:40px;padding:2px;border:1px solid #dfe3e8;border-radius:8px;cursor:pointer;flex-shrink:0}
+.variant-add-btn{background:#eef1f5;border:0;border-radius:8px;padding:10px 14px;font-weight:800;color:#374151;cursor:pointer;flex-shrink:0;white-space:nowrap}
+.variant-add-btn:hover{background:#e5e8ec}
 #featuresText{min-height:145px}
 @media(max-width:760px){.admin-display-options{align-items:stretch}.display-options-title{flex-basis:100%;margin-inline-end:0}.check-option{flex:1}}
 /* ===== نظام الحظر المتقدم + إنذارات الإساءة ===== */
@@ -485,6 +502,34 @@
    <div class="full"><label>الوصف بالفرنسية (اختياري)</label><textarea id="description_fr" placeholder="Texte descriptif en français (facultatif)..."></textarea><small class="hint">إذا تركته فارغًا، يظهر الوصف العربي للزبون الفرنسي أيضًا.</small></div>
    <div class="full"><label>المواصفات</label><textarea id="specificationsText" placeholder="القدرة: 600W&#10;اللون: أسود&#10;الضمان: 12 شهر"></textarea><small class="hint">اكتب كل مواصفة في سطر مستقل بالشكل: الاسم: القيمة</small></div>
    <div class="full"><label>✨ أبرز المميزات</label><textarea id="featuresText" placeholder="دوران 360°&#10;ذراع قابل للتعديل&#10;تثبيت قوي وآمن&#10;متوافق مع مختلف الهواتف"></textarea><small class="hint">اكتب كل ميزة في سطر مستقل لتظهر في صفحة المنتج بشكل مرتب.</small></div>
+   <div class="full variant-section">
+     <div class="display-options-title"><b>🎨 الألوان والقياسات <span class="field-optional">اختياري</span></b><small>أضف الألوان أو القياسات المتوفرة ليختارها الزبون في صفحة المنتج قبل الطلب. اتركها فارغة إن كان المنتج لا يحتاجها.</small></div>
+     <div class="variant-block">
+       <label>الألوان المتوفرة</label>
+       <div class="variant-chips" id="colorChips"></div>
+       <div class="variant-add-row">
+         <input type="color" id="colorHexInput" value="#182536" title="لون تقريبي (اختياري)">
+         <input type="text" id="colorNameInput" placeholder="اسم اللون، مثال: أسود" onkeydown="if(event.key==='Enter'){event.preventDefault();addColorEntry();}">
+         <button type="button" class="variant-add-btn" onclick="addColorEntry()">+ إضافة لون</button>
+       </div>
+     </div>
+     <div class="variant-block">
+       <label>قياسات الملابس</label>
+       <div class="variant-chips" id="clothingSizeChips"></div>
+       <div class="variant-add-row">
+         <input type="text" id="clothingSizeInput" placeholder="قياس آخر، مثال: 3XL" onkeydown="if(event.key==='Enter'){event.preventDefault();addClothingSizeFromInput();}">
+         <button type="button" class="variant-add-btn" onclick="addClothingSizeFromInput()">+ إضافة قياس</button>
+       </div>
+     </div>
+     <div class="variant-block">
+       <label>قياسات الأحذية</label>
+       <div class="variant-chips" id="shoeSizeChips"></div>
+       <div class="variant-add-row">
+         <input type="text" id="shoeSizeInput" placeholder="قياس آخر، مثال: 47" onkeydown="if(event.key==='Enter'){event.preventDefault();addShoeSizeFromInput();}">
+         <button type="button" class="variant-add-btn" onclick="addShoeSizeFromInput()">+ إضافة قياس</button>
+       </div>
+     </div>
+   </div>
    <div class="full"><label>صور المنتج *</label><div class="upload-card">
      <input id="imageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
      <button type="button" class="upload-drop" onclick="document.getElementById('imageFiles').click()"><span class="upload-icon">☁️</span><b>أضف صور المنتج</b><small>اختر الصور من الهاتف مباشرة — حتى 10 صور</small><span class="upload-hint">JPG, PNG, WEBP — ضغط تلقائي قبل الحفظ</span></button>
@@ -3325,6 +3370,75 @@ function setBtnSaving(on){
   saveBtn.disabled=on||saving;
   saveBtn.innerHTML=on?"⏳ جاري الحفظ...":"💾 حفظ المنتج";
 }
+
+// ===== الألوان والقياسات (اختياري): تُحفظ مع المنتج (colors/sizes/shoeSizes) ليختارها
+// الزبون في صفحة المنتج قبل الطلب. قياسات الملابس/الأحذية تُعرض كخيارات جاهزة قابلة
+// للتفعيل بالنقر، مع إمكانية إضافة قياس مخصّص غير موجود في القائمة الجاهزة. =====
+const CLOTHING_SIZE_PRESETS=["XS","S","M","L","XL","XXL","XXXL"];
+const SHOE_SIZE_PRESETS=["35","36","37","38","39","40","41","42","43","44","45","46"];
+let productColors=[];     // [{name,hex}]
+let productSizes=[];      // ["M","L",...] قياسات ملابس
+let productShoeSizes=[];  // ["40","41",...] قياسات أحذية
+
+function renderColorChips(){
+  const box=document.getElementById("colorChips");
+  if(!box) return;
+  box.innerHTML=productColors.length
+    ? productColors.map((c,i)=>`<span class="variant-chip-color"><span class="dot" style="background:${esc(c.hex||"#cccccc")}"></span>${esc(c.name)}<button type="button" class="variant-chip-remove" onclick="removeColorEntry(${i})" aria-label="حذف اللون">×</button></span>`).join("")
+    : '<small class="hint" style="margin:0">لم تُضف ألوان بعد</small>';
+}
+window.addColorEntry=()=>{
+  const nameEl=document.getElementById("colorNameInput");
+  const hexEl=document.getElementById("colorHexInput");
+  const name=(nameEl?.value||"").trim();
+  if(!name) return;
+  if(productColors.some(c=>c.name.toLowerCase()===name.toLowerCase())){ if(nameEl)nameEl.value=""; return; }
+  productColors.push({name,hex:hexEl?.value||""});
+  if(nameEl) nameEl.value="";
+  renderColorChips();
+};
+window.removeColorEntry=i=>{ productColors.splice(i,1); renderColorChips(); };
+
+function renderPresetSizeChips(boxId,presets,selected,toggleFn,removeFn){
+  const box=document.getElementById(boxId);
+  if(!box) return;
+  const custom=selected.filter(s=>!presets.includes(s));
+  const presetHtml=presets.map(s=>`<button type="button" class="variant-chip${selected.includes(s)?" active":""}" onclick="${toggleFn}('${esc(s)}')">${esc(s)}</button>`).join("");
+  const customHtml=custom.map(s=>`<span class="variant-chip-color">${esc(s)}<button type="button" class="variant-chip-remove" onclick="${removeFn}('${esc(s)}')" aria-label="حذف القياس">×</button></span>`).join("");
+  box.innerHTML=presetHtml+customHtml;
+}
+function renderClothingSizeChips(){ renderPresetSizeChips("clothingSizeChips",CLOTHING_SIZE_PRESETS,productSizes,"toggleClothingSize","removeClothingSize"); }
+function renderShoeSizeChips(){ renderPresetSizeChips("shoeSizeChips",SHOE_SIZE_PRESETS,productShoeSizes,"toggleShoeSize","removeShoeSize"); }
+
+window.toggleClothingSize=size=>{
+  const i=productSizes.indexOf(size);
+  if(i>=0) productSizes.splice(i,1); else productSizes.push(size);
+  renderClothingSizeChips();
+};
+window.removeClothingSize=size=>{ productSizes=productSizes.filter(s=>s!==size); renderClothingSizeChips(); };
+window.addClothingSizeFromInput=()=>{
+  const el=document.getElementById("clothingSizeInput");
+  const v=(el?.value||"").trim();
+  if(!v) return;
+  if(!productSizes.includes(v)) productSizes.push(v);
+  if(el) el.value="";
+  renderClothingSizeChips();
+};
+window.toggleShoeSize=size=>{
+  const i=productShoeSizes.indexOf(size);
+  if(i>=0) productShoeSizes.splice(i,1); else productShoeSizes.push(size);
+  renderShoeSizeChips();
+};
+window.removeShoeSize=size=>{ productShoeSizes=productShoeSizes.filter(s=>s!==size); renderShoeSizeChips(); };
+window.addShoeSizeFromInput=()=>{
+  const el=document.getElementById("shoeSizeInput");
+  const v=(el?.value||"").trim();
+  if(!v) return;
+  if(!productShoeSizes.includes(v)) productShoeSizes.push(v);
+  if(el) el.value="";
+  renderShoeSizeChips();
+};
+
 window.save=async()=>{
  if(saving) return;
  saving=true;
@@ -3358,6 +3472,9 @@ window.save=async()=>{
     description_fr:descriptionFrInput?.value.trim()||"",
     specifications,
     features,
+    colors:productColors.slice(),
+    sizes:productSizes.slice(),
+    shoeSizes:productShoeSizes.slice(),
     deliveryMethod:currentDeliveryMethod(),
     shippingHome:currentDeliveryMethod()==="home"?(shippingHomeSelect?.dataset.value||""):"",
     shippingOffice:currentDeliveryMethod()==="office"?(shippingOfficeSelect?.dataset.value||""):"",
@@ -3457,6 +3574,10 @@ window.editProduct=id=>{
    const features=Array.isArray(p.features)?p.features:(Array.isArray(p.highlights)?p.highlights:[]);
    featuresText.value=features.map(x=>typeof x==="string"?x:(x?.text||x?.name||"")).filter(Boolean).join("\n");
  }
+ productColors=Array.isArray(p.colors)?p.colors.filter(c=>c&&c.name).map(c=>({name:String(c.name),hex:String(c.hex||"")})):[];
+ productSizes=Array.isArray(p.sizes)?p.sizes.filter(Boolean).map(String):[];
+ productShoeSizes=Array.isArray(p.shoeSizes)?p.shoeSizes.filter(Boolean).map(String):[];
+ renderColorChips();renderClothingSizeChips();renderShoeSizeChips();
  const imgs=Array.isArray(p.images)&&p.images.length?p.images:[p.image].filter(Boolean);
  selectedImages=imgs.slice(0,10).map(u=>({url:u,existing:true,file:null}));
  renderSelectedImages();
@@ -3509,6 +3630,8 @@ window.resetForm=()=>{
  if(publishedInput)publishedInput.checked=true;if(featuredInput)featuredInput.checked=false;descriptionInput.value="";if(descriptionFrInput)descriptionFrInput.value="";
  if(specificationsText) specificationsText.value="";
  if(featuresText) featuresText.value="";
+ productColors=[];productSizes=[];productShoeSizes=[];
+ renderColorChips();renderClothingSizeChips();renderShoeSizeChips();
  selectedImages=[];
  setMultiSelectValue(shippingHomeSelect,"");
  setMultiSelectValue(shippingOfficeSelect,"");
