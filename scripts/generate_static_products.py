@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, re, html, unicodedata, urllib.parse, urllib.request
+import json, re, html, unicodedata, urllib.error, urllib.parse, urllib.request
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -35,15 +35,25 @@ def collection(name):
 
 
 def get_document(path):
-    """يجلب وثيقة Firestore مفردة (مثل settings/site). يعيد {} إن لم توجد أو عند أي خطأ شبكة،
-    حتى لا يفشل توليد كامل الموقع بسبب تعذّر الوصول لهذه الوثيقة الاختيارية."""
+    """يجلب وثيقة Firestore مفردة (مثل settings/site).
+
+    القيمة المُعادة:
+      - dict بالحقول        → الوثيقة موجودة.
+      - {}                  → الوثيقة غير موجودة فعلًا (HTTP 404) — حالة سليمة (لم يُحفظ شيء بعد).
+      - None                → تعذّر الجلب (شبكة/خطأ خادم/مهلة). لا نعتبره «لا يوجد بانر»؛ يجب على
+                              المستدعي الإبقاء على القيمة الحالية بدل الكتابة فوقها بقيمة احتياطية.
+    لا نرفع استثناءً حتى لا يفشل توليد كامل الموقع بسبب وثيقة اختيارية."""
     try:
         req=urllib.request.Request(BASE+'/'+path,headers={'Accept':'application/json'})
         with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r)
         return {k:value(v) for k,v in data.get('fields',{}).items()}
+    except urllib.error.HTTPError as e:
+        if e.code==404: return {}
+        print(f'Warning: could not fetch {path}: HTTP {e.code}')
+        return None
     except Exception as e:
         print(f'Warning: could not fetch {path}: {e}')
-        return {}
+        return None
 
 
 def collection_where_eq(name, field, val):
@@ -600,12 +610,18 @@ home = inject_between_markers(home, '<!--SSG:CATS_START-->', '<!--SSG:CATS_END--
 # ترك تحديث og:image لسكربت applyBranding() في المتصفح وحده. عند عدم وجود بانر محفوظ، نستخدم
 # شعار الموقع logo.svg كصورة احتياطية آمنة وموجودة فعلًا بدل رابط مكسور.
 site_settings = get_document('settings/site')
-banner_url = str(site_settings.get('bannerUrl') or '').strip()
-home_banner = banner_url if re.match(r'^https://', banner_url) else (SITE + 'logo.svg')
-home = replace_tag_attr(home, 'homeOgImage', 'content', home_banner)
-home = replace_tag_attr(home, 'homeTwitterImage', 'content', home_banner)
-home = replace_tag_attr(home, 'heroImg', 'src', home_banner)
+if site_settings is None:
+    # تعذّر جلب الإعدادات (خطأ شبكة عابر مثلًا). لا نكتب فوق البانر الحالي بشعار احتياطي، لأن هذا
+    # الملف يُحفظ الآن في المستودع (git) — فأي خلل عابر كان سيمسح البانر الصحيح فعليًا. نُبقي index.html
+    # كما هو في هذا الجزء، وسيُعاد المحاولة تلقائيًا في التشغيل القادم (كل 6 ساعات أو عند تغيير البانر).
+    print('Homepage banner: settings/site unavailable, keeping the current banner unchanged.')
+else:
+    banner_url = str(site_settings.get('bannerUrl') or '').strip()
+    home_banner = banner_url if re.match(r'^https://', banner_url) else (SITE + 'logo.svg')
+    home = replace_tag_attr(home, 'homeOgImage', 'content', home_banner)
+    home = replace_tag_attr(home, 'homeTwitterImage', 'content', home_banner)
+    home = replace_tag_attr(home, 'heroImg', 'src', home_banner)
+    print(f'Homepage banner set to: {home_banner}')
 
 home_index_path.write_text(home, encoding='utf-8')
 print(f'Injected {len(product_urls[:HOME_MAX_PRODUCTS])} static product cards and {len(home_cats_sorted)} static categories into index.html.')
-print(f'Homepage banner set to: {home_banner}')
