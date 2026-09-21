@@ -1955,6 +1955,8 @@ async function load(){
     window.__bazarDb=db;
     loadShippingRatesData(db).then(()=>{ if(document.getElementById("wilaya").value) updateTotal(); });
     let p=null;
+    // true فقط إذا أكّد Firestore أن وثيقة المنتج لم تعد موجودة (حُذف بعد توليد الصفحة الثابتة).
+    let productGone=false;
     if(staticProduct){
       // الصفحة تملك أصلاً بيانات المنتج الحقيقية (مُضمَّنة وقت البناء)، فلا حاجة
       // لأي استعلام (where/slug) ولا لتحميل المجموعة كاملة. نكتفي بقراءة وثيقة
@@ -1964,8 +1966,10 @@ async function load(){
       try{
         const snap=await getDoc(doc(db,"products",staticProduct.firestoreId));
         if(snap.exists()) p={...snap.data(),firestoreId:snap.id};
+        else productGone=true;
       }catch(e){}
-      if(!p) p=staticProduct;
+      // نرجع لبيانات SSG فقط عند تعذّر الاتصال، لا عندما يؤكّد Firestore أن المنتج حُذف.
+      if(!p && !productGone) p=staticProduct;
     }else if(id){
       // مسار احتياطي فقط للصفحات القديمة التي لم تُعَد توليدها بعد بالنسخة
       // الجديدة (بدون بيانات SSG مُضمَّنة). الصفحات المُولَّدة حديثًا تدخل من
@@ -2081,7 +2085,9 @@ async function load(){
           }
         }
       }catch(_catErr){ /* يبقى التصنيف الاحتياطي الظاهر */ }
-    }else if(!cachedProduct && !staticProduct){
+    }else if(productGone || id || (!cachedProduct && !staticProduct)){
+      // Firestore أجاب ولا يوجد منتج بهذا الرابط (حُذف): لا نُبقي نسخة قديمة معروضة من SSG أو من الذاكرة المحلية.
+      try{localStorage.removeItem("bazar_selected_product");}catch(_e){}
       box.innerHTML='<div class="error"><h2>'+esc(pt("product_not_found_title"))+'</h2><p>'+esc(pt("product_not_found_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
     }
   }catch(e){
