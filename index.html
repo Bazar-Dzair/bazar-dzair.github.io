@@ -157,13 +157,13 @@
 
   main { max-width:960px; margin:auto; padding:0 0 20px; }
   .hero { border-radius:28px; overflow:hidden; box-shadow:var(--shadow); background:#fff; }
-  .hero img { display:block; width:100%; height:auto; }
-  /* placeholder البانر: طالما لم يُستبدل بعد بصورة البانر الحقيقية من لوحة التحكم (تحديدًا
-     طالما بقيت خاصيتا width/height الافتراضيتان على #heroImg)، نعرض الشعار المربّع بلا
-     تمديد/تشويه (object-fit:contain) فوق خلفية متناسقة معه، بدل تمديده ليملأ صندوق البانر
-     العريض ويظهر كنص "Bazar Dzair" ممطوط ومشوّه. تُلغى هذه القاعدة تلقائيًا بمجرد وصول
-     البانر الحقيقي، لأن applyBranding() تُزيل width/height من #heroImg حينها. */
-  #heroImg[width][height] { object-fit:contain; background:#f2f4f7; }
+  .hero img { display:block; width:100%; height:auto; opacity:0; transition:opacity .25s ease; }
+  /* قبل وصول البانر الحقيقي: هيكل رمادي هادئ بدل أي شعار/اسم افتراضي. */
+  .hero:not(.is-ready) { background:linear-gradient(100deg,#eef1f5 30%,#f8fafc 50%,#eef1f5 70%) 0 0/200% 100%; animation:heroShimmer 1.4s linear infinite; }
+  .hero.is-ready img { opacity:1; }
+  .hero.is-empty { display:none; }
+  @keyframes heroShimmer { to { background-position:-200% 0; } }
+  @media (prefers-reduced-motion:reduce) { .hero:not(.is-ready) { animation:none; } .hero img { transition:none; } }
   .dots { display:flex; justify-content:center; gap:8px; padding:10px 0 12px; background:#fff; }
   .dot { width:11px; height:11px; border-radius:50%; background:#b8bdc5; }
   .dot.active { background:var(--orange); }
@@ -706,7 +706,55 @@ body>footer{flex:none;margin-top:auto}
 <aside class="drawer" id="categoryDrawer" aria-hidden="true"><div class="drawer-head"><h2 data-i18n="drawer_title">🗂️ الفئات</h2><button class="drawer-close" type="button" onclick="closeCategoryMenu()">×</button></div><div class="drawer-cats" id="storeCategories"><div class="cat" onclick="filterCategory('all')"><i>▦</i><span data-i18n="drawer_all">جميع الفئات</span></div><!--SSG:CATS_START--><a class="cat" href="https://bazar-dzair.github.io/product-category/outils/" style="color:inherit;text-decoration:none"><i>🛠️</i>ادوات</a><a class="cat" href="https://bazar-dzair.github.io/product-category/accessoires-et-electronique/" style="color:inherit;text-decoration:none"><i>🔋🎮</i>اكسيسوار و الكترونات</a><a class="cat" href="https://bazar-dzair.github.io/product-category/machines-a-raser/" style="color:inherit;text-decoration:none"><i>🪒</i>الات حلاقة</a><a class="cat" href="https://bazar-dzair.github.io/product-category/maison-et-cuisine/" style="color:inherit;text-decoration:none"><i>🏠</i>المنزل و المطبخ</a><a class="cat" href="https://bazar-dzair.github.io/product-category/ordinateurs-portables/" style="color:inherit;text-decoration:none"><i>💻</i>حاسوب محمول</a><a class="cat" href="https://bazar-dzair.github.io/product-category/sante-et-beaute/" style="color:inherit;text-decoration:none"><i>💄🧼</i>صحة و جمال</a><a class="cat" href="https://bazar-dzair.github.io/product-category/pieces-detachees-automobiles/" style="color:inherit;text-decoration:none"><i>🚗</i>قطع غيار سيارات</a><a class="cat" href="https://bazar-dzair.github.io/product-category/equipements-femme/" style="color:inherit;text-decoration:none"><i>👩</i>معدات نسوية</a><a class="cat" href="https://bazar-dzair.github.io/product-category/vetements-et-chaussures/" style="color:inherit;text-decoration:none"><i>👕</i>ملابس وأحذية</a><a class="cat" href="https://bazar-dzair.github.io/product-category/produits-d-ete/" style="color:inherit;text-decoration:none"><i>🏖️</i>منتجات صيفية</a><a class="cat" href="https://bazar-dzair.github.io/product-category/telephones/" style="color:inherit;text-decoration:none"><i>📱</i>هواتف</a><!--SSG:CATS_END--></div></aside>
 <main id="home">
 <h1 class="sr-only">Bazar Dzair | متجر إلكتروني جزائري لمنتجات متنوعة بأسعار مناسبة، توصيل سريع لجميع الولايات والدفع عند الاستلام</h1>
-<section class="hero" aria-label="العرض الرئيسي"><picture id="heroPicture"><img id="heroImg" src="/logo.svg" alt="Bazar Dzair - تسوق منتجات متنوعة أونلاين في الجزائر" width="964" height="295" fetchpriority="high"></picture></section>
+<section class="hero" aria-label="العرض الرئيسي"><picture id="heroPicture"><img id="heroImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Bazar Dzair - تسوق منتجات متنوعة أونلاين في الجزائر" width="964" height="295" style="aspect-ratio:964/295" fetchpriority="high"></picture></section>
+<script>
+/* بانر الصفحة الرئيسية — الجهة الوحيدة التي تعرضه أو تُخفيه.
+   لا يُعرض شعار/اسم افتراضي مكانه أبدًا: هيكل تحميل هادئ، ثم البانر الحقيقي، أو إخفاء القسم إن لم يوجد بانر.
+   يُنفَّذ هنا مباشرة بعد القسم ليُطبَّق آخر بانر محفوظ محليًا قبل أول رسم للصفحة (بدون وميض). */
+window.BazarHero=(function(){
+  var BLANK="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",DIMS_KEY="bazarBannerDims";
+  var img=document.getElementById("heroImg"),hero=img&&img.closest(".hero"),cur="";
+  var isHttps=function(u){return typeof u==="string"&&/^https:\/\//i.test(u.trim());};
+  function attrDims(w,h){if(w>0&&h>0){img.setAttribute("width",w);img.setAttribute("height",h);img.style.aspectRatio=w+" / "+h;}}
+  function readDims(url){try{var o=JSON.parse(localStorage.getItem(DIMS_KEY)||"null");if(o&&o.u===url)attrDims(o.w,o.h);}catch(e){}}
+  function saveDims(url,w,h){try{localStorage.setItem(DIMS_KEY,JSON.stringify({u:url,w:w,h:h}));}catch(e){}}
+  function set(url){
+    if(!img||!hero||!isHttps(url))return;
+    url=url.trim();
+    if(url===cur)return;
+    cur=url;
+    hero.classList.remove("is-empty");
+    var pic=img.closest("picture");
+    if(pic)pic.querySelectorAll("source").forEach(function(x){x.remove();});
+    img.removeAttribute("srcset");
+    readDims(url);
+    img.onload=function(){
+      if(cur!==url)return;
+      if(img.naturalWidth&&img.naturalHeight){attrDims(img.naturalWidth,img.naturalHeight);saveDims(url,img.naturalWidth,img.naturalHeight);}
+      hero.classList.add("is-ready");
+    };
+    img.onerror=function(){if(cur===url)clear();};
+    img.src=url;
+  }
+  function clear(){
+    if(!img||!hero)return;
+    cur="";
+    hero.classList.remove("is-ready");
+    hero.classList.add("is-empty");
+    img.removeAttribute("srcset");
+    img.setAttribute("src",BLANK);
+  }
+  function settle(){if(!cur&&hero)hero.classList.add("is-empty");}
+  if(img){
+    var raw=img.getAttribute("src")||"";
+    if(isHttps(raw)&&!/\/logo\.svg(\?|#|$)/i.test(raw))set(raw);
+    else if(raw!==BLANK)img.setAttribute("src",BLANK);
+    try{var s=JSON.parse(localStorage.getItem("bazarSiteSettings")||"null");if(s&&isHttps(s.bannerUrl))set(s.bannerUrl);}catch(e){}
+    setTimeout(settle,8000);
+  }
+  return {set:set,clear:clear,settle:settle};
+})();
+</script>
 <section class="section home-highlights" id="homeCategoriesSection" style="display:none" aria-labelledby="homeCategoriesTitle">
 <div class="section-head hcat-head"><div class="section-title"><span class="hcat-grid-ic" aria-hidden="true"><span></span><span></span><span></span><span></span></span><div><h2 id="homeCategoriesTitle">تسوّق حسب الفئة</h2><p id="homeCategoriesSubtitle">اكتشف جميع الفئات وتصفح ما يناسبك بسهولة</p></div></div></div>
 <div class="hcat-wrap" id="hcatWrap">
@@ -1112,20 +1160,16 @@ function applyBranding(d){
     const ok=u=>typeof u==="string"&&/^https:\/\//i.test(u.trim());
     if(ok(d&&d.bannerUrl)){
       const banner=d.bannerUrl.trim();
-      const img=document.querySelector(".hero img");
-      if(img){
-        const pic=img.closest("picture");
-        if(pic)pic.querySelectorAll("source").forEach(x=>x.remove());
-        img.removeAttribute("srcset");
-        img.removeAttribute("width");img.removeAttribute("height");
-        img.src=banner;
-      }
+      if(window.BazarHero)BazarHero.set(banner);
       // نحدّث og:image/twitter:image أيضًا حتى تعكس مشاركة الصفحة (من متصفح يُنفّذ JS) البانر الحالي.
       // ملاحظة: محركات البحث وبرامج المعاينة (فيسبوك/واتساب) عادة لا تُنفّذ JS، لذلك القيمة
       // "الحقيقية" لهذه الفئة تأتي من التوليد الثابت (generate_static_products.py) وقت البناء.
       const ogImg=document.getElementById("homeOgImage"),twImg=document.getElementById("homeTwitterImage");
       if(ogImg)ogImg.setAttribute("content",banner);
       if(twImg)twImg.setAttribute("content",banner);
+    }else if(window.BazarHero){
+      // لا يوجد بانر محفوظ في الإعدادات: نُخفي القسم بدل عرض صورة افتراضية.
+      BazarHero.clear();
     }
     if(ok(d&&d.logoUrl)){
       const m=document.querySelector("header .brand-mark")||document.querySelector(".brand-mark");
@@ -1262,6 +1306,8 @@ async function loadFastSettings(){
       applySiteData(siteData);
       // نحفظ إعدادات البانر/الشعار محليًا لعرضها فورًا في الزيارة القادمة (بدون وميض الصورة الافتراضية).
       try{localStorage.setItem("bazarSiteSettings",JSON.stringify(siteData));}catch(_e){}
+    }else if(window.BazarHero){
+      BazarHero.settle();
     }
     if(footer.status==="fulfilled") applyFooterData(firestoreDocData(footer.value));
   }catch(e){console.warn("Fast settings load failed",e)}
