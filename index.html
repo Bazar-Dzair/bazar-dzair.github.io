@@ -643,7 +643,16 @@ body>footer{flex:none;margin-top:auto}
   .lp-buy,.lp-cart,.lp-arrow,.lp-dot{transition:none}
 }
 </style><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-<script src="i18n.js?v=3" defer></script>
+<!-- ⚠️ إصلاح مهم: كان هذا السكربت يُحمَّل بـ defer، بينما كل أكواد الصفحة (submitOrder،
+     renderCart، openCart...) تستدعي BazarI18n.t(...) مباشرة دون فحص (window.BazarI18n?)
+     في نقاط كثيرة. السكربتات المؤجَّلة (defer) تُنفَّذ بعد انتهاء تحليل الصفحة بالكامل، أي بعد
+     كل السكربتات الداخلية inline. على اتصال بطيء (شائع جدًا مع الإنترنت الجزائري/الهاتف)، يصبح
+     الموقع مرئيًا وتفاعليًا (الأزرار تظهر) قبل أن يكتمل تحميل i18n.js، فيضغط الزبون على "تأكيد
+     الطلب" بينما BazarI18n ما زال undefined → استثناء فوري (ReferenceError) داخل دالة async
+     غير مُلتقَط → الزر "ما يستجاوبش" تمامًا كما وصفت، بلا أي خطأ ظاهر للزبون. الحل: تحميله
+     تحميلًا عاديًا (بدون defer) هنا في أعلى الصفحة، فيُنفَّذ فورًا ويتوقف المحلل حتى ينتهي منه قبل
+     المتابعة لباقي السكربتات — بالضبط نفس الأسلوب المعتمد أصلًا في product.html. -->
+<script src="i18n.js?v=3"></script>
 <script src="addons.js" defer></script>
 <link rel="canonical" href="https://bazar-dzair.github.io/">
 <meta property="og:title" content="Bazar Dzair | متجر إلكتروني جزائري">
