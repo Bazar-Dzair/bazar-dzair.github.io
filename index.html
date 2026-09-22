@@ -12,6 +12,23 @@ window.addEventListener("unhandledrejection",function(e){
   var r=e.reason;
   alert("🩺 خطأ (Promise):\n"+(r&&r.message?r.message:String(r))+"\n"+((r&&r.stack)||""));
 });
+window.addEventListener("load",function(){
+  setTimeout(function(){
+    if(typeof window.submitOrder!=="function"){alert("🩺 submitOrder غير معرّفة أصلاً!");return;}
+    var orig=window.submitOrder;
+    window.submitOrder=async function(){
+      alert("🩺 تم الضغط: submitOrder بدأت التنفيذ الآن.");
+      try{
+        var r=await orig.apply(this,arguments);
+        alert("🩺 submitOrder انتهت بدون استثناء.");
+        return r;
+      }catch(err){
+        alert("🩺 submitOrder رمت استثناء:\n"+(err&&err.message?err.message:String(err))+"\n"+((err&&err.stack)||""));
+        throw err;
+      }
+    };
+  },1000);
+});
 </script>
 <!-- 🩺 نهاية كود التشخيص المؤقت -->
 <meta charset="utf-8">

@@ -1,6 +1,35 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+<!-- 🩺 كود تشخيص مؤقت — يُحذف بعد حل المشكلة. لا يغيّر أي سلوك في الموقع، فقط يُظهر
+     أي خطأ برمجي (JS) في نافذة تنبيه (alert) حتى بدون فتح أدوات المطوّر (F12). -->
+<script>
+window.addEventListener("error",function(e){
+  alert("🩺 خطأ JS:\n"+(e.message||"")+"\nفي: "+(e.filename||"")+" سطر "+(e.lineno||"")+"\n"+((e.error&&e.error.stack)||""));
+});
+window.addEventListener("unhandledrejection",function(e){
+  var r=e.reason;
+  alert("🩺 خطأ (Promise):\n"+(r&&r.message?r.message:String(r))+"\n"+((r&&r.stack)||""));
+});
+window.addEventListener("load",function(){
+  setTimeout(function(){
+    if(typeof window.submitOrder!=="function"){alert("🩺 submitOrder غير معرّفة أصلاً!");return;}
+    var orig=window.submitOrder;
+    window.submitOrder=async function(){
+      alert("🩺 تم الضغط: submitOrder بدأت التنفيذ الآن.");
+      try{
+        var r=await orig.apply(this,arguments);
+        alert("🩺 submitOrder انتهت بدون استثناء.");
+        return r;
+      }catch(err){
+        alert("🩺 submitOrder رمت استثناء:\n"+(err&&err.message?err.message:String(err))+"\n"+((err&&err.stack)||""));
+        throw err;
+      }
+    };
+  },1000);
+});
+</script>
+<!-- 🩺 نهاية كود التشخيص المؤقت -->
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.cloudinary.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net https://challenges.cloudflare.com https://api.mymemory.translated.net; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
