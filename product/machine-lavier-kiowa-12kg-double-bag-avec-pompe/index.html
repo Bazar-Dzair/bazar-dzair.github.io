@@ -1056,39 +1056,6 @@ window.openReviewsFromSummary=function(){
   const c=document.getElementById("descCard");
   if(c) c.scrollIntoView({behavior:"smooth",block:"start"});
 };
-function render(p){product=p;
-// tp: الاسم والوصف المعروضان للزبون حسب اللغة الحالية (name_fr/description_fr إن توفرا).
-// هذا للعرض فقط؛ بيانات الطلب المرسلة لاحقًا (Telegram/Firestore) تستعمل دائمًا product.name الأصلي.
-const tp=window.BazarI18n?BazarI18n.translateProduct(p):{name:p.name||p.product||pt("default_product_name"),description:p.description||p.desc||pt("default_product_desc")};
-const name=tp.name;const desc=tp.description;
-const rawGalleryImages=Array.isArray(p.images)?p.images.filter(Boolean):[];
-galleryImages=rawGalleryImages.length?rawGalleryImages:[p.image||p.imageUrl||p.photo||"/logo.svg"];galleryIndex=0;
-
-document.title=name+" | Bazar Dzair";
-const md=document.getElementById("metaDescription");if(md)md.content=trimMetaDescription(desc);
-applyProductSEO(p,name,desc);
-if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});
-const stockValue=(p.stock===null||p.stock===undefined||p.stock==="")?NaN:Number(p.stock);
-const outOfStock=Number.isFinite(stockValue)&&stockValue<=0;
-const available=p.published!==false&&!outOfStock;
-productAvailable=available;
-// ===== تقييم المنتج: لا نعرض أي شيء إلا إذا توفرت بيانات تقييم حقيقية في المنتج (لا نختلق أرقامًا). =====
-function getRatingInfo(prod){
-  // المصدر الوحيد: تقييمات الزبائن الحقيقية المنشورة. لا نقرأ أي رقم تقييم يدوي/قديم من وثيقة المنتج.
-  return bazarRealRating(prod);
-}
-function starsHtml(value){
-  const filled=Math.max(0,Math.min(5,Math.round(Number(value)||0)));
-  return "★".repeat(filled)+"☆".repeat(5-filled);
-}
-const ratingInfo=getRatingInfo(p);
-
-// ===== السعر القديم ونسبة التخفيض: تُعرض فقط إذا كانت موجودة فعليًا في بيانات المنتج. =====
-const oldPriceRaw=p.oldPrice??p.old_price??p.compareAtPrice??p.compare_at_price??null;
-const oldPrice=Number(oldPriceRaw);
-const hasDiscount=Number.isFinite(oldPrice)&&oldPrice>Number(p.price||0);
-const discountPct=hasDiscount?Math.round((oldPrice-Number(p.price||0))/oldPrice*100):0;
-
 // ===== منتقي اللون/القياس: يُبنى فقط إذا كان المنتج يحمل colors/sizes/shoeSizes فعليًا. =====
 function variantPickerHtml(prod){
   const colors=Array.isArray(prod.colors)?prod.colors.filter(c=>c&&c.name):[];
@@ -1137,6 +1104,40 @@ function renderVariantPickerInPlace(){
   const holder=document.getElementById("variantPickerHolder");
   if(holder&&product) holder.innerHTML=variantPickerHtml(product);
 }
+
+function render(p){product=p;
+// tp: الاسم والوصف المعروضان للزبون حسب اللغة الحالية (name_fr/description_fr إن توفرا).
+// هذا للعرض فقط؛ بيانات الطلب المرسلة لاحقًا (Telegram/Firestore) تستعمل دائمًا product.name الأصلي.
+const tp=window.BazarI18n?BazarI18n.translateProduct(p):{name:p.name||p.product||pt("default_product_name"),description:p.description||p.desc||pt("default_product_desc")};
+const name=tp.name;const desc=tp.description;
+const rawGalleryImages=Array.isArray(p.images)?p.images.filter(Boolean):[];
+galleryImages=rawGalleryImages.length?rawGalleryImages:[p.image||p.imageUrl||p.photo||"/logo.svg"];galleryIndex=0;
+
+document.title=name+" | Bazar Dzair";
+const md=document.getElementById("metaDescription");if(md)md.content=trimMetaDescription(desc);
+applyProductSEO(p,name,desc);
+if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});
+const stockValue=(p.stock===null||p.stock===undefined||p.stock==="")?NaN:Number(p.stock);
+const outOfStock=Number.isFinite(stockValue)&&stockValue<=0;
+const available=p.published!==false&&!outOfStock;
+productAvailable=available;
+// ===== تقييم المنتج: لا نعرض أي شيء إلا إذا توفرت بيانات تقييم حقيقية في المنتج (لا نختلق أرقامًا). =====
+function getRatingInfo(prod){
+  // المصدر الوحيد: تقييمات الزبائن الحقيقية المنشورة. لا نقرأ أي رقم تقييم يدوي/قديم من وثيقة المنتج.
+  return bazarRealRating(prod);
+}
+function starsHtml(value){
+  const filled=Math.max(0,Math.min(5,Math.round(Number(value)||0)));
+  return "★".repeat(filled)+"☆".repeat(5-filled);
+}
+const ratingInfo=getRatingInfo(p);
+
+// ===== السعر القديم ونسبة التخفيض: تُعرض فقط إذا كانت موجودة فعليًا في بيانات المنتج. =====
+const oldPriceRaw=p.oldPrice??p.old_price??p.compareAtPrice??p.compare_at_price??null;
+const oldPrice=Number(oldPriceRaw);
+const hasDiscount=Number.isFinite(oldPrice)&&oldPrice>Number(p.price||0);
+const discountPct=hasDiscount?Math.round((oldPrice-Number(p.price||0))/oldPrice*100):0;
+
 const buyHtml=available?
   `<div class="action-row">
      <button type="button" class="btn-cart" onclick="addToCartUI()"><span aria-hidden="true">🛒</span> ${esc(pt("add_to_cart_btn"))}</button>
