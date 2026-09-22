@@ -1381,6 +1381,18 @@ function showProductSkeletonIfStillPending(){
   g.innerHTML=Array(8).fill('<div class="product skeleton" aria-hidden="true"><div class="pic"></div><div class="info"><div class="sk-line sk-name"></div><div class="sk-line sk-price"></div></div></div>').join("");
 }
 setTimeout(showProductSkeletonIfStillPending,6000);
+// تخزين مؤقت خفيف للمنتجات (صلاحية ساعتين فقط) لعرضها فورًا في الزيارة القادمة على اتصال
+// ضعيف، بدل هيكل تحميل فارغ. يُستبدل تلقائيًا بأول بيانات حقيقية تصل (REST أو Firestore
+// الفوري)، فالخطر الوحيد هو ظهور منتج محذوف مؤخرًا للحظة قصيرة على اتصال بطيء جدًا —
+// أهون بكثير من صفحة فارغة تمامًا لعدة ثوانٍ أو أكثر.
+function cacheProductsLocally(list){
+  try{
+    if(Array.isArray(list)&&list.length){
+      localStorage.setItem("bazarProductsCache",JSON.stringify(list));
+      localStorage.setItem("bazarProductsCacheTime",String(Date.now()));
+    }
+  }catch(_e){}
+}
 function applyProductsList(list){
   products=Array.isArray(list)?list:[];
   catalogLoaded=true;
@@ -1425,6 +1437,7 @@ async function loadProductsFromFirestore(){
     const firestoreProducts=await restGetProducts();
     // قائمة فارغة استجابة صحيحة من الخادم (كل المنتجات حُذفت) — تُعرض كما هي بدل إبقاء منتجات قديمة.
     applyProductsList(firestoreProducts);
+    cacheProductsLocally(firestoreProducts);
     return true;
   }catch(error){
     console.warn("Fast products load failed; using Firebase fallback",error);
@@ -1450,6 +1463,7 @@ async function loadFastCatalog(){
     // بدل إبقاء بطاقات قديمة. لا نحفظ المنتجات محليًا أبدًا (كان ذلك سبب ظهور منتجات محذوفة).
     if(prods.status==="fulfilled"&&!realtimeProductsLoaded){
       applyProductsList(prods.value);
+      cacheProductsLocally(prods.value);
     }
   }catch(e){console.warn("Fast catalog load failed",e)}
 }
@@ -1467,8 +1481,20 @@ async function loadFastCatalog(){
 function loadLocalCatalogFirst(){
   try{const s=JSON.parse(localStorage.getItem("bazarSiteSettings")||"null");if(s)applySiteData(s);}catch(_e){}
   try{const c=JSON.parse(localStorage.getItem("bazarCategoriesCache")||"null");if(Array.isArray(c)&&c.length)applyStoreCategories(c);}catch(_e){}
-  // المنتجات لا تُخزَّن محليًا: نمسح أي نسخة قديمة بقيت من إصدارات سابقة حتى لا تعود منتجات محذوفة للظهور.
-  try{localStorage.removeItem("bazarProductsCache");}catch(_e){}
+  // نعرض آخر نسخة محفوظة من المنتجات فورًا (صلاحية ساعتين فقط) بدل هيكل تحميل فارغ على
+  // اتصال ضعيف. تُستبدل تلقائيًا بأول بيانات حقيقية تصل من REST أو Firestore الفوري أعلاه،
+  // فلا تبقى ظاهرة أكثر من لحظات قليلة حتى على أبطأ اتصال.
+  try{
+    const cachedTime=Number(localStorage.getItem("bazarProductsCacheTime")||0);
+    const isFresh=cachedTime&&(Date.now()-cachedTime<2*3600*1000);
+    if(isFresh){
+      const cachedProducts=JSON.parse(localStorage.getItem("bazarProductsCache")||"null");
+      if(Array.isArray(cachedProducts)&&cachedProducts.length) applyProductsList(cachedProducts);
+    }else{
+      localStorage.removeItem("bazarProductsCache");
+      localStorage.removeItem("bazarProductsCacheTime");
+    }
+  }catch(_e){}
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",loadLocalCatalogFirst);
 else loadLocalCatalogFirst();
@@ -1526,14 +1552,18 @@ else loadLocalCatalogFirst();
       .then(fastSnap=>{
         // نتجاهل النتيجة إذا كانت القائمة الكاملة الحقيقية وصلت أصلًا (لا نستبدل بيانات أكمل بأخرى أقل)
         if(realtimeProductsLoaded) return;
-        applyProductsList(fastSnap.docs.map(mapSnap));
+        const fastList=fastSnap.docs.map(mapSnap);
+        applyProductsList(fastList);
+        cacheProductsLocally(fastList);
       })
       .catch(()=>{/* فشل القراءة السريعة لا يوقف شيئًا: onSnapshot الكامل أدناه يكمل المهمة كالمعتاد */});
     onSnapshot(collection(db,"products"),{includeMetadataChanges:true},snap=>{
       // لا نعرض أبدًا لقطة قادمة من الكاش (fromCache): قد تحوي منتجات حُذفت. ننتظر لقطة الخادم المؤكَّدة.
       if(snap.metadata.fromCache) return;
       realtimeProductsLoaded=true;
-      applyProductsList(snap.docs.map(mapSnap));
+      const liveList=snap.docs.map(mapSnap);
+      applyProductsList(liveList);
+      cacheProductsLocally(liveList);
     },async error=>{
       console.warn("Realtime products sync failed; REST fallback",error);
       const ok=await loadProductsFromFirestore();
