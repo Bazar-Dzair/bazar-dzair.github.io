@@ -807,7 +807,7 @@ const footerSettingDefaults={
  customerTexts:["","","نوفر التوصيل إلى مختلف ولايات الجزائر عبر Noest وDHD، سواء إلى المنزل أو إلى المكتب حسب توفر الخدمة.\n\nتختلف تكلفة التوصيل حسب الولاية وطريقة الاستلام، وتظهر للزبون عند تأكيد الطلب.\n\nمدة التوصيل تقديرية وقد تختلف حسب الولاية وشركة التوصيل.\n\nفي حالة رفض أو عدم استلام الطلب، قد تُطبق رسوم الإرجاع حسب شركة التوصيل."],
  importantLinks:["من نحن","سياسة الخصوصية","الشروط والأحكام"],
  importantTexts:["","",""] ,
- phone:"0542 19 58 34", whatsappText:"💬 واتساب متوفر للطلبات", copyright:"© 2026 Bazar Dzair - جميع الحقوق محفوظة"
+ whatsappText:"💬 واتساب متوفر للطلبات", copyright:"© 2026 Bazar Dzair - جميع الحقوق محفوظة"
 };
 function footerEsc(v){return escapeAttr(String(v??""));}
 function footerTextEsc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
@@ -857,8 +857,7 @@ async function loadFooterSetting(){
      </div>
      <div class="footer-editor-card">
        <div class="footer-editor-card-head"><span class="fec-ic">📞</span><h3>معلومات التواصل والنشر</h3></div>
-       <p class="footer-editor-card-sub">تظهر أسفل التذييل: رقم الهاتف، نص واتساب، وسطر حقوق النشر.</p>
-       ${footerField("رقم الهاتف","footerPhoneInput",d.phone)}
+       <p class="footer-editor-card-sub">تظهر أسفل التذييل: نص واتساب وسطر حقوق النشر (تم الاعتماد على واتساب فقط بدون رقم هاتف).</p>
        ${footerField("نص واتساب","footerWhatsappInput",d.whatsappText)}
        ${footerField("حقوق النشر","footerCopyrightInput",d.copyright)}
      </div>
@@ -868,7 +867,7 @@ async function loadFooterSetting(){
  }catch(e){console.error(e); if(status){status.textContent="تعذر تحميل إعدادات التذييل";status.classList.remove("hidden");}}
 }
 async function saveFooterSetting(){
- const data={description:document.getElementById("footerDescriptionInput")?.value||"",customerLinks:Array.from(document.querySelectorAll(".customer-title")).map(x=>x.value),customerTexts:Array.from(document.querySelectorAll(".customer-text")).map(x=>x.value),importantLinks:Array.from(document.querySelectorAll(".important-title")).map(x=>x.value),importantTexts:Array.from(document.querySelectorAll(".important-text")).map(x=>x.value),phone:document.getElementById("footerPhoneInput")?.value||"",whatsappText:document.getElementById("footerWhatsappInput")?.value||"",copyright:document.getElementById("footerCopyrightInput")?.value||""};
+ const data={description:document.getElementById("footerDescriptionInput")?.value||"",customerLinks:Array.from(document.querySelectorAll(".customer-title")).map(x=>x.value),customerTexts:Array.from(document.querySelectorAll(".customer-text")).map(x=>x.value),importantLinks:Array.from(document.querySelectorAll(".important-title")).map(x=>x.value),importantTexts:Array.from(document.querySelectorAll(".important-text")).map(x=>x.value),whatsappText:document.getElementById("footerWhatsappInput")?.value||"",copyright:document.getElementById("footerCopyrightInput")?.value||""};
  try{localStorage.setItem("bazarFooterSettings",JSON.stringify(data));
    if(window.bazarDb&&window.bazarSetDoc&&window.bazarDoc) await window.bazarSetDoc(window.bazarDoc(window.bazarDb,"settings","footer"),{...data,updatedAt:window.bazarServerTimestamp?window.bazarServerTimestamp():new Date()},{merge:true});
    const st=document.getElementById("footerAdminStatus"); if(st){st.textContent="تم حفظ تذييل المتجر بنجاح ✅";st.classList.remove("hidden");st.className="status ok";}

@@ -886,7 +886,7 @@ window.BazarHero=(function(){
   </div>
 </section>
 </main>
-<footer id="footer"><div class="footer-grid"><div><div class="brand" style="justify-self:start;color:#fff;margin-bottom:12px"><div class="brand-mark"></div><div><div class="brand-text"><b style="color:#fff">Bazar</b> <b>Dzair</b></div><div class="brand-sub" style="color:#fff" data-i18n="brand_subtitle">متجر إلكتروني</div></div></div><p id="footerDescription" data-i18n="footer_description">متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.</p></div><div><h4 data-i18n="footer_links_title">روابط مهمة</h4><ul id="importantFooterList"><li><button type="button" class="footer-toggle">من نحن</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">سياسة الخصوصية</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">الشروط والأحكام</button><div class="footer-link-text"></div></li></ul></div><div><h4 data-i18n="footer_customer_title">خدمة الزبائن</h4><ul id="customerFooterList"><li><button type="button" class="footer-toggle">❓ أسئلة شائعة</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">📦 تتبع طلبي</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">🚚 سياسة التوصيل</button><div class="footer-link-text"></div></li></ul><ul><li>📞 <a id="footerPhone" href="tel:0542195834">0542 19 58 34</a></li><li><a id="footerWhatsapp" href="https://wa.me/213542195834" target="_blank" rel="noopener">💬 واتساب متوفر للطلبات</a></li></ul></div></div><div class="copyright" id="footerCopyright">© 2026 Bazar Dzair ❤️ — جميع الحقوق محفوظة</div></footer>
+<footer id="footer"><div class="footer-grid"><div><div class="brand" style="justify-self:start;color:#fff;margin-bottom:12px"><div class="brand-mark"></div><div><div class="brand-text"><b style="color:#fff">Bazar</b> <b>Dzair</b></div><div class="brand-sub" style="color:#fff" data-i18n="brand_subtitle">متجر إلكتروني</div></div></div><p id="footerDescription" data-i18n="footer_description">متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.</p></div><div><h4 data-i18n="footer_links_title">روابط مهمة</h4><ul id="importantFooterList"><li><button type="button" class="footer-toggle">من نحن</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">سياسة الخصوصية</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">الشروط والأحكام</button><div class="footer-link-text"></div></li></ul></div><div><h4 data-i18n="footer_customer_title">خدمة الزبائن</h4><ul id="customerFooterList"><li><button type="button" class="footer-toggle">❓ أسئلة شائعة</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">📦 تتبع طلبي</button><div class="footer-link-text"></div></li><li><button type="button" class="footer-toggle">🚚 سياسة التوصيل</button><div class="footer-link-text"></div></li></ul><ul><li><a id="footerWhatsapp" href="https://wa.me/213542195834" target="_blank" rel="noopener">💬 واتساب متوفر للطلبات</a></li></ul></div></div><div class="copyright" id="footerCopyright">© 2026 Bazar Dzair ❤️ — جميع الحقوق محفوظة</div></footer>
 <div class="overlay" id="productOverlay" onclick="overlayClose(event,'productOverlay')"><div class="modal"><button class="close" onclick="closeModal('productOverlay')">×</button><div class="detail"><div class="detail-pic"><img id="detailImage" alt="تفاصيل المنتج"></div><div><h2 id="detailName"></h2><div class="detail-price" id="detailPrice"></div><p class="desc" id="detailDesc"></p><div class="qty"><button onclick="detailQtyChange(-1)">−</button><span id="detailQty">1</span><button onclick="detailQtyChange(1)">+</button></div><div class="detail-actions"><button class="orange" onclick="buyDetail()" data-i18n="detail_buy_now">⚡ اطلب الآن</button><button class="dark" onclick="cartDetail()" data-i18n="detail_add_cart">🛒 أضف إلى السلة</button></div></div></div></div></div>
 <div class="overlay" id="cartOverlay" onclick="overlayClose(event,'cartOverlay')"><div class="modal cart-modal"><button class="close" onclick="closeModal('cartOverlay')">×</button><h2 data-i18n="cart_title">🛒 سلة المشتريات</h2><div class="cart-list" id="cartItems"></div><div id="summaryBox"></div><div class="order"><h3 data-i18n="order_info_title">📦 معلومات الطلب</h3><div class="grid"><input class="field" id="customerName" placeholder="الاسم واللقب *" data-i18n-ph="placeholder_name"><input class="field" id="customerPhone" type="tel" placeholder="رقم الهاتف *" data-i18n-ph="placeholder_phone"><select class="field" id="wilaya" onchange="selectedDeliveryType=null;updateTotals()"><option value="" data-i18n="placeholder_wilaya">اختر الولاية *</option><option value="01">01 - أدرار</option><option value="02">02 - الشلف</option><option value="03">03 - الأغواط</option><option value="04">04 - أم البواقي</option><option value="05">05 - باتنة</option><option value="06">06 - بجاية</option><option value="07">07 - بسكرة</option><option value="08">08 - بشار</option><option value="09">09 - البليدة</option><option value="10">10 - البويرة</option><option value="11">11 - تمنراست</option><option value="12">12 - تبسة</option><option value="13">13 - تلمسان</option><option value="14">14 - تيارت</option><option value="15">15 - تيزي وزو</option><option value="16">16 - الجزائر</option><option value="17">17 - الجلفة</option><option value="18">18 - جيجل</option><option value="19">19 - سطيف</option><option value="20">20 - سعيدة</option><option value="21">21 - سكيكدة</option><option value="22">22 - سيدي بلعباس</option><option value="23">23 - عنابة</option><option value="24">24 - قالمة</option><option value="25">25 - قسنطينة</option><option value="26">26 - المدية</option><option value="27">27 - مستغانم</option><option value="28">28 - المسيلة</option><option value="29">29 - معسكر</option><option value="30">30 - ورقلة</option><option value="31">31 - وهران</option><option value="32">32 - البيض</option><option value="33">33 - إليزي</option><option value="34">34 - برج بوعريريج</option><option value="35">35 - بومرداس</option><option value="36">36 - الطارف</option><option value="37">37 - تندوف</option><option value="38">38 - تيسمسيلت</option><option value="39">39 - الوادي</option><option value="40">40 - خنشلة</option><option value="41">41 - سوق أهراس</option><option value="42">42 - تيبازة</option><option value="43">43 - ميلة</option><option value="44">44 - عين الدفلى</option><option value="45">45 - النعامة</option><option value="46">46 - عين تموشنت</option><option value="47">47 - غرداية</option><option value="48">48 - غليزان</option><option value="49">49 - تيميمون</option><option value="50">50 - برج باجي مختار</option><option value="51">51 - أولاد جلال</option><option value="52">52 - بني عباس</option><option value="53">53 - إن صالح</option><option value="54">54 - إن قزام</option><option value="55">55 - تقرت</option><option value="56">56 - جانت</option><option value="57">57 - المغير</option><option value="58">58 - المنيعة</option></select><input class="field full" id="address" placeholder="العنوان / البلدية *" data-i18n-ph="placeholder_address"><div class="full" id="deliveryTypeWrap" style="display:none"><label style="display:block;margin:2px 0 6px;font-weight:700;font-size:13px;color:var(--muted)" data-i18n="delivery_method_label">طريقة الاستلام</label><div id="deliveryTypeOptions" style="display:flex;gap:8px;flex-wrap:wrap"></div></div><div class="ship full" id="shipNote" data-i18n="ship_note_default">اختر الولاية لمعرفة سعر التوصيل.</div></div><button class="confirm" onclick="submitOrder()" data-i18n="confirm_button">✅ تأكيد الطلب بالدفع عند الاستلام</button></div></div></div>
 <div class="toast" id="toast"></div>
@@ -1113,7 +1113,6 @@ const footerDefaults={
   "نجمع فقط المعلومات الضرورية لإتمام طلبك: الاسم، رقم الهاتف، الولاية والعنوان. تُستخدم هذه المعلومات حصريًا لتنفيذ وتوصيل طلبك، ولا تُشارك مع أي جهة خارج شركات التوصيل المعتمدة (Noest، DHD) اللازمة لإيصال الطلب إليك.\n\nلا يقوم المتجر بتخزين أي معلومات دفع بنكية، لأن الدفع يتم عند الاستلام نقدًا فقط.\n\nلأي استفسار حول بياناتك الشخصية، تواصل معنا عبر الهاتف أو واتساب.",
   "الأسعار المعروضة بالدينار الجزائري (دج) وقابلة للتغيير دون إشعار مسبق.\n\nطريقة الدفع الوحيدة المتاحة حاليًا هي الدفع عند الاستلام (COD).\n\nصور المنتجات تقريبية وقد تختلف بعض التفاصيل البسيطة (كاللون) عن المنتج الفعلي.\n\nيحق للزبون إلغاء الطلب قبل شحنه بالتواصل معنا مباشرة.\n\nباستخدامك لهذا الموقع وإتمام طلب، فإنك توافق على هذه الشروط.\n\n[أضيفي هنا: شروط إضافية خاصة بنشاطك إن وجدت]"
  ],
- phone:"0542 19 58 34",
  whatsappText:"💬 واتساب متوفر للطلبات",
  whatsappUrl:"https://wa.me/213542195834",
  copyright:"© 2026 Bazar Dzair - جميع الحقوق محفوظة"
@@ -1296,8 +1295,6 @@ function applyFooterData(d){
     renderList("customerFooterList","customer",d.customerLinks,d.customerTexts,footerDefaults.customerLinks,footerDefaults.customerTexts);
   }
 
-  const phone=document.getElementById("footerPhone");
-  if(phone){phone.textContent=d.phone||footerDefaults.phone;phone.href="tel:"+String(d.phone||footerDefaults.phone).replace(/[^0-9+]/g,"");}
   const wa=document.getElementById("footerWhatsapp");
   if(wa){wa.textContent = lang==="fr" ? BazarI18n.t("footer_whatsapp") : (d.whatsappText||footerDefaults.whatsappText); wa.href=d.whatsappUrl||footerDefaults.whatsappUrl;}
   const cp=document.getElementById("footerCopyright");
@@ -1381,18 +1378,6 @@ function showProductSkeletonIfStillPending(){
   g.innerHTML=Array(8).fill('<div class="product skeleton" aria-hidden="true"><div class="pic"></div><div class="info"><div class="sk-line sk-name"></div><div class="sk-line sk-price"></div></div></div>').join("");
 }
 setTimeout(showProductSkeletonIfStillPending,6000);
-// تخزين مؤقت خفيف للمنتجات (صلاحية ساعتين فقط) لعرضها فورًا في الزيارة القادمة على اتصال
-// ضعيف، بدل هيكل تحميل فارغ. يُستبدل تلقائيًا بأول بيانات حقيقية تصل (REST أو Firestore
-// الفوري)، فالخطر الوحيد هو ظهور منتج محذوف مؤخرًا للحظة قصيرة على اتصال بطيء جدًا —
-// أهون بكثير من صفحة فارغة تمامًا لعدة ثوانٍ أو أكثر.
-function cacheProductsLocally(list){
-  try{
-    if(Array.isArray(list)&&list.length){
-      localStorage.setItem("bazarProductsCache",JSON.stringify(list));
-      localStorage.setItem("bazarProductsCacheTime",String(Date.now()));
-    }
-  }catch(_e){}
-}
 function applyProductsList(list){
   products=Array.isArray(list)?list:[];
   catalogLoaded=true;
@@ -1437,7 +1422,6 @@ async function loadProductsFromFirestore(){
     const firestoreProducts=await restGetProducts();
     // قائمة فارغة استجابة صحيحة من الخادم (كل المنتجات حُذفت) — تُعرض كما هي بدل إبقاء منتجات قديمة.
     applyProductsList(firestoreProducts);
-    cacheProductsLocally(firestoreProducts);
     return true;
   }catch(error){
     console.warn("Fast products load failed; using Firebase fallback",error);
@@ -1463,7 +1447,6 @@ async function loadFastCatalog(){
     // بدل إبقاء بطاقات قديمة. لا نحفظ المنتجات محليًا أبدًا (كان ذلك سبب ظهور منتجات محذوفة).
     if(prods.status==="fulfilled"&&!realtimeProductsLoaded){
       applyProductsList(prods.value);
-      cacheProductsLocally(prods.value);
     }
   }catch(e){console.warn("Fast catalog load failed",e)}
 }
@@ -1481,20 +1464,8 @@ async function loadFastCatalog(){
 function loadLocalCatalogFirst(){
   try{const s=JSON.parse(localStorage.getItem("bazarSiteSettings")||"null");if(s)applySiteData(s);}catch(_e){}
   try{const c=JSON.parse(localStorage.getItem("bazarCategoriesCache")||"null");if(Array.isArray(c)&&c.length)applyStoreCategories(c);}catch(_e){}
-  // نعرض آخر نسخة محفوظة من المنتجات فورًا (صلاحية ساعتين فقط) بدل هيكل تحميل فارغ على
-  // اتصال ضعيف. تُستبدل تلقائيًا بأول بيانات حقيقية تصل من REST أو Firestore الفوري أعلاه،
-  // فلا تبقى ظاهرة أكثر من لحظات قليلة حتى على أبطأ اتصال.
-  try{
-    const cachedTime=Number(localStorage.getItem("bazarProductsCacheTime")||0);
-    const isFresh=cachedTime&&(Date.now()-cachedTime<2*3600*1000);
-    if(isFresh){
-      const cachedProducts=JSON.parse(localStorage.getItem("bazarProductsCache")||"null");
-      if(Array.isArray(cachedProducts)&&cachedProducts.length) applyProductsList(cachedProducts);
-    }else{
-      localStorage.removeItem("bazarProductsCache");
-      localStorage.removeItem("bazarProductsCacheTime");
-    }
-  }catch(_e){}
+  // المنتجات لا تُخزَّن محليًا: نمسح أي نسخة قديمة بقيت من إصدارات سابقة حتى لا تعود منتجات محذوفة للظهور.
+  try{localStorage.removeItem("bazarProductsCache");}catch(_e){}
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",loadLocalCatalogFirst);
 else loadLocalCatalogFirst();
@@ -1552,18 +1523,14 @@ else loadLocalCatalogFirst();
       .then(fastSnap=>{
         // نتجاهل النتيجة إذا كانت القائمة الكاملة الحقيقية وصلت أصلًا (لا نستبدل بيانات أكمل بأخرى أقل)
         if(realtimeProductsLoaded) return;
-        const fastList=fastSnap.docs.map(mapSnap);
-        applyProductsList(fastList);
-        cacheProductsLocally(fastList);
+        applyProductsList(fastSnap.docs.map(mapSnap));
       })
       .catch(()=>{/* فشل القراءة السريعة لا يوقف شيئًا: onSnapshot الكامل أدناه يكمل المهمة كالمعتاد */});
     onSnapshot(collection(db,"products"),{includeMetadataChanges:true},snap=>{
       // لا نعرض أبدًا لقطة قادمة من الكاش (fromCache): قد تحوي منتجات حُذفت. ننتظر لقطة الخادم المؤكَّدة.
       if(snap.metadata.fromCache) return;
       realtimeProductsLoaded=true;
-      const liveList=snap.docs.map(mapSnap);
-      applyProductsList(liveList);
-      cacheProductsLocally(liveList);
+      applyProductsList(snap.docs.map(mapSnap));
     },async error=>{
       console.warn("Realtime products sync failed; REST fallback",error);
       const ok=await loadProductsFromFirestore();
