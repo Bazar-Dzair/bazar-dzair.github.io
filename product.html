@@ -1,35 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- 🩺 كود تشخيص مؤقت — يُحذف بعد حل المشكلة. لا يغيّر أي سلوك في الموقع، فقط يُظهر
-     أي خطأ برمجي (JS) في نافذة تنبيه (alert) حتى بدون فتح أدوات المطوّر (F12). -->
-<script>
-window.addEventListener("error",function(e){
-  alert("🩺 خطأ JS:\n"+(e.message||"")+"\nفي: "+(e.filename||"")+" سطر "+(e.lineno||"")+"\n"+((e.error&&e.error.stack)||""));
-});
-window.addEventListener("unhandledrejection",function(e){
-  var r=e.reason;
-  alert("🩺 خطأ (Promise):\n"+(r&&r.message?r.message:String(r))+"\n"+((r&&r.stack)||""));
-});
-window.addEventListener("load",function(){
-  setTimeout(function(){
-    if(typeof window.submitOrder!=="function"){alert("🩺 submitOrder غير معرّفة أصلاً!");return;}
-    var orig=window.submitOrder;
-    window.submitOrder=async function(){
-      alert("🩺 تم الضغط: submitOrder بدأت التنفيذ الآن.");
-      try{
-        var r=await orig.apply(this,arguments);
-        alert("🩺 submitOrder انتهت بدون استثناء.");
-        return r;
-      }catch(err){
-        alert("🩺 submitOrder رمت استثناء:\n"+(err&&err.message?err.message:String(err))+"\n"+((err&&err.stack)||""));
-        throw err;
-      }
-    };
-  },1000);
-});
-</script>
-<!-- 🩺 نهاية كود التشخيص المؤقت -->
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.cloudinary.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net https://challenges.cloudflare.com https://api.mymemory.translated.net; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
@@ -1085,39 +1056,6 @@ window.openReviewsFromSummary=function(){
   const c=document.getElementById("descCard");
   if(c) c.scrollIntoView({behavior:"smooth",block:"start"});
 };
-function render(p){product=p;
-// tp: الاسم والوصف المعروضان للزبون حسب اللغة الحالية (name_fr/description_fr إن توفرا).
-// هذا للعرض فقط؛ بيانات الطلب المرسلة لاحقًا (Telegram/Firestore) تستعمل دائمًا product.name الأصلي.
-const tp=window.BazarI18n?BazarI18n.translateProduct(p):{name:p.name||p.product||pt("default_product_name"),description:p.description||p.desc||pt("default_product_desc")};
-const name=tp.name;const desc=tp.description;
-const rawGalleryImages=Array.isArray(p.images)?p.images.filter(Boolean):[];
-galleryImages=rawGalleryImages.length?rawGalleryImages:[p.image||p.imageUrl||p.photo||"/logo.svg"];galleryIndex=0;
-
-document.title=name+" | Bazar Dzair";
-const md=document.getElementById("metaDescription");if(md)md.content=trimMetaDescription(desc);
-applyProductSEO(p,name,desc);
-if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});
-const stockValue=(p.stock===null||p.stock===undefined||p.stock==="")?NaN:Number(p.stock);
-const outOfStock=Number.isFinite(stockValue)&&stockValue<=0;
-const available=p.published!==false&&!outOfStock;
-productAvailable=available;
-// ===== تقييم المنتج: لا نعرض أي شيء إلا إذا توفرت بيانات تقييم حقيقية في المنتج (لا نختلق أرقامًا). =====
-function getRatingInfo(prod){
-  // المصدر الوحيد: تقييمات الزبائن الحقيقية المنشورة. لا نقرأ أي رقم تقييم يدوي/قديم من وثيقة المنتج.
-  return bazarRealRating(prod);
-}
-function starsHtml(value){
-  const filled=Math.max(0,Math.min(5,Math.round(Number(value)||0)));
-  return "★".repeat(filled)+"☆".repeat(5-filled);
-}
-const ratingInfo=getRatingInfo(p);
-
-// ===== السعر القديم ونسبة التخفيض: تُعرض فقط إذا كانت موجودة فعليًا في بيانات المنتج. =====
-const oldPriceRaw=p.oldPrice??p.old_price??p.compareAtPrice??p.compare_at_price??null;
-const oldPrice=Number(oldPriceRaw);
-const hasDiscount=Number.isFinite(oldPrice)&&oldPrice>Number(p.price||0);
-const discountPct=hasDiscount?Math.round((oldPrice-Number(p.price||0))/oldPrice*100):0;
-
 // ===== منتقي اللون/القياس: يُبنى فقط إذا كان المنتج يحمل colors/sizes/shoeSizes فعليًا. =====
 function variantPickerHtml(prod){
   const colors=Array.isArray(prod.colors)?prod.colors.filter(c=>c&&c.name):[];
@@ -1166,6 +1104,40 @@ function renderVariantPickerInPlace(){
   const holder=document.getElementById("variantPickerHolder");
   if(holder&&product) holder.innerHTML=variantPickerHtml(product);
 }
+
+function render(p){product=p;
+// tp: الاسم والوصف المعروضان للزبون حسب اللغة الحالية (name_fr/description_fr إن توفرا).
+// هذا للعرض فقط؛ بيانات الطلب المرسلة لاحقًا (Telegram/Firestore) تستعمل دائمًا product.name الأصلي.
+const tp=window.BazarI18n?BazarI18n.translateProduct(p):{name:p.name||p.product||pt("default_product_name"),description:p.description||p.desc||pt("default_product_desc")};
+const name=tp.name;const desc=tp.description;
+const rawGalleryImages=Array.isArray(p.images)?p.images.filter(Boolean):[];
+galleryImages=rawGalleryImages.length?rawGalleryImages:[p.image||p.imageUrl||p.photo||"/logo.svg"];galleryIndex=0;
+
+document.title=name+" | Bazar Dzair";
+const md=document.getElementById("metaDescription");if(md)md.content=trimMetaDescription(desc);
+applyProductSEO(p,name,desc);
+if(window.bazarTrackEvent)window.bazarTrackEvent("ViewContent",{id:p.id||p.firestoreId||"",content_name:p.name||name,price:Number(p.price||0),category:p.category||""});
+const stockValue=(p.stock===null||p.stock===undefined||p.stock==="")?NaN:Number(p.stock);
+const outOfStock=Number.isFinite(stockValue)&&stockValue<=0;
+const available=p.published!==false&&!outOfStock;
+productAvailable=available;
+// ===== تقييم المنتج: لا نعرض أي شيء إلا إذا توفرت بيانات تقييم حقيقية في المنتج (لا نختلق أرقامًا). =====
+function getRatingInfo(prod){
+  // المصدر الوحيد: تقييمات الزبائن الحقيقية المنشورة. لا نقرأ أي رقم تقييم يدوي/قديم من وثيقة المنتج.
+  return bazarRealRating(prod);
+}
+function starsHtml(value){
+  const filled=Math.max(0,Math.min(5,Math.round(Number(value)||0)));
+  return "★".repeat(filled)+"☆".repeat(5-filled);
+}
+const ratingInfo=getRatingInfo(p);
+
+// ===== السعر القديم ونسبة التخفيض: تُعرض فقط إذا كانت موجودة فعليًا في بيانات المنتج. =====
+const oldPriceRaw=p.oldPrice??p.old_price??p.compareAtPrice??p.compare_at_price??null;
+const oldPrice=Number(oldPriceRaw);
+const hasDiscount=Number.isFinite(oldPrice)&&oldPrice>Number(p.price||0);
+const discountPct=hasDiscount?Math.round((oldPrice-Number(p.price||0))/oldPrice*100):0;
+
 const buyHtml=available?
   `<div class="action-row">
      <button type="button" class="btn-cart" onclick="addToCartUI()"><span aria-hidden="true">🛒</span> ${esc(pt("add_to_cart_btn"))}</button>
