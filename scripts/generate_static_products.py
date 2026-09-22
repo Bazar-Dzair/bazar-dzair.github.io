@@ -128,6 +128,21 @@ def slugify(x, fallback='item'):
     return s or fallback
 
 
+def truncate_utf8_slug(s, max_bytes=120):
+    """يقصّ السلاغ بحيث لا يتجاوز اسم المجلد الناتج max_bytes بترميز UTF-8، بدون قطع حرف
+    متعدد البايتات من المنتصف (الأحرف العربية تأخذ بايتين لكل حرف في UTF-8). ضروري لأن أغلب
+    أنظمة الملفات (بما فيها Linux التي تعمل عليها GitHub Actions runners) تفرض حد 255 بايت
+    لكل عنصر مسار واحد — واسم منتج عربي طويل قد ينتج سلاغ يتجاوز هذا الحد فيفشل git checkout
+    لهذا المجلد بالذات (وأحياناً يوقف النشر كله)."""
+    b=s.encode('utf-8')
+    if len(b)<=max_bytes: return s
+    b=b[:max_bytes]
+    while b:
+        try: return b.decode('utf-8').rstrip('-')
+        except UnicodeDecodeError: b=b[:-1]
+    return ''
+
+
 def fr_slug(x):
     """slug لاتيني (a-z0-9 و "-" فقط). نفس منطق frSlug في index.html/product.html/admin.html حرفيًا."""
     s=str(x or '').lower().replace('œ','oe').replace('æ','ae').replace('ß','ss')
@@ -436,7 +451,8 @@ for p in products:
     n=seen.get(base,0); seen[base]=n+1
     slug=base if n==0 else f'{base}-{n+1}'
     # الرابط القديم (من الاسم العربي، بنفس ترقيم التكرار القديم) → صفحة تحويل إلى الرابط الفرنسي الجديد.
-    lbase=slugify(name,'product'); ln=legacy_seen.get(lbase,0); legacy_seen[lbase]=ln+1
+    # نقصّ الاسم الناتج (truncate_utf8_slug) حتى لا يتجاوز حد 255 بايت لاسم المجلد على Linux.
+    lbase=truncate_utf8_slug(slugify(name,'product')); ln=legacy_seen.get(lbase,0); legacy_seen[lbase]=ln+1
     legacy_product_redirects.append((lbase if ln==0 else f'{lbase}-{ln+1}',slug))
     url=SITE+'product/'+urllib.parse.quote(slug,safe='-._~')+'/'
     desc=str(p.get('description') or p.get('desc') or f'شراء {name} من متجر Bazar Dzair.')
