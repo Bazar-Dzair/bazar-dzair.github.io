@@ -2978,7 +2978,8 @@ window.bazarCheckWorker=async function(){
       `${yn(cfg.FIREBASE_PRIVATE_KEY)} FIREBASE_PRIVATE_KEY`,
       `${yn(j.auth==="ok")} اتصال Google: ${esc(j.auth)}`,
       `${yn(j.firestore==="ok")} صلاحية Firestore: ${esc(j.firestore)}`,
-      `${j.telegram?"✅":"⚪"} إشعارات Telegram ${j.telegram?"مفعّلة":"غير مُعدّة (اختياري)"}`
+      `${j.telegram?"✅":"⚪"} إشعارات Telegram ${j.telegram?"مفعّلة":"غير مُعدّة (اختياري)"}`,
+      `${j.seoTrigger?"✅":"❌"} تحديث صفحات المتجر بعد الحذف (GITHUB_TOKEN) ${j.seoTrigger?"مُعدّ":"غير مُعدّ — ستبقى منتجات محذوفة ظاهرة في الصفحة الرئيسية حتى 6 ساعات"}`
     ];
     if(box)box.innerHTML=`<div style="text-align:right;line-height:2">${lines.join("<br>")}<br><b>${workerReady?"🎉 الـ Worker جاهز — حظر IP وكشف الإساءة يعملان.":"⚠️ الـ Worker غير جاهز بعد: أصلح العناصر ❌ أعلاه. الطلبات ستفشل (لا يوجد مسار احتياطي) حتى تُصلَح."}</b></div>`;
   }catch(e){
