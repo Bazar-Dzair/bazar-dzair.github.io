@@ -1573,9 +1573,15 @@ else loadLocalCatalogFirst();
   }
 })();
 
+// إصلاح جذري لتأخّر ظهور المنتجات المضافة حديثًا بحوالي ثانية: كان هذا الاستدعاء (وهو
+// أسرع مصدر للبيانات الحقيقية عبر REST مباشرة، بلا تحميل حزمة Firebase SDK) يُؤجَّل عمدًا
+// إلى حدث DOMContentLoaded، أي ينتظر انتهاء تحليل كامل الصفحة (آلاف الأسطر المتبقية أسفل هذه
+// النقطة) قبل أن يبدأ حتى طلب الشبكة — بينما لا يحتاج fetch() فعليًا إلى اكتمال الصفحة إطلاقًا،
+// تمامًا مثل initStoreFirestore أعلاه الذي يعمل فورًا بلا أي انتظار. هذا التأخير غير المبرر في
+// بدء الطلب هو ما كان يُضيف الثانية الإضافية المُبلَّغ عنها. الإصلاح: تشغيله فورًا مثل باقي
+// المصادر، فيبدأ طلب REST بالتوازي مع استكمال تحليل الصفحة بدل الانتظار لحين انتهائها.
 loadFastSettings();
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",loadFastCatalog);
-else loadFastCatalog();
+loadFastCatalog();
 
 const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):(Number(n).toLocaleString("ar-DZ")+" دج");
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
