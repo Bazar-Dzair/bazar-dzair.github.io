@@ -1,6 +1,19 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
+<!-- 🩺 كود تشخيص مؤقت — يُحذف بعد حل المشكلة. لا يغيّر أي سلوك في الموقع، فقط يُظهر
+     أي خطأ برمجي (JS) في نافذة تنبيه (alert) حتى بدون فتح أدوات المطوّر (F12)، لأن
+     المشكلة الحالية لا تظهر أي رسالة للزبون فتصعب معرفة سببها الحقيقي بدون هذا. -->
+<script>
+window.addEventListener("error",function(e){
+  alert("🩺 خطأ JS:\n"+(e.message||"")+"\nفي: "+(e.filename||"")+" سطر "+(e.lineno||"")+"\n"+((e.error&&e.error.stack)||""));
+});
+window.addEventListener("unhandledrejection",function(e){
+  var r=e.reason;
+  alert("🩺 خطأ (Promise):\n"+(r&&r.message?r.message:String(r))+"\n"+((r&&r.stack)||""));
+});
+</script>
+<!-- 🩺 نهاية كود التشخيص المؤقت -->
 <meta charset="utf-8">
 <meta name="google-site-verification" content="nBpuWTenFFLcOZNsMJDTMSoDyUSigItHwsubj3huHhg">
 <meta name="referrer" content="strict-origin-when-cross-origin">
