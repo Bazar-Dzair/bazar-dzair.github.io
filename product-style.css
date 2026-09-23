@@ -642,3 +642,16 @@ body{padding-bottom:96px}
   .purchase-controls .btn-buy{font-size:15.5px}
 }
 
+
+/* ===== شارة السلة: مخفية افتراضيًا (لا تظهر "0/1" لحظة التحميل)، وتُظهرها refreshCartBadge() فقط إن كانت السلة غير فارغة ===== */
+.cart-link .cl-badge{display:none}
+
+/* ===== الواجهة الفرنسية: النصوص من اليسار إلى اليمين (تخطيط الصفحة يبقى كما هو) ===== */
+html[lang="fr"] .crumb,
+html[lang="fr"] .title,
+html[lang="fr"] #infoContent,
+html[lang="fr"] .info-card,
+html[lang="fr"] .desc-card,
+html[lang="fr"] .sim-head,
+html[lang="fr"] .sim-card{direction:ltr;text-align:left}
+html[lang="fr"] .title{overflow-wrap:break-word}
