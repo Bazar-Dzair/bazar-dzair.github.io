@@ -5,6 +5,16 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '17 */6 * * *'
+  # إعادة التوليد تلقائيًا عند رفع أي ملف تعتمد عليه الصفحات المولَّدة (السكربت نفسه، أو قالب product.html
+  # الذي تُبنى منه كل صفحة منتج، أو هذا الملف). بدون هذا كان رفع هذه الملفات لا يغيّر الصفحات المنشورة
+  # حتى التشغيل المجدول التالي، فتبقى روابط جديدة (مثل /product/<slug>/) تعطي 404 لساعات.
+  # لا حلقة تشغيل: الـ push الذي يجريه هذا الـ workflow بـ GITHUB_TOKEN لا يُطلق workflows أخرى.
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/generate_static_products.py'
+      - 'product.html'
+      - '.github/workflows/generate-seo-pages.yml'
 
 permissions:
   contents: write
