@@ -425,6 +425,118 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
     return out
 
 
+def static_product_html_fr(name_fr, desc_fr, price, images, available=True, badge=None, old_price=None):
+    # نفس static_product_html بالضبط (نفس أصناف CSS، نفس البنية) لكن بنصوص فرنسية حقيقية
+    # ثابتة في HTML الخام. هذه الدالة تُستخدم فقط لصفحات /fr/product/<slug>/ — لا تمسّ
+    # أي شيء في product.html أو في صفحة المنتج العربية الحالية.
+    imgs = [i for i in images if i] or ['/logo.svg']
+    thumbs = ''.join(
+        f'<button class="thumb{" active" if i==0 else ""}"><img src="{html.escape(im,quote=True)}" alt="{html.escape(name_fr,quote=True)} {i+1}" loading="lazy"></button>'
+        for i, im in enumerate(imgs)
+    )
+    photo_wrap = (
+        f'<div class="photo-wrap"><div class="main-photo-box">'
+        f'<img class="photo" src="{html.escape(imgs[0],quote=True)}" alt="{html.escape(name_fr,quote=True)}">'
+        f'<span class="gallery-count">1 / {len(imgs)}</span></div>'
+        f'<div class="thumbs">{thumbs}</div></div>'
+    )
+
+    if not available:
+        badge_html = '<span class="badge-featured unavailable">Actuellement indisponible</span>'
+    else:
+        badge_html = ''
+
+    has_discount = False
+    try:
+        op = float(old_price) if old_price not in (None, '') else None
+        if op is not None and op > float(price or 0):
+            has_discount = True
+            discount_pct = round((op - float(price or 0)) / op * 100)
+    except Exception:
+        op = None
+    price_row = f'<div class="price-row"><span class="price-current">{html.escape(money_fr(price))}</span>'
+    if has_discount:
+        price_row += f'<span class="price-old">{html.escape(money_fr(op))}</span><span class="discount-badge">-{discount_pct}%</span>'
+    price_row += '</div>'
+
+    delivery_strip = '<div class="delivery-strip"><span aria-hidden="true">🚚</span> <span>Livraison rapide vers toutes les wilayas</span></div>'
+    trust_grid = (
+        '<div class="trust-grid">'
+        '<div class="trust-card"><span class="ic">🛡️</span><span>Produit original garanti</span></div>'
+        '<div class="trust-card"><span class="ic">🚚</span><span>Livraison rapide vers toutes les wilayas</span></div>'
+        '<div class="trust-card"><span class="ic">🎧</span><span>Service après-vente</span></div>'
+        '<div class="trust-card"><span class="ic">💵</span><span>Paiement à la livraison</span></div>'
+        '</div>'
+    )
+
+    if available:
+        action_row = (
+            '<div class="action-row">'
+            '<button type="button" class="btn-cart">🛒 Ajouter au panier</button>'
+            '<button type="button" class="btn-buy">⚡ Commander maintenant</button>'
+            '</div>'
+        )
+    else:
+        action_row = (
+            '<div class="action-row">'
+            '<button type="button" class="btn-cart" disabled>Actuellement indisponible</button>'
+            '<button type="button" class="btn-buy" disabled>Actuellement indisponible</button>'
+            '</div>'
+        )
+    purchase_controls = (
+        '<div class="purchase-controls"><div class="qty"><button disabled>−</button>'
+        f'<span>1</span><button disabled>+</button></div>{action_row}</div>'
+    )
+
+    info = (
+        f'<div class="info">{badge_html}<h1 class="title">{html.escape(name_fr)}</h1>'
+        f'{price_row}{delivery_strip}{trust_grid}{purchase_controls}</div>'
+    )
+    return photo_wrap + info
+
+
+def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None, aggregate_rating=None, price_valid_until=None):
+    """مطابقة لـ inject_product_seo تمامًا في المنطق، لكن كل نص عرض/SEO مبني من
+    name_fr/desc_fr (وليس name/desc)، والوجهة صفحة فرنسية مستقلة (url_fr) لها
+    canonical خاص بها. لا تُغيَّر بيانات المنتج نفسها (السعر، المخزون...) إطلاقًا —
+    فقط طبقة العرض/الميتاداتا لهذه الصفحة الثابتة تحديدًا."""
+    d155=make_meta_description(desc_fr)
+    title_tag=f'<title>{html.escape(name_fr)} | Bazar Dzair</title>'
+    desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
+    canonical_tag=f'<link id="canonical" rel="canonical" href="{html.escape(url_fr,quote=True)}">'
+    ld={'@context':'https://schema.org','@type':'Product','name':name_fr,'image':[img],'description':(desc_fr or '')[:500],'url':url_fr,'offers':{'@type':'Offer','url':url_fr,'priceCurrency':'DZD','price':price_number(price),'availability':'https://schema.org/InStock'}}
+    if price_valid_until:
+        ld['offers']['priceValidUntil']=price_valid_until
+    if aggregate_rating:
+        ld['aggregateRating']={
+            '@type':'AggregateRating',
+            'ratingValue':aggregate_rating['ratingValue'],
+            'reviewCount':aggregate_rating['reviewCount'],
+        }
+    bc={'@context':'https://schema.org','@type':'BreadcrumbList','itemListElement':[{'@type':'ListItem','position':1,'name':'Accueil','item':SITE},{'@type':'ListItem','position':2,'name':name_fr,'item':url_fr}]}
+    extra=(
+        f'<meta id="ogTitle" property="og:title" content="{html.escape(name_fr,quote=True)}">'
+        f'<meta id="ogDescription" property="og:description" content="{html.escape(d155,quote=True)}">'
+        f'<meta id="ogUrl" property="og:url" content="{html.escape(url_fr,quote=True)}">'
+        f'<meta id="ogImage" property="og:image" content="{html.escape(img,quote=True)}">'
+        f'<script type="application/ld+json" id="bazar_product_jsonld">{json.dumps(ld,ensure_ascii=False)}</script>'
+        f'<script type="application/ld+json" id="bazar_breadcrumb_jsonld">{json.dumps(bc,ensure_ascii=False)}</script>'
+    )
+    if static_product_data is not None:
+        data_json=json.dumps(static_product_data,ensure_ascii=False).replace('</','<\\/')
+        extra+=f'<script type="application/json" id="bazar-static-product">{data_json}</script>'
+    out=template.replace('<html lang="ar" dir="rtl">','<html lang="fr" dir="ltr">',1)
+    # og:locale ثابت في القالب الأصلي على ar_DZ (صحيح للصفحة العربية) — يجب أن يصبح
+    # fr_DZ في الصفحة الفرنسية لأنه بيان حقيقي عن لغة محتوى *هذه* الصفحة تحديدًا.
+    out=out.replace('<meta property="og:locale" content="ar_DZ">','<meta property="og:locale" content="fr_DZ">',1)
+    out=out.replace('<title>المنتج | Bazar Dzair</title>',title_tag,1)
+    out=out.replace('<meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">',desc_tag,1)
+    out=out.replace('<link id="canonical" rel="canonical">',canonical_tag+extra,1)
+    static_body=static_product_html_fr(name_fr, desc_fr, price, images or [img], available, badge=badge, old_price=old_price)
+    out=out.replace('<div class="loading" data-i18n="product_loading">⏳ جاري تحميل المنتج...</div>',static_body,1)
+    return out
+
+
 def build_rating_index(reviews):
     """يبني {productId: {ratingValue, reviewCount}} من قائمة تقييمات approved==true،
     بنفس حسابات bazarRealRating() في product.html بالضبط (نفس شرط قبول ratingValue
@@ -454,11 +566,14 @@ categories=[c for c in collection('categories') if c.get('name')]
 rating_index=build_rating_index(collection_where_eq('reviews', 'approved', True))
 
 # Reset only generated SEO folders; never touch the live store files.
-for folder in (root/'product',root/'product-category'):
+# fr/product/ هو مجلد مولَّد بالكامل من هذا السكربت (مرحلة 2: نسخة فرنسية ثابتة من
+# صفحات المنتجات) — نفس منطق إعادة الضبط المطبَّق أصلاً على product/ و product-category/.
+for folder in (root/'product',root/'product-category',root/'fr'):
     if folder.exists():
         import shutil; shutil.rmtree(folder)
 
 seen={}; legacy_seen={}; product_urls=[]; legacy_product_redirects=[]
+fr_generated=0; fr_skipped=[]
 for p in products:
     name=str(p.get('name') or p.get('product'))
     base=product_slug_base(p)
@@ -500,6 +615,26 @@ for p in products:
     (root/'product'/slug).mkdir(parents=True,exist_ok=True)
     (root/'product'/slug/'index.html').write_text(template,encoding='utf-8')
     product_urls.append((url,name,p,slug))
+
+    # ===== المرحلة 2: نسخة فرنسية حقيقية وثابتة من صفحة المنتج (/fr/product/<slug>/) =====
+    # نفس الرابط (slug) المستخدم أعلاه بالضبط (وهو أصلًا مبني من name_fr عبر
+    # product_slug_base)، لكن تحت بادئة /fr/ حتى يكون رابطًا مستقلًا فعليًا له HTML
+    # خام فرنسي كامل (lang, title, meta description, JSON-LD) — لا نلمس رابط أو محتوى
+    # الصفحة العربية الحالية إطلاقًا. نستخدم name_fr/description_fr فقط، وليس
+    # name/description؛ إن كان أحدهما غائبًا لهذا المنتج نتخطّى إنشاء نسخته الفرنسية
+    # بدل تخمين ترجمة (نفس فلسفة translateProduct في i18n.js: لا ترجمة آلية أبدًا).
+    name_fr_p=str(p.get('name_fr') or '').strip()
+    desc_fr_p=str(p.get('description_fr') or p.get('desc_fr') or '').strip()
+    if name_fr_p and desc_fr_p:
+        url_fr=SITE+'fr/product/'+urllib.parse.quote(slug,safe='-._~')+'/'
+        template_fr=(root/'product.html').read_text(encoding='utf-8')
+        static_product_data_fr=dict(static_product_data)  # نفس بيانات المنتج الحقيقية بالضبط (لا تعديل على السعر/المخزون/إلخ)
+        template_fr=inject_product_seo_fr(template_fr,name_fr_p,desc_fr_p,url_fr,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data_fr,aggregate_rating=agg,price_valid_until=PRICE_VALID_UNTIL)
+        (root/'fr'/'product'/slug).mkdir(parents=True,exist_ok=True)
+        (root/'fr'/'product'/slug/'index.html').write_text(template_fr,encoding='utf-8')
+        fr_generated+=1
+    else:
+        fr_skipped.append(slug)
 
 # Category pages: match products by category document id first, then by category name.
 # ملاحظة الفرنسية: لا نُخمّن أي ترجمة. نستخدم name_fr/description_fr فقط إن كانت
@@ -578,6 +713,11 @@ xml.append('</urlset>')
 (root/'sitemap-products.xml').write_text('\n'.join(['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']+[f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod></url>' for u,_,_,_ in product_urls]+['</urlset>'])+'\n',encoding='utf-8')
 (root/'sitemap-categories.xml').write_text('\n'.join(['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']+[f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod></url>' for u,_ in cat_urls]+['</urlset>'])+'\n',encoding='utf-8')
 print(f'Generated {len(product_urls)} product pages and {len(cat_urls)} category pages.')
+print(f'Generated {fr_generated} French product pages under /fr/product/ (name_fr + description_fr both present).')
+if fr_skipped:
+    print(f'Skipped French page for {len(fr_skipped)} product(s) missing name_fr/description_fr: {", ".join(fr_skipped[:20])}' + (' ...' if len(fr_skipped)>20 else ''))
+# ملاحظة مرحلة 2: /fr/product/ غير مُدرَج بعد في sitemap.xml ولا يحمل وسم hreflang —
+# هذا مؤجَّل عمدًا للمرحلة 3 كما طُلب (لا نلمس sitemap أو نضيف hreflang في هذه المرحلة).
 
 # ===================== محتوى ثابت للصفحة الرئيسية (SEO) =====================
 # قبل هذا التعديل، الصفحة الرئيسية (index.html) لم تكن تحتوي أي محتوى ثابت —
