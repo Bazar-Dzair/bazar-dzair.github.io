@@ -1077,11 +1077,14 @@ function updateCategorySeo(category){
   activeCategory=category;
   const name=catName(category);
   if(title) title.textContent=name;
-  const catDescText=lang==="fr"?("Produits "+name+" disponibles sur Bazar Dzair"):("منتجات "+name+" المتوفرة في متجر Bazar Dzair");
+  // وصف SEO مخصص للفئة (حقل description/description_fr يُكتب من لوحة التحكم) — إن كان
+  // فارغًا نستعمل نفس الجملة العامة كالسابق، حتى لا تتكرر نفس الصياغة في كل الفئات.
+  const customCatDesc=(lang==="fr"?String(category.description_fr||""):String(category.description||"")).trim();
+  const catDescText=customCatDesc||(lang==="fr"?("Produits "+name+" disponibles sur Bazar Dzair"):("منتجات "+name+" المتوفرة في متجر Bazar Dzair"));
   if(desc) desc.textContent=catDescText;
   if(crumb){crumb.style.display="flex";crumb.innerHTML='<a href="./" onclick="event.preventDefault();filterCategory(\'all\')">🏠 '+esc(BazarI18n.t("nav_home"))+'</a><span class="crumb-sep">›</span><span class="crumb-current">'+esc(name)+'</span>';}
   document.title=name+" | Bazar Dzair";
-  if(meta) meta.setAttribute("content",lang==="fr"?("Découvrez les produits "+name+" sur Bazar Dzair, avec prix et offres disponibles."):("تصفح منتجات "+name+" في متجر Bazar Dzair. اكتشف المنتجات والأسعار والعروض المتوفرة."));
+  if(meta) meta.setAttribute("content",customCatDesc||(lang==="fr"?("Découvrez les produits "+name+" sur Bazar Dzair, avec prix et offres disponibles."):("تصفح منتجات "+name+" في متجر Bazar Dzair. اكتشف المنتجات والأسعار والعروض المتوفرة.")));
   // ===== وضع صفحة التصنيف الاحترافي: شريط علوي مبسّط + رأس تصنيف + شبكة بطاقات =====
   document.body.classList.add("category-mode");
   const topbarTitle=document.getElementById("catTopbarTitle");
