@@ -596,18 +596,19 @@ for folder in (root/'product',root/'product-category',root/'fr'):
     if folder.exists():
         import shutil; shutil.rmtree(folder)
 
-seen={}; legacy_seen={}; product_urls=[]
+seen={}; product_urls=[]
 fr_generated=0; fr_skipped=[]
 for p in products:
     name=str(p.get('name') or p.get('product'))
-    # الرابط العربي /product/<slug>/ : المنطق الأصلي القديم (من الاسم name، بنفس ترقيم التكرار القديم)،
-    # ولا يعتمد على name_fr إطلاقًا. نقصّ الاسم الناتج (truncate_utf8_slug) حتى لا يتجاوز حد 255 بايت لاسم المجلد على Linux.
-    lbase=truncate_utf8_slug(slugify(name,'product')); ln=legacy_seen.get(lbase,0); legacy_seen[lbase]=ln+1
-    slug=lbase if ln==0 else f'{lbase}-{ln+1}'
-    # slug النسخة الفرنسية /fr/product/<slug_fr>/ فقط: مشتق من name_fr (نفس المنطق والترقيم السابقين تمامًا،
-    # فلا تتغير روابط /fr/product/ المنشورة أصلاً). لا يُستخدم أبدًا لمسار /product/.
-    base_fr=product_slug_base(p); nf=seen.get(base_fr,0); seen[base_fr]=nf+1
-    slug_fr=base_fr if nf==0 else f'{base_fr}-{nf+1}'
+    # الرابط الأساسي /product/<slug>/ يجب أن يطابق الروابط الحالية التي يبنيها
+    # index.html وproduct.html: name_fr ثم fallback للاسم اللاتيني ثم produit-<id>.
+    # هذا يحافظ على الروابط المنشورة حاليًا (مثل boloneuse-...) ولا يحولها إلى slugs عربية.
+    base=product_slug_base(p)
+    n=seen.get(base,0); seen[base]=n+1
+    slug=base if n==0 else f'{base}-{n+1}'
+    # النسخة الفرنسية تستخدم نفس slug للمنتج نفسه تحت /fr/ حتى تكون العلاقة 1:1
+    # ويظل /product/<slug>/ هو الرابط العربي/الحالي و /fr/product/<slug>/ هو النسخة الفرنسية.
+    slug_fr=slug
     url=SITE+'product/'+urllib.parse.quote(slug,safe='-._~')+'/'
     desc=str(p.get('description') or p.get('desc') or f'شراء {name} من متجر Bazar Dzair.')
     price=float(p.get('price') or 0)
