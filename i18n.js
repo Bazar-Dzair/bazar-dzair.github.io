@@ -7,6 +7,7 @@
  *
  * كيف يعمل:
  * 1) اللغة المختارة تُحفظ في localStorage تحت المفتاح "bazarLang" ("ar" أو "fr").
+ *    استثناء: صفحات /fr/product/<slug>/ فرنسية دائمًا بحكم عنوانها (اللغة من المسار وليس من localStorage).
  * 2) BazarI18n.t(key) يرجع النص المناسب حسب اللغة الحالية من القاموس UI_DICT.
  * 3) BazarI18n.applyStatic() يبحث عن كل عنصر فيه data-i18n ويضبط نصه تلقائيًا،
  *    وكذلك data-i18n-ph (placeholder) و data-i18n-aria (aria-label) و data-i18n-title.
@@ -254,7 +255,16 @@
   ];
 
   // ===================== المنطق الأساسي =====================
+  // صفحات /fr/product/<slug>/ هي النسخة الفرنسية الثابتة من صفحة المنتج (تُفهرس في Google بالفرنسية).
+  // لو بقيت اللغة تُقرأ من localStorage فقط، لرأى الزاحف وأي زائر جديد (بلا تفضيل محفوظ، مثل من يصل من نتيجة
+  // بحث فرنسية) واجهة عربية داخل صفحة فرنسية، ولانقلب <html lang> إلى ar. لذلك المسار هو المرجع هنا.
+  var FR_PRODUCT_PATH = /^\/fr\/product\//;
+  function isFrenchProductPath() {
+    try { return FR_PRODUCT_PATH.test(location.pathname); } catch (_e) { return false; }
+  }
+
   function getLang() {
+    if (isFrenchProductPath()) return "fr";
     try {
       var v = localStorage.getItem(LANG_KEY);
       return v === "fr" ? "fr" : "ar";
@@ -264,6 +274,12 @@
   function setLang(lang) {
     lang = lang === "fr" ? "fr" : "ar";
     try { localStorage.setItem(LANG_KEY, lang); } catch (_e) {}
+    // في صفحة /fr/ اللغة مرتبطة بالمسار، فإعادة التحميل وحدها تُبقيها فرنسية: الانتقال إلى العربية
+    // يعني فتح نفس المنتج على /product/<slug>/ (بدون أي معاملات، حتى لا يبقى ?lang=fr فارضًا الفرنسية).
+    if (lang === "ar" && isFrenchProductPath()) {
+      location.href = location.pathname.replace(FR_PRODUCT_PATH, "/product/") + location.hash;
+      return;
+    }
     // إعادة تحميل الصفحة أبسط وأضمن طريقة لتطبيق اللغة على كل شيء
     // (نصوص ثابتة + منتجات + قوائم الولايات) دون أي خطر على منطق الطلبات.
     location.reload();
