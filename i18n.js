@@ -360,7 +360,9 @@
     // أما "4 500" بالمسافة فلا التباس فيها: تُقرأ ألفًا وخمسمئة فقط.
     var localeStr = num.toLocaleString("en-US", { maximumFractionDigits: 2 }).replace(/,/g, " ");
     if (lang === "fr") localeStr = localeStr.replace(".", ",");
-    return localeStr + " " + t("currency_suffix");
+    // LRI...PDI: يعزل السعر كتلة LTR واحدة حتى لا يقلبه المتصفح داخل صفحة dir="rtl"
+    // (كان يظهر "DA 400 2" بدل "2 400 DA").
+    return "\u2066" + localeStr + " " + t("currency_suffix") + "\u2069";
   }
 
   global.BazarI18n = {
