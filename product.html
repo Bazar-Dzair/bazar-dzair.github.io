@@ -1413,6 +1413,18 @@ async function redirectLegacyIdToStaticPage(){
   }catch(_e){ /* لا اتصال أو فشل الطلب: نكمل بالمسار الديناميكي المعتاد أدناه */ }
   return false;
 }
+// إصلاح جذري لمشكلة أرشفة روابط المنتج المعطوبة (القديمة من نوع product.html?id=xxx
+// أو أي رابط منتج لم يعد له وجود): عندما تفشل الصفحة فعليًا في عرض منتج حقيقي (غير
+// موجود أو تعذّر تحميله ولا توجد نسخة SSG/محلية بديلة)، نُحوّل وسم robots فورًا إلى
+// noindex حتى لا تبقى مثل هذه الروابط مفهرَسة في نتائج البحث برسالة خطأ. هذا لا يمس
+// إطلاقًا الصفحات الثابتة الناجحة (product/<slug>/) ولا آلية redirectLegacyIdToStaticPage
+// أعلاه، لأنه يُستدعى فقط داخل مسارَي "غير موجود" و"تعذر التحميل" أدناه.
+function markPageNoIndex(){
+  try{
+    const m=document.querySelector('meta[name="robots"]');
+    if(m) m.setAttribute("content","noindex,follow");
+  }catch(_e){}
+}
 async function load(){
   if(await redirectLegacyIdToStaticPage()) return;
   let cachedProduct=null;
@@ -1577,6 +1589,7 @@ async function load(){
     }else if(productGone || id || (!cachedProduct && !staticProduct)){
       // Firestore أجاب ولا يوجد منتج بهذا الرابط (حُذف): لا نُبقي نسخة قديمة معروضة من SSG أو من الذاكرة المحلية.
       try{localStorage.removeItem("bazar_selected_product");}catch(_e){}
+      markPageNoIndex();
       box.innerHTML='<div class="error"><h2>'+esc(pt("product_not_found_title"))+'</h2><p>'+esc(pt("product_not_found_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
     }
   }catch(e){
@@ -1584,7 +1597,10 @@ async function load(){
     // إن كانت بيانات المنتج ظاهرة أصلاً (من SSG أو من ذاكرة التصفح المحلية)، لا
     // نمسحها برسالة خطأ فقط لأن Firestore فشل في تحديثها — تبقى النسخة المعروضة
     // صحيحة وكاملة للزبون.
-    if(!cachedProduct && !staticProduct) box.innerHTML='<div class="error"><h2>'+esc(pt("product_load_failed_title"))+'</h2><p>'+esc(pt("product_load_failed_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
+    if(!cachedProduct && !staticProduct){
+      markPageNoIndex();
+      box.innerHTML='<div class="error"><h2>'+esc(pt("product_load_failed_title"))+'</h2><p>'+esc(pt("product_load_failed_desc"))+'</p><a class="back" href="/">'+esc(pt("back_to_store"))+'</a></div>';
+    }
   }
 }
 load();
