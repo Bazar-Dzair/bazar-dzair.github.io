@@ -354,7 +354,12 @@
   function formatMoney(n) {
     var lang = getLang();
     var num = Number(n) || 0;
-    var localeStr = lang === "fr" ? num.toLocaleString("fr-FR") : num.toLocaleString("ar-DZ");
+    // فاصل الآلاف مسافة عادية وأرقام لاتينية في اللغتين (نفس تنسيق الصفحات الثابتة المولَّدة في
+    // scripts/generate_static_products.py). toLocaleString("ar-DZ") كان يعطي "4.500" (نقطة) أو "4٬500"
+    // (فاصل عربي): محركات البحث تقرؤهما كسرًا عشريًا 4.5، فظهر السعر في Google "4,50 $US" بدل 4500 دج.
+    // أما "4 500" بالمسافة فلا التباس فيها: تُقرأ ألفًا وخمسمئة فقط.
+    var localeStr = num.toLocaleString("en-US", { maximumFractionDigits: 2 }).replace(/,/g, " ");
+    if (lang === "fr") localeStr = localeStr.replace(".", ",");
     return localeStr + " " + t("currency_suffix");
   }
 
