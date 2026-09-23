@@ -596,17 +596,18 @@ for folder in (root/'product',root/'product-category',root/'fr'):
     if folder.exists():
         import shutil; shutil.rmtree(folder)
 
-seen={}; legacy_seen={}; product_urls=[]; legacy_product_redirects=[]
+seen={}; legacy_seen={}; product_urls=[]
 fr_generated=0; fr_skipped=[]
 for p in products:
     name=str(p.get('name') or p.get('product'))
-    base=product_slug_base(p)
-    n=seen.get(base,0); seen[base]=n+1
-    slug=base if n==0 else f'{base}-{n+1}'
-    # الرابط القديم (من الاسم العربي، بنفس ترقيم التكرار القديم) → صفحة تحويل إلى الرابط الفرنسي الجديد.
-    # نقصّ الاسم الناتج (truncate_utf8_slug) حتى لا يتجاوز حد 255 بايت لاسم المجلد على Linux.
+    # الرابط العربي /product/<slug>/ : المنطق الأصلي القديم (من الاسم name، بنفس ترقيم التكرار القديم)،
+    # ولا يعتمد على name_fr إطلاقًا. نقصّ الاسم الناتج (truncate_utf8_slug) حتى لا يتجاوز حد 255 بايت لاسم المجلد على Linux.
     lbase=truncate_utf8_slug(slugify(name,'product')); ln=legacy_seen.get(lbase,0); legacy_seen[lbase]=ln+1
-    legacy_product_redirects.append((lbase if ln==0 else f'{lbase}-{ln+1}',slug))
+    slug=lbase if ln==0 else f'{lbase}-{ln+1}'
+    # slug النسخة الفرنسية /fr/product/<slug_fr>/ فقط: مشتق من name_fr (نفس المنطق والترقيم السابقين تمامًا،
+    # فلا تتغير روابط /fr/product/ المنشورة أصلاً). لا يُستخدم أبدًا لمسار /product/.
+    base_fr=product_slug_base(p); nf=seen.get(base_fr,0); seen[base_fr]=nf+1
+    slug_fr=base_fr if nf==0 else f'{base_fr}-{nf+1}'
     url=SITE+'product/'+urllib.parse.quote(slug,safe='-._~')+'/'
     desc=str(p.get('description') or p.get('desc') or f'شراء {name} من متجر Bazar Dzair.')
     price=float(p.get('price') or 0)
@@ -646,7 +647,7 @@ for p in products:
     name_fr_p=str(p.get('name_fr') or '').strip()
     desc_fr_p=str(p.get('description_fr') or p.get('desc_fr') or '').strip()
     has_fr=bool(name_fr_p and desc_fr_p)
-    url_fr=SITE+'fr/product/'+urllib.parse.quote(slug,safe='-._~')+'/' if has_fr else None
+    url_fr=SITE+'fr/product/'+urllib.parse.quote(slug_fr,safe='-._~')+'/' if has_fr else None
 
     template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data,aggregate_rating=agg,price_valid_until=PRICE_VALID_UNTIL,hreflang_fr_url=url_fr)
     (root/'product'/slug).mkdir(parents=True,exist_ok=True)
@@ -654,8 +655,8 @@ for p in products:
     product_urls.append((url,name,p,slug))
 
     # ===== المرحلة 2: نسخة فرنسية حقيقية وثابتة من صفحة المنتج (/fr/product/<slug>/) =====
-    # نفس الرابط (slug) المستخدم أعلاه بالضبط (وهو أصلًا مبني من name_fr عبر
-    # product_slug_base)، لكن تحت بادئة /fr/ حتى يكون رابطًا مستقلًا فعليًا له HTML
+    # الرابط (slug_fr) مبني من name_fr عبر product_slug_base وتحت بادئة /fr/ فقط،
+    # حتى يكون رابطًا مستقلًا فعليًا له HTML
     # خام فرنسي كامل (lang, title, meta description, JSON-LD) — لا نلمس رابط أو محتوى
     # الصفحة العربية الحالية إطلاقًا. نستخدم name_fr/description_fr فقط، وليس
     # name/description؛ إن كان أحدهما غائبًا لهذا المنتج نتخطّى إنشاء نسخته الفرنسية
@@ -664,8 +665,8 @@ for p in products:
         template_fr=(root/'product.html').read_text(encoding='utf-8')
         static_product_data_fr=dict(static_product_data)  # نفس بيانات المنتج الحقيقية بالضبط (لا تعديل على السعر/المخزون/إلخ)
         template_fr=inject_product_seo_fr(template_fr,name_fr_p,desc_fr_p,url_fr,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data_fr,aggregate_rating=agg,price_valid_until=PRICE_VALID_UNTIL,hreflang_ar_url=url)
-        (root/'fr'/'product'/slug).mkdir(parents=True,exist_ok=True)
-        (root/'fr'/'product'/slug/'index.html').write_text(template_fr,encoding='utf-8')
+        (root/'fr'/'product'/slug_fr).mkdir(parents=True,exist_ok=True)
+        (root/'fr'/'product'/slug_fr/'index.html').write_text(template_fr,encoding='utf-8')
         fr_generated+=1
     else:
         fr_skipped.append(slug)
@@ -714,9 +715,9 @@ for c in categories:
     cat_urls.append((url,name))
     cat_url_map[cid]=url
 
-# ===== تحويل الروابط العربية القديمة إلى الروابط الفرنسية الجديدة =====
-# المجلدات القديمة حُذفت أعلاه، فنضع مكانها صفحات تحويل (لا تدخل في sitemap) حتى لا تنكسر
-# الروابط المفهرسة في Google أو المشاركة على واتساب/فيسبوك. لا نكتب فوق أي صفحة جديدة.
+# ===== صفحات التحويل (redirect stubs) =====
+# صفحات المنتجات العربية /product/<slug>/ صفحات حقيقية مستقلة، ولا تُنشأ لها أي صفحة تحويل.
+# الدالة أدناه تبقى فقط لمسار التصنيفات (معطَّل افتراضيًا عبر KEEP_LEGACY_CATEGORY_STUBS).
 def write_redirect_stubs(folder, redirects, pretty_prefix):
     new_slugs={new for _,new in redirects}; done=0
     for old,new in redirects:
@@ -727,14 +728,13 @@ def write_redirect_stubs(folder, redirects, pretty_prefix):
         (d/'index.html').write_text(redirect_stub_html(SITE+pretty_prefix+urllib.parse.quote(new,safe='-._~')+'/'),encoding='utf-8')
         done+=1
     return done
-n_ps=write_redirect_stubs('product',legacy_product_redirects,'product/')
 # التصنيفات: مجلد واحد فقط لكل فئة (السلاغ اللاتيني). لا نُنشئ مجلدات عربية مكررة داخل product-category/.
 # الروابط العربية القديمة تبقى تعمل للزائر: 404.html يفكّ ترميزها ويفتح /?category=<الاسم>، و index.html
 # (findCategory) يطابقها مع الفئة الصحيحة ثم يصحّح الرابط إلى /product-category/<slug>/ تلقائيًا.
 # للعودة إلى صفحات التحويل الثابتة (مفيدة فقط لو كانت روابط عربية مفهرسة في Google وتريد نقل إشاراتها) غيّر القيمة إلى True.
 KEEP_LEGACY_CATEGORY_STUBS=False
 n_cs=write_redirect_stubs('product-category',legacy_category_redirects,'product-category/') if KEEP_LEGACY_CATEGORY_STUBS else 0
-print(f'Wrote {n_ps} product and {n_cs} category redirect stubs for legacy Arabic URLs.')
+print(f'Wrote {n_cs} category redirect stubs for legacy Arabic URLs (no product redirect stubs).')
 
 # Sitemap index-like single sitemap with all public SEO URLs.
 today=datetime.now(timezone.utc).date().isoformat()
