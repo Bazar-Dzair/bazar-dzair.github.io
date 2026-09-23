@@ -209,9 +209,19 @@ def price_number(x):
     return int(v) if v == int(v) else v
 
 
+def cld_opt(u):
+    # يضيف f_auto,q_auto (صيغة وجودة تلقائيتان حسب الجهاز/المتصفح، عادة WebP/AVIF
+    # مضغوطة دون فرق يُلاحظ بالعين) لروابط Cloudinary فقط — لا يمس أي رابط آخر
+    # (مثل /logo.svg)، ولا يكرر الإضافة لو كانت موجودة أصلاً في الرابط.
+    if not isinstance(u,str) or 'res.cloudinary.com' not in u:
+        return u
+    return re.sub(r'/image/upload/(?!f_auto)', '/image/upload/f_auto,q_auto/', u, count=1)
+
+
 def image_of(p):
     imgs=p.get('images') if isinstance(p.get('images'),list) else []
-    return next((str(x) for x in imgs if x), str(p.get('image') or p.get('imageUrl') or p.get('photo') or SITE+'logo.svg'))
+    raw=next((str(x) for x in imgs if x), str(p.get('image') or p.get('imageUrl') or p.get('photo') or SITE+'logo.svg'))
+    return cld_opt(raw)
 
 
 def is_published(p):
@@ -620,7 +630,7 @@ for p in products:
     # product page has genuinely unique raw HTML — this is required so Google doesn't merge
     # different products into one "duplicate" canonical before JS ever runs.
     imgs_list=p.get('images') if isinstance(p.get('images'),list) else []
-    imgs_list=[str(x) for x in imgs_list if x] or [img]
+    imgs_list=[cld_opt(str(x)) for x in imgs_list if x] or [img]
     available=p.get('published') is not False
     badge=p.get('productBadge') or p.get('badge') or None
     old_price=p.get('oldPrice') or p.get('old_price') or p.get('compareAtPrice') or p.get('compare_at_price') or None
@@ -824,7 +834,7 @@ if site_settings is None:
     print('Homepage banner: settings/site unavailable, keeping the current banner unchanged.')
 else:
     banner_url = str(site_settings.get('bannerUrl') or '').strip()
-    home_banner = banner_url if re.match(r'^https://', banner_url) else (SITE + 'logo.svg')
+    home_banner = cld_opt(banner_url) if re.match(r'^https://', banner_url) else (SITE + 'logo.svg')
     home = replace_tag_attr(home, 'homeOgImage', 'content', home_banner)
     home = replace_tag_attr(home, 'homeTwitterImage', 'content', home_banner)
     home = replace_tag_attr(home, 'heroImg', 'src', home_banner)
