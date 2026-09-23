@@ -19,7 +19,7 @@
 <meta id="twitterDescription" name="twitter:description" content="منتج من متجر Bazar Dzair">
 <meta id="twitterImage" name="twitter:image" content="https://bazar-dzair.github.io/logo.svg">
 <link id="canonical" rel="canonical">
-<link rel="stylesheet" href="/product-style.css">
+<link rel="stylesheet" href="/product-style.css?v=20260923c">
 </head>
 <body>
 <script>
@@ -550,7 +550,7 @@ const badgeHtml=available?"":`<span class="badge-featured unavailable">${esc(pt(
 // ===== Social proof تحت السعر: لا يظهر أي شيء إلا إذا وُجدت تقييمات حقيقية منشورة (لا أرقام مختلقة). =====
 // المعدل والعدد والتوزيع كلها تُحسب من نفس القائمة (bazarRealRating)، وتُعرض فقط مستويات النجوم التي لها تقييمات.
 const spRowsHtml=ratingInfo?[5,4,3,2,1].filter(n=>ratingInfo.counts[n]>0).map(n=>`<div class="sp-row"><span class="sp-stars" aria-hidden="true">${starsHtml(n)}</span><span class="sp-track"><i style="width:${Math.round(ratingInfo.counts[n]/ratingInfo.count*100)}%"></i></span><span class="sp-n">${ratingInfo.counts[n]}</span></div>`).join(""):"";
-const socialProofHtml=ratingInfo?`<div class="social-proof" role="button" tabindex="0" aria-label="${esc(pt("reviews_tab_label"))}: ${ratingInfo.value.toFixed(1)} / 5" onclick="openReviewsFromSummary()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReviewsFromSummary()}"><div class="sp-top"><span class="sp-star" aria-hidden="true">★</span><span class="sp-value">${ratingInfo.value.toFixed(1)}</span><span class="sp-outof">/ 5</span><span aria-hidden="true">—</span><span class="sp-count">${ratingInfo.count} ${esc(pt("reviews_word"))}</span><span class="sp-more" aria-hidden="true">‹</span></div><div class="sp-rows">${spRowsHtml}</div></div>`:"";
+const socialProofHtml=ratingInfo?`<div class="rp" role="button" tabindex="0" aria-label="${esc(pt("reviews_tab_label"))}: ${ratingInfo.value.toFixed(1)} / 5" onclick="openReviewsFromSummary()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReviewsFromSummary()}"><span class="rp-stars" style="--p:${Math.max(0,Math.min(100,ratingInfo.value/5*100)).toFixed(0)}%" aria-hidden="true">★★★★★</span><span class="rp-value">${ratingInfo.value.toFixed(1)}</span><span class="rp-dot" aria-hidden="true">•</span><span class="rp-count">${ratingInfo.count} ${esc(pt("reviews_word"))}</span></div>`:"";
 const priceRowHtml=`<div class="price-row"><span class="price-current">${money(p.price)}</span>${hasDiscount?`<span class="price-old">${money(oldPrice)}</span><span class="discount-badge">-${discountPct}%</span>`:""}</div>`;
 
 const stockNoteHtml=Number.isFinite(stockValue)?(stockValue<=0?`<div class="stock-note out">⛔ ${esc(pt("badge_unavailable"))}</div>`:`<div class="stock-note">✓ ${esc(pt("stock_in"))}${stockValue<=5?` — ${esc(pt("stock_only_n").replace("{n}",stockValue))}`:``}</div>`):"";

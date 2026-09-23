@@ -656,3 +656,14 @@ html[lang="fr"] .sim-head,
 html[lang="fr"] .sim-card{direction:ltr;text-align:left}
 html[lang="fr"] .title{overflow-wrap:break-word}
 html[lang="fr"] .sim-track{direction:ltr}
+
+/* ===== شريط التقييم تحت العنوان: مضغوط واحترافي (نجوم بنسبة دقيقة + المعدل + عدد التقييمات)؛ التفاصيل الكاملة في تبويب التقييمات ===== */
+.rp{display:flex;width:fit-content;align-self:flex-start;align-items:center;gap:8px;max-width:100%;margin:0 0 14px;padding:7px 14px;border:1px solid #ffe0c2;border-radius:999px;background:#fff8f0;cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s;-webkit-tap-highlight-color:transparent}
+.rp:hover{border-color:var(--orange);background:#fff3e6;box-shadow:0 4px 14px rgba(255,106,0,.12)}
+.rp:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.rp-stars{direction:ltr;unicode-bidi:isolate;font-size:17px;line-height:1;letter-spacing:1.5px;background:linear-gradient(90deg,#ff9a1f var(--p,100%),#d7dde6 var(--p,100%));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.rp-value{font-size:16px;font-weight:900;color:var(--navy);line-height:1}
+.rp-dot{color:#c3cad5;font-size:11px;line-height:1}
+.rp-count{font-size:13px;font-weight:700;color:#5b6778;text-decoration:underline;text-decoration-color:#c3cad5;text-underline-offset:3px;white-space:nowrap}
+.rp:hover .rp-count{color:var(--orange);text-decoration-color:var(--orange)}
+@media(max-width:560px){.rp{padding:6px 12px;gap:7px;margin-bottom:11px}.rp-stars{font-size:15px}.rp-value{font-size:14.5px}.rp-count{font-size:12px}}
