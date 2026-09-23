@@ -2015,13 +2015,19 @@ let ordersLoaded=false;
 let ordersLoading=null;
 let addonsLoaded=false;
 
-// يحوّل صور المنتجات القديمة المخزّنة كـ base64 داخل Firestore إلى صور حقيقية
-// مرفوعة على Cloudinary (مجاني، بدون اشتراك)، تلقائيًا وبدون إعادة رفع يدوي.
-// لا يمس أي منتج صوره أصلاً روابط حقيقية.
+// يحوّل صور المنتجات القديمة إلى صور مرفوعة على Cloudinary (مجاني، بدون اشتراك)،
+// تلقائيًا وبدون إعادة رفع يدوي. يشمل هذا نوعين من الصور «القديمة»:
+// 1) صور مخزّنة كـ base64 داخل Firestore مباشرة.
+// 2) صور برابط خارجي ليس من Cloudinary (مثلاً i.ibb.co من خدمة رفع قديمة) —
+//    كانت هذه الحالة تُعتبر خطأً "رابطًا جاهزًا" ولا تُمس أبدًا، وهو السبب الجذري
+//    في بقاء بعض صور صفحات التصنيف موزّعة بين ibb.co و Cloudinary إلى الأبد.
+// توحيد كل صور المنتجات على Cloudinary وحده يتيح لاحقًا تفعيل التحويل التلقائي
+// لأخف صيغة يدعمها المتصفح (WebP/AVIF) وبالحجم المناسب، وهو غير ممكن مع ibb.co.
+// لا يمس أي منتج صوره أصلاً روابط Cloudinary جاهزة.
 window.migrateBase64Images=async function(){
   const statusEl=document.getElementById("migrateStatus");
   const setStatus=(t,c)=>{if(statusEl){statusEl.textContent=t;statusEl.style.color=c==="err"?"#dc2626":c==="ok"?"#16a34a":"#374151"}};
-  if(!confirm("سيتم فحص كل المنتجات وتحويل الصور القديمة (base64) إلى روابط حقيقية على Cloudinary (مجاني). لن يتم المساس بالصور الجاهزة كروابط. متابعة؟"))return;
+  if(!confirm("سيتم فحص كل المنتجات وتحويل الصور القديمة (base64 أو روابط من خدمات أخرى مثل ibb.co) إلى روابط Cloudinary موحّدة. لن يتم المساس بالصور المرفوعة أصلاً على Cloudinary. بعض الروابط الخارجية قد يفشل جلبها تلقائيًا بسبب حماية الموقع المصدر (CORS)، وستظهر في تقرير النتيجة دون التأثير على بقية المنتجات. متابعة؟"))return;
   setStatus("⏳ جاري فحص المنتجات...","");
   let snap;
   try{ snap=await getDocs(collection(db,"products")); }
@@ -2033,13 +2039,15 @@ window.migrateBase64Images=async function(){
     const imgs=Array.isArray(p.images)&&p.images.length?p.images.slice():(p.image?[p.image]:[]);
     if(!imgs.length) continue;
     const isBase64=s=>typeof s==="string"&&s.startsWith("data:");
-    if(!imgs.some(isBase64)) continue; // كل الصور روابط حقيقية أصلاً
+    const isCloudinaryUrl=s=>typeof s==="string"&&/^https?:\/\/res\.cloudinary\.com\//i.test(s);
+    const needsMigration=s=>isBase64(s)||(typeof s==="string"&&/^https?:\/\//i.test(s)&&!isCloudinaryUrl(s));
+    if(!imgs.some(needsMigration)) continue; // كل الصور مرفوعة أصلاً على Cloudinary
 
     setStatus(`⏳ جاري إصلاح: ${p.name||p.product||d.id}...`,"");
     const newImgs=imgs.slice();
     let anyFailedHere=false;
     for(let i=0;i<newImgs.length;i++){
-      if(!isBase64(newImgs[i])) continue;
+      if(!needsMigration(newImgs[i])) continue;
       try{
         const blob=await (await fetch(newImgs[i])).blob();
         newImgs[i]=await uploadToCloudinary(blob);
@@ -2067,9 +2075,9 @@ window.migrateBase64Images=async function(){
   }
   productsLoaded=false;
   await window.bazarLoadProducts(true);
-  if(failed) setStatus(`تم إصلاح ${fixedProducts} منتج (${fixedImages} صورة). فشل جزء من العملية في ${failed} حالة — أعد المحاولة.`,"err");
-  else if(fixedProducts) setStatus(`✅ تم إصلاح ${fixedProducts} منتج (${fixedImages} صورة) بنجاح. الآن شغّل GitHub Action لإعادة توليد صفحات SEO.`,"ok");
-  else setStatus("✅ لا توجد صور قديمة (base64) — كل الصور روابط حقيقية أصلاً.","ok");
+  if(failed) setStatus(`تم إصلاح ${fixedProducts} منتج (${fixedImages} صورة). فشل جزء من العملية في ${failed} حالة — السبب الغالب هو حماية الموقع المصدر (CORS) لبعض الروابط الخارجية؛ أعد المحاولة، أو استبدل صورة هذا المنتج يدويًا من نافذة تعديل المنتج.`,"err");
+  else if(fixedProducts) setStatus(`✅ تم إصلاح ${fixedProducts} منتج (${fixedImages} صورة) بنجاح — كل صور المنتجات موحّدة الآن على Cloudinary. الآن شغّل GitHub Action لإعادة توليد صفحات SEO.`,"ok");
+  else setStatus("✅ لا توجد صور قديمة — كل الصور موحّدة أصلاً على Cloudinary.","ok");
 };
 
 // يضيف حقل "slug" لكل منتج قديم لا يملكه بعد (أو كان غير مطابق للاسم الحالي)،
