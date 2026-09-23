@@ -34,7 +34,10 @@ jobs:
 
             # index.html مُضاف عمدًا: السكربت يحدّث فيه بانر الصفحة الرئيسية (og:image / twitter:image /
             # heroImg) وبطاقات المنتجات والفئات. غيابه من هنا كان السبب في أن أي تغيير لا يصل للمستودع.
-            git add index.html product product-category sitemap.xml sitemap-products.xml sitemap-categories.xml
+            # fr/ مُضاف هنا: مرحلة 2 من إصلاح SEO الفرنسية تولّد /fr/product/<slug>/ (نسخة
+          # فرنسية ثابتة حقيقية من صفحة المنتج). بدون إضافته هنا لن تُدفَع هذه الملفات
+          # المولَّدة أبدًا إلى main رغم إنشائها محليًا في كل تشغيل.
+          git add index.html product product-category fr sitemap.xml sitemap-products.xml sitemap-categories.xml
             git rm -r --cached --ignore-unmatch category >/dev/null 2>&1 || true
 
             if git diff --cached --quiet; then
