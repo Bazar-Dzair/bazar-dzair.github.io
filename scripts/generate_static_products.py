@@ -370,11 +370,30 @@ def make_meta_description(desc, limit=155):
     return cut.rstrip(' ,-–—') + '…'
 
 
-def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None, aggregate_rating=None, price_valid_until=None):
+def hreflang_tags(url_ar, url_fr):
+    """يبني وسوم <link rel="alternate" hreflang="..."> المتبادلة بين النسخة العربية
+    والفرنسية لنفس المنتج (URLs كاملة، x-default = النسخة العربية، وهي اللغة
+    الافتراضية للموقع). تُستخدم في كلتا الصفحتين (العربية والفرنسية) بنفس القيمتين
+    بالضبط، فتكون الإشارات متبادلة تلقائيًا. لا تُستدعى إلا حين يكون رابط النسخة
+    الفرنسية موجودًا فعليًا (أي حين تتوفر name_fr/description_fr لهذا المنتج) حتى لا
+    نُشير إلى صفحة فرنسية غير موجودة أصلاً لمنتج بلا ترجمة.
+    """
+    a=html.escape(url_ar,quote=True); f=html.escape(url_fr,quote=True)
+    return (
+        f'<link rel="alternate" hreflang="ar" href="{a}">'
+        f'<link rel="alternate" hreflang="fr" href="{f}">'
+        f'<link rel="alternate" hreflang="x-default" href="{a}">'
+    )
+
+
+def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None, aggregate_rating=None, price_valid_until=None, hreflang_fr_url=None):
     d155=make_meta_description(desc)
     title_tag=f'<title>{html.escape(name)} | Bazar Dzair</title>'
     desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
     canonical_tag=f'<link id="canonical" rel="canonical" href="{html.escape(url,quote=True)}">'
+    if hreflang_fr_url:
+        # canonical العربي يبقى كما هو تمامًا؛ نضيف فقط وسوم hreflang بعده مباشرة.
+        canonical_tag+=hreflang_tags(url, hreflang_fr_url)
     ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':(desc or '')[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':price_number(price),'availability':'https://schema.org/InStock'}}
     if price_valid_until:
         ld['offers']['priceValidUntil']=price_valid_until
@@ -495,7 +514,7 @@ def static_product_html_fr(name_fr, desc_fr, price, images, available=True, badg
     return photo_wrap + info
 
 
-def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None, aggregate_rating=None, price_valid_until=None):
+def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None, aggregate_rating=None, price_valid_until=None, hreflang_ar_url=None):
     """مطابقة لـ inject_product_seo تمامًا في المنطق، لكن كل نص عرض/SEO مبني من
     name_fr/desc_fr (وليس name/desc)، والوجهة صفحة فرنسية مستقلة (url_fr) لها
     canonical خاص بها. لا تُغيَّر بيانات المنتج نفسها (السعر، المخزون...) إطلاقًا —
@@ -504,6 +523,11 @@ def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images
     title_tag=f'<title>{html.escape(name_fr)} | Bazar Dzair</title>'
     desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
     canonical_tag=f'<link id="canonical" rel="canonical" href="{html.escape(url_fr,quote=True)}">'
+    if hreflang_ar_url:
+        # canonical الفرنسي يبقى يشير لنفس الصفحة الفرنسية؛ نضيف فقط hreflang بعده.
+        # x-default هنا يبقى النسخة العربية (نفس منطق الصفحة العربية) حتى تكون
+        # الإشارة متبادلة ومتطابقة تمامًا في الصفحتين.
+        canonical_tag+=hreflang_tags(hreflang_ar_url, url_fr)
     ld={'@context':'https://schema.org','@type':'Product','name':name_fr,'image':[img],'description':(desc_fr or '')[:500],'url':url_fr,'offers':{'@type':'Offer','url':url_fr,'priceCurrency':'DZD','price':price_number(price),'availability':'https://schema.org/InStock'}}
     if price_valid_until:
         ld['offers']['priceValidUntil']=price_valid_until
@@ -611,7 +635,20 @@ for p in products:
     # نفس التقييم المُجمَّع (rating_index) الذي سيحسبه JS من مجموعة reviews — إن وُجد نضيفه هنا
     # مباشرة في JSON-LD الثابت (raw HTML)، وإلا نتركه غائبًا تمامًا (بدون aggregateRating).
     agg=rating_index.get(str(p['_id']))
-    template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data,aggregate_rating=agg,price_valid_until=PRICE_VALID_UNTIL)
+
+    # ===== المرحلة 3: hreflang =====
+    # نحدّد مسبقًا (قبل توليد الصفحة العربية) هل ستُنشأ نسخة فرنسية لهذا المنتج —
+    # نفس شرط المرحلة 2 بالضبط (name_fr/description_fr موجودان) — حتى نمرّر رابط
+    # الصفحة الفرنسية (hreflang_fr_url) إلى inject_product_seo فتُضاف وسوم hreflang
+    # المتبادلة في نفس الوقت الذي تُبنى فيه الصفحة العربية. إن كانت النسخة الفرنسية
+    # غير موجودة لهذا المنتج، لا نضيف hreflang إطلاقًا (لتفادي الإشارة إلى صفحة غير
+    # موجودة أصلاً) — تمامًا كما لا نُنشئ /fr/product/<slug>/ في هذه الحالة.
+    name_fr_p=str(p.get('name_fr') or '').strip()
+    desc_fr_p=str(p.get('description_fr') or p.get('desc_fr') or '').strip()
+    has_fr=bool(name_fr_p and desc_fr_p)
+    url_fr=SITE+'fr/product/'+urllib.parse.quote(slug,safe='-._~')+'/' if has_fr else None
+
+    template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data,aggregate_rating=agg,price_valid_until=PRICE_VALID_UNTIL,hreflang_fr_url=url_fr)
     (root/'product'/slug).mkdir(parents=True,exist_ok=True)
     (root/'product'/slug/'index.html').write_text(template,encoding='utf-8')
     product_urls.append((url,name,p,slug))
@@ -623,13 +660,10 @@ for p in products:
     # الصفحة العربية الحالية إطلاقًا. نستخدم name_fr/description_fr فقط، وليس
     # name/description؛ إن كان أحدهما غائبًا لهذا المنتج نتخطّى إنشاء نسخته الفرنسية
     # بدل تخمين ترجمة (نفس فلسفة translateProduct في i18n.js: لا ترجمة آلية أبدًا).
-    name_fr_p=str(p.get('name_fr') or '').strip()
-    desc_fr_p=str(p.get('description_fr') or p.get('desc_fr') or '').strip()
-    if name_fr_p and desc_fr_p:
-        url_fr=SITE+'fr/product/'+urllib.parse.quote(slug,safe='-._~')+'/'
+    if has_fr:
         template_fr=(root/'product.html').read_text(encoding='utf-8')
         static_product_data_fr=dict(static_product_data)  # نفس بيانات المنتج الحقيقية بالضبط (لا تعديل على السعر/المخزون/إلخ)
-        template_fr=inject_product_seo_fr(template_fr,name_fr_p,desc_fr_p,url_fr,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data_fr,aggregate_rating=agg,price_valid_until=PRICE_VALID_UNTIL)
+        template_fr=inject_product_seo_fr(template_fr,name_fr_p,desc_fr_p,url_fr,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data_fr,aggregate_rating=agg,price_valid_until=PRICE_VALID_UNTIL,hreflang_ar_url=url)
         (root/'fr'/'product'/slug).mkdir(parents=True,exist_ok=True)
         (root/'fr'/'product'/slug/'index.html').write_text(template_fr,encoding='utf-8')
         fr_generated+=1
@@ -717,7 +751,9 @@ print(f'Generated {fr_generated} French product pages under /fr/product/ (name_f
 if fr_skipped:
     print(f'Skipped French page for {len(fr_skipped)} product(s) missing name_fr/description_fr: {", ".join(fr_skipped[:20])}' + (' ...' if len(fr_skipped)>20 else ''))
 # ملاحظة مرحلة 2: /fr/product/ غير مُدرَج بعد في sitemap.xml ولا يحمل وسم hreflang —
-# هذا مؤجَّل عمدًا للمرحلة 3 كما طُلب (لا نلمس sitemap أو نضيف hreflang في هذه المرحلة).
+# إضافة /fr/product/ إلى sitemap.xml نفسه تبقى مؤجَّلة عمدًا (لم يُطلب في المرحلة 3)؛
+# hreflang أُضيف في المرحلة 3 داخل <head> كل صفحة (انظر inject_product_seo /
+# inject_product_seo_fr أعلاه)، وهو مستقل تمامًا عن sitemap.xml.
 
 # ===================== محتوى ثابت للصفحة الرئيسية (SEO) =====================
 # قبل هذا التعديل، الصفحة الرئيسية (index.html) لم تكن تحتوي أي محتوى ثابت —
