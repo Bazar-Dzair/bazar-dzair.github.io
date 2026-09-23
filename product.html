@@ -1202,18 +1202,25 @@ function applyProductSEO(p,name,desc){
     // فلا نخترع نصًا من المعرّف الخام؛ بدل ذلك نبحث في الذاكرة المحلية عن اسمه الحقيقي
     // المحفوظ من زيارة سابقة، وإن لم يوجد نترك الفئة الفرعية فارغة مؤقتًا إلى حين
     // وصول اسمها الحقيقي من Firestore (بدل عرض المعرّف الخام كوميض أولي خاطئ).
-    let info=catMap[resolvedKey];
-    if(!info){
-      const cached=getCatNameCache()[category]||getCatNameCache()[normalized];
-      info=cached?{parent:null,sub:cached}:{parent:null,sub:null};
-    }
-    const parentText=info.parent?(info.parent[lang]||info.parent.ar):"";
-    const subText=info.sub?(info.sub[lang]||info.sub.ar):"";
+    // منعًا للوميض (اسم ثابت من الكود ثم استبداله باسم Firestore الحقيقي، مثل "هواتف وإكسسواراتها" ← "هواتف"):
+    // 1) إن وُجد الاسم الحقيقي في الذاكرة المحلية نعرضه فورًا. 2) وإلا لا نعرض أي اسم مؤقت، وننتظر اسم Firestore الحقيقي.
+    // 3) الاسم الثابت يبقى احتياطيًا فقط إن تعذّر وصول Firestore خلال ثانيتين ونصف.
+    const cachedNames=getCatNameCache();
+    const cached=cachedNames[category]||cachedNames[normalized]||cachedNames[resolvedKey];
+    const staticInfo=catMap[resolvedKey];
+    const cachedText=cached?(cached[lang]||cached.ar||""):"";
+    const staticSub=staticInfo&&staticInfo.sub?(staticInfo.sub[lang]||staticInfo.sub.ar):"";
+    const parentText="";
+    const subText=cachedText;
     // "parentText" مجرد تجميع عرضي لعدة تصنيفات حقيقية معًا (مثلاً "أدوات وملحقاتها" تضم tools/electronics/phones/laptops)
     // وليس له تصنيف واحد فعلي في Firestore، لذلك يبقى نصًا بدون رابط. أما تصنيف المنتج نفسه (resolvedKey)
     // فهو مفتاح حقيقي في مجموعة categories، لذلك يصبح رابطًا يفتح صفحة المتجر مفلترة على هذا التصنيف مباشرة.
     const catHref="/?category="+encodeURIComponent(resolvedKey);
+    window.__crumbFinal=!!subText;
     crumbEl.innerHTML=buildCrumbHtml(parentText,subText,catHref);
+    if(!subText&&staticSub){
+      setTimeout(()=>{ if(!window.__crumbFinal) crumbEl.innerHTML=buildCrumbHtml("",staticSub,catHref); },2500);
+    }
   }
 }
 // ===== شريط التنقل (Breadcrumb) — مصدر واحد للبناء =====
@@ -1561,6 +1568,7 @@ async function load(){
               // aliasKey هو معرّف التصنيف الحقيقي في مجموعة categories، فنستعمله لبناء رابط
               // يفتح صفحة المتجر مفلترة مباشرة على هذا التصنيف (نفس آلية ?category= في index.html).
               const catHref="/?category="+encodeURIComponent(aliasKey);
+              window.__crumbFinal=true;
               crumb.innerHTML=buildCrumbHtml(parent,catName,catHref);
             }
           }
