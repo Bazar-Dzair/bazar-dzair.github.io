@@ -31,9 +31,13 @@
    رسم، لأن هذا السكربت هو أول عنصر داخل body) ثم نُظهرها بعد applyPageI18n() مباشرة.
    لا يمس هذا نظام الطلبات أو Telegram أو Firebase إطلاقًا.
    مؤقّت أمان (1.5 ثانية): لو تعذّر تحميل i18n.js أو حدث خطأ في الوحدة (module) لأي
-   سبب، تُظهر الصفحة تلقائيًا ولا تبقى مخفية إلى الأبد. */
+   سبب، تُظهر الصفحة تلقائيًا ولا تبقى مخفية إلى الأبد.
+   صفحات /fr/product/ فرنسية دائمًا بحكم عنوانها (i18n.js يقرأ اللغة من المسار)، فيلزمها نفس الإخفاء
+   وإلا رأى الزائر الجديد (بلا تفضيل محفوظ) وميضًا عربيًا في الهيدر قبل الفرنسية. الزواحف ومعاينات
+   الروابط مستثناة عمدًا: لا نُخفي عنها شيئًا حتى لو تأخّر تنفيذ الوحدة. */
 (function(){try{
-  if(localStorage.getItem("bazarLang")==="fr"){
+  var isBot=/bot|crawl|spider|slurp|bingpreview|facebookexternalhit|whatsapp|telegram|twitterbot|linkedin|pinterest|embedly|preview/i.test(navigator.userAgent||"");
+  if((!isBot&&/^\/fr\/product\//.test(location.pathname))||localStorage.getItem("bazarLang")==="fr"){
     document.documentElement.style.visibility="hidden";
     setTimeout(function(){document.documentElement.style.visibility="";},1500);
   }
