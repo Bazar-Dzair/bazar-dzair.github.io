@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 import json, re, html, unicodedata, urllib.error, urllib.parse, urllib.request
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 PROJECT='bazar-dzair-33816'
 BASE=f'https://firestore.googleapis.com/v1/projects/{PROJECT}/databases/(default)/documents'
 SITE='https://bazar-dzair.github.io/'
+# priceValidUntil لكل عروض JSON-LD: تاريخ مستقبلي يُحسب في كل تشغيل للسكربت (كل 6 ساعات عبر
+# GitHub Action الحالي)، فيبقى دائمًا في المستقبل تلقائيًا دون أي تدخل يدوي أو تعديل للـ workflow.
+PRICE_VALID_UNTIL=(datetime.now(timezone.utc)+timedelta(days=90)).strftime('%Y-%m-%d')
 
 
 def value(v):
@@ -188,13 +191,22 @@ def redirect_stub_html(target):
 
 
 def money(x):
-    try: return f'{int(float(x or 0)):,} دج'.replace(',', '٬')
+    # فاصل الآلاف هنا مسافة عادية (لا فاصل الآلاف العربي U+066C) حتى لا يلتبس على محركات
+    # البحث عند تحليل السعر الظاهر نصيًا؛ القيمة الحقيقية والعملة تبقى دائمًا من JSON-LD.
+    try: return f'{int(float(x or 0)):,} دج'.replace(',', ' ')
     except: return 'السعر عند الطلب'
 
 
 def money_fr(x):
     try: return f'{int(float(x or 0)):,} DA'.replace(',', ' ')
     except: return 'Prix sur demande'
+
+
+def price_number(x):
+    # يُخرج السعر كرقم JSON صريح (13500 وليس "13500.0" كنص) حتى يكون price في JSON-LD
+    # إشارة رقمية واضحة للسعر، منفصلة تمامًا عن أي نص عرض يحتوي "دج"/"DA".
+    v=float(x or 0)
+    return int(v) if v == int(v) else v
 
 
 def image_of(p):
@@ -358,12 +370,14 @@ def make_meta_description(desc, limit=155):
     return cut.rstrip(' ,-–—') + '…'
 
 
-def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None, aggregate_rating=None):
+def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None, aggregate_rating=None, price_valid_until=None):
     d155=make_meta_description(desc)
     title_tag=f'<title>{html.escape(name)} | Bazar Dzair</title>'
     desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
     canonical_tag=f'<link id="canonical" rel="canonical" href="{html.escape(url,quote=True)}">'
-    ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':(desc or '')[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':str(price),'availability':'https://schema.org/InStock'}}
+    ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':(desc or '')[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':price_number(price),'availability':'https://schema.org/InStock'}}
+    if price_valid_until:
+        ld['offers']['priceValidUntil']=price_valid_until
     # aggregateRating فقط عند وجود تقييمات زبائن حقيقية منشورة فعلاً لهذا المنتج (rating_index)؛
     # لا نضيف رقمًا مختلَقًا أبدًا، ونفس القيم التي سيعيد JS حسابها لاحقًا من مجموعة reviews.
     if aggregate_rating:
@@ -482,7 +496,7 @@ for p in products:
     # نفس التقييم المُجمَّع (rating_index) الذي سيحسبه JS من مجموعة reviews — إن وُجد نضيفه هنا
     # مباشرة في JSON-LD الثابت (raw HTML)، وإلا نتركه غائبًا تمامًا (بدون aggregateRating).
     agg=rating_index.get(str(p['_id']))
-    template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data,aggregate_rating=agg)
+    template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data,aggregate_rating=agg,price_valid_until=PRICE_VALID_UNTIL)
     (root/'product'/slug).mkdir(parents=True,exist_ok=True)
     (root/'product'/slug/'index.html').write_text(template,encoding='utf-8')
     product_urls.append((url,name,p,slug))
