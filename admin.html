@@ -3540,6 +3540,11 @@ window.save=async()=>{
   render();
   updateStats();
   show("تم الحفظ بنجاح ✅","ok");
+  // إضافة/تعديل منتج (سعر، تصنيف، نشر...) يُغيّر أيضًا ما يجب أن يظهر في صفحات SEO الثابتة
+  // (الرئيسية + /product-category/ + /product/)، تمامًا كما يفعل الحذف. نستخدم نفس الآلية
+  // المُجرَّبة أصلاً لحذف المنتجات (بها تأخير قصير يُجمّع حفظات متتالية في تشغيل واحد، ولا
+  // ترمي خطأ عند الفشل) بدل الانتظار حتى الـ cron القادم (حتى 6 ساعات).
+  window.bazarRefreshSeoAfterDelete();
   if(!wasEditing) resetForm();
  }catch(e){
   console.error(e);
@@ -3605,6 +3610,8 @@ window.toggleProductPublish=async id=>{
     await updateDoc(doc(db,"products",id),{published:next,updatedAt:serverTimestamp()});
     p.published=next; render(); updateStats();
     show(next?"تم نشر المنتج في المتجر ✅":"تم إيقاف نشر المنتج ✅","ok");
+    // نشر/إخفاء منتج يُغيّر أيضًا صفحات SEO الثابتة (نفس منطق التعليق أعلاه في حفظ المنتج).
+    window.bazarRefreshSeoAfterDelete();
   }catch(e){show("تعذر تغيير حالة النشر: "+(e.message||"خطأ غير معروف"),"err");}
 };
 window.removeProduct=async id=>{
