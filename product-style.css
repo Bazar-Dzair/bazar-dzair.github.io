@@ -655,3 +655,4 @@ html[lang="fr"] .desc-card,
 html[lang="fr"] .sim-head,
 html[lang="fr"] .sim-card{direction:ltr;text-align:left}
 html[lang="fr"] .title{overflow-wrap:break-word}
+html[lang="fr"] .sim-track{direction:ltr}
