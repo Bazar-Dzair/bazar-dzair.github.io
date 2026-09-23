@@ -33,6 +33,11 @@
    location.replace("/?category="+encodeURIComponent(seg));return;
  }
  if(map[p]){location.replace(map[p]);return;}
+ // رابط منتج فرنسي بلا صفحة ثابتة: نفس المعالجة أدناه، مع الحفاظ على lang=fr حتى لا تُفتح
+ // الصفحة الديناميكية بالعربية افتراضيًا. يجب أن يُختبر قبل النمط العربي لأن /fr/product/
+ // يطابق أيضًا لو حذفنا الشرطة الأولى بالخطأ؛ الفحص هنا صريح فلا التباس.
+ const pmFr=location.pathname.match(/^\/fr\/product\/([^\/]+)\/?$/);
+ if(pmFr){location.replace("/product.html?id="+encodeURIComponent(pmFr[1])+"&lang=fr");return;}
  // رابط منتج بلا صفحة ثابتة (منتج جديد لم تُولَّد صفحته بعد، أو رابط قديم): نفتحه في الصفحة الديناميكية بدل الرئيسية.
  const pm=location.pathname.match(/^\/product\/([^\/]+)\/?$/);
  if(pm){location.replace("/product.html?id="+encodeURIComponent(pm[1]));return;}
