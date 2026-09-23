@@ -2254,8 +2254,14 @@ window.applyBulkStatus=async function(){
   const ids=[...selectedOrders]; if(!ids.length){toast("اختر طلبية واحدة على الأقل","err");return;}
   if(!confirm(`تغيير حالة ${ids.length} طلبية إلى "${status}"؟`))return;
   try{
-    await Promise.all(ids.map(id=>updateDoc(doc(db,"orders",id),{status,updatedAt:serverTimestamp()})));
-    window.adminOrders=(window.adminOrders||[]).map(o=>selectedOrders.has(o.id)?{...o,status}:o);
+    const tokens={};
+    await Promise.all(ids.map(id=>{
+      const cur=(window.adminOrders||[]).find(o=>o.id===id);
+      const extra=bazarReviewTokenFields(cur,status);
+      if(extra.reviewToken) tokens[id]=extra.reviewToken;
+      return updateDoc(doc(db,"orders",id),{status,updatedAt:serverTimestamp(),...extra});
+    }));
+    window.adminOrders=(window.adminOrders||[]).map(o=>selectedOrders.has(o.id)?{...o,status,...(tokens[o.id]?{reviewToken:tokens[o.id],reviewUsed:false}:{})}:o);
     toast(`تم تحديث حالة ${ids.length} طلبية ✅`,"ok");
     renderOrders();
   }catch(e){console.error(e);toast("تعذر تحديث الحالة: "+(e.message||"خطأ غير معروف"),"err");}
@@ -2296,6 +2302,14 @@ function renderOrderDetail(o){
     <div class="order-detail-row"><span>الحالة</span><span><select class="order-status-select-detail" onchange="window.setOrderStatus('${esc(o.id)}',this.value)">
       ${["جديد","قيد المعالجة","مكتملة","ملغية"].map(s=>`<option value="${esc(s)}" ${String(o.status||"جديد")===s?"selected":""}>${esc(s)}</option>`).join("")}
     </select></span></div>
+    ${(()=>{
+      if(String(o.status||"")!=="مكتملة") return "";
+      if(!o.productId) return `<div class="order-detail-row"><span>تقييم الزبون</span><span style="color:#8a93a3">غير متاح (الطلب بدون معرّف منتج)</span></div>`;
+      if(o.reviewUsed===true) return `<div class="order-detail-row"><span>تقييم الزبون</span><b style="color:#16a34a">تم إرسال التقييم ✅</b></div>`;
+      if(!o.reviewToken) return `<div class="order-detail-row"><span>تقييم الزبون</span><button class="edit-cat" type="button" onclick="window.setOrderStatus('${esc(o.id)}','مكتملة')">⭐ توليد رابط التقييم</button></div>`;
+      const wa=bazarReviewWaUrl(o);
+      return `<div class="order-detail-row"><span>رابط التقييم</span><span style="display:flex;gap:6px;flex-wrap:wrap"><button class="edit-cat" type="button" onclick="window.copyReviewLink('${esc(o.id)}')">📋 نسخ الرابط</button>${wa?`<a class="edit-cat" style="text-decoration:none" href="${esc(wa)}" target="_blank" rel="noopener">💬 واتساب</a>`:""}</span></div>`;
+    })()}
     <div class="order-detail-row"><span>طريقة الدفع</span><span>الدفع عند الاستلام</span></div>
     <div class="order-detail-row"><span>المجموع الكلي</span><span style="color:var(--green)">${money(o.total)}</span></div>
   `;
@@ -2322,11 +2336,45 @@ function renderOrderDetail(o){
   `;
   if(notesBox) notesBox.textContent = o.notes ? String(o.notes) : "لا توجد ملاحظات على هذا الطلب";
 }
+// ===== رابط تقييم المشتري الموثّق =====
+// عند اكتمال الطلب يُولَّد رمز عشوائي (128 بت) لمرة واحدة ويُخزَّن داخل وثيقة الطلب (orders يقرؤها الأدمن وحده).
+// الرابط يُرسَل للزبون؛ الـ Worker (/submit-review) هو من يتحقق من الرمز ويستهلكه، ولا يقدر أحد تخمينه.
+function bazarNewReviewToken(){
+  const a=new Uint8Array(16); crypto.getRandomValues(a);
+  return [...a].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+// يُرجع الحقول الإضافية التي يجب حفظها مع تغيير الحالة (رمز جديد فقط إن لم يوجد ولديه productId).
+function bazarReviewTokenFields(o,status){
+  if(status!=="مكتملة"||!o||!o.productId||o.reviewToken) return {};
+  return {reviewToken:bazarNewReviewToken(),reviewUsed:false,reviewTokenAt:serverTimestamp()};
+}
+function bazarReviewLink(o){
+  if(!o||!o.reviewToken||!o.productId) return "";
+  return location.origin+"/product.html?id="+encodeURIComponent(o.productId)+"&review="+encodeURIComponent(o.reviewToken);
+}
+function bazarReviewWaUrl(o){
+  const link=bazarReviewLink(o); if(!link) return "";
+  let ph=String(o.customerPhone||o.phone||"").replace(/\D/g,"");
+  if(/^0[5-7]\d{8}$/.test(ph)) ph="213"+ph.slice(1); else return "";
+  const name=String(o.customerName||"").trim();
+  const msg=(name?"مرحبًا "+name+"،\n":"")+"شكرًا لثقتك في Bazar Dzair 🙏\nيسعدنا رأيك في المنتج الذي استلمته ("+String(o.product||"").slice(0,80)+"):\n"+link;
+  return "https://wa.me/"+ph+"?text="+encodeURIComponent(msg);
+}
+window.copyReviewLink=async function(id){
+  const o=(window.adminOrders||[]).find(x=>x.id===id); const link=bazarReviewLink(o);
+  if(!link){toast("لا يوجد رابط تقييم لهذه الطلبية","err");return;}
+  try{await navigator.clipboard.writeText(link);toast("تم نسخ رابط التقييم ✅","ok");}
+  catch(e){window.prompt("انسخ الرابط:",link);}
+};
 window.setOrderStatus=async function(id,status){
   try{
-    await updateDoc(doc(db,"orders",id),{status,updatedAt:serverTimestamp()});
-    window.adminOrders=(window.adminOrders||[]).map(o=>o.id===id?{...o,status}:o);
+    const cur=(window.adminOrders||[]).find(o=>o.id===id);
+    const extra=bazarReviewTokenFields(cur,status);
+    await updateDoc(doc(db,"orders",id),{status,updatedAt:serverTimestamp(),...extra});
+    const localExtra=extra.reviewToken?{reviewToken:extra.reviewToken,reviewUsed:false}:{};
+    window.adminOrders=(window.adminOrders||[]).map(o=>o.id===id?{...o,status,...localExtra}:o);
     toast("تم تحديث حالة الطلبية ✅","ok");
+    if(window.__detailOrderId===id){const u=(window.adminOrders||[]).find(o=>o.id===id); if(u) renderOrderDetail(u);}
   }catch(e){console.error(e);toast("تعذر تحديث الحالة: "+(e.message||"خطأ غير معروف"),"err");}
 };
 
