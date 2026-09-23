@@ -697,7 +697,9 @@ for c in categories:
     desc_fr=str(c.get('description_fr') or '').strip()
     matched=[x for x in product_urls if str(x[2].get('category') or '')==cid or str(x[2].get('category') or '').strip().lower()==name.strip().lower()]
     url=SITE+'product-category/'+urllib.parse.quote(slug,safe='-._~')+'/'
-    desc=f'تصفح منتجات {name} المتوفرة في متجر Bazar Dzair.'
+    # وصف SEO مخصص لكل فئة (يُكتب من لوحة التحكم، حقل description في مستند الفئة) — إن كان
+    # فارغًا نستعمل الجملة العامة كما كانت سابقًا (نفس منطق p.get('description') أعلاه للمنتجات).
+    desc=str(c.get('description') or '').strip() or f'تصفح منتجات {name} المتوفرة في متجر Bazar Dzair.'
     cards=[]
     for pu,pn,p,pslug in matched:
         pn_fr=str(p.get('name_fr') or '').strip()
