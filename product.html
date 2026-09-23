@@ -278,7 +278,10 @@ try{
 }
 const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):(Number(n||0).toLocaleString("ar-DZ")+" دج");
 // يمنع بروتوكولات خطيرة (javascript:, data:, vbscript:) في روابط الصور القادمة من Firestore — يسمح فقط بـ https/http أو مسار نسبي.
-const safeImg=u=>{const s=String(u??"").trim();if(!s)return"/logo.svg";if(/^https?:\/\//i.test(s)||s.startsWith("/")||s.startsWith("./"))return esc(s);return"/logo.svg";};
+// f_auto,q_auto: صيغة وجودة تلقائيتان حسب جهاز الزائر (WebP/AVIF عادة) لصور Cloudinary فقط،
+// دون أي فرق يُلاحظ بالعين. لا يمس الروابط الأخرى (/logo.svg)، ولا يكرر الإضافة لو كانت موجودة.
+const cldOpt=u=>/^https?:\/\/res\.cloudinary\.com\//i.test(u)?u.replace(/\/image\/upload\/(?!f_auto)/,"/image/upload/f_auto,q_auto/"):u;
+const safeImg=u=>{const s=String(u??"").trim();if(!s)return"/logo.svg";if(/^https?:\/\//i.test(s)||s.startsWith("/")||s.startsWith("./"))return esc(cldOpt(s));return"/logo.svg";};
 function productSlug(name){
   return String(name||"product")
     .normalize("NFKD")
