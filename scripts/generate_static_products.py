@@ -421,6 +421,8 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
         f'<meta id="ogDescription" property="og:description" content="{html.escape(d155,quote=True)}">'
         f'<meta id="ogUrl" property="og:url" content="{html.escape(url,quote=True)}">'
         f'<meta id="ogImage" property="og:image" content="{html.escape(img,quote=True)}">'
+        f'<meta id="ogPriceAmount" property="product:price:amount" content="{price_number(price)}">'
+        f'<meta id="ogPriceCurrency" property="product:price:currency" content="DZD">'
         f'<script type="application/ld+json" id="bazar_product_jsonld">{json.dumps(ld,ensure_ascii=False)}</script>'
         f'<script type="application/ld+json" id="bazar_breadcrumb_jsonld">{json.dumps(bc,ensure_ascii=False)}</script>'
     )
@@ -553,6 +555,8 @@ def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images
         f'<meta id="ogDescription" property="og:description" content="{html.escape(d155,quote=True)}">'
         f'<meta id="ogUrl" property="og:url" content="{html.escape(url_fr,quote=True)}">'
         f'<meta id="ogImage" property="og:image" content="{html.escape(img,quote=True)}">'
+        f'<meta id="ogPriceAmount" property="product:price:amount" content="{price_number(price)}">'
+        f'<meta id="ogPriceCurrency" property="product:price:currency" content="DZD">'
         f'<script type="application/ld+json" id="bazar_product_jsonld">{json.dumps(ld,ensure_ascii=False)}</script>'
         f'<script type="application/ld+json" id="bazar_breadcrumb_jsonld">{json.dumps(bc,ensure_ascii=False)}</script>'
     )
@@ -624,7 +628,7 @@ for p in products:
     price=float(p.get('price') or 0)
     img=image_of(p)
     cat_id=str(p.get('category') or '')
-    ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':desc[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':str(price),'availability':'https://schema.org/InStock'}}
+    ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':desc[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':price_number(price),'availability':'https://schema.org/InStock'}}
     # Each pretty URL is a real static directory containing the functional product app.
     # SEO tags (title/description/canonical/OG/JSON-LD) are injected server-side here so every
     # product page has genuinely unique raw HTML — this is required so Google doesn't merge
