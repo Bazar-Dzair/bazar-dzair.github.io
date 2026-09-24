@@ -399,6 +399,18 @@ const firebaseConfig = {
 
 let db = null;
 let firestoreReady = false;
+// 👁️ تتبّع الزيارات اليومية: مستند واحد في Firestore لكل يوم (visits/YYYY-MM-DD) يحمل عدد
+// الزيارات فقط. لا يُحتسب الأدمن نفسه (نتحقق من علامة bazarIsAdmin التي يضعها admin.html
+// عند تسجيل الدخول)، ولا تُحتسب أكثر من زيارة واحدة لنفس المتصفح في نفس اليوم.
+async function trackSiteVisit(dbInst,doc,setDoc,increment,serverTimestamp){
+  try{
+    if(localStorage.getItem("bazarIsAdmin")==="1")return; // زيارة الأدمن لا تُحتسب
+    const today=new Date().toLocaleDateString("en-CA",{timeZone:"Africa/Algiers"}); // YYYY-MM-DD
+    if(localStorage.getItem("bazarVisitDate")===today)return; // احتُسبت هذه الزيارة اليوم مسبقًا
+    await setDoc(doc(dbInst,"visits",today),{count:increment(1),updatedAt:serverTimestamp()},{merge:true});
+    localStorage.setItem("bazarVisitDate",today);
+  }catch(e){console.warn("Visit tracking failed",e);}
+}
 // تُصبح true فور وصول أول دفعة بيانات حقيقية من Firestore الفوري (onSnapshot)،
 // لمنع أي استجابة REST سريعة متأخرة من الكتابة فوق بيانات أحدث وصلت بالفعل.
 let realtimeProductsLoaded = false;
@@ -933,12 +945,13 @@ else loadLocalCatalogFirst();
   try{
     const {initializeApp}=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
     const firestore=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
-    const {getFirestore,initializeFirestore,memoryLocalCache,collection,onSnapshot,getDocs,query,orderBy,limit}=firestore;
+    const {getFirestore,initializeFirestore,memoryLocalCache,collection,onSnapshot,getDocs,query,orderBy,limit,doc,setDoc,increment,serverTimestamp}=firestore;
     const app=initializeApp(firebaseConfig);
     // ذاكرة مؤقتة داخل الصفحة فقط (لا IndexedDB): الذاكرة الدائمة كانت تُعيد أول لقطة من نسخة قديمة
     // فيها منتجات حُذفت، فتظهر ثم تختفي عند وصول بيانات الخادم.
     try{db=initializeFirestore(app,{localCache:memoryLocalCache()});}catch(_e){db=getFirestore(app)}
     firestoreReady=true;
+    trackSiteVisit(db,doc,setDoc,increment,serverTimestamp);
     // ===== رسم أولي سريع (Fast First Paint) =====
     // قراءة واحدة (وليست مباشرة/Live) لآخر 24 منتجًا فقط، تُعرض فورًا قبل اكتمال تحميل الكتالوج الكامل بالأسفل.
     // الهدف تقليل وقت ظهور أول منتجات على شبكات 3G/4G الضعيفة، دون المساس بالبحث أو التصنيفات

@@ -448,6 +448,7 @@
     <div class="stat-card"><span class="stat-icon orange">⚠</span><div><small>المنتجات منخفضة المخزون</small><strong id="statLowStock">0</strong><span class="stat-unit">منتج</span></div></div>
     <div class="stat-card"><span class="stat-icon green">✓</span><div><small>المنتجات المنشورة</small><strong id="statPublished">0</strong><span class="stat-unit">منتج نشط في المتجر</span></div></div>
     <div class="stat-card"><span class="stat-icon blue">📦</span><div><small>إجمالي المخزون</small><strong id="statInventory">0</strong><span class="stat-unit">وحدة</span></div></div>
+    <div class="stat-card"><span class="stat-icon purple">👁️</span><div><small>زوار اليوم</small><strong id="statVisitsToday">0</strong><span class="stat-unit">زائر (بدون احتسابك)</span></div></div>
   </div>
   <div class="section-heading"><h2>⚡ الوصول السريع</h2><p>أهم العمليات التي تحتاجها بسرعة.</p></div>
   <div class="quick-grid">
@@ -1602,6 +1603,18 @@ storageBucket:"bazar-dzair-33816.firebasestorage.app",
 messagingSenderId:"51073161969",
 appId:"1:51073161969:web:cb75a3224bdca11ea8e750"};
 const firebaseApp=initializeApp(config),db=getFirestore(firebaseApp),auth=getAuth(firebaseApp);
+// 👁️ إحصائية "زوار اليوم" في لوحة التحكم: قراءة حيّة (onSnapshot) لمستند visits/{اليوم} الذي
+// تكتبه صفحات الموقع (index.html و product.html). تُستدعى بعد تأكيد تسجيل دخول الأدمن فقط،
+// لأن قواعد Firestore تمنع أي حساب آخر من قراءة هذه المجموعة.
+let visitsStatUnsub=null;
+function loadVisitsStat(){
+  if(visitsStatUnsub)return;
+  const today=new Date().toLocaleDateString("en-CA",{timeZone:"Africa/Algiers"});
+  const el=document.getElementById("statVisitsToday");
+  visitsStatUnsub=onSnapshot(doc(db,"visits",today),snap=>{
+    if(el)el.textContent=((snap.exists()&&snap.data().count)||0).toLocaleString("ar-DZ");
+  },e=>console.warn("Visits stat load failed",e));
+}
 // نفس UID المستخدم فـ isAdmin() فـ firestore.rules/storage.rules. Firestore Rules هي خط
 // الدفاع الحقيقي (أي طلب قراءة/كتابة من حساب غير هذا الـ UID يُرفض هناك مهما فعل الكود هنا)،
 // لكن بدون هذا الفحص هنا كان أي حساب Firebase آخر (لو تم إنشاؤه، مثلاً عبر REST API
@@ -1871,15 +1884,20 @@ imageFilesInput?.addEventListener("change",()=>{
 window.login=async()=>{const e=emailInput.value.trim(),p=passwordInput.value;loginErrBox.classList.add("hidden");if(!e||!p){loginErrBox.textContent="اكتب البريد الإلكتروني وكلمة المرور.";loginErrBox.classList.remove("hidden");return}try{await signInWithEmailAndPassword(auth,e,p)}catch(x){console.error("Firebase login error:",x);loginErrBox.textContent="فشل الدخول: "+(x.code==="auth/invalid-credential"||x.code==="auth/wrong-password"||x.code==="auth/user-not-found"?"البريد أو كلمة المرور غير صحيحة.":x.message);loginErrBox.classList.remove("hidden")}};
 window.logout=()=>signOut(auth);
 onAuthStateChanged(auth,u=>{document.body.classList.remove("auth-check");
+  // 👁️ علامة bazarIsAdmin: تمنع صفحات الموقع (index.html و product.html) من احتساب
+  // زيارات الأدمن نفسه ضمن إحصائية "زوار اليوم". تُوضع فقط لحساب الأدمن الحقيقي (ADMIN_UID)
+  // وتُزال عند الخروج أو عند دخول حساب غير مصرّح له.
   if(u && u.uid!==ADMIN_UID){
     // حساب Firebase صحيح لكن ليس حساب الأدمن — لا نعرض حتى هيكل اللوحة، نسجّل خروجه فورًا.
     console.error("Auth: non-admin account signed in, forcing sign-out:",u.uid);
+    try{localStorage.removeItem("bazarIsAdmin");}catch(e){}
     signOut(auth);
     appBox.classList.add("hidden");loginBox.classList.remove("hidden");
     loginErrBox.textContent="هذا الحساب غير مصرّح له بالدخول إلى لوحة التحكم.";loginErrBox.classList.remove("hidden");
     return;
   }
-  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();if(window.bazarLoadFraudAlerts)window.bazarLoadFraudAlerts(true);try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
+  try{if(u)localStorage.setItem("bazarIsAdmin","1");else localStorage.removeItem("bazarIsAdmin");}catch(e){}
+  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();if(window.bazarLoadFraudAlerts)window.bazarLoadFraudAlerts(true);loadVisitsStat();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
 
 // الرابط الثابت للتصنيف (/product-category/<slug>/): نفس ترتيب الأولوية في index.html و scripts/generate_static_products.py.
 // slug المحفوظ أولًا (لا يتغيّر بتعديل الاسم)، وإلا الاشتقاق القديم من name_fr ثم المعرّف.
