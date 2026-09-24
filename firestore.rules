@@ -154,6 +154,20 @@ service cloud.firestore {
         get(/databases/$(database)/documents/products/$(d.productId)).data.price == d.price;
     }
 
+    // 👁️ زوار الموقع (إحصائية يومية) — مستند واحد لكل يوم، معرّفه YYYY-MM-DD (مثلاً 2026-09-25)،
+    // يحتوي فقط على count (عدد الزيارات) و updatedAt. الكتابة مسموحة للجميع لكن بشكل ضيّق جدًا:
+    // إما إنشاء مستند جديد بقيمة count == 1 بالضبط، أو زيادة count بمقدار 1 بالضبط في كل مرة —
+    // أي قيمة أخرى (تصفير، قفزة كبيرة، حقل إضافي) مرفوضة تلقائيًا. لا قراءة عامة إطلاقًا حتى لا
+    // يرى أي زائر عدد زوار الموقع؛ الأدمن وحده يقرأها (ويحذفها عند الحاجة) من لوحة التحكم.
+    match /visits/{date} {
+      allow read, delete: if isAdmin();
+      allow create: if date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+                    && request.resource.data.keys().hasOnly(['count','updatedAt'])
+                    && request.resource.data.count == 1;
+      allow update: if request.resource.data.keys().hasOnly(['count','updatedAt'])
+                    && request.resource.data.count == resource.data.count + 1;
+    }
+
     // Deny-by-default صريح: أي collection أو مستند غير معروف/غير مذكور أعلاه ممنوع تمامًا.
     match /{document=**} {
       allow read, write: if false;
