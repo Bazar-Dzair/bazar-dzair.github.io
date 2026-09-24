@@ -450,6 +450,8 @@
     <div class="stat-card"><span class="stat-icon blue">📦</span><div><small>إجمالي المخزون</small><strong id="statInventory">0</strong><span class="stat-unit">وحدة</span></div></div>
     <div class="stat-card"><span class="stat-icon purple">👁️</span><div><small>زوار اليوم</small><strong id="statVisitsToday">0</strong><span class="stat-unit">زائر (بدون احتسابك)</span></div></div>
   </div>
+  <div class="section-heading"><h2>📈 الزوار خلال آخر 14 يومًا</h2><p>عدد الزوار الحقيقيين يوميًا (بدون احتسابك أنت كأدمن).</p></div>
+  <div id="visitsChartBox" style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:24px;overflow-x:auto;box-shadow:0 2px 7px #00000004"><small style="color:#9099a6">...جارٍ التحميل</small></div>
   <div class="section-heading"><h2>⚡ الوصول السريع</h2><p>أهم العمليات التي تحتاجها بسرعة.</p></div>
   <div class="quick-grid">
     <button onclick="showView('products')"><span class="quick-icon">◇</span><b>إدارة المنتجات</b><small>عرض وتعديل جميع منتجات متجرك</small></button>
@@ -1587,7 +1589,7 @@ renderAddonsGrid();
 </script>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,getDocs,serverTimestamp,setDoc,getDoc,writeBatch,deleteField,query,orderBy,limit}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,getDocs,serverTimestamp,setDoc,getDoc,writeBatch,deleteField,query,orderBy,limit,where,documentId}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 // ملاحظة 17/09/2026: تم حذف import الخاص بـ Firebase Storage (getStorage/uploadBytes/...)
 // من هنا لأنه لم يكن مستعملاً فعليًا فأي مكان — المشروع على خطة Spark المجانية بلا
@@ -1614,6 +1616,47 @@ function loadVisitsStat(){
   visitsStatUnsub=onSnapshot(doc(db,"visits",today),snap=>{
     if(el)el.textContent=((snap.exists()&&snap.data().count)||0).toLocaleString("ar-DZ");
   },e=>console.warn("Visits stat load failed",e));
+}
+// 📈 مخطط الزوار لآخر 14 يومًا: قراءة واحدة (وليست حيّة، لتفادي استهلاك بيانات إضافي) لكل
+// مستندات visits التي معرّفها (YYYY-MM-DD) يقع ضمن آخر 14 يومًا، ثم رسمها كأعمدة SVG بسيطة
+// بدون أي مكتبة خارجية (تجنبًا لتحميل سكربتات إضافية على اتصال بطيء أو متقطّع).
+let visitsChartLoaded=false;
+async function loadVisitsChart(){
+  if(visitsChartLoaded)return;
+  visitsChartLoaded=true;
+  const box=document.getElementById("visitsChartBox");
+  if(!box)return;
+  const DAYS=14;
+  const days=[];
+  for(let i=DAYS-1;i>=0;i--){
+    const d=new Date();
+    d.setDate(d.getDate()-i);
+    days.push(d.toLocaleDateString("en-CA",{timeZone:"Africa/Algiers"}));
+  }
+  const counts={};
+  try{
+    const snap=await getDocs(query(collection(db,"visits"),where(documentId(),">=",days[0]),orderBy(documentId())));
+    snap.forEach(docSnap=>{counts[docSnap.id]=docSnap.data().count||0;});
+  }catch(e){
+    console.warn("Visits chart load failed",e);
+    box.innerHTML='<small style="color:#c0392b">تعذّر تحميل بيانات الزوار.</small>';
+    visitsChartLoaded=false;
+    return;
+  }
+  const data=days.map(d=>({date:d,count:counts[d]||0}));
+  const max=Math.max(1,...data.map(d=>d.count));
+  const barW=28,gap=8,leftPad=6,h=140,chartH=96;
+  const w=data.length*(barW+gap)+leftPad;
+  const bars=data.map((d,i)=>{
+    const bh=Math.max(d.count>0?2:0,Math.round((d.count/max)*chartH));
+    const x=leftPad+i*(barW+gap);
+    const y=chartH-bh+18;
+    const label=d.date.slice(5).replace("-","/");
+    return '<g><rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+bh+'" rx="4" fill="#7c5cf0"><title>'+d.date+': '+d.count+' زائر</title></rect>'+
+      '<text x="'+(x+barW/2)+'" y="'+(y-4)+'" font-size="10" text-anchor="middle" fill="#374151">'+d.count+'</text>'+
+      '<text x="'+(x+barW/2)+'" y="'+(chartH+32)+'" font-size="9" text-anchor="middle" fill="#9099a6">'+label+'</text></g>';
+  }).join("");
+  box.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" style="min-width:'+w+'px">'+bars+'</svg>';
 }
 // نفس UID المستخدم فـ isAdmin() فـ firestore.rules/storage.rules. Firestore Rules هي خط
 // الدفاع الحقيقي (أي طلب قراءة/كتابة من حساب غير هذا الـ UID يُرفض هناك مهما فعل الكود هنا)،
@@ -1897,7 +1940,7 @@ onAuthStateChanged(auth,u=>{document.body.classList.remove("auth-check");
     return;
   }
   try{if(u)localStorage.setItem("bazarIsAdmin","1");else localStorage.removeItem("bazarIsAdmin");}catch(e){}
-  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();if(window.bazarLoadFraudAlerts)window.bazarLoadFraudAlerts(true);loadVisitsStat();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
+  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();if(window.bazarLoadFraudAlerts)window.bazarLoadFraudAlerts(true);loadVisitsStat();loadVisitsChart();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
 
 // الرابط الثابت للتصنيف (/product-category/<slug>/): نفس ترتيب الأولوية في index.html و scripts/generate_static_products.py.
 // slug المحفوظ أولًا (لا يتغيّر بتعديل الاسم)، وإلا الاشتقاق القديم من name_fr ثم المعرّف.
