@@ -985,7 +985,7 @@ else loadLocalCatalogFirst();
 loadFastSettings();
 loadFastCatalog();
 
-const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):(Number(n).toLocaleString("ar-DZ")+" دج");
+const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):((Number(n)||0).toLocaleString("en-US",{maximumFractionDigits:2}).replace(/,/g," ")+" دج");
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 // حماية أمنية: أي رابط صورة قادم من بيانات المنتج (قد يكون مستوردًا من مصدر خارجي مثل Mayna)
 // يُعتبر غير موثوق. نسمح فقط بروابط http(s) أو مسارات محلية، ونمنع أي بروتوكول آخر

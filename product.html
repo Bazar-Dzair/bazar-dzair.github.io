@@ -279,7 +279,7 @@ try{
 }finally{
   document.documentElement.style.visibility="";
 }
-const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):(Number(n||0).toLocaleString("ar-DZ")+" دج");
+const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):(Number(n||0).toLocaleString("en-US",{maximumFractionDigits:2}).replace(/,/g," ")+" دج");
 // يمنع بروتوكولات خطيرة (javascript:, data:, vbscript:) في روابط الصور القادمة من Firestore — يسمح فقط بـ https/http أو مسار نسبي.
 // f_auto,q_auto: صيغة وجودة تلقائيتان حسب جهاز الزائر (WebP/AVIF عادة) لصور Cloudinary فقط،
 // دون أي فرق يُلاحظ بالعين. لا يمس الروابط الأخرى (/logo.svg)، ولا يكرر الإضافة لو كانت موجودة.
@@ -1102,6 +1102,8 @@ function applyProductSEO(p,name,desc){
   setOG("ogDescription","og:description",trimMetaDescription(p.description||p.desc));
   setOG("ogUrl","og:url",url);
   setOG("ogImage","og:image",image);
+  // سعر صريح بلا أي التباس في الفاصل أو العملة (رقم خام + رمز ISO) لمحركات البحث ومشاركات السوشيال.
+  if(Number.isFinite(Number(p.price))&&Number(p.price)>0){setOG("ogPriceAmount","product:price:amount",String(Number(p.price)));setOG("ogPriceCurrency","product:price:currency","DZD");}
   setMeta("twitterCard","name","summary_large_image");
   if(!document.querySelector('meta[name="twitter:title"]')){const t=document.createElement("meta");t.name="twitter:title";t.content=name;document.head.appendChild(t);}
   if(!document.querySelector('meta[name="twitter:description"]')){const t=document.createElement("meta");t.name="twitter:description";t.content=trimMetaDescription(p.description||p.desc);document.head.appendChild(t);}
