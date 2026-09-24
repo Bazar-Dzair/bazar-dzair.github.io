@@ -32,11 +32,11 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
-    // التقييمات — كل تقييم حقيقي فقط. أي زائر (بدون تسجيل دخول) يقدر يضيف
-    // تقييمًا جديدًا لمنتج موجود فعلاً، لكن يُحفظ دائمًا بحالة "قيد المراجعة"
-    // (approved == false إجباريًا عند الإنشاء) ولا يظهر للزبائن إلا بعد موافقة
-    // الأدمن من لوحة التحكم. القراءة العامة تقتصر على التقييمات المنشورة فقط؛
-    // الأدمن وحده يقرأ/ينشر/يحذف أي تقييم (بما فيها قيد المراجعة).
+    // التقييمات — تُنشأ حصرًا عبر Cloudflare Worker (مسار /submit-review) بصلاحيات Service Account،
+    // وذلك فقط لمشتري لديه رمز تقييم صالح لطلب «مكتملة» (تقييم موثّق، لمرة واحدة). لا يوجد إنشاء
+    // من المتصفح إطلاقًا. التقييم يُحفظ دائمًا بحالة approved == false ولا يظهر للزبائن إلا بعد
+    // موافقة الأدمن. القراءة العامة تقتصر على التقييمات المنشورة؛ الأدمن وحده يقرأ/ينشر/يحذف أي تقييم.
+    // isValidReview() لم تعد مستعملة (مرجع موثّق لنفس شروط الـ Worker، مثل isValidOrder).
     function isValidReview(d) {
       return
         d.keys().hasOnly(['productId','productName','authorName','ratingValue','text','approved','createdAt']) &&
@@ -53,7 +53,7 @@ service cloud.firestore {
     }
     match /reviews/{id} {
       allow read: if resource.data.approved == true || isAdmin();
-      allow create: if isValidReview(request.resource.data);
+      allow create: if false;
       allow update, delete: if isAdmin();
     }
 
