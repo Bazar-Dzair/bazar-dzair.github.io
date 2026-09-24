@@ -1530,6 +1530,25 @@ async function goSimilar(ev,i){
   location.href=target;
 }
 window.goSimilar=goSimilar;
+// 🔁 إعادة محاولة خفيفة لأي عملية Firestore قد تفشل بسبب انقطاع مؤقت في الاتصال، خصوصًا
+// عند تحميل منتج من رابط قديم (product.html?id=...) لا يملك نسخة SSG احتياطية يُرجع إليها
+// عند الفشل. بدون هذا، فشل شبكة عابر واحد كان يكفي لإظهار "تعذر تحميل المنتج" لمنتج موجود فعلاً.
+async function withRetry(fn,attempts=3,delayMs=700){
+  let lastErr;
+  for(let i=0;i<attempts;i++){
+    try{ return await fn(); }
+    catch(e){ lastErr=e; if(i<attempts-1) await new Promise(r=>setTimeout(r,delayMs)); }
+  }
+  throw lastErr;
+}
+// يبني ذيل الرابط (?review=... + الـ hash) عند إعادة التوجيه من رابط قديم إلى الصفحة الثابتة
+// الجميلة، حتى لا ينكسر رابط تقييم الزبون (?review=TOKEN) الذي قد يكون مرفقًا بالرابط القديم.
+// دالة واحدة مشتركة بدل تكرار نفس السطرين في كل من redirectLegacyIdToStaticPage والتحويل
+// اللاحق بعد التعرّف على المنتج داخل load().
+function reviewAndHashSuffix(){
+  const reviewTok=urlParams.get("review");
+  return (reviewTok?"?review="+encodeURIComponent(reviewTok):"")+location.hash;
+}
 async function redirectLegacyIdToStaticPage(){
   // روابط قديمة من نوع product.html?id=xxx: إن كانت الصفحة الثابتة الجميلة
   // /product/xxx/ موجودة فعلاً (SSG)، نحوّل إليها فورًا قبل أي محاولة اتصال
@@ -1539,7 +1558,7 @@ async function redirectLegacyIdToStaticPage(){
   const candidate=(isFrenchProductPath?"/fr/product/":"/product/")+encodeURIComponent(queryId)+"/";
   try{
     const res=await fetch(candidate,{method:"HEAD",cache:"no-store"});
-    if(res.ok){ location.replace(candidate+location.hash); return true; }
+    if(res.ok){ location.replace(candidate+reviewAndHashSuffix()); return true; }
   }catch(_e){ /* لا اتصال أو فشل الطلب: نكمل بالمسار الديناميكي المعتاد أدناه */ }
   return false;
 }
@@ -1607,10 +1626,12 @@ async function load(){
       // الفرع أعلاه ولا تحتاج أيًا من هذه الطلبات الإضافية.
       // الروابط الجديدة هي slug؛ لا نرسل طلب Firestore إضافي لها.
       // نحتفظ بـ getDoc فقط للروابط القديمة التي كانت تحتوي على Firestore ID.
+      // كل عملية شبكة هنا مغلّفة بـ withRetry: رابط قديم بلا نسخة SSG احتياطية لا يجب
+      // أن يُظهر "تعذر تحميل المنتج" لمجرد انقطاع شبكة عابر، طالما المنتج موجود فعلاً.
       const isLegacyFirestoreId=/^[A-Za-z0-9]{20}$/.test(id);
       if(isLegacyFirestoreId){
         try{
-          const snap=await getDoc(doc(db,"products",id));
+          const snap=await withRetry(()=>getDoc(doc(db,"products",id)));
           if(snap.exists()) p={...snap.data(),firestoreId:snap.id};
         }catch(e){}
       }
@@ -1620,8 +1641,7 @@ async function load(){
         // لوحة التحكم عند الإضافة/التعديل). هذا الاستعلام يقرأ وثيقة واحدة فقط
         // بدل تحميل مجموعة products كاملة عند كل زيارة لصفحة منتج.
         try{
-          const q=query(collection(db,"products"),where("slug","==",wanted),limit(1));
-          const bySlug=await getDocs(q);
+          const bySlug=await withRetry(()=>getDocs(query(collection(db,"products"),where("slug","==",wanted),limit(1))));
           if(!bySlug.empty){
             const snap=bySlug.docs[0];
             p={...snap.data(),firestoreId:snap.id};
@@ -1632,13 +1652,30 @@ async function load(){
         // أن تُحفظ. يقرأ المجموعة كاملة مرة واحدة، ثم لن يُستدعى مجددًا لهذا
         // المنتج بمجرد إصلاح حقل slug الخاص به.
         if(!p){
-          const all=await getDocs(collection(db,"products"));
-          all.forEach(snap=>{
-            if(p)return;
-            const data=snap.data();
-            if(slugMatches({...data,firestoreId:snap.id},wanted) || String(data.name||data.product||"").toLowerCase()===wanted.toLowerCase()) p={...data,firestoreId:snap.id};
-          });
+          try{
+            const all=await withRetry(()=>getDocs(collection(db,"products")));
+            all.forEach(snap=>{
+              if(p)return;
+              const data=snap.data();
+              if(slugMatches({...data,firestoreId:snap.id},wanted) || String(data.name||data.product||"").toLowerCase()===wanted.toLowerCase()) p={...data,firestoreId:snap.id};
+            });
+          }catch(e){}
         }
+      }
+      // 🔀 إعادة توجيه احترافية للروابط القديمة (product.html?id=...): بمجرد التعرّف على
+      // هوية المنتج الحقيقية (سواء عبر Firestore ID القديم، أو حقل slug، أو المسح الاحتياطي
+      // بالاسم)، إن كانت صفحته الثابتة الجميلة (/product/<slug>/) موجودة فعلاً، نحوّل المتصفح
+      // إليها مباشرة بدل إبقائه على الرابط القديم — بنفس منطق redirectLegacyIdToStaticPage
+      // أعلاه، لكن بعد معرفة الـ slug الحقيقي بدل الاعتماد على تطابقه مصادفةً مع queryId.
+      // إن لم توجد الصفحة الثابتة بعد (لم يُعِد SSG توليدها)، نبقى على المسار الديناميكي
+      // الحالي بدون أي تحويل، تفاديًا لتحويل الزائر نحو رابط غير موجود (404).
+      if(p && queryId && !pathMatch){
+        try{
+          const realSlug=productSlugOf(p);
+          const pretty=(isFrenchProductPath?"/fr/product/":"/product/")+encodeURIComponent(realSlug)+"/";
+          const res=await fetch(pretty,{method:"HEAD",cache:"no-store"});
+          if(res.ok){ location.replace(pretty+reviewAndHashSuffix()); return; }
+        }catch(_e){ /* لا اتصال أو فشل الطلب: نكمل بعرض المنتج على رابطه الحالي أدناه */ }
       }
     }
     if(p){
