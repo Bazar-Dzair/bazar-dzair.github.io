@@ -1114,6 +1114,145 @@ async function handleTriggerSeo(request, env) {
 }
 
 // ---------------------------------------------------------------------
+// تقييم المشتري الموثّق: /submit-review
+//   GET  ?token=…&productId=…  → { valid: true|false }   (يفحص الرمز فقط، لا يغيّر شيئًا)
+//   POST { token, productId, authorName, ratingValue, text, hp }  → ينشئ التقييم (approved=false دائمًا)
+// الرمز يولّده admin.html عند اكتمال الطلب ويُخزَّن في الطلب (orders: reviewToken / reviewUsed).
+// لا يُقبل التقييم إلا إذا: الطلب موجود وحالته «مكتملة»، والرمز يخص هذا المنتج، ولم يُستعمل من قبل.
+// الاستهلاك ذرّي: وثيقة التقييم معرّفها ثابت (rv-<orderId>) مع شرط exists=false داخل commit واحد مع
+// تعليم الطلب reviewUsed=true — فلا يمكن لطلبين متزامنين إنشاء تقييمين بنفس الرمز.
+// ---------------------------------------------------------------------
+async function findOrderByReviewToken(env, accessToken, token) {
+  const projectId = env.FIREBASE_PROJECT_ID;
+  const resp = await fetch(
+    `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:runQuery`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: "orders" }],
+          where: { fieldFilter: { field: { fieldPath: "reviewToken" }, op: "EQUAL", value: { stringValue: token } } },
+          limit: 1,
+        },
+      }),
+    }
+  );
+  if (!resp.ok) throw new Error("orders query failed: " + resp.status);
+  const rows = await resp.json();
+  const hit = Array.isArray(rows) ? rows.find((r) => r && r.document) : null;
+  if (!hit) return null;
+  const data = {};
+  for (const [k, v] of Object.entries(hit.document.fields || {})) data[k] = fromFs(v);
+  return { name: hit.document.name, updateTime: hit.document.updateTime, id: hit.document.name.split("/").pop(), data };
+}
+
+function reviewOrderUsable(order, productId) {
+  return !!order &&
+    order.data.status === "مكتملة" &&
+    order.data.reviewUsed !== true &&
+    typeof order.data.productId === "string" &&
+    order.data.productId === productId;
+}
+
+async function handleSubmitReview(request, env) {
+  const cors = corsHeaders(request);
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+  if (request.method !== "POST" && request.method !== "GET") return json({ error: "Method not allowed" }, 405, cors);
+
+  const origin = request.headers.get("Origin");
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) return json({ error: "Origin not allowed" }, 403, cors);
+
+  const missing = ["FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"].filter((k) => !env[k]);
+  if (missing.length) return json({ error: "إعداد الخادم ناقص", code: "config_missing" }, 500, cors);
+
+  const noStore = { ...cors, "Cache-Control": "no-store" };
+  const TOKEN_RE = /^[a-f0-9]{32}$/;
+
+  let body = {};
+  if (request.method === "GET") {
+    const u = new URL(request.url);
+    body = { token: u.searchParams.get("token"), productId: u.searchParams.get("productId") };
+  } else {
+    try { body = await request.json(); } catch { return json({ error: "بيانات غير صالحة" }, 400, noStore); }
+  }
+  const { token, productId, authorName, ratingValue, text, hp } = body || {};
+
+  if (typeof token !== "string" || !TOKEN_RE.test(token) || typeof productId !== "string" || !productId || productId.length > 200) {
+    return request.method === "GET" ? json({ valid: false }, 200, noStore) : json({ error: "رابط التقييم غير صالح" }, 400, noStore);
+  }
+
+  let accessToken, order;
+  try {
+    accessToken = await getGoogleAccessToken(env);
+    order = await findOrderByReviewToken(env, accessToken, token);
+  } catch (e) {
+    console.error("submit-review lookup failed:", e);
+    return json({ error: "تعذّر الاتصال بالخادم" }, 502, noStore);
+  }
+  const usable = reviewOrderUsable(order, productId);
+
+  if (request.method === "GET") return json({ valid: usable }, 200, noStore);
+
+  // honeypot: نتظاهر بالنجاح دون حفظ أي شيء
+  if (typeof hp === "string" && hp.trim() !== "") return json({ ok: true }, 200, noStore);
+
+  if (!usable) return json({ error: "رابط التقييم غير صالح أو سبق استعماله", code: "token_invalid" }, 403, noStore);
+
+  const name = typeof authorName === "string" ? authorName.trim() : "";
+  const txt = typeof text === "string" ? text.trim() : "";
+  if (name.length < 2 || name.length > 60) return json({ error: "الاسم غير صالح" }, 400, noStore);
+  if (txt.length < 3 || txt.length > 600) return json({ error: "نص التقييم غير صالح" }, 400, noStore);
+  if (!Number.isInteger(ratingValue) || ratingValue < 1 || ratingValue > 5) return json({ error: "عدد النجوم غير صالح" }, 400, noStore);
+
+  const projectId = env.FIREBASE_PROJECT_ID;
+  const base = `projects/${projectId}/databases/(default)/documents`;
+  const reviewName = `${base}/reviews/rv-${order.id}`;
+  const productName = typeof order.data.product === "string" ? order.data.product.slice(0, 199) : "";
+  const commit = {
+    writes: [
+      {
+        update: {
+          name: reviewName,
+          fields: {
+            productId: fsValue(productId),
+            productName: fsValue(productName),
+            authorName: fsValue(name),
+            ratingValue: fsValue(ratingValue),
+            text: fsValue(txt),
+            approved: fsValue(false),
+            verified: fsValue(true),
+            orderId: fsValue(order.id),
+          },
+        },
+        currentDocument: { exists: false },
+        updateTransforms: [{ fieldPath: "createdAt", setToServerValue: "REQUEST_TIME" }],
+      },
+      {
+        update: { name: order.name, fields: { reviewUsed: fsValue(true) } },
+        updateMask: { fieldPaths: ["reviewUsed"] },
+        currentDocument: { updateTime: order.updateTime },
+      },
+    ],
+  };
+  try {
+    const resp = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:commit`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify(commit),
+    });
+    if (resp.status === 409 || resp.status === 400 || resp.status === 412) {
+      return json({ error: "رابط التقييم غير صالح أو سبق استعماله", code: "token_invalid" }, 403, noStore);
+    }
+    if (!resp.ok) throw new Error("commit failed: " + resp.status);
+  } catch (e) {
+    console.error("submit-review commit failed:", e);
+    return json({ error: "تعذّر حفظ التقييم، حاول لاحقًا" }, 502, noStore);
+  }
+  return json({ ok: true }, 200, noStore);
+}
+
+// ---------------------------------------------------------------------
 // دمج مع الراوتر الحالي في worker الرئيسي، مثال:
 //
 //   import { handleCreateOrder } from "./create-order.js";
@@ -1136,6 +1275,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === "/create-order") return handleCreateOrder(request, env, ctx);
+    if (url.pathname === "/submit-review") return handleSubmitReview(request, env);
     if (url.pathname === "/trigger-seo") return handleTriggerSeo(request, env);
     if (url.pathname === "/health") return handleHealth(request, env);
     return new Response("Not found", { status: 404 });
