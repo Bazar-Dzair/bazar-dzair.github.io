@@ -254,15 +254,27 @@ const COLOR_NAME_FR={
   "فيروزي":"Turquoise","بترولي":"Bleu pétrole","ليموني":"Vert citron",
   "متعدد الألوان":"Multicolore","متعدد الالوان":"Multicolore","رصاصي":"Gris anthracite"
 };
+function colorNameLookup(word){
+  const t=String(word||"").trim();
+  if(!t) return t;
+  if(COLOR_NAME_FR[t]) return COLOR_NAME_FR[t];
+  const norm=t.replace(/[إأآا]/g,"ا"); // توحيد أشكال الألف قبل المطابقة
+  for(const k in COLOR_NAME_FR){ if(k.replace(/[إأآا]/g,"ا")===norm) return COLOR_NAME_FR[k]; }
+  return t; // لون غير موجود في القاموس: يبقى بالعربية بدل كسر الواجهة
+}
 function colorDisplayName(nameAr){
   const raw=String(nameAr||"").trim();
   if(!raw) return raw;
   const lang=window.BazarI18n?BazarI18n.getLang():"ar";
   if(lang!=="fr") return raw;
-  if(COLOR_NAME_FR[raw]) return COLOR_NAME_FR[raw];
-  const norm=raw.replace(/[إأآا]/g,"ا"); // توحيد أشكال الألف قبل المطابقة
-  for(const k in COLOR_NAME_FR){ if(k.replace(/[إأآا]/g,"ا")===norm) return COLOR_NAME_FR[k]; }
-  return raw; // لون غير موجود في القاموس: يبقى بالعربية بدل كسر الواجهة
+  const direct=COLOR_NAME_FR[raw];
+  if(direct) return direct;
+  // ألوان مركّبة مثل "رمادي & ابيض" أو "اسود و أبيض": نفصلها على الفاصل (& أو + أو ، أو
+  // "و" المعطوفة) ونترجم كل جزء على حدة قبل إعادة تجميعها، بدل البحث عن العبارة كاملة
+  // في القاموس (وهو ما كان يفشل دائمًا لأن كل تركيبة ألوان تكتب بصيغة مختلفة).
+  const parts=raw.split(/\s*(?:&|\+|،|,)\s*|\s+و\s+/).filter(Boolean);
+  if(parts.length>1) return parts.map(colorNameLookup).join(" & ");
+  return colorNameLookup(raw);
 }
 // pt(key): يبحث أولاً في قاموس الصفحة الخاص، ثم في القاموس العام BazarI18n (i18n.js).
 // إن لم يوجد المفتاح في أي منهما يرجع المفتاح نفسه كحل أخير (لا يكسر شيئًا).
