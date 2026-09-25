@@ -76,6 +76,8 @@
 .product-action-btn.delete-btn{background:#fff1f1;border-color:#ffd8d8;color:#c62828}
 .icon-action-btn{width:38px;height:38px;min-height:38px;padding:0;border:1px solid #e1e6ed;border-radius:9px;background:#fff;color:#354052;font-size:16px;display:inline-flex;align-items:center;justify-content:center;transition:.16s;flex:none}
 .icon-action-btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px #0000000b}
+/* تحضير bd-btn: تثبيت مقاس زر الأيقونة (38px) وحدوده بدقة أعلى من قواعد bd-btn العامة في tokens.css */
+.icon-action-btn.bd-btn{width:38px;height:38px;min-height:38px;padding:0;border:1px solid #e1e6ed;border-radius:9px;font-size:16px}
 .icon-action-btn.view-icon{background:#eef5ff;border-color:#d6e6ff;color:#1d64d8}
 .icon-action-btn.edit-icon{background:#fff8ef;border-color:#ffe2bd;color:#c65a00}
 .icon-action-btn.copy-icon{background:#f7f5ff;border-color:#e6ddff;color:#6941c6}
@@ -3479,8 +3481,8 @@ window.render=()=>{
           <button type="button" onclick="window.copyProductLink('${esc(p.id)}')">🔗 نسخ الرابط</button>
         </div></details>
         <div class="action-main">
-          <button class="icon-action-btn edit-icon" type="button" title="تعديل" onclick="editProduct('${esc(p.id)}')">✏️</button>
-          <button class="icon-action-btn delete-icon" type="button" title="حذف" onclick="removeProduct('${esc(p.id)}')">🗑️</button>
+          <button class="icon-action-btn edit-icon bd-btn" type="button" title="تعديل" onclick="editProduct('${esc(p.id)}')">✏️</button>
+          <button class="icon-action-btn delete-icon bd-btn" type="button" title="حذف" onclick="removeProduct('${esc(p.id)}')">🗑️</button>
         </div>
       </div>
     </article>`;
