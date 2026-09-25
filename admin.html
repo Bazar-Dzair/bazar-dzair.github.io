@@ -65,33 +65,47 @@
 </aside>
 <main class="main-content">
 <section id="view-dashboard" class="view">
-  <div class="welcome-banner"><button class="orange-btn" onclick="showView('product',null,true)">＋ إضافة منتج جديد</button><div><h1>مرحباً بك في لوحة التحكم 👋</h1><p>إدارة متجرك أصبحت أسهل من أي وقت مضى</p></div></div>
-  <div class="stats-grid">
-    <div class="stat-card"><span class="stat-icon blue">◇</span><div><small>إجمالي المنتجات</small><strong id="statProducts">0</strong><span class="stat-unit">منتج</span></div></div>
-    <div class="stat-card"><span class="stat-icon green">🛒</span><div><small>الطلبات</small><strong id="statOrders">0</strong><span class="stat-unit">طلب</span></div></div>
-    <div class="stat-card"><span class="stat-icon purple">👥</span><div><small>العملاء</small><strong id="statCustomers">0</strong><span class="stat-unit">عميل</span></div></div>
-    <div class="stat-card"><span class="stat-icon orange">⚠</span><div><small>المنتجات منخفضة المخزون</small><strong id="statLowStock">0</strong><span class="stat-unit">منتج</span></div></div>
-    <div class="stat-card"><span class="stat-icon green">✓</span><div><small>المنتجات المنشورة</small><strong id="statPublished">0</strong><span class="stat-unit">منتج نشط في المتجر</span></div></div>
-    <div class="stat-card"><span class="stat-icon blue">📦</span><div><small>إجمالي المخزون</small><strong id="statInventory">0</strong><span class="stat-unit">وحدة</span></div></div>
-    <div class="stat-card"><span class="stat-icon purple">👁️</span><div><small>زوار اليوم</small><strong id="statVisitsToday">0</strong><span class="stat-unit">زائر (بدون احتسابك)</span></div></div>
+  <div class="dash-hero">
+    <div class="dash-hero-top">
+      <div>
+        <p class="dash-hero-kicker">مرحباً بك 👋</p>
+        <h1>لوحة تحكم Bazar Dzair</h1>
+        <p class="dash-hero-sub">إدارة متجرك أصبحت أسهل من أي وقت مضى</p>
+      </div>
+      <button class="orange-btn" onclick="showView('product',null,true)">＋ إضافة منتج جديد</button>
+    </div>
+    <div class="dash-hero-metric"><strong id="statVisitsToday">0</strong><span>زائر اليوم</span></div>
+    <p class="dash-hero-note">👁️ بدون احتساب زياراتك أنت كأدمن</p>
   </div>
-  <div class="section-heading"><h2>📈 الزوار خلال آخر 14 يومًا</h2><p>عدد الزوار الحقيقيين يوميًا (بدون احتسابك أنت كأدمن).</p></div>
-  <div id="visitsChartBox" style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:24px;overflow-x:auto;box-shadow:0 2px 7px #00000004"><small style="color:#9099a6">...جارٍ التحميل</small></div>
-  <div class="section-heading"><h2>🖱️ مشاهدات المنتجات</h2><p>تحديث حي: بمجرد أن يفتح زبون صفحة منتج، تظهر مشاهدته هنا مباشرة.</p></div>
-  <div id="productViewsBox" style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:24px;overflow-x:auto;box-shadow:0 2px 7px #00000004"><small style="color:#9099a6">...جارٍ التحميل</small></div>
-  <div class="section-heading"><h2>⚡ الوصول السريع</h2><p>أهم العمليات التي تحتاجها بسرعة.</p></div>
-  <div class="quick-grid">
-    <button onclick="showView('products')"><span class="quick-icon">◇</span><b>إدارة المنتجات</b><small>عرض وتعديل جميع منتجات متجرك</small></button>
-    <button onclick="showView('product',null,true)"><span class="quick-icon">＋</span><b>إضافة منتج</b><small>إضافة منتج جديد إلى المتجر</small></button>
-    <button onclick="showView('orders')"><span class="quick-icon">🛒</span><b>الطلبات</b><small>متابعة وإدارة طلبات العملاء</small></button>
-    <button onclick="showView('settings')"><span class="quick-icon">⚙</span><b>الإعدادات</b><small>تخصيص إعدادات المتجر وعمليات التوصيل</small></button>
-    <button onclick="showView('categories')"><span class="quick-icon">📁</span><b>التصنيفات</b><small>إدارة تصنيفات المنتجات</small></button>
-    <button onclick="showView('sections');loadHomeSections()"><span class="quick-icon">▦</span><b>أقسام المتجر</b><small>تنظيم أقسام المتجر</small></button>
+  <div class="dash-stats">
+    <div class="dash-stat"><span class="dash-stat-icon">◇</span><div><strong id="statProducts">0</strong><small>إجمالي المنتجات</small></div></div>
+    <div class="dash-stat"><span class="dash-stat-icon">🛒</span><div><strong id="statOrders">0</strong><small>الطلبات</small></div></div>
+    <div class="dash-stat"><span class="dash-stat-icon">👥</span><div><strong id="statCustomers">0</strong><small>العملاء</small></div></div>
+    <div class="dash-stat dash-stat-warn"><span class="dash-stat-icon">⚠</span><div><strong id="statLowStock">0</strong><small>مخزون منخفض</small></div></div>
+    <div class="dash-stat"><span class="dash-stat-icon">✓</span><div><strong id="statPublished">0</strong><small>منشور بالمتجر</small></div></div>
+    <div class="dash-stat"><span class="dash-stat-icon">📦</span><div><strong id="statInventory">0</strong><small>إجمالي المخزون</small></div></div>
+  </div>
+  <div class="dash-panel">
+    <div class="dash-panel-head"><h2>📈 الزوار خلال آخر 14 يومًا</h2><p>عدد الزوار الحقيقيين يوميًا (بدون احتسابك أنت كأدمن).</p></div>
+    <div id="visitsChartBox" class="dash-panel-body"><small class="dash-loading">...جارٍ التحميل</small></div>
+  </div>
+  <div class="dash-panel">
+    <div class="dash-panel-head"><h2>🖱️ مشاهدات المنتجات</h2><p>تحديث حي: بمجرد أن يفتح زبون صفحة منتج، تظهر مشاهدته هنا مباشرة.</p></div>
+    <div id="productViewsBox" class="dash-panel-body"><small class="dash-loading">...جارٍ التحميل</small></div>
+  </div>
+  <h2 class="dash-section-title">⚡ الوصول السريع</h2>
+  <div class="dash-quick">
+    <button onclick="showView('products')"><span>◇</span>إدارة المنتجات</button>
+    <button onclick="showView('product',null,true)"><span>＋</span>إضافة منتج</button>
+    <button onclick="showView('orders')"><span>🛒</span>الطلبات</button>
+    <button onclick="showView('settings')"><span>⚙</span>الإعدادات</button>
+    <button onclick="showView('categories')"><span>📁</span>التصنيفات</button>
+    <button onclick="showView('sections');loadHomeSections()"><span>▦</span>أقسام المتجر</button>
   </div>
   <div class="tips-banner"><div class="tips-rocket">🚀</div><div><h3>نصائح لتحسين متجرك</h3><ul>
-    <li>✅ أضف المزيد من المنتجات لجذب العملاء</li>
-    <li>✅ تأكد من تحديث معلومات التواصل</li>
-    <li>✅ تابع طلبات العملاء بانتظام</li>
+    <li>أضف المزيد من المنتجات لجذب العملاء</li>
+    <li>تأكد من تحديث معلومات التواصل</li>
+    <li>تابع طلبات العملاء بانتظام</li>
   </ul></div></div>
 </section>
 
