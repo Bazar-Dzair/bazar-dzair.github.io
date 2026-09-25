@@ -114,8 +114,8 @@ window.bazarUploadToCloudinary=uploadToCloudinary;window.bazarCompressImage=comp
 // ===== رفع الصور عبر Cloudinary (خطة Free دائمة، بدون اشتراك أو بطاقة بنكية) =====
 // Firebase Storage يتطلب خطة Blaze (اشتراك مربوط ببطاقة) من Google منذ فبراير 2026، لذلك تم
 // استبداله بـ Cloudinary (Unsigned Upload Preset — لا حاجة لأي مفتاح سري في الكود).
-const CLOUDINARY_CLOUD_NAME="ehh5xqwc";
-const CLOUDINARY_UPLOAD_PRESET="bazar_dzair";
+// ملاحظة: CLOUDINARY_CLOUD_NAME/CLOUDINARY_UPLOAD_PRESET انتقلا لـ admin-config.js
+// (مُعرَّفين بـ var هناك ليصبحا خاصية window يشوفها هذا الـmodule بلا أي تغيير هنا).
 async function uploadToCloudinary(blob){
   // محاولات متعددة لأن الاتصال (H+/4G) قد ينقطع أثناء الرفع فيظهر "Failed to fetch"
   let lastErr;
