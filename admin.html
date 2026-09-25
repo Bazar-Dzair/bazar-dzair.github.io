@@ -452,6 +452,8 @@
   </div>
   <div class="section-heading"><h2>📈 الزوار خلال آخر 14 يومًا</h2><p>عدد الزوار الحقيقيين يوميًا (بدون احتسابك أنت كأدمن).</p></div>
   <div id="visitsChartBox" style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:24px;overflow-x:auto;box-shadow:0 2px 7px #00000004"><small style="color:#9099a6">...جارٍ التحميل</small></div>
+  <div class="section-heading"><h2>🖱️ مشاهدات المنتجات</h2><p>تحديث حي: بمجرد أن يفتح زبون صفحة منتج، تظهر مشاهدته هنا مباشرة.</p></div>
+  <div id="productViewsBox" style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:24px;overflow-x:auto;box-shadow:0 2px 7px #00000004"><small style="color:#9099a6">...جارٍ التحميل</small></div>
   <div class="section-heading"><h2>⚡ الوصول السريع</h2><p>أهم العمليات التي تحتاجها بسرعة.</p></div>
   <div class="quick-grid">
     <button onclick="showView('products')"><span class="quick-icon">◇</span><b>إدارة المنتجات</b><small>عرض وتعديل جميع منتجات متجرك</small></button>
@@ -1658,6 +1660,29 @@ async function loadVisitsChart(){
   }).join("");
   box.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" style="min-width:'+w+'px">'+bars+'</svg>';
 }
+// 🖱️ لوحة "مشاهدات المنتجات": قراءة حيّة (onSnapshot) لمجموعة productViews التي يكتبها
+// product.html في كل مرة يفتح فيها زبون صفحة منتج (انظر trackProductView هناك). تُستدعى
+// بعد تأكيد تسجيل دخول الأدمن فقط، لأن قواعد Firestore تمنع أي حساب آخر من قراءتها.
+let productViewsUnsub=null;
+function loadProductViews(){
+  if(productViewsUnsub)return;
+  const box=document.getElementById("productViewsBox");
+  if(!box)return;
+  productViewsUnsub=onSnapshot(collection(db,"productViews"),snap=>{
+    const rows=[];
+    snap.forEach(docSnap=>{
+      const d=docSnap.data()||{};
+      rows.push({name:d.name||docSnap.id,count:Number(d.count)||0,updatedAt:d.updatedAt});
+    });
+    if(!rows.length){box.innerHTML='<small style="color:#9099a6">لا توجد مشاهدات مسجّلة بعد.</small>';return;}
+    rows.sort((a,b)=>b.count-a.count);
+    const trs=rows.map(r=>{
+      const t=(r.updatedAt&&r.updatedAt.seconds)?new Date(r.updatedAt.seconds*1000).toLocaleString("ar-DZ",{timeZone:"Africa/Algiers"}):"—";
+      return '<tr style="border-top:1px solid var(--line)"><td style="padding:8px">'+esc(r.name)+'</td><td style="padding:8px;font-weight:700">'+r.count.toLocaleString("ar-DZ")+'</td><td style="padding:8px;color:#9099a6;font-size:13px">'+t+'</td></tr>';
+    }).join("");
+    box.innerHTML='<table style="width:100%;border-collapse:collapse"><thead><tr style="text-align:right;color:#9099a6;font-size:13px"><th style="padding:6px 8px">المنتج</th><th style="padding:6px 8px">عدد المشاهدات</th><th style="padding:6px 8px">آخر مشاهدة</th></tr></thead><tbody>'+trs+'</tbody></table>';
+  },e=>{console.warn("Product views load failed",e);box.innerHTML='<small style="color:#c0392b">تعذّر تحميل مشاهدات المنتجات.</small>';});
+}
 // نفس UID المستخدم فـ isAdmin() فـ firestore.rules/storage.rules. Firestore Rules هي خط
 // الدفاع الحقيقي (أي طلب قراءة/كتابة من حساب غير هذا الـ UID يُرفض هناك مهما فعل الكود هنا)،
 // لكن بدون هذا الفحص هنا كان أي حساب Firebase آخر (لو تم إنشاؤه، مثلاً عبر REST API
@@ -1940,7 +1965,7 @@ onAuthStateChanged(auth,u=>{document.body.classList.remove("auth-check");
     return;
   }
   try{if(u)localStorage.setItem("bazarIsAdmin","1");else localStorage.removeItem("bazarIsAdmin");}catch(e){}
-  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();if(window.bazarLoadFraudAlerts)window.bazarLoadFraudAlerts(true);loadVisitsStat();loadVisitsChart();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
+  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();if(window.bazarLoadFraudAlerts)window.bazarLoadFraudAlerts(true);loadVisitsStat();loadVisitsChart();loadProductViews();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
 
 // الرابط الثابت للتصنيف (/product-category/<slug>/): نفس ترتيب الأولوية في index.html و scripts/generate_static_products.py.
 // slug المحفوظ أولًا (لا يتغيّر بتعديل الاسم)، وإلا الاشتقاق القديم من name_fr ثم المعرّف.
