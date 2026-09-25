@@ -399,9 +399,26 @@ const firebaseConfig = {
 
 let db = null;
 let firestoreReady = false;
+// 🔒 استثناء دائم لجهاز صاحب المتجر عبر رابط سرّي: فتح الموقع مرة واحدة بإضافة
+// ?bz_owner_key=k9m2xq7v إلى الرابط (مثال: https://bazar-dzair.github.io/?bz_owner_key=k9m2xq7v)
+// يضع علامة bazarIsAdmin بشكل دائم على هذا المتصفح بالذات، دون الحاجة لتسجيل الدخول إلى
+// لوحة التحكم. هذا يحل مشكلة احتساب زيارات صاحب المتجر من هاتفه عند تصفح المتجر مباشرة
+// (خارج admin.html) — العلامة السابقة كانت تُوضع فقط عند تسجيل الدخول في admin.html بنفس
+// المتصفح، فإذا كان التصفح من الهاتف لا يمر بلوحة التحكم كانت الزيارات تُحتسب كزوار عاديين.
+(function(){
+  try{
+    const params=new URLSearchParams(location.search);
+    if(params.get("bz_owner_key")==="k9m2xq7v"){
+      localStorage.setItem("bazarIsAdmin","1");
+      params.delete("bz_owner_key");
+      const clean=location.pathname+(params.toString()?"?"+params.toString():"")+location.hash;
+      history.replaceState(null,"",clean);
+    }
+  }catch(e){}
+})();
 // 👁️ تتبّع الزيارات اليومية: مستند واحد في Firestore لكل يوم (visits/YYYY-MM-DD) يحمل عدد
 // الزيارات فقط. لا يُحتسب الأدمن نفسه (نتحقق من علامة bazarIsAdmin التي يضعها admin.html
-// عند تسجيل الدخول)، ولا تُحتسب أكثر من زيارة واحدة لنفس المتصفح في نفس اليوم.
+// عند تسجيل الدخول، أو الرابط السرّي أعلاه)، ولا تُحتسب أكثر من زيارة واحدة لنفس المتصفح في نفس اليوم.
 async function trackSiteVisit(dbInst,doc,setDoc,increment,serverTimestamp){
   try{
     if(localStorage.getItem("bazarIsAdmin")==="1")return; // زيارة الأدمن لا تُحتسب
