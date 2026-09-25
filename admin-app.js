@@ -69,7 +69,7 @@ async function loadVisitsChart(){
     const x=leftPad+i*(barW+gap);
     const y=chartH-bh+18;
     const label=d.date.slice(5).replace("-","/");
-    return '<g><rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+bh+'" rx="4" fill="#7c5cf0"><title>'+d.date+': '+d.count+' زائر</title></rect>'+
+    return '<g><rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+bh+'" rx="4" fill="#ff6a00"><title>'+d.date+': '+d.count+' زائر</title></rect>'+
       '<text x="'+(x+barW/2)+'" y="'+(y-4)+'" font-size="10" text-anchor="middle" fill="#374151">'+d.count+'</text>'+
       '<text x="'+(x+barW/2)+'" y="'+(chartH+32)+'" font-size="9" text-anchor="middle" fill="#9099a6">'+label+'</text></g>';
   }).join("");
