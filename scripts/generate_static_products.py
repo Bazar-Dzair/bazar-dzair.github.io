@@ -396,6 +396,21 @@ def hreflang_tags(url_ar, url_fr):
     )
 
 
+def lang_alt_link_tag(target_url, label):
+    """رابط <a href> حقيقي وقابل للزحف يشير إلى النسخة الأخرى من نفس صفحة المنتج
+    (عربي↔فرنسي)، يُضاف بجانب زر تبديل اللغة الحالي (langToggleBtn) دون المساس بسلوكه
+    (onclick=BazarI18n.toggleLang يبقى كما هو). هذا الرابط مخفي بصريًا (نفس أسلوب
+    sr-only الشائع: لا يُغيّر أي تصميم ظاهر) لكنه موجود فعليًا في HTML الخام، لذا يمكن
+    لأي زاحف (Googlebot) اكتشاف صفحة اللغة الأخرى واتباع الرابط إليها — بخلاف الزر
+    الحالي الذي يعتمد فقط على localStorage+reload وغير قابل للزحف إطلاقًا."""
+    return (
+        f'<a href="{html.escape(target_url,quote=True)}" class="lang-alt-link" '
+        'style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;'
+        'clip:rect(0,0,0,0);white-space:nowrap;border:0" tabindex="-1">'
+        f'{html.escape(label)}</a>'
+    )
+
+
 def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None, aggregate_rating=None, price_valid_until=None, hreflang_fr_url=None):
     d155=make_meta_description(desc)
     title_tag=f'<title>{html.escape(name)} | Bazar Dzair</title>'
@@ -448,6 +463,15 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
     out=template.replace('<title>المنتج | Bazar Dzair</title>',title_tag,1)
     out=out.replace('<meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">',desc_tag,1)
     out=out.replace('<link id="canonical" rel="canonical">',canonical_tag+extra,1)
+    if hreflang_fr_url:
+        # رابط حقيقي قابل للزحف نحو النسخة الفرنسية لهذا المنتج (انظر lang_alt_link_tag) —
+        # فقط حين تكون هذه النسخة موجودة فعلاً (نفس شرط hreflang_fr_url أعلاه).
+        out=out.replace(
+            '<button id="langToggleBtn" type="button" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية">FR</button>',
+            '<button id="langToggleBtn" type="button" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية">FR</button>'
+            + lang_alt_link_tag(hreflang_fr_url, 'Voir en français'),
+            1,
+        )
     static_body=static_product_html(name, desc, price, images or [img], available, badge=badge, old_price=old_price)
     # ملاحظة: product.html أصبح يحتوي على data-i18n="product_loading" على هذا العنصر
     # (بعد إضافة دعم اللغة الفرنسية للواجهة)، لذلك يجب مطابقة النص الجديد بالضبط هنا
@@ -570,6 +594,15 @@ def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images
     out=out.replace('<title>المنتج | Bazar Dzair</title>',title_tag,1)
     out=out.replace('<meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">',desc_tag,1)
     out=out.replace('<link id="canonical" rel="canonical">',canonical_tag+extra,1)
+    if hreflang_ar_url:
+        # رابط حقيقي قابل للزحف نحو النسخة العربية (الأصلية) لهذا المنتج — تُبنى صفحة
+        # /fr/product/ هذه أصلاً فقط حين تُمرَّر hreflang_ar_url (انظر موقع الاستدعاء).
+        out=out.replace(
+            '<button id="langToggleBtn" type="button" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية">FR</button>',
+            '<button id="langToggleBtn" type="button" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية">FR</button>'
+            + lang_alt_link_tag(hreflang_ar_url, 'عرض بالعربية'),
+            1,
+        )
     static_body=static_product_html_fr(name_fr, desc_fr, price, images or [img], available, badge=badge, old_price=old_price)
     out=out.replace('<div class="loading" data-i18n="product_loading">⏳ جاري تحميل المنتج...</div>',static_body,1)
     return out
@@ -611,7 +644,7 @@ for folder in (root/'product',root/'product-category',root/'fr'):
         import shutil; shutil.rmtree(folder)
 
 seen={}; product_urls=[]
-fr_generated=0; fr_skipped=[]
+fr_generated=0; fr_skipped=[]; fr_urls=[]
 for p in products:
     name=str(p.get('name') or p.get('product'))
     # الرابط الأساسي /product/<slug>/ يجب أن يطابق الروابط الحالية التي يبنيها
@@ -683,6 +716,7 @@ for p in products:
         (root/'fr'/'product'/slug_fr).mkdir(parents=True,exist_ok=True)
         (root/'fr'/'product'/slug_fr/'index.html').write_text(template_fr,encoding='utf-8')
         fr_generated+=1
+        fr_urls.append(url_fr)
     else:
         fr_skipped.append(slug)
 
@@ -754,23 +788,23 @@ n_cs=write_redirect_stubs('product-category',legacy_category_redirects,'product-
 print(f'Wrote {n_cs} category redirect stubs for legacy Arabic URLs (no product redirect stubs).')
 
 # Sitemap index-like single sitemap with all public SEO URLs.
+# صفحات /fr/product/ مُدرَجة الآن أيضًا (fr_urls) بنفس أولوية الصفحات العربية تقريبًا،
+# حتى تكون sitemap.xml مصدر اكتشاف/فهرسة فعلي لها بدل الاعتماد فقط على وسم hreflang
+# (الذي هو إشارة ربط بين نسختين وليس أداة اكتشاف قوية بمفرده).
 today=datetime.now(timezone.utc).date().isoformat()
-urls=[(SITE,'daily','1.0')]+[(u,'weekly','0.9') for u,_,_,_ in product_urls]+[(u,'weekly','0.8') for u,_ in cat_urls]
+urls=[(SITE,'daily','1.0')]+[(u,'weekly','0.9') for u,_,_,_ in product_urls]+[(u,'weekly','0.85') for u in fr_urls]+[(u,'weekly','0.8') for u,_ in cat_urls]
 xml=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
 for u,freq,priority in urls:
     xml.append(f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod><changefreq>{freq}</changefreq><priority>{priority}</priority></url>')
 xml.append('</urlset>')
 (root/'sitemap.xml').write_text('\n'.join(xml)+'\n',encoding='utf-8')
-(root/'sitemap-products.xml').write_text('\n'.join(['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']+[f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod></url>' for u,_,_,_ in product_urls]+['</urlset>'])+'\n',encoding='utf-8')
+(root/'sitemap-products.xml').write_text('\n'.join(['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']+[f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod></url>' for u,_,_,_ in product_urls]+[f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod></url>' for u in fr_urls]+['</urlset>'])+'\n',encoding='utf-8')
 (root/'sitemap-categories.xml').write_text('\n'.join(['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']+[f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod></url>' for u,_ in cat_urls]+['</urlset>'])+'\n',encoding='utf-8')
 print(f'Generated {len(product_urls)} product pages and {len(cat_urls)} category pages.')
 print(f'Generated {fr_generated} French product pages under /fr/product/ (name_fr + description_fr both present).')
 if fr_skipped:
     print(f'Skipped French page for {len(fr_skipped)} product(s) missing name_fr/description_fr: {", ".join(fr_skipped[:20])}' + (' ...' if len(fr_skipped)>20 else ''))
-# ملاحظة مرحلة 2: /fr/product/ غير مُدرَج بعد في sitemap.xml ولا يحمل وسم hreflang —
-# إضافة /fr/product/ إلى sitemap.xml نفسه تبقى مؤجَّلة عمدًا (لم يُطلب في المرحلة 3)؛
-# hreflang أُضيف في المرحلة 3 داخل <head> كل صفحة (انظر inject_product_seo /
-# inject_product_seo_fr أعلاه)، وهو مستقل تمامًا عن sitemap.xml.
+print(f'Included {len(fr_urls)} /fr/product/ URL(s) in sitemap.xml and sitemap-products.xml, and added a real crawlable <a href> from each Arabic product page to its French version (and back).')
 
 # ===================== محتوى ثابت للصفحة الرئيسية (SEO) =====================
 # قبل هذا التعديل، الصفحة الرئيسية (index.html) لم تكن تحتوي أي محتوى ثابت —
