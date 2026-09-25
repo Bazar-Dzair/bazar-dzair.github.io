@@ -168,9 +168,27 @@ service cloud.firestore {
                     && request.resource.data.count == resource.data.count + 1;
     }
 
+    // 🖱️ مشاهدات المنتجات — مستند واحد لكل منتج، معرّفه = firestoreId الخاص بالمنتج،
+    // يحتوي فقط على count (عدد مرات فتح صفحة هذا المنتج) و updatedAt و name (اسم المنتج
+    // وقت آخر مشاهدة، لعرضه في لوحة التحكم دون الحاجة لقراءة وثيقة المنتج بشكل إضافي).
+    // نفس منطق visits/{date} أعلاه بالضبط: الكتابة العامة مسموحة لكن بشكل ضيّق جدًا —
+    // إما إنشاء مستند جديد بقيمة count == 1 بالضبط، أو زيادة count بمقدار 1 بالضبط في كل
+    // مرة؛ أي قيمة أخرى (تصفير، قفزة كبيرة، حقل إضافي) مرفوضة تلقائيًا. لا قراءة عامة
+    // إطلاقًا حتى لا يرى أي زائر عدد مشاهدات منتج ما؛ الأدمن وحده يقرأها من لوحة التحكم.
+    match /productViews/{productId} {
+      allow read, delete: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['count','updatedAt','name'])
+                    && request.resource.data.count == 1
+                    && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() < 200));
+      allow update: if request.resource.data.keys().hasOnly(['count','updatedAt','name'])
+                    && request.resource.data.count == resource.data.count + 1
+                    && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() < 200));
+    }
+
     // Deny-by-default صريح: أي collection أو مستند غير معروف/غير مذكور أعلاه ممنوع تمامًا.
     match /{document=**} {
       allow read, write: if false;
     }
   }
 }
+
