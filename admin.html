@@ -181,9 +181,9 @@
 .orders-toolbar .search-wrap .search-ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#9aa3ae;font-size:14px;pointer-events:none}
 .order-status-badge{font-size:11px;font-weight:800;border-radius:999px;padding:6px 12px;white-space:nowrap;display:inline-block}
 .order-status-badge.st-new{background:#eef1ff;color:#4338ca}
-.order-status-badge.st-processing{background:#fff5db;color:#9a6700}
-.order-status-badge.st-completed{background:#e9f8ef;color:#17803a}
-.order-status-badge.st-cancelled{background:#feeceb;color:#c62828}
+.order-status-badge.st-processing{background:var(--amber-bg,#fff5db);color:#9a6700}
+.order-status-badge.st-completed{background:var(--green-bg,#e9f8ef);color:var(--green,#17803a)}
+.order-status-badge.st-cancelled{background:var(--red-bg,#feeceb);color:var(--red,#c62828)}
 .orders-panel{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .orders-table-head,.order-row-pro{min-width:1040px;display:grid;grid-template-columns:34px 90px minmax(140px,1.3fr) minmax(220px,1.7fr) 70px 110px 130px 130px 184px;gap:0;align-items:center}
 .orders-table-head{background:#f8fafc;border:1px solid #e5e9ef;border-radius:12px 12px 0 0;padding:0 14px;min-height:52px;color:#667085;font-size:11px;font-weight:800}
@@ -387,6 +387,8 @@
 .fr-done{font-size:12px;color:#17803a;font-weight:700}
 @media(max-width:760px){.fr-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.bk-actions{width:100%}.bk-actions .bk-btn{flex:1 1 auto}}
 </style>
+<!-- tokens.css يُحمَّل بعد الـ CSS الداخلي عمدًا حتى تطغى قيمه على :root أعلاه -->
+<link rel="stylesheet" href="tokens.css">
 </head>
 <body class="auth-check">
 
@@ -2309,7 +2311,7 @@ function renderOrders(){
       <div class="order-cell oc-product"><div class="order-product-cell">${img?`<img class="order-product-img" src="${esc(img)}" onerror="this.style.display='none'">`:`<span class="order-product-img ph">📦</span>`}<div><span class="order-product-name">${esc(o.product||"منتج غير محدد")}</span>${o.variant?`<br><small style="color:#7c8798">🎨 ${esc(o.variant)}</small>`:""}</div></div></div>
       <div class="order-cell oc-qty">${Number(o.quantity||1)}</div>
       <div class="order-cell oc-total">${money(o.total)}</div>
-      <div class="order-cell oc-status"><span class="order-status-badge ${orderStatusClass(statusTxt)}">${esc(statusTxt)}</span></div>
+      <div class="order-cell oc-status"><span class="order-status-badge bd-badge ${orderStatusClass(statusTxt)}">${esc(statusTxt)}</span></div>
       <div class="order-cell oc-date"><div class="order-date-cell"><b>${orderListDate(o)}</b><span>${orderListTime(o)}</span></div></div>
       <div class="order-cell oc-actions" onclick="event.stopPropagation()"><div class="order-actions-cell">
         <button class="icon-action-btn view-icon" title="عرض الطلبية" type="button" onclick="window.openOrderDetail('${esc(o.id)}')">👁</button>

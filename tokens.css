@@ -1,0 +1,104 @@
+/* =========================================================
+   Bazar Dzair — Design Tokens الموحدة
+   ملف واحد للألوان والقياسات المشتركة بين:
+   admin.html / product.html / index.html / orders.html
+   لا يحذف أي CSS موجود — فقط يوحّد المتغيرات والمكوّنات المشتركة
+   ========================================================= */
+
+:root{
+  /* الألوان الأساسية (موحدة من admin/product/index) */
+  --navy:#0d2b52;
+  --navy-2:#071a33;
+  --orange:#ff6a00;
+  --orange-2:#ff8a3d;
+
+  /* حالات ونجاح/خطر/تنبيه */
+  --green:#16a34a;
+  --green-bg:#e9f8ef;
+  --red:#dc2626;
+  --red-bg:#feeceb;
+  --amber:#f59e0b;
+  --amber-bg:#fff5db;
+  --blue:#2563eb;
+  --blue-bg:#eef5ff;
+
+  /* خلفيات ونصوص */
+  --bg:#f7f8fb;
+  --text:#0c1e33;
+  --muted:#7d8795;
+  --line:#e9edf3;
+  --white:#fff;
+
+  /* ظلال وزوايا */
+  --shadow-sm:0 2px 8px rgba(7,26,51,.05);
+  --shadow-md:0 8px 26px rgba(7,29,59,.08);
+  --shadow-lg:0 14px 35px rgba(0,0,0,.12);
+
+  --radius-sm:10px;   /* أزرار صغيرة، شارات */
+  --radius-md:14px;   /* بطاقات */
+  --radius-lg:20px;   /* لوحات كبيرة، مودالات */
+
+  /* أزرار — مقاس موحد */
+  --btn-height:48px;
+  --btn-padding:12px 18px;
+  --btn-radius:var(--radius-sm);
+}
+
+/* =========================================================
+   مكوّنات مشتركة — نفس الشكل في المنتجات/الطلبات/التفاصيل
+   ========================================================= */
+
+/* بطاقة موحدة */
+.bd-card{
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:var(--radius-md);
+  box-shadow:var(--shadow-sm);
+}
+
+/* عنوان قسم موحد */
+.bd-section-heading{margin:0 0 12px}
+.bd-section-heading h2{margin:0 0 4px;font-size:18px;color:var(--text)}
+.bd-section-heading p{margin:0;color:var(--muted);font-size:12px}
+
+/* زر أساسي (برتقالي) — نفس الحجم في كل الصفحات */
+.bd-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:var(--btn-height);
+  padding:var(--btn-padding);
+  border-radius:var(--btn-radius);
+  border:0;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
+  transition:.2s;
+}
+.bd-btn-primary{background:var(--orange);color:#fff}
+.bd-btn-primary:hover{filter:brightness(.96)}
+.bd-btn-dark{background:var(--navy);color:#fff}
+.bd-btn-outline{background:#fff;border:1px solid var(--line);color:var(--text)}
+.bd-btn-danger{background:var(--red);color:#fff}
+.bd-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* شارة حالة موحدة (تُستعمل لحالة الطلب، المخزون، النشر...) */
+.bd-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:800;
+  border-radius:999px;
+  padding:7px 10px;
+  white-space:nowrap;
+}
+.bd-badge-success{background:var(--green-bg);color:var(--green)}
+.bd-badge-danger{background:var(--red-bg);color:var(--red)}
+.bd-badge-warning{background:var(--amber-bg);color:#9a6700}
+.bd-badge-info{background:var(--blue-bg);color:var(--blue)}
+.bd-badge-neutral{background:#f1f3f5;color:#687384}
+
+/* =========================================================
+   ملاحظة للمرحلة القادمة:
+   - admin.html يعرّف --navy/--orange بقيم مختلفة (#182536 / #ff6a00)
+   - product-style.css يعرّف --navy/--orange بقيم مختلفة (#071A33 / #FF6A00)
+   - index-style.css يعرّف --navy/--orange بقيم مختلفة (#061e3d / #ff5a0a)
+   عند الربط، هذا الملف يُحمَّل بعد ملفات كل صفحة كي تُطغى
+   قيمه على :root، فتتوحد الألوان تلقائيًا بدون تعديل كل ملف.
+   ========================================================= */
