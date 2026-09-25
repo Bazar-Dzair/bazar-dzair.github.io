@@ -157,6 +157,10 @@ async function loadShippingRatesData(db){
 }
 const urlParams=new URLSearchParams(location.search);
 const queryId=urlParams.get("id");
+// nf=1: مُضافة فقط من 404.html عندما يكون قد تأكد فعلاً أن /product/<slug>/ (أو /fr/...)
+// غير موجودة كملف ثابت. تُستخدَم أدناه لتفادي إعادة فحص نفس الرابط، ولتسريع ظهور "المنتج
+// غير موجود" لمنتج محذوف بدل انتظار مسح كامل لمجموعة المنتجات (انظر التعليقات أدناه).
+const cameFrom404=urlParams.get("nf")==="1";
 const isFrenchProductPath=/^\/fr\/product\//.test(location.pathname)||urlParams.get("lang")==="fr";
 const pathMatch=location.pathname.match(/\/(?:fr\/)?product\/([^\/]+)\/?$/);
 const id=pathMatch ? decodeURIComponent(pathMatch[1]) : queryId;
@@ -1554,7 +1558,9 @@ async function redirectLegacyIdToStaticPage(){
   // /product/xxx/ موجودة فعلاً (SSG)، نحوّل إليها فورًا قبل أي محاولة اتصال
   // بـ Firestore — فلا تتأثر هذه الروابط القديمة بأي عطل في الشبكة أو القاعدة،
   // ولا تظهر رسالة "تعذر تحميل المنتج" ما دامت الصفحة الثابتة موجودة.
-  if(!queryId || pathMatch) return false;
+  // cameFrom404: هذا الفحص بالذات (HEAD على نفس /product/<slug>/) هو ما فشل للتو
+  // داخل 404.html قبل أن يُحوِّل إلى هنا — إعادته هنا طلب شبكة مهدور بلا فائدة.
+  if(!queryId || pathMatch || cameFrom404) return false;
   const candidate=(isFrenchProductPath?"/fr/product/":"/product/")+encodeURIComponent(queryId)+"/";
   try{
     const res=await fetch(candidate,{method:"HEAD",cache:"no-store"});
@@ -1656,7 +1662,13 @@ async function load(){
         // (قبل تشغيل أداة "إصلاح روابط المنتجات" من لوحة التحكم، أو لحظيًا قبل
         // أن تُحفظ. يقرأ المجموعة كاملة مرة واحدة، ثم لن يُستدعى مجددًا لهذا
         // المنتج بمجرد إصلاح حقل slug الخاص به.
-        if(!p){
+        // لا يُنفَّذ عند القدوم من 404.html (cameFrom404): أي منتج منشور حاليًا
+        // يملك حقل slug أصلاً (يُكتب من لوحة التحكم عند الإنشاء)، فاستعلام
+        // slug أعلاه كافٍ لإيجاده إن كان موجودًا؛ تخطي هذا المسح الكامل هنا
+        // يعني ظهور "المنتج غير موجود" لمنتج محذوف فورًا بدل انتظار تحميل كل
+        // المنتجات. الروابط القديمة العادية (?id= بدون nf=1) تبقى تستفيد من هذا
+        // الاحتياط كما كان تمامًا.
+        if(!p && !cameFrom404){
           try{
             const all=await withRetry(()=>getDocs(collection(db,"products")));
             all.forEach(snap=>{
