@@ -184,6 +184,8 @@
 .order-status-badge.st-processing{background:var(--amber-bg,#fff5db);color:#9a6700}
 .order-status-badge.st-completed{background:var(--green-bg,#e9f8ef);color:var(--green,#17803a)}
 .order-status-badge.st-cancelled{background:var(--red-bg,#feeceb);color:var(--red,#c62828)}
+/* تحضير bd-btn: تثبيت المقاس الحالي بدقة أعلى من قواعد tokens.css كي لا يتغير شكل الأزرار الموجودة */
+.outline-action.bd-btn{padding:9px 11px;min-height:auto;border-radius:9px;font-size:inherit}
 .orders-panel{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .orders-table-head,.order-row-pro{min-width:1040px;display:grid;grid-template-columns:34px 90px minmax(140px,1.3fr) minmax(220px,1.7fr) 70px 110px 130px 130px 184px;gap:0;align-items:center}
 .orders-table-head{background:#f8fafc;border:1px solid #e5e9ef;border-radius:12px 12px 0 0;padding:0 14px;min-height:52px;color:#667085;font-size:11px;font-weight:800}
@@ -593,7 +595,7 @@
       <div class="bulk-left"><label class="select-all-label"><input id="selectAllOrders" type="checkbox" onchange="window.toggleAllOrders(this.checked)"> تحديد كل طلبات الصفحة</label><span id="ordersSelectedCount" class="page-info">0 محدد</span></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <select id="bulkStatusSelect" class="order-status-select-detail"><option value="">تغيير الحالة للمحدد</option><option value="جديد">جديدة</option><option value="قيد المعالجة">قيد المعالجة</option><option value="مكتملة">مكتملة</option><option value="ملغية">ملغية</option></select>
-        <button type="button" class="outline-action" onclick="window.applyBulkStatus()">تطبيق</button>
+        <button type="button" class="outline-action bd-btn bd-btn-outline" onclick="window.applyBulkStatus()">تطبيق</button>
         <button id="bulkDeleteOrders" class="bulk-delete" type="button" onclick="bulkDeleteOrders()" disabled>🗑 حذف المحدد</button>
       </div>
     </div>
@@ -696,7 +698,7 @@
             <label><input type="checkbox" value="48hr" onchange="updateMultiSelect(this)"> 48HR Express</label>
           </div>
         </div>
-        <button type="button" class="outline-action" onclick="applyBulkShippingCompany('home')">تطبيق</button>
+        <button type="button" class="outline-action bd-btn bd-btn-outline" onclick="applyBulkShippingCompany('home')">تطبيق</button>
       </div>
       <div class="shipping-rates-panel">
         <div class="shipping-rates-head cols-home"><div>رقم</div><div>الولاية</div><div>السعر (دج)</div><div>الشركة</div><div>مدة التوصيل</div></div>
@@ -713,7 +715,7 @@
           <option value="">غير متوفر</option>
           <option value="dhd">DHD Express</option>
         </select>
-        <button type="button" class="outline-action" onclick="applyBulkShippingCompany('office')">تطبيق</button>
+        <button type="button" class="outline-action bd-btn bd-btn-outline" onclick="applyBulkShippingCompany('office')">تطبيق</button>
       </div>
       <div class="shipping-rates-panel">
         <div class="shipping-rates-head cols-office"><div>رقم</div><div>الولاية</div><div>السعر (دج)</div><div>الشركة</div></div>
