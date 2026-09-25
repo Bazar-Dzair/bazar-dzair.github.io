@@ -1578,8 +1578,12 @@ async function load(){
   if(await redirectLegacyIdToStaticPage()) return;
   let cachedProduct=null;
   try{
+    // 🐛 إصلاح: بدون id على الإطلاق (product.html مباشرة، أو ?id= فارغ)، كان الشرط
+    // القديم (!id||...) يعرض دائمًا آخر منتج محفوظ في localStorage من زيارة سابقة —
+    // حتى لو لم يكن له أي علاقة بالرابط الحالي، ودون أي رسالة "غير موجود". id
+    // مطلوب الآن صراحة هنا حتى لا يُعرض منتج عشوائي بلا معرّف صريح في الرابط.
     const cp=JSON.parse(localStorage.getItem("bazar_selected_product")||"null");
-    if(cp && (!id || slugMatches(cp,decodeURIComponent(id)))) cachedProduct=stripLegacyRatings(cp);
+    if(cp && id && slugMatches(cp,decodeURIComponent(id))) cachedProduct=stripLegacyRatings(cp);
   }catch(_e){}
   if(cachedProduct) render(cachedProduct);
 
@@ -1592,7 +1596,8 @@ async function load(){
     const tag=document.getElementById("bazar-static-product");
     if(tag){
       const sp=JSON.parse(tag.textContent);
-      if(sp && sp.firestoreId && (!id || slugMatches(sp,decodeURIComponent(id)))) staticProduct=stripLegacyRatings(sp);
+      // نفس الإصلاح: id مطلوب صراحة (انظر التعليق أعلاه على cachedProduct).
+      if(sp && sp.firestoreId && id && slugMatches(sp,decodeURIComponent(id))) staticProduct=stripLegacyRatings(sp);
     }
   }catch(_e){}
   if(staticProduct && !cachedProduct) render(staticProduct);
