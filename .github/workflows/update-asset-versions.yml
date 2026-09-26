@@ -1,0 +1,69 @@
+name: Update asset cache-busting versions
+
+on:
+  workflow_dispatch:
+  # يعمل تلقائيًا عند رفع أي ملف CSS أو JS محلي (أو الصفحات نفسها، أو السكربت)، فيحسب بصمة
+  # جديدة لكل ملف تغيّر ويحدّث ?v=... في admin.html / index.html / product.html / orders.html /
+  # 404.html تلقائيًا. بهذا لا حاجة لتذكر تغيير رقم النسخة يدويًا بعد كل تعديل تصميم أو كود —
+  # المتصفح يُجبر على تحميل النسخة الجديدة بدل القديمة المخزّنة في الكاش.
+  push:
+    branches: [main]
+    paths:
+      - '*.css'
+      - '*.js'
+      - 'admin.html'
+      - 'index.html'
+      - 'product.html'
+      - 'orders.html'
+      - '404.html'
+      - 'scripts/update_asset_versions.py'
+      - '.github/workflows/update-asset-versions.yml'
+
+permissions:
+  contents: write
+
+# تشغيل واحد فقط في كل مرة، بنفس مجموعة generate-seo-pages.yml حتى لا يتسابقا على دفع main
+# في نفس اللحظة (كلاهما قد يُعدّل index.html).
+concurrency:
+  group: main-pages-write
+  cancel-in-progress: false
+
+jobs:
+  update-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Recompute asset versions and commit if changed
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          for attempt in 1 2 3; do
+            python3 scripts/update_asset_versions.py
+
+            git add admin.html index.html product.html orders.html 404.html
+
+            if git diff --cached --quiet; then
+              echo 'No version changes.'
+              exit 0
+            fi
+
+            git commit -m 'chore: bump cache-busting asset versions'
+
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+
+            # نفس منطق generate-seo-pages.yml: إذا تحرّكت main أثناء التشغيل، نتزامن ونعيد الحساب
+            # بدل rebase قد ينتهي بتعارض.
+            echo "Push rejected (attempt $attempt/3): re-syncing with origin/main and recomputing..."
+            git fetch origin main
+            git reset --hard origin/main
+          done
+
+          echo 'Failed to push asset version changes after 3 attempts.' >&2
+          exit 1
