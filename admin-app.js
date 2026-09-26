@@ -1933,25 +1933,54 @@ function setBtnSaving(on){
 // للتفعيل بالنقر، مع إمكانية إضافة قياس مخصّص غير موجود في القائمة الجاهزة. =====
 const CLOTHING_SIZE_PRESETS=["XS","S","M","L","XL","XXL","XXXL"];
 const SHOE_SIZE_PRESETS=["35","36","37","38","39","40","41","42","43","44","45","46"];
-let productColors=[];     // [{name,hex}]
+let productColors=[];     // [{name,hexes:[...]}] — hexes قد يحمل لونًا واحدًا أو عدة ألوان مدموجة (كحذاء أبيض×أحمر×أزرق)
+let pendingColorHexes=[]; // الألوان المُضافة للخيار الحالي، قبل تأكيده باسم
 let productSizes=[];      // ["M","L",...] قياسات ملابس
 let productShoeSizes=[];  // ["40","41",...] قياسات أحذية
 
+// دائرة اللون في القائمة: لون واحد = دائرة بلون واحد، عدة ألوان = دائرة مقسّمة (conic-gradient)
+// بعدد الألوان بالتساوي، لعرض المزيج (أبيض×أحمر×أزرق مثلاً) بدل الاكتفاء بلون واحد فقط.
+function colorDotHtml(hexes){
+  const list=(Array.isArray(hexes)?hexes:[hexes]).filter(Boolean);
+  if(!list.length) return `<span class="dot" style="background:#cccccc"></span>`;
+  if(list.length===1) return `<span class="dot" style="background:${esc(list[0])}"></span>`;
+  const step=100/list.length;
+  const stops=list.map((h,i)=>`${esc(h)} ${Math.round(i*step)}% ${Math.round((i+1)*step)}%`).join(",");
+  return `<span class="dot" style="background:conic-gradient(${stops})"></span>`;
+}
 function renderColorChips(){
   const box=document.getElementById("colorChips");
   if(!box) return;
   box.innerHTML=productColors.length
-    ? productColors.map((c,i)=>`<span class="variant-chip-color"><span class="dot" style="background:${esc(c.hex||"#cccccc")}"></span>${esc(c.name)}<button type="button" class="variant-chip-remove" onclick="removeColorEntry(${i})" aria-label="حذف اللون">×</button></span>`).join("")
+    ? productColors.map((c,i)=>`<span class="variant-chip-color">${colorDotHtml(c.hexes)}${esc(c.name)}<button type="button" class="variant-chip-remove" onclick="removeColorEntry(${i})" aria-label="حذف اللون">×</button></span>`).join("")
     : '<small class="hint" style="margin:0">لم تُضف ألوان بعد</small>';
 }
+function renderPendingColorChips(){
+  const box=document.getElementById("pendingColorChips");
+  const row=document.getElementById("pendingColorRow");
+  if(!box||!row) return;
+  row.style.display=pendingColorHexes.length?"flex":"none";
+  box.innerHTML=pendingColorHexes.map((h,i)=>`<span class="variant-chip-color"><span class="dot" style="background:${esc(h)}"></span><button type="button" class="variant-chip-remove" onclick="removePendingColorHex(${i})" aria-label="حذف">×</button></span>`).join("");
+}
+window.addPendingColorHex=()=>{
+  const hex=document.getElementById("colorHexInput")?.value||"";
+  if(!hex) return;
+  pendingColorHexes.push(hex);
+  renderPendingColorChips();
+};
+window.removePendingColorHex=i=>{ pendingColorHexes.splice(i,1); renderPendingColorChips(); };
 window.addColorEntry=()=>{
   const nameEl=document.getElementById("colorNameInput");
   const hexEl=document.getElementById("colorHexInput");
   const name=(nameEl?.value||"").trim();
   if(!name) return;
   if(productColors.some(c=>c.name.toLowerCase()===name.toLowerCase())){ if(nameEl)nameEl.value=""; return; }
-  productColors.push({name,hex:hexEl?.value||""});
+  // إن لم يُضف أي لون عبر "+ إضافة لهذا الخيار"، نستعمل اللون الحالي في المنتقي كلون وحيد (سلوك بسيط كالسابق).
+  const hexes=pendingColorHexes.length?pendingColorHexes.slice():(hexEl?.value?[hexEl.value]:[]);
+  productColors.push({name,hexes});
+  pendingColorHexes=[];
   if(nameEl) nameEl.value="";
+  renderPendingColorChips();
   renderColorChips();
 };
 window.removeColorEntry=i=>{ productColors.splice(i,1); renderColorChips(); };
@@ -2136,7 +2165,8 @@ window.editProduct=id=>{
    const features=Array.isArray(p.features)?p.features:(Array.isArray(p.highlights)?p.highlights:[]);
    featuresText.value=features.map(x=>typeof x==="string"?x:(x?.text||x?.name||"")).filter(Boolean).join("\n");
  }
- productColors=Array.isArray(p.colors)?p.colors.filter(c=>c&&c.name).map(c=>({name:String(c.name),hex:String(c.hex||"")})):[];
+ // متوافق مع المنتجات القديمة (حقل hex بلون وحيد) والجديدة (حقل hexes بعدة ألوان مدموجة).
+ productColors=Array.isArray(p.colors)?p.colors.filter(c=>c&&c.name).map(c=>({name:String(c.name),hexes:Array.isArray(c.hexes)?c.hexes.filter(Boolean).map(String):(c.hex?[String(c.hex)]:[])})):[];
  productSizes=Array.isArray(p.sizes)?p.sizes.filter(Boolean).map(String):[];
  productShoeSizes=Array.isArray(p.shoeSizes)?p.shoeSizes.filter(Boolean).map(String):[];
  renderColorChips();renderClothingSizeChips();renderShoeSizeChips();
@@ -2194,7 +2224,7 @@ window.resetForm=()=>{
  if(publishedInput)publishedInput.checked=true;if(featuredInput)featuredInput.checked=false;descriptionInput.value="";if(descriptionFrInput)descriptionFrInput.value="";
  if(specificationsText) specificationsText.value="";
  if(featuresText) featuresText.value="";
- productColors=[];productSizes=[];productShoeSizes=[];
+ productColors=[];pendingColorHexes=[];productSizes=[];productShoeSizes=[];renderPendingColorChips();
  renderColorChips();renderClothingSizeChips();renderShoeSizeChips();
  selectedImages=[];
  setMultiSelectValue(shippingHomeSelect,"");

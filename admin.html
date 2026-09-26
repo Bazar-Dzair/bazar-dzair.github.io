@@ -151,11 +151,17 @@
      <div class="variant-block">
        <label>الألوان المتوفرة</label>
        <div class="variant-chips" id="colorChips"></div>
-       <div class="variant-add-row">
-         <input type="color" id="colorHexInput" value="#182536" title="لون تقريبي (اختياري)">
-         <input type="text" id="colorNameInput" placeholder="اسم اللون، مثال: أسود" onkeydown="if(event.key==='Enter'){event.preventDefault();addColorEntry();}">
-         <button type="button" class="variant-add-btn" onclick="addColorEntry()">+ إضافة لون</button>
+       <div class="variant-add-row" id="pendingColorRow" style="display:none">
+         <small class="hint" style="margin:0">هذا الخيار حاليًا:</small>
+         <div class="variant-chips" id="pendingColorChips"></div>
        </div>
+       <div class="variant-add-row">
+         <input type="color" id="colorHexInput" value="#182536" title="لون">
+         <button type="button" class="variant-add-btn" onclick="addPendingColorHex()">+ إضافة لهذا الخيار</button>
+         <input type="text" id="colorNameInput" placeholder="اسم اللون، مثال: أبيض × أحمر × أزرق" onkeydown="if(event.key==='Enter'){event.preventDefault();addColorEntry();}">
+         <button type="button" class="variant-add-btn" onclick="addColorEntry()">✅ تأكيد اللون</button>
+       </div>
+       <small class="hint" style="margin:4px 0 0">لون واحد بسيط: اختر اللون واكتب الاسم ثم اضغط "تأكيد اللون" مباشرة. لون مدموج من عدة ألوان (مثلاً حذاء أبيض×أحمر×أزرق): اضغط "+ إضافة لهذا الخيار" لكل لون على حدة قبل كتابة الاسم والتأكيد.</small>
      </div>
      <div class="variant-block">
        <label>قياسات الملابس</label>
