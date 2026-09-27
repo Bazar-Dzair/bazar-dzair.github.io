@@ -154,6 +154,28 @@ async function trackSiteVisit(dbInst,doc,setDoc,increment,serverTimestamp){
 // كمشاهدة في productViews/{firestoreId}، فيظهر مباشرة في لوحة التحكم أن شخصًا دخل على هذا
 // المنتج. نفس منطق trackSiteVisit أعلاه بالضبط: لا يُحتسب الأدمن نفسه، ولا تُحتسب أكثر من
 // مشاهدة واحدة لنفس المنتج من نفس المتصفح في نفس اليوم (حتى لا يتضخم العدد بمجرد إعادة تحميل الصفحة).
+// 🌐 كشف مصدر الزيارة (من وين جا الزبون): يعتمد على document.referrer (متاح بفضل meta
+// referrer="strict-origin-when-cross-origin" أعلاه اللي يسمح بمرور الـ origin عبر https) وعلى
+// معرّفات النقر المعروفة (fbclid/ttclid/gclid) و utm_source اللي كيزيدها المعلنون فالرابط.
+// نرجع مفتاح ثابت من مجموعة معروفة فقط (وليس أي نص حر) حتى يبقى متوافقًا مع firestore.rules
+// (sources.<key> كـ dot-path) ولا يتضخم عدد الحقول بلا حدود.
+function detectTrafficSource(){
+  try{
+    const qs=new URLSearchParams(location.search);
+    const utm=(qs.get("utm_source")||"").toLowerCase();
+    const ref=(document.referrer||"").toLowerCase();
+    const has=(s)=>ref.includes(s)||utm.includes(s);
+    if(qs.get("fbclid")||has("facebook.")||has("fb.com")||has("messenger.com")||has("l.facebook")||utm==="fb")return"facebook";
+    if(has("instagram."))return"instagram";
+    if(qs.get("ttclid")||has("tiktok."))return"tiktok";
+    if(has("wa.me")||has("whatsapp."))return"whatsapp";
+    if(qs.get("gclid")||has("google."))return"google";
+    if(has("snapchat."))return"snapchat";
+    if(has("t.co")||has("twitter.")||has("x.com"))return"twitter";
+    if(!ref)return"direct";
+    return"other";
+  }catch(e){return"other";}
+}
 async function trackProductView(dbInst,doc,setDoc,increment,serverTimestamp,productId,productName){
   try{
     if(!productId)return;
@@ -161,7 +183,8 @@ async function trackProductView(dbInst,doc,setDoc,increment,serverTimestamp,prod
     const today=new Date().toLocaleDateString("en-CA",{timeZone:"Africa/Algiers"});
     const key="bazarProductViewDate_"+productId;
     if(localStorage.getItem(key)===today)return;
-    await setDoc(doc(dbInst,"productViews",productId),{count:increment(1),updatedAt:serverTimestamp(),name:String(productName||"").slice(0,200)},{merge:true});
+    const src=detectTrafficSource();
+    await setDoc(doc(dbInst,"productViews",productId),{count:increment(1),updatedAt:serverTimestamp(),name:String(productName||"").slice(0,200),["sources."+src]:increment(1)},{merge:true});
     localStorage.setItem(key,today);
   }catch(e){console.warn("Product view tracking failed",e);}
 }

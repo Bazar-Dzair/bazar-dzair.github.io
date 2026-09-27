@@ -87,7 +87,7 @@ function loadProductViews(){
     const rows=[];
     snap.forEach(docSnap=>{
       const d=docSnap.data()||{};
-      rows.push({name:d.name||docSnap.id,count:Number(d.count)||0,updatedAt:d.updatedAt});
+      rows.push({name:d.name||docSnap.id,count:Number(d.count)||0,updatedAt:d.updatedAt,sources:d.sources||{}});
     });
     if(!rows.length){box.innerHTML='<div class="pv-empty"><span>🖱️</span>لا توجد مشاهدات مسجّلة بعد.</div>';return;}
     rows.sort((a,b)=>b.count-a.count);
@@ -99,12 +99,37 @@ function loadProductViews(){
       const rankClass=medals[i]?" "+medals[i]:"";
       return '<div class="pv-row"><div class="pv-rank'+rankClass+'">'+(i+1)+'</div>'+
         '<div class="pv-info"><p class="pv-name" title="'+esc(r.name)+'">'+esc(r.name)+'</p>'+
-        '<div class="pv-bar-track"><div class="pv-bar-fill" style="width:'+pct+'%"></div></div></div>'+
+        '<div class="pv-bar-track"><div class="pv-bar-fill" style="width:'+pct+'%"></div></div>'+
+        sourceChipsHtml(r.sources)+'</div>'+
         '<div class="pv-count"><strong>'+r.count.toLocaleString("ar-DZ")+'</strong><small>مشاهدة</small></div>'+
         '<div class="pv-time">'+t+'</div></div>';
     }).join("");
     box.innerHTML='<div class="pv-list">'+rowsHtml+'</div>';
   },e=>{console.warn("Product views load failed",e);box.innerHTML='<small style="color:#c0392b">تعذّر تحميل مشاهدات المنتجات.</small>';});
+}
+// 🌐 خريطة مصادر الزيارة (نفس المفاتيح الثابتة اللي كيكتبها detectTrafficSource فـ product.html)
+// لتحويل كل مفتاح لأيقونة + اسم عربي مختصر يبانو كـ"شارات" تحت كل منتج فلوحة التحكم.
+const TRAFFIC_SOURCE_META={
+  facebook:{icon:"📘",label:"فيسبوك"},
+  instagram:{icon:"📸",label:"إنستغرام"},
+  tiktok:{icon:"🎵",label:"تيك توك"},
+  whatsapp:{icon:"💬",label:"واتساب"},
+  google:{icon:"🔍",label:"غوغل"},
+  snapchat:{icon:"👻",label:"سناب شات"},
+  twitter:{icon:"🐦",label:"تويتر/X"},
+  direct:{icon:"🔗",label:"مباشر"},
+  other:{icon:"🌐",label:"أخرى"}
+};
+function sourceChipsHtml(sources){
+  const entries=Object.entries(sources||{}).filter(([,n])=>Number(n)>0).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length)return"";
+  const chips=entries.slice(0,4).map(([key,n])=>{
+    const meta=TRAFFIC_SOURCE_META[key]||TRAFFIC_SOURCE_META.other;
+    return '<span class="pv-chip" title="'+esc(meta.label)+'">'+meta.icon+' '+esc(meta.label)+' <b>'+Number(n).toLocaleString("ar-DZ")+'</b></span>';
+  }).join("");
+  const restCount=entries.slice(4).reduce((s,[,n])=>s+Number(n),0);
+  const rest=restCount>0?'<span class="pv-chip pv-chip-more">+'+restCount.toLocaleString("ar-DZ")+'</span>':"";
+  return '<div class="pv-sources">'+chips+rest+'</div>';
 }
 // نفس UID المستخدم فـ isAdmin() فـ firestore.rules/storage.rules. Firestore Rules هي خط
 // الدفاع الحقيقي (أي طلب قراءة/كتابة من حساب غير هذا الـ UID يُرفض هناك مهما فعل الكود هنا)،
