@@ -163,8 +163,6 @@ const publishedInput=document.getElementById("published");
 const featuredInput=document.getElementById("featured");
 const descriptionInput=document.getElementById("description");
 const descriptionFrInput=document.getElementById("description_fr");
-const specificationsText=document.getElementById("specificationsText");
-const featuresText=document.getElementById("featuresText");
 const titleBox=document.getElementById("title");
 const statusBox=document.getElementById("status");
 const listBox=document.getElementById("list");
@@ -2029,14 +2027,7 @@ window.save=async()=>{
  if(saving) return;
  saving=true;
  setBtnSaving(true);
- let specifications=[];
- let features=[];
  try{
-  specifications=String(specificationsText?.value||"").split("\n").map(s=>s.trim()).filter(Boolean).map(line=>{
-    const i=line.indexOf(":");
-    return i>0 ? {key:line.slice(0,i).trim(),value:line.slice(i+1).trim()} : {key:line,value:""};
-  });
-  features=String(featuresText?.value||"").split("\n").map(s=>s.trim()).filter(Boolean);
   const currentPrice=Number(priceInput?.value||0);
   const enteredOldPrice=Number(oldPriceInput?.value||0);
   let data={
@@ -2056,8 +2047,6 @@ window.save=async()=>{
     showReviews:showReviewsInput?.checked!==false,
     description:descriptionInput?.value.trim()||"",
     description_fr:descriptionFrInput?.value.trim()||"",
-    specifications,
-    features,
     colors:productColors.slice(),
     sizes:productSizes.slice(),
     shoeSizes:productShoeSizes.slice(),
@@ -2157,14 +2146,6 @@ window.editProduct=id=>{
  if(featuredInput)featuredInput.checked=p.featured===true;
  descriptionInput.value=p.description||"";
  if(descriptionFrInput)descriptionFrInput.value=p.description_fr||"";
- if(specificationsText){
-   const specs=Array.isArray(p.specifications)?p.specifications:[];
-   specificationsText.value=specs.map(x=>x&&x.key?`${x.key}: ${x.value??""}`:String(x||"")).join("\n");
- }
- if(featuresText){
-   const features=Array.isArray(p.features)?p.features:(Array.isArray(p.highlights)?p.highlights:[]);
-   featuresText.value=features.map(x=>typeof x==="string"?x:(x?.text||x?.name||"")).filter(Boolean).join("\n");
- }
  // متوافق مع المنتجات القديمة (حقل hex بلون وحيد) والجديدة (حقل hexes بعدة ألوان مدموجة).
  productColors=Array.isArray(p.colors)?p.colors.filter(c=>c&&c.name).map(c=>({name:String(c.name),hexes:Array.isArray(c.hexes)?c.hexes.filter(Boolean).map(String):(c.hex?[String(c.hex)]:[])})):[];
  productSizes=Array.isArray(p.sizes)?p.sizes.filter(Boolean).map(String):[];
@@ -2222,8 +2203,6 @@ window.resetForm=()=>{
  if(showOldPriceInput)showOldPriceInput.checked=true;
  if(showReviewsInput)showReviewsInput.checked=true;
  if(publishedInput)publishedInput.checked=true;if(featuredInput)featuredInput.checked=false;descriptionInput.value="";if(descriptionFrInput)descriptionFrInput.value="";
- if(specificationsText) specificationsText.value="";
- if(featuresText) featuresText.value="";
  productColors=[];pendingColorHexes=[];productSizes=[];productShoeSizes=[];renderPendingColorChips();
  renderColorChips();renderClothingSizeChips();renderShoeSizeChips();
  selectedImages=[];
