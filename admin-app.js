@@ -91,15 +91,20 @@ function loadProductViews(){
     });
     if(!rows.length){box.innerHTML='<div class="pv-empty"><span>🖱️</span>لا توجد مشاهدات مسجّلة بعد.</div>';return;}
     rows.sort((a,b)=>b.count-a.count);
-    const max=Math.max(1,...rows.map(r=>r.count));
+    // النسبة تُحسب من إجمالي كل المشاهدات (وليس فقط بالنسبة لأعلى رقم)، حتى لا يظهر
+    // المنتج الأول دائمًا بشريط ممتلئ 100% ولو كان عدد مشاهداته بسيطًا (5 مثلاً)؛
+    // هكذا الشريط يعكس فعلاً حصة كل منتج من الحركة الكلية على المتجر.
+    const total=Math.max(1,rows.reduce((s,r)=>s+r.count,0));
     const medals=["gold","silver","bronze"];
     const rowsHtml=rows.map((r,i)=>{
       const t=(r.updatedAt&&r.updatedAt.seconds)?timeAgoAr(r.updatedAt.seconds*1000):"—";
-      const pct=Math.max(4,Math.round((r.count/max)*100));
+      const share=r.count/total*100;
+      const pct=Math.max(3,Math.round(share));
+      const shareLabel=share<1?"<1%":Math.round(share)+"%";
       const rankClass=medals[i]?" "+medals[i]:"";
       return '<div class="pv-row"><div class="pv-rank'+rankClass+'">'+(i+1)+'</div>'+
         '<div class="pv-info"><p class="pv-name" title="'+esc(r.name)+'">'+esc(r.name)+'</p>'+
-        '<div class="pv-bar-track"><div class="pv-bar-fill" style="width:'+pct+'%"></div></div>'+
+        '<div class="pv-bar-row"><div class="pv-bar-track"><div class="pv-bar-fill" style="width:'+pct+'%"></div></div><span class="pv-bar-pct">'+shareLabel+'</span></div>'+
         sourceChipsHtml(r.sources)+'</div>'+
         '<div class="pv-count"><strong>'+r.count.toLocaleString("ar-DZ")+'</strong><small>مشاهدة</small></div>'+
         '<div class="pv-time">'+t+'</div></div>';
@@ -120,16 +125,20 @@ const TRAFFIC_SOURCE_META={
   direct:{icon:"🔗",label:"مباشر"},
   other:{icon:"🌐",label:"أخرى"}
 };
+// شارة كل مصدر تُعرض عموديًا: الأيقونة فوق، وعدد المشاهدات من هذا المصدر تحتها مباشرة
+// (بدل شارة أفقية بنص طويل) — أخف بصريًا وأسهل مسحًا بالعين ضمن قائمة طويلة من المنتجات.
 function sourceChipsHtml(sources){
   const entries=Object.entries(sources||{}).filter(([,n])=>Number(n)>0).sort((a,b)=>b[1]-a[1]);
   if(!entries.length)return"";
-  const chips=entries.slice(0,4).map(([key,n])=>{
+  const chips=entries.slice(0,5).map(([key,n])=>{
     const meta=TRAFFIC_SOURCE_META[key]||TRAFFIC_SOURCE_META.other;
-    return '<span class="pv-chip" title="'+esc(meta.label)+'">'+meta.icon+' '+esc(meta.label)+' <b>'+Number(n).toLocaleString("ar-DZ")+'</b></span>';
+    return '<div class="pv-src" title="'+esc(meta.label)+'"><span class="pv-src-ic">'+meta.icon+'</span><b>'+Number(n).toLocaleString("ar-DZ")+'</b></div>';
   }).join("");
-  const restCount=entries.slice(4).reduce((s,[,n])=>s+Number(n),0);
-  const rest=restCount>0?'<span class="pv-chip pv-chip-more">+'+restCount.toLocaleString("ar-DZ")+'</span>':"";
+  const restCount=entries.slice(5).reduce((s,[,n])=>s+Number(n),0);
+  const rest=restCount>0?'<div class="pv-src pv-src-more" title="مصادر أخرى"><span class="pv-src-ic">＋</span><b>'+restCount.toLocaleString("ar-DZ")+'</b></div>':"";
   return '<div class="pv-sources">'+chips+rest+'</div>';
+}
+
 }
 // نفس UID المستخدم فـ isAdmin() فـ firestore.rules/storage.rules. Firestore Rules هي خط
 // الدفاع الحقيقي (أي طلب قراءة/كتابة من حساب غير هذا الـ UID يُرفض هناك مهما فعل الكود هنا)،
