@@ -138,8 +138,6 @@ function sourceChipsHtml(sources){
   const rest=restCount>0?'<div class="pv-src pv-src-more" title="مصادر أخرى"><span class="pv-src-ic">＋</span><b>'+restCount.toLocaleString("ar-DZ")+'</b></div>':"";
   return '<div class="pv-sources">'+chips+rest+'</div>';
 }
-
-}
 // نفس UID المستخدم فـ isAdmin() فـ firestore.rules/storage.rules. Firestore Rules هي خط
 // الدفاع الحقيقي (أي طلب قراءة/كتابة من حساب غير هذا الـ UID يُرفض هناك مهما فعل الكود هنا)،
 // لكن بدون هذا الفحص هنا كان أي حساب Firebase آخر (لو تم إنشاؤه، مثلاً عبر REST API
