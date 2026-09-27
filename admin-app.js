@@ -89,13 +89,21 @@ function loadProductViews(){
       const d=docSnap.data()||{};
       rows.push({name:d.name||docSnap.id,count:Number(d.count)||0,updatedAt:d.updatedAt});
     });
-    if(!rows.length){box.innerHTML='<small style="color:#9099a6">لا توجد مشاهدات مسجّلة بعد.</small>';return;}
+    if(!rows.length){box.innerHTML='<div class="pv-empty"><span>🖱️</span>لا توجد مشاهدات مسجّلة بعد.</div>';return;}
     rows.sort((a,b)=>b.count-a.count);
-    const trs=rows.map(r=>{
-      const t=(r.updatedAt&&r.updatedAt.seconds)?new Date(r.updatedAt.seconds*1000).toLocaleString("ar-DZ",{timeZone:"Africa/Algiers"}):"—";
-      return '<tr style="border-top:1px solid var(--line)"><td style="padding:8px">'+esc(r.name)+'</td><td style="padding:8px;font-weight:700">'+r.count.toLocaleString("ar-DZ")+'</td><td style="padding:8px;color:#9099a6;font-size:13px">'+t+'</td></tr>';
+    const max=Math.max(1,...rows.map(r=>r.count));
+    const medals=["gold","silver","bronze"];
+    const rowsHtml=rows.map((r,i)=>{
+      const t=(r.updatedAt&&r.updatedAt.seconds)?timeAgoAr(r.updatedAt.seconds*1000):"—";
+      const pct=Math.max(4,Math.round((r.count/max)*100));
+      const rankClass=medals[i]?" "+medals[i]:"";
+      return '<div class="pv-row"><div class="pv-rank'+rankClass+'">'+(i+1)+'</div>'+
+        '<div class="pv-info"><p class="pv-name" title="'+esc(r.name)+'">'+esc(r.name)+'</p>'+
+        '<div class="pv-bar-track"><div class="pv-bar-fill" style="width:'+pct+'%"></div></div></div>'+
+        '<div class="pv-count"><strong>'+r.count.toLocaleString("ar-DZ")+'</strong><small>مشاهدة</small></div>'+
+        '<div class="pv-time">'+t+'</div></div>';
     }).join("");
-    box.innerHTML='<table style="width:100%;border-collapse:collapse"><thead><tr style="text-align:right;color:#9099a6;font-size:13px"><th style="padding:6px 8px">المنتج</th><th style="padding:6px 8px">عدد المشاهدات</th><th style="padding:6px 8px">آخر مشاهدة</th></tr></thead><tbody>'+trs+'</tbody></table>';
+    box.innerHTML='<div class="pv-list">'+rowsHtml+'</div>';
   },e=>{console.warn("Product views load failed",e);box.innerHTML='<small style="color:#c0392b">تعذّر تحميل مشاهدات المنتجات.</small>';});
 }
 // نفس UID المستخدم فـ isAdmin() فـ firestore.rules/storage.rules. Firestore Rules هي خط
@@ -2239,6 +2247,15 @@ window.removeSelectedImage=i=>{
 renderSelectedImages();
 
 function show(t,c){statusBox.textContent=t;statusBox.className="status "+c;setTimeout(()=>statusBox.className="status hidden",3500)}
+function timeAgoAr(ms){
+  const diff=Math.max(0,Date.now()-ms);
+  const m=Math.floor(diff/60000),h=Math.floor(diff/3600000),d=Math.floor(diff/86400000);
+  if(m<1)return"الآن";
+  if(m<60)return"قبل "+m+" د";
+  if(h<24)return"قبل "+h+" سا";
+  if(d<7)return"قبل "+d+" ي";
+  return new Date(ms).toLocaleDateString("ar-DZ",{timeZone:"Africa/Algiers",day:"2-digit",month:"2-digit"});
+}
 function esc(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 // ⚠️ esc() وحدها غير كافية لقيم تُمرَّر كوسيط JS بين علامتي اقتباس أحاديتين ' '
 // داخل onclick="..." (مثل اسم الزبون الحر النص): المتصفح يفكّ ترميز &#039; إلى
