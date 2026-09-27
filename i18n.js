@@ -93,6 +93,7 @@
     footer_faq:           { ar: "❓ أسئلة شائعة",   fr: "❓ Questions fréquentes" },
     footer_track:         { ar: "📦 تتبع طلبي",     fr: "📦 Suivre ma commande" },
     footer_delivery_policy:{ ar: "🚚 سياسة التوصيل", fr: "🚚 Politique de livraison" },
+    footer_return_policy: { ar: "↩️ سياسة الإرجاع والاسترجاع", fr: "↩️ Politique de retour" },
     footer_whatsapp:      { ar: "💬 واتساب متوفر للطلبات", fr: "💬 WhatsApp disponible pour les commandes" },
     footer_copyright:     { ar: "© 2026 Bazar Dzair ❤️ — جميع الحقوق محفوظة", fr: "© 2026 Bazar Dzair ❤️ — Tous droits réservés" },
 
@@ -119,6 +120,10 @@
     delivery_policy_text: {
       ar: "نوفر التوصيل إلى مختلف ولايات الجزائر عبر Noest وDHD، سواء إلى المنزل أو إلى المكتب حسب توفر الخدمة.\n\nتختلف تكلفة التوصيل حسب الولاية وطريقة الاستلام، وتظهر للزبون عند تأكيد الطلب.\n\nمدة التوصيل تقديرية وقد تختلف حسب الولاية وشركة التوصيل.\n\nفي حالة رفض أو عدم استلام الطلب، قد تُطبق رسوم الإرجاع حسب شركة التوصيل.",
       fr: "Nous livrons dans les différentes wilayas d'Algérie via Noest et DHD, à domicile ou au bureau selon la disponibilité du service.\n\nLe coût de la livraison varie selon la wilaya et le mode de réception, et il est indiqué au client lors de la confirmation de la commande.\n\nLe délai de livraison est estimatif et peut varier selon la wilaya et la société de livraison.\n\nEn cas de refus ou de non-réception de la commande, des frais de retour peuvent s'appliquer selon la société de livraison."
+    },
+    return_policy_text: {
+      ar: "🔁 مدة الإرجاع\nيحق للزبون رفض الطلب أو طلب استرجاعه عند الاستلام مباشرة إذا كان المنتج تالفًا أو مختلفًا عمّا تم طلبه، أو خلال 48 ساعة من الاستلام بالتواصل معنا.\n\n✅ شروط قبول الإرجاع\nيكون المنتج بحالته الأصلية، غير مستعمل، وبكامل ملحقاته وتغليفه الأصلي.\n\n📞 كيفاش ندير الإرجاع؟\nتواصل معنا عبر الهاتف أو واتساب مع ذكر رقم الطلب وسبب الإرجاع، وسنرشدك لأقرب خطوة لاسترجاع المنتج أو استبداله.\n\n💵 الاسترجاع المالي\nبما أن الدفع يتم عند الاستلام (COD)، لا يوجد مبلغ مدفوع مسبقًا نرجعه؛ في حالة رفض المنتج قبل الدفع فلا تُطلب منك أي أموال.\n\n🚚 من يتحمل مصاريف الإرجاع؟\nإذا كان الإرجاع بسبب خطأ من المتجر (منتج تالف أو مختلف)، نتحمل نحن مصاريف الإرجاع. أما إذا كان الإرجاع برغبة الزبون فقط، فقد تُطبَّق رسوم إرجاع حسب شركة التوصيل.",
+      fr: "🔁 Délai de retour\nLe client peut refuser la commande ou demander un retour dès la réception si le produit est endommagé ou différent de celui commandé, ou dans les 48 heures suivant la réception en nous contactant.\n\n✅ Conditions d'acceptation du retour\nLe produit doit être dans son état d'origine, non utilisé, avec tous ses accessoires et son emballage d'origine.\n\n📞 Comment faire un retour ?\nContactez-nous par téléphone ou WhatsApp en précisant le numéro de commande et le motif du retour, et nous vous guiderons vers la meilleure solution (retour ou échange).\n\n💵 Remboursement\nLe paiement se faisant à la livraison (COD), aucun montant n'est prépayé à rembourser ; en cas de refus du produit avant paiement, aucune somme ne vous est demandée.\n\n🚚 Qui prend en charge les frais de retour ?\nSi le retour est dû à une erreur du magasin (produit endommagé ou différent), nous prenons en charge les frais de retour. Si le retour est à la seule demande du client, des frais de retour peuvent s'appliquer selon la société de livraison."
     },
 
     detail_alt:        { ar: "تفاصيل المنتج",              fr: "Détails du produit" },
