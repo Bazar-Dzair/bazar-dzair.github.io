@@ -177,12 +177,14 @@ service cloud.firestore {
     // إطلاقًا حتى لا يرى أي زائر عدد مشاهدات منتج ما؛ الأدمن وحده يقرأها من لوحة التحكم.
     match /productViews/{productId} {
       allow read, delete: if isAdmin();
-      allow create: if request.resource.data.keys().hasOnly(['count','updatedAt','name'])
+      allow create: if request.resource.data.keys().hasOnly(['count','updatedAt','name','sources'])
                     && request.resource.data.count == 1
-                    && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() < 200));
-      allow update: if request.resource.data.keys().hasOnly(['count','updatedAt','name'])
+                    && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() < 200))
+                    && (!('sources' in request.resource.data) || (request.resource.data.sources is map && request.resource.data.sources.size() <= 10));
+      allow update: if request.resource.data.keys().hasOnly(['count','updatedAt','name','sources'])
                     && request.resource.data.count == resource.data.count + 1
-                    && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() < 200));
+                    && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() < 200))
+                    && (!('sources' in request.resource.data) || (request.resource.data.sources is map && request.resource.data.sources.size() <= 10));
     }
 
     // Deny-by-default صريح: أي collection أو مستند غير معروف/غير مذكور أعلاه ممنوع تمامًا.
