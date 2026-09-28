@@ -667,3 +667,4 @@ html[lang="fr"] .sim-track{direction:ltr}
 .rp-count{font-size:13px;font-weight:700;color:#5b6778;text-decoration:underline;text-decoration-color:#c3cad5;text-underline-offset:3px;white-space:nowrap}
 .rp:hover .rp-count{color:var(--orange);text-decoration-color:var(--orange)}
 @media(max-width:560px){.rp{padding:6px 12px;gap:7px;margin-bottom:11px}.rp-stars{font-size:15px}.rp-value{font-size:14.5px}.rp-count{font-size:12px}}
+h1.title{unicode-bidi:plaintext;text-align:center}
