@@ -1,30 +1,8 @@
-/*
- * i18n.js — محرك تبديل اللغة (عربي / فرنسي) لموقع Bazar Dzair
- * -------------------------------------------------------------
- * هذا الملف مستقل تمامًا ولا يغيّر أي شيء في نظام الطلبات أو Telegram أو Firebase.
- * كل الدوال هنا معرّفة داخل الكائن العام window.BazarI18n، ولا تُنفَّذ تلقائيًا
- * أي حركة على البيانات المُرسلة للطلبات — فقط على واجهة العرض (النصوص المعروضة للزبون).
- *
- * كيف يعمل:
- * 1) اللغة المختارة تُحفظ في localStorage تحت المفتاح "bazarLang" ("ar" أو "fr").
- *    استثناء: صفحات /fr/product/<slug>/ فرنسية دائمًا بحكم عنوانها (اللغة من المسار وليس من localStorage).
- * 2) BazarI18n.t(key) يرجع النص المناسب حسب اللغة الحالية من القاموس UI_DICT.
- * 3) BazarI18n.applyStatic() يبحث عن كل عنصر فيه data-i18n ويضبط نصه تلقائيًا،
- *    وكذلك data-i18n-ph (placeholder) و data-i18n-aria (aria-label) و data-i18n-title.
- * 4) BazarI18n.translateProduct(p) يرجع {name, description} بالفرنسية إذا كانت
- *    متوفرة في بيانات المنتج (name_fr / description_fr) وإلا يرجع النص الأصلي كما هو
- *    (لا يوجد أي تخمين أو ترجمة آلية تلقائية للمنتجات التي لا تملك حقول fr).
- * 5) BazarI18n.wilayaNameFor(code, lang) لعرض اسم الولاية بأي لغة.
- *    مهم جدًا: عند إرسال الطلب يجب دائمًا استخدام BazarI18n.wilayaNameFor(code,"ar")
- *    (وليس نص الخيار المعروض في القائمة) حتى يبقى الاسم المُرسَل إلى Telegram/Firestore
- *    بالعربية دائمًا كما هو الحال حاليًا، بغض النظر عن لغة واجهة الزبون.
- */
 (function (global) {
   "use strict";
 
   var LANG_KEY = "bazarLang";
 
-  // ===================== قاموس نصوص الواجهة =====================
   var UI_DICT = {
     topbar_service:   { ar: "خدمة عملاء مميزة",              fr: "Service client de qualité" },
     topbar_delivery:  { ar: "توصيل إلى جميع الولايات",        fr: "Livraison dans toutes les wilayas" },
@@ -196,8 +174,6 @@
     currency_suffix: { ar: "دج", fr: "DA" }
   };
 
-  // ===================== أسماء الولايات (58) =====================
-  // الترتيب مطابق تمامًا لترتيب <option> في index.html و product.html حتى لا يختلف أي رمز.
   var WILAYAS = [
     { code: "01", ar: "أدرار",          fr: "Adrar" },
     { code: "02", ar: "الشلف",          fr: "Chlef" },
@@ -259,10 +235,6 @@
     { code: "58", ar: "المنيعة",        fr: "El Meniaa" }
   ];
 
-  // ===================== المنطق الأساسي =====================
-  // صفحات /fr/product/<slug>/ هي النسخة الفرنسية الثابتة من صفحة المنتج (تُفهرس في Google بالفرنسية).
-  // لو بقيت اللغة تُقرأ من localStorage فقط، لرأى الزاحف وأي زائر جديد (بلا تفضيل محفوظ، مثل من يصل من نتيجة
-  // بحث فرنسية) واجهة عربية داخل صفحة فرنسية، ولانقلب <html lang> إلى ar. لذلك المسار هو المرجع هنا.
   var FR_PRODUCT_PATH = /^\/fr\/product\//;
   function isFrenchProductPath() {
     try { return FR_PRODUCT_PATH.test(location.pathname); } catch (_e) { return false; }
@@ -279,14 +251,12 @@
   function setLang(lang) {
     lang = lang === "fr" ? "fr" : "ar";
     try { localStorage.setItem(LANG_KEY, lang); } catch (_e) {}
-    // في صفحة /fr/ اللغة مرتبطة بالمسار، فإعادة التحميل وحدها تُبقيها فرنسية: الانتقال إلى العربية
-    // يعني فتح نفس المنتج على /product/<slug>/ (بدون أي معاملات، حتى لا يبقى ?lang=fr فارضًا الفرنسية).
+
     if (lang === "ar" && isFrenchProductPath()) {
       location.href = location.pathname.replace(FR_PRODUCT_PATH, "/product/") + location.hash;
       return;
     }
-    // إعادة تحميل الصفحة أبسط وأضمن طريقة لتطبيق اللغة على كل شيء
-    // (نصوص ثابتة + منتجات + قوائم الولايات) دون أي خطر على منطق الطلبات.
+
     location.reload();
   }
 
@@ -305,10 +275,7 @@
     root = root || document;
     var lang = getLang();
     document.documentElement.setAttribute("lang", lang === "fr" ? "fr" : "ar");
-    // التصميم بالكامل مبني على RTL (مواضع، هوامش...) حتى في الواجهة الفرنسية —
-    // نفس القرار المطبّق يدويًا في كل صفحة (index.html، product.html). لا نُبدّل
-    // الاتجاه إلى ltr هنا أبدًا، وإلا فأي صفحة جديدة تستدعي applyStatic() دون أن
-    // "تُصحّح" الاتجاه بعدها يدويًا (كما يفعل index.html حاليًا) ستنكسر بصريًا.
+
     document.documentElement.setAttribute("dir", "rtl");
 
     root.querySelectorAll("[data-i18n]").forEach(function (el) {
@@ -329,8 +296,6 @@
     });
   }
 
-  // يرجع اسم منتج ووصفه حسب اللغة الحالية.
-  // إن لم يملك المنتج name_fr/description_fr يبقى الاسم الأصلي كما هو (بدون أي ترجمة آلية).
   function translateProduct(p) {
     if (!p) return { name: "", description: "" };
     var lang = getLang();
@@ -350,7 +315,6 @@
     return w[lang];
   }
 
-  // نفس تنسيق قائمة <select> الأصلية "01 - أدرار" / "01 - Adrar"
   function wilayaOptionLabel(code, lang) {
     var name = wilayaNameFor(code, lang);
     return name ? (code + " - " + name) : code;
@@ -359,14 +323,10 @@
   function formatMoney(n) {
     var lang = getLang();
     var num = Number(n) || 0;
-    // فاصل الآلاف مسافة عادية وأرقام لاتينية في اللغتين (نفس تنسيق الصفحات الثابتة المولَّدة في
-    // scripts/generate_static_products.py). toLocaleString("ar-DZ") كان يعطي "4.500" (نقطة) أو "4٬500"
-    // (فاصل عربي): محركات البحث تقرؤهما كسرًا عشريًا 4.5، فظهر السعر في Google "4,50 $US" بدل 4500 دج.
-    // أما "4 500" بالمسافة فلا التباس فيها: تُقرأ ألفًا وخمسمئة فقط.
+
     var localeStr = num.toLocaleString("en-US", { maximumFractionDigits: 2 }).replace(/,/g, " ");
     if (lang === "fr") localeStr = localeStr.replace(".", ",");
-    // LRI...PDI: يعزل السعر كتلة LTR واحدة حتى لا يقلبه المتصفح داخل صفحة dir="rtl"
-    // (كان يظهر "DA 400 2" بدل "2 400 DA").
+
     return "\u2066" + localeStr + " " + t("currency_suffix") + "\u2069";
   }
 

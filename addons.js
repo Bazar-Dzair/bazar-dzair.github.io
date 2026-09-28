@@ -1,25 +1,3 @@
-/*
- * Bazar Dzair — مركز الإضافات (Addons runtime)
- * -----------------------------------------------------
- * يُحمَّل من <head> في index.html و product.html.
- * يقرأ إعدادات الإضافات من Firestore (settings/addons) ثم يركّب كل خدمة
- * بالطريقة الرسمية لكل منها، بشكل مستقل تمامًا.
- *
- * الضمانات المعمارية:
- * - لا يُحمَّل أي كود إطلاقًا إلا إذا كانت الإضافة مفعّلة ولديها معرّف صالح.
- * - كل خدمة توضع داخل try/catch مستقل → فشل خدمة واحدة لا يعطّل بقية الخدمات.
- * - كل سكربت يُحمَّل مرة واحدة فقط (guard عبر data-attribute + id فريد).
- * - التحميل غير متزامن (async / defer) → لا يبطئ ظهور المنتجات والمتجر.
- * - قراءة الإعدادات عبر REST هي قراءة عامة (match rules) ولا تحتاج تسجيل دخول.
- * - لا تُستخدم مفاتيح سرية في الواجهة الأمامية.
- *
- * ملاحظة شفافة حول Google Search Console:
- *   الميتا (meta) المحقون عبر JavaScript لا يُقرأ دائمًا كأداة تحقق موثوقة
- *   من Google لأن الزاحف يقرأ ملف HTML المصدر. الطريقة الرسمية التوافقية
- *   مع GitHub Pages هي ملف تحقق ثابت (googleXXXX.html) في جذر الموقع،
- *   أو DNS TXT. هذه المكتبة تحقن الميتا كأفضل جهد، وتوفّر موظّف
- *   window.showGSCFile() لتوليد ملف التحقق الثابت الصحيح.
- */
 (function () {
   if (window.__bazarAddonsLoaded) return;
   window.__bazarAddonsLoaded = true;
@@ -62,17 +40,14 @@
     node().appendChild(s);
   }
 
-  var cfg = {}; // will hold all addon settings after load
+  var cfg = {};
   var installing = false;
 
-  // ============================================================
-  // 1) Google Analytics (GA4) — الطريقة الرسمية (gtag.js)
-  // ============================================================
   function initGoogleAnalytics(a) {
     var c = a.googleAnalytics || {};
     if (!(c.enabled === true)) return;
     var gid = (typeof c.id === "string" ? c.id.trim() : "");
-    if (!/^(G|T|GT|AW)-[A-Za-z0-9-]{6,}$/.test(gid)) return; // صيغة غير صالحة → لا نحقن
+    if (!/^(G|T|GT|AW)-[A-Za-z0-9-]{6,}$/.test(gid)) return;
     var s = document.createElement("script");
     s.id = "bazar_ga_script";
     s.async = true;
@@ -87,9 +62,6 @@
 
   }
 
-  // ============================================================
-  // 2. Google Tag Manager — الطريقة الرسمية (GTM)
-  // ============================================================
   function initGoogleTagManager(a) {
     var gtm = a.googleTagManager || {};
     if (!(gtm.enabled === true)) return;
@@ -104,7 +76,6 @@
       "})(window,document,'script','dataLayer','" + id.replace(/"/g, "") + "');"
     ].join(""));
 
-    // عنصر noscript (iframe) للوضع بدون JavaScript — يُضاف قرب أعلى body
     if (document.body) {
       var nos = document.createElement("noscript");
       nos.id = "bazar_gtm_noscript";
@@ -121,9 +92,6 @@
 
   }
 
-  // ============================================================
-  // 3. Meta Pixel (Facebook) — الطريقة الرسمية (fbevents)
-  // ============================================================
   function initMetaPixel(a) {
     var mp = a.metaPixel || {};
     if (!(mp.enabled === true)) return;
@@ -139,9 +107,6 @@
 
   }
 
-  // ============================================================
-  // 4. TikTok Pixel — الطريقة الرسمية (events.js)
-  // ============================================================
   function initTikTokPixel(a) {
     var tk = a.tiktokPixel || {};
     if (!(tk.enabled === true)) return;
@@ -164,10 +129,6 @@
 
   }
 
-  // ============================================================
-  // 5. Google Search Console — التحقق عبر meta tag (أفضل جهد)
-  //    ملاحظة: الطريقة الموثوقة مع GitHub Pages هي ملف تحقق ثابت أو DNS.
-  // ============================================================
   function initGoogleSearchConsole(a) {
     var sc = a.searchConsole || {};
     if (!(sc.enabled === true)) return;
@@ -190,10 +151,6 @@
 
   }
 
-  // ============================================================
-  // موزّع الأحداث: يتيح للموقع إرسال أحداث (ViewContent, AddToCart…)
-  // لا يرسل حدثًا إلى خدمة غير نشطة أو بدون معرّف.
-  // ============================================================
   function installEvents() {
     if (window.bazarTrackEvent) return;
     window.bazarTrackEvent = function (eventName, data) {
@@ -202,7 +159,7 @@
       function rid(x) { return typeof x === "string" ? x.trim() : ""; }
       var C = window.__bazarAddons || {};
       try {
-        // Meta pixel
+
         if (on(C.metaPixel) && /^[0-9]{8,20}$/.test(rid(C.metaPixel.id)) && window.fbq) {
           var mpd = {};
           if (eventName === "ViewContent") {
@@ -214,7 +171,7 @@
           }
           try { fbq("track", eventName, mpd); } catch (e) {}
         }
-        // TikTok
+
         if (on(C.tiktokPixel) && rid(C.tiktokPixel.id) && window.ttq) {
           var evName = null;
           if (eventName === "PageView") evName = "page";
@@ -226,13 +183,10 @@
             try { ttq.track(evName, { contents: [{ id: data.id || "", quantity: Number(data.qty || 1), price: Number(data.price || 0) }], value: Number(data.total || data.price || 0) || undefined, currency: "DZD" }); } catch (e) {}
           }
         }
-      } catch (e) { /* tracking errors never break the store */ }
+      } catch (e) {  }
     };
   }
 
-  // ============================================================
-  // الوظيفة المركزية: يقرأ settings/addons ثم يفعّل كل خدمة مستقلًا
-  // ============================================================
   function install() {
     if (installing) return;
     installing = true;
@@ -247,9 +201,6 @@
     installEvents();
   }
 
-  // ============================================================
-  // قراءة إعدادات الإضافات من Firestore (REST — عام readable)
-  // ============================================================
   function startLoad() {
     try {
       var req = new XMLHttpRequest();
@@ -267,14 +218,10 @@
     } catch (e) { install(); }
   }
 
-  // يركّب حتى إن فشلت قراءة Firebase (قفل زمني للأمان)
   window.addEventListener("DOMContentLoaded", function () {
     setTimeout(function () { if (!installing) install(); }, 4500);
   });
 
-  // ============================================================
-  // أداة مساعدة لإنشاء ملف تحقق Search Console الثابت (GitHub Pages)
-  // ============================================================
   window.gscVerificationContent = function (code) {
     code = (code || "").trim();
     if (!code) return "";
@@ -294,5 +241,5 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 100);
   };
 
-  startLoad(); // لا يبدأ التحميل مرتين
+  startLoad();
 })();
