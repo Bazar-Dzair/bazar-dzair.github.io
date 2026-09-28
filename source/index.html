@@ -79,14 +79,14 @@
 /* الظهور المتزامن للصفحة الرئيسية (بانر + أقسام + المنتجات في لحظة واحدة):
    قبل هذا كان البانر يظهر أولًا (من الكاش المحلي) ثم تنبثق أقسام "وصل حديثًا" و"العروض" والفئات لاحقًا
    عند وصول بيانات Firestore، فيبدو التحميل متقطعًا وتقفز الصفحة. الآن نضع home-gate على <html> فورًا
-   (قبل أول رسم) فيبقى هيكل التحميل مكان البانر، ثم نُزيله دفعة واحدة حين تتحقق الشروط الثلاثة:
-   البانر جاهز (أو لا بانر)، وصلت أول قائمة منتجات، وصلت أول قائمة فئات. مؤقّت أمان 3 ثوانٍ يُظهر
+   (قبل أول رسم) فيبقى هيكل التحميل مكان البانر، ثم نُزيله حين يجهز البانر فقط (المنتجات مُولَّدة مسبقًا في HTML فلا تنتظر Firestore).
+   مؤقّت أمان 1.5 ثانية يُظهر
    كل شيء مهما حدث فلا تبقى الصفحة مخفية على شبكة ضعيفة. لا يُطبَّق على: الزواحف/معاينات الروابط،
    روابط التصنيف والبحث (?category / ?q)، وأي صفحة غير الرئيسية. لا يمس الطلبات ولا Firebase. */
 window.BazarHomeGate=(function(){
   var root=document.documentElement,state={hero:false,products:false,cats:false},done=false,timer=0;
   function reveal(){if(done)return;done=true;clearTimeout(timer);root.classList.remove("home-gate");}
-  function mark(k){if(done||!(k in state))return;state[k]=true;if(state.hero&&state.products&&state.cats)reveal();}
+  function mark(k){if(done||!(k in state))return;state[k]=true;if(state.hero)reveal();}
   function watchHero(){
     var hero=document.querySelector("#home .hero");
     if(!hero){mark("hero");return;}
@@ -102,7 +102,7 @@ window.BazarHomeGate=(function(){
     var plainHome=(location.pathname==="/"||location.pathname==="/index.html")&&!sp.get("q")&&!(sp.get("category")&&sp.get("category")!=="all");
     var isBot=/bot|crawl|spider|slurp|bingpreview|facebookexternalhit|whatsapp|telegram|twitterbot|linkedin|pinterest|embedly|preview/i.test(navigator.userAgent||"");
     if(plainHome&&!isBot){
-      timer=setTimeout(reveal,10000);
+      timer=setTimeout(reveal,1500);
       root.classList.add("home-gate");
       if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",watchHero);else watchHero();
     }
