@@ -844,6 +844,9 @@ def homepage_product_card(url, name, price, img):
 
 
 HOME_MAX_PRODUCTS = 12
+# عدد بطاقات قسمي «عروض مختارة» و«وصل حديثًا» في الصفحة الرئيسية؛ يجب أن يساوي HOME_HIGHLIGHT_LIMIT
+# المعرَّف في index.html (JS) حتى لا يختلف المحتوى الثابت عن المحتوى الذي يبنيه المتصفح.
+HOME_HIGHLIGHT_LIMIT = 8
 home_products_html = ''.join(
     homepage_product_card(u, pn, float(p.get('price') or 0), image_of(p, width=400))
     for u, pn, p, _slug in product_urls[:HOME_MAX_PRODUCTS]
