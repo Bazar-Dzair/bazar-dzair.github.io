@@ -10,7 +10,7 @@
 <meta name="description" content="متجر إلكتروني جزائري يوفر منتجات متنوعة، أسعار مناسبة وخدمة توصيل سريعة وآمنة.">
 <meta name="keywords" content="متجر إلكتروني جزائري, Bazar Dzair, تسوق أونلاين الجزائر, دفع عند الاستلام">
 <title>Bazar Dzair | متجر إلكتروني جزائري</title>
-<link rel="stylesheet" href="/index-style.css?v=bdbca84f">
+<link rel="stylesheet" href="/index-style.css?v=437aba77">
 <link rel="preconnect" href="https://res.cloudinary.com"><link rel="preload" as="image" href="https://res.cloudinary.com/ehh5xqwc/image/upload/w_960,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg" imagesrcset="https://res.cloudinary.com/ehh5xqwc/image/upload/w_480,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 480w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_576,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 576w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_672,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 672w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_768,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 768w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_960,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 960w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_1200,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 1200w" imagesizes="(max-width:800px) calc(100vw - 28px), (max-width:960px) 100vw, 960px" fetchpriority="high"><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <!-- ⚠️ إصلاح مهم: كان هذا السكربت يُحمَّل بـ defer، بينما كل أكواد الصفحة (submitOrder،
      renderCart، openCart...) تستدعي BazarI18n.t(...) مباشرة دون فحص (window.BazarI18n?)
@@ -732,15 +732,19 @@ async function restGetDocument(path){
   if(!r.ok) throw new Error("Firestore REST "+r.status);
   return r.json();
 }
+// mask.fieldPaths: نطلب من Firestore فقط الحقول التي يقرؤها mapRestProduct (أي حقل جديد يُقرأ هناك يجب إضافته هنا)،
+// فتُستبعد الحقول الداخلية غير المستخدمة في الواجهة ويصغر حجم الاستجابة.
+const PRODUCT_FIELDS=["sku","SKU","reference","ref","code","name","product","name_fr","price","oldPrice","old_price","compareAtPrice","compare_at_price","image","imageUrl","photo","images","description","desc","description_fr","category","shippingHome","shippingOffice","deliveryMethod","featured","published","stock","showReviews","createdAt"];
+const PRODUCT_MASK=PRODUCT_FIELDS.map(f=>"mask.fieldPaths="+f).join("&");
 async function restGetProducts(){
-  let url=FIRESTORE_REST_BASE+"products?pageSize=1000";
+  let url=FIRESTORE_REST_BASE+"products?pageSize=1000&"+PRODUCT_MASK;
   const all=[];
   while(url){
     const r=await fetch(url,{cache:"no-store"});
     if(!r.ok) throw new Error("Firestore products "+r.status);
     const d=await r.json();
     (d.documents||[]).forEach(x=>all.push(x));
-    url=d.nextPageToken?FIRESTORE_REST_BASE+"products?pageSize=1000&pageToken="+encodeURIComponent(d.nextPageToken):null;
+    url=d.nextPageToken?FIRESTORE_REST_BASE+"products?pageSize=1000&"+PRODUCT_MASK+"&pageToken="+encodeURIComponent(d.nextPageToken):null;
   }
   return all.map(mapRestProduct);
 }
