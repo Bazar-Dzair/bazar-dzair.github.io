@@ -22,7 +22,7 @@
     drawer_none:      { ar: "لا توجد فئات",                   fr: "Aucune catégorie" },
     drawer_error:     { ar: "تعذر تحميل الفئات",              fr: "Échec du chargement des catégories" },
 
-    products_title:    { ar: "جميع المنتجات 🛍️",                fr: "Tous les produits 🛍️" },
+    products_title:    { ar: "جميع المنتجات",                fr: "Tous les produits" },
     products_subtitle: { ar: "تصفح تشكيلتنا الكاملة",           fr: "Parcourez toute notre gamme de produits" },
     view_all:          { ar: "عرض الكل ←",                    fr: "Voir tout →" },
     featured_products_title:    { ar: "عروض مختارة ⭐",                 fr: "Offres sélectionnées ⭐" },
