@@ -12,7 +12,7 @@
 <title>Bazar Dzair | متجر إلكتروني جزائري</title>
 <link rel="preload" href="/index-style.css?v=e00adcc7" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="/index-style.css?v=e00adcc7"></noscript>
-<link rel="preconnect" href="https://res.cloudinary.com"><link rel="preload" as="image" href="https://res.cloudinary.com/ehh5xqwc/image/upload/w_1200,c_limit,f_auto,q_auto/v1789830417/nqiavw1ul6nc3ocbiypk.jpg" fetchpriority="high"><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js" crossorigin><link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js" crossorigin>
+<link rel="preconnect" href="https://res.cloudinary.com"><link rel="preload" as="image" href="https://res.cloudinary.com/ehh5xqwc/image/upload/w_960,c_limit,f_auto,q_auto/v1789830417/nqiavw1ul6nc3ocbiypk.jpg" imagesrcset="https://res.cloudinary.com/ehh5xqwc/image/upload/w_480,c_limit,f_auto,q_auto/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 480w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_768,c_limit,f_auto,q_auto/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 768w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_960,c_limit,f_auto,q_auto/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 960w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_1200,c_limit,f_auto,q_auto/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 1200w" imagesizes="(min-width:960px) 960px, 100vw" fetchpriority="high"><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js" crossorigin><link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js" crossorigin>
 <!-- ⚠️ إصلاح مهم: كان هذا السكربت يُحمَّل بـ defer، بينما كل أكواد الصفحة (submitOrder،
      renderCart، openCart...) تستدعي BazarI18n.t(...) مباشرة دون فحص (window.BazarI18n?)
      في نقاط كثيرة. السكربتات المؤجَّلة (defer) تُنفَّذ بعد انتهاء تحليل الصفحة بالكامل، أي بعد
@@ -150,7 +150,7 @@ window.BazarHomeGate=(function(){
 <aside class="drawer" id="categoryDrawer" aria-hidden="true"><div class="drawer-head"><h2 data-i18n="drawer_title">🗂️ الفئات</h2><button class="drawer-close" type="button" onclick="closeCategoryMenu()">×</button></div><div class="drawer-cats" id="storeCategories"><div class="cat" onclick="filterCategory('all')"><i>▦</i><span data-i18n="drawer_all">جميع الفئات</span></div><!--SSG:CATS_START--><a class="cat" href="https://bazar-dzair.github.io/product-category/outils/" style="color:inherit;text-decoration:none"><i>🛠️</i>ادوات</a><a class="cat" href="https://bazar-dzair.github.io/product-category/accessoires-et-electronique/" style="color:inherit;text-decoration:none"><i>🔋🎮</i>اكسيسوار و الكترونات</a><a class="cat" href="https://bazar-dzair.github.io/product-category/machines-a-raser/" style="color:inherit;text-decoration:none"><i>🪒</i>الات حلاقة</a><a class="cat" href="https://bazar-dzair.github.io/product-category/maison-et-cuisine/" style="color:inherit;text-decoration:none"><i>🏠</i>المنزل و المطبخ</a><a class="cat" href="https://bazar-dzair.github.io/product-category/ordinateurs-portables/" style="color:inherit;text-decoration:none"><i>💻</i>حاسوب محمول</a><a class="cat" href="https://bazar-dzair.github.io/product-category/sante-et-beaute/" style="color:inherit;text-decoration:none"><i>💄🧼</i>صحة و جمال</a><a class="cat" href="https://bazar-dzair.github.io/product-category/pieces-detachees-automobiles/" style="color:inherit;text-decoration:none"><i>🚗</i>قطع غيار سيارات</a><a class="cat" href="https://bazar-dzair.github.io/product-category/articles-pour-bebes/" style="color:inherit;text-decoration:none"><i>👶</i>مستلزمات اطفال الرضع</a><a class="cat" href="https://bazar-dzair.github.io/product-category/equipements-femme/" style="color:inherit;text-decoration:none"><i>👩</i>معدات نسوية</a><a class="cat" href="https://bazar-dzair.github.io/product-category/vetements-et-chaussures/" style="color:inherit;text-decoration:none"><i>👕</i>ملابس وأحذية</a><a class="cat" href="https://bazar-dzair.github.io/product-category/produits-d-ete/" style="color:inherit;text-decoration:none"><i>🏖️</i>منتجات صيفية</a><a class="cat" href="https://bazar-dzair.github.io/product-category/telephones/" style="color:inherit;text-decoration:none"><i>📱</i>هواتف</a><!--SSG:CATS_END--></div></aside>
 <main id="home">
 <h1 class="sr-only">Bazar Dzair | متجر إلكتروني جزائري لمنتجات متنوعة بأسعار مناسبة، توصيل سريع لجميع الولايات والدفع عند الاستلام</h1>
-<section class="hero" aria-label="العرض الرئيسي"><picture id="heroPicture"><img id="heroImg" src="https://res.cloudinary.com/ehh5xqwc/image/upload/w_1200,c_limit,f_auto,q_auto/v1789830417/nqiavw1ul6nc3ocbiypk.jpg" alt="Bazar Dzair - تسوق منتجات متنوعة أونلاين في الجزائر" width="964" height="295" style="aspect-ratio:964/295" fetchpriority="high"></picture></section>
+<section class="hero" aria-label="العرض الرئيسي"><picture id="heroPicture"><img id="heroImg" src="https://res.cloudinary.com/ehh5xqwc/image/upload/w_960,c_limit,f_auto,q_auto/v1789830417/nqiavw1ul6nc3ocbiypk.jpg" alt="Bazar Dzair - تسوق منتجات متنوعة أونلاين في الجزائر" width="964" height="295" style="aspect-ratio:964/295" fetchpriority="high"></picture></section>
 <script>
 /* بانر الصفحة الرئيسية — الجهة الوحيدة التي تعرضه أو تُخفيه.
    لا يُعرض شعار/اسم افتراضي مكانه أبدًا: هيكل تحميل هادئ، ثم البانر الحقيقي، أو إخفاء القسم إن لم يوجد بانر.
@@ -159,14 +159,26 @@ window.BazarHero=(function(){
   var BLANK="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",DIMS_KEY="bazarBannerDims";
   var img=document.getElementById("heroImg"),hero=img&&img.closest(".hero"),cur="";
   var isHttps=function(u){return typeof u==="string"&&/^https:\/\//i.test(u.trim());};
-  // 📉 تحسين حجم صورة البانر: PageSpeed Insights رصد أن الصورة تُحمَّل بحجمها الأصلي الكامل رغم
-  // أنها تُعرض بعرض 964px فقط، وهذا يهدر ~83KB لكل زيارة. نحدد عرضًا أقصى معقولًا (1200px، يوفّر
-  // هامشًا كافيًا لشاشات retina) عبر تحويلات Cloudinary (w_/c_limit) قبل f_auto,q_auto الموجودة أصلاً،
-  // بدل تحميل الصورة كاملة الحجم ثم ضغطها بصريًا بالـ CSS فقط كما كان يحدث.
+  // إصلاح أداء (28/09/2026): تقرير PageSpeed رصد أن صورة البانر تُحمَّل بعرض ثابت 1200px على كل
+  // الأجهزة، بينما الصندوق المعروض فعليًا على الجوال أصغر بكثير (672×252 في القياس) لأن main
+  // {max-width:960px} يعني عرضًا حقيقيًا أقرب لعرض الشاشة على الجوال، لا 960px أو 1200px. رقم عرض
+  // ثابت واحد لا يمكن أن يناسب الجوال والحاسوب معًا؛ الحل الصحيح صور متجاوبة حقيقية (srcset+sizes)
+  // بدل الاعتماد على تصغير المتصفح بصريًا فقط عبر CSS بعد تحميل الصورة كاملة.
+  var HERO_SIZES="(min-width:960px) 960px, 100vw";
+  var HERO_WIDTHS=[480,768,960,1200];
   var optHero=function(u){
     if(!/^https?:\/\/res\.cloudinary\.com\//i.test(u))return u;
     if(/\/image\/upload\/[^/]*\bw_/i.test(u))return u; // فيه ديجا تحويل عرض، ما نبدلوش
-    return u.replace(/\/image\/upload\/(f_auto,q_auto\/)?/,"/image/upload/w_1200,c_limit,f_auto,q_auto/");
+    return u.replace(/\/image\/upload\/(f_auto,q_auto\/)?/,"/image/upload/w_960,c_limit,f_auto,q_auto/");
+  };
+  // يبني srcset بعدة أعراض من نفس الرابط لتترك مهمة اختيار الحجم المناسب للمتصفح نفسه حسب
+  // عرض الشاشة الفعلي (sizes أعلاه)، بدل تحميل نفس الحجم الثابت على كل الأجهزة.
+  var buildHeroSrcset=function(u){
+    if(!/^https?:\/\/res\.cloudinary\.com\//i.test(u))return "";
+    if(/\/image\/upload\/[^/]*\bw_/i.test(u))return ""; // رابط بتحويل مخصص مسبقًا: نحترمه كما هو
+    return HERO_WIDTHS.map(function(w){
+      return u.replace(/\/image\/upload\/(f_auto,q_auto\/)?/,"/image/upload/w_"+w+",c_limit,f_auto,q_auto/")+" "+w+"w";
+    }).join(", ");
   };
   function attrDims(w,h){if(w>0&&h>0){img.setAttribute("width",w);img.setAttribute("height",h);img.style.aspectRatio=w+" / "+h;}}
   function readDims(url){try{var o=JSON.parse(localStorage.getItem(DIMS_KEY)||"null");if(o&&o.u===url)attrDims(o.w,o.h);}catch(e){}}
@@ -179,7 +191,9 @@ window.BazarHero=(function(){
     hero.classList.remove("is-empty");
     var pic=img.closest("picture");
     if(pic)pic.querySelectorAll("source").forEach(function(x){x.remove();});
-    img.removeAttribute("srcset");
+    var srcset=buildHeroSrcset(url);
+    if(srcset){img.setAttribute("srcset",srcset);img.setAttribute("sizes",HERO_SIZES);}
+    else{img.removeAttribute("srcset");img.removeAttribute("sizes");}
     readDims(url);
     img.onload=function(){
       if(cur!==url)return;
@@ -195,6 +209,7 @@ window.BazarHero=(function(){
     hero.classList.remove("is-ready");
     hero.classList.add("is-empty");
     img.removeAttribute("srcset");
+    img.removeAttribute("sizes");
     img.setAttribute("src",BLANK);
   }
   function settle(){if(!cur&&hero)hero.classList.add("is-empty");}
@@ -1063,7 +1078,12 @@ const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"
 // (javascript:, data:, vbscript:...) كما نهرب القيمة قبل إدراجها داخل HTML.
 // f_auto,q_auto: صيغة وجودة تلقائيتان حسب جهاز الزائر (WebP/AVIF عادة) لصور Cloudinary فقط،
 // دون أي فرق يُلاحظ بالعين. لا يمس الروابط الأخرى (/logo.svg)، ولا يكرر الإضافة لو كانت موجودة.
-const cldOpt=u=>/^https?:\/\/res\.cloudinary\.com\//i.test(u)?u.replace(/\/image\/upload\/(?!f_auto)/,"/image/upload/f_auto,q_auto/"):u;
+// إصلاح أداء (28/09/2026): كانت هذه الدالة تضيف فقط f_auto,q_auto (صيغة/جودة تلقائية) دون أي
+// تحديد للعرض، فتُحمَّل كل صور المنتجات بدقتها الأصلية الكاملة (تصل إلى 1000×1000) حتى في بطاقات
+// صغيرة (~150-324px) — وهو ما رصده تقرير PageSpeed كهدر ~147 كيلوبايت. الآن نضيف w_400,c_limit
+// (لا يتجاوز 400px عرضًا، ولا يكبّر الصور الأصغر) مع dpr_auto لبقاء الوضوح على شاشات retina.
+// لا يُطبَّق هذا على صورة البانر الرئيسي (heroImg) التي لها منطق تحسين خاص بها بالأسفل.
+const cldOpt=u=>/^https?:\/\/res\.cloudinary\.com\//i.test(u)?u.replace(/\/image\/upload\/(?!f_auto)/,"/image/upload/f_auto,q_auto,w_400,c_limit,dpr_auto/"):u;
 const safeImg=u=>{const s=String(u??"").trim();if(!s)return"/logo.svg";if(/^https?:\/\//i.test(s)||s.startsWith("/")||s.startsWith("./"))return esc(cldOpt(s));return"/logo.svg";};
 
 function getUrlCategory(){
