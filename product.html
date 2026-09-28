@@ -19,7 +19,7 @@
 <meta id="twitterDescription" name="twitter:description" content="منتج من متجر Bazar Dzair">
 <meta id="twitterImage" name="twitter:image" content="https://bazar-dzair.github.io/logo.svg">
 <link id="canonical" rel="canonical">
-<link rel="stylesheet" href="/product-style.css?v=bca3df14">
+<link rel="stylesheet" href="/product-style.css?v=ad19821a">
 </head>
 <body>
 <script>
@@ -1033,11 +1033,14 @@ function syncStepWithUrl(){
 }
 window.addEventListener("popstate",syncStepWithUrl);
 (function(){const co=document.getElementById("checkout");if(co)["input","change"].forEach(ev=>co.addEventListener(ev,saveCheckoutDraft));})();
+// حدث FormStart: أول كتابة/اختيار فعلي في نموذج الطلب (لا يُطلق عند التركيز التلقائي ولا عند استعادة المسودة)
+(function(){const co=document.getElementById("checkout");if(!co)return;let done=false;["input","change"].forEach(ev=>co.addEventListener(ev,()=>{if(done)return;done=true;try{if(window.bazarTrackEvent)window.bazarTrackEvent("FormStart",{id:product&&(product.firestoreId||product.id)||"",content_name:product&&product.name||"",price:Number(product&&product.price)||0});}catch(_e){}}));})();
 window.showCheckout=()=>{
   if(!product||!productAvailable) return;
   if(variantSelectionMissing(product)){toast(pt("variant_required_toast"));showVariantError();return;}
   if(!isCheckoutUrl()){try{history.pushState({bazarStep:"order"},"",urlWithoutHash()+CHECKOUT_HASH);}catch(_e){}}
   hideProductInfo();showCODCheckout();saveCheckoutDraft();
+  try{if(window.bazarTrackEvent)window.bazarTrackEvent("InitiateCheckout",{id:product.firestoreId||product.id||"",content_name:product.name||"",total:Number(product.price||0)*quantity});}catch(_e){}
 };
 window.backToProduct=()=>{
   // إن كانت خطوة الطلب مضافة عبر pushState نرجع خطوة واحدة في السجل (يتولّى popstate العرض)،

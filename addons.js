@@ -183,6 +183,23 @@
             try { ttq.track(evName, { contents: [{ id: data.id || "", quantity: Number(data.qty || 1), price: Number(data.price || 0) }], value: Number(data.total || data.price || 0) || undefined, currency: "DZD" }); } catch (e) {}
           }
         }
+        // Google Analytics 4: نُمرّر نفس الأحداث بأسماء GA4 الموصى بها (مسار الشراء)، وحدث form_start مخصّص.
+        // لا يعمل إلا إن كان gtag محمّلًا (أي أن Google Analytics مفعّل من لوحة التحكم).
+        if (typeof window.gtag === "function") {
+          var gaMap = { ViewContent: "view_item", AddToCart: "add_to_cart", InitiateCheckout: "begin_checkout", Purchase: "purchase", FormStart: "form_start" };
+          var gaName = gaMap[eventName];
+          if (gaName) {
+            try {
+              var gv = Number(data.total || data.price || 0) || undefined;
+              var gp = { currency: "DZD" };
+              if (gv !== undefined) gp.value = gv;
+              if (data.content_name) gp.item_name = String(data.content_name).slice(0, 100);
+              if (data.id) gp.item_id = String(data.id).slice(0, 100);
+              if (data.category) gp.item_category = String(data.category).slice(0, 100);
+              window.gtag("event", gaName, gp);
+            } catch (e) {}
+          }
+        }
       } catch (e) {  }
     };
   }

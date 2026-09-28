@@ -2663,5 +2663,9 @@ try{
 }
 function toast(t,ms){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),ms||2200)}
 </script>
+<script>
+// حدث FormStart: أول كتابة/اختيار فعلي في نموذج الطلب داخل السلة
+(function(){var done=false;function h(e){if(done)return;var t=e.target;if(!t||!/^(customerName|customerPhone|wilaya|address)$/.test(t.id))return;done=true;try{if(window.bazarTrackEvent)window.bazarTrackEvent("FormStart",{content_name:(typeof cart!=="undefined"&&cart.length)?cart.map(function(x){return x.name}).join(", "):""});}catch(_e){}}document.addEventListener("input",h);document.addEventListener("change",h);})();
+</script>
 </body>
 </html>
