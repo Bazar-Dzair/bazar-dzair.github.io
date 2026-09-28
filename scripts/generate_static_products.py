@@ -1032,6 +1032,9 @@ home = home_index_path.read_text(encoding='utf-8')
 home = inject_between_markers(home, '<!--SSG:PRODUCTS_START-->', '<!--SSG:PRODUCTS_END-->', home_products_html)
 home = inject_between_markers(home, '<!--SSG:CATS_START-->', '<!--SSG:CATS_END-->', home_cats_html)
 home = inject_between_markers(home, '<!--SSG:FEATURED_START-->', '<!--SSG:FEATURED_END-->', home_featured_html)
+# قسم «عروض مختارة»: مخفي افتراضيًا (لا مساحة فارغة قبل تحميل البيانات)، ويظهر فقط إن وُجدت منتجات مميّزة
+home = re.sub(r'(id="featuredProductsSection")(?: style="display:none")?',
+              lambda m: m.group(1) + ('' if home_featured_html else ' style="display:none"'), home, count=1)
 home = inject_between_markers(home, '<!--SSG:LATEST_START-->', '<!--SSG:LATEST_END-->', home_latest_html)
 home = inject_between_markers(home, '<!--SSG:HCATS_START-->', '<!--SSG:HCATS_END-->', home_hcats_html)
 
