@@ -463,7 +463,7 @@ async function trackSiteVisit(dbInst,doc,setDoc,increment,serverTimestamp){
     showVisitBadge("counted","site");
   }catch(e){console.warn("Visit tracking failed",e);}
 }
-// تُصبح true فور وصول أول دفعة بيانات حقيقية من Firestore الفوري (onSnapshot)،
+// تُصبح true فور وصول أول دفعة بيانات حقيقية من قراءة Firestore الكاملة (getDocs)،
 // لمنع أي استجابة REST سريعة متأخرة من الكتابة فوق بيانات أحدث وصلت بالفعل.
 let realtimeProductsLoaded = false;
 let realtimeCategoriesLoaded = false;
@@ -962,9 +962,15 @@ function loadLocalCatalogFirst(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",loadLocalCatalogFirst);
 else loadLocalCatalogFirst();
 
-// ===== المصدر الوحيد للمنتجات: Firestore (Realtime onSnapshot) =====
-// المنتجات تُقرأ مباشرة من Firestore في الوقت الحقيقي. لا يوجد LocalStorage للمنتجات،
-// ولا بيانات ثابتة، ولا إخفاء بالـ CSS. أي حذف في Firestore يعكسه هذا الـ listener فورًا.
+// ===== المصدر الوحيد للمنتجات: Firestore (قراءة واحدة عبر getDocs) =====
+// المنتجات تُقرأ من Firestore عند تحميل الصفحة. لا يوجد LocalStorage للمنتجات،
+// ولا بيانات ثابتة، ولا إخفاء بالـ CSS.
+// إصلاح أداء (28/09/2026): كان onSnapshot يفتح قناة Listen/Write دائمة مع Firestore
+// (WebChannel) تبقى مفتوحة طوال الزيارة — وهي سبب رئيسي في سلسلة الشبكة الحرجة الطويلة
+// (حتى 11.5 ثانية) وأكثر من 500 كيلوبايت من طلبات "Listen/channel" التي ظهرت في تقرير
+// PageSpeed. الاستبدال بقراءة واحدة (getDocs) يعطي نفس القائمة الكاملة عند التحميل، لكن
+// بدون فتح اتصال دائم؛ الثمن الوحيد: تغييرات المنتجات/التصنيفات في لوحة التحكم لن تظهر على
+// الواجهة إلا بعد إعادة تحميل الصفحة (نفس المنطق المقبول أصلاً في نظام SSG كل 6 ساعات).
 // إذا فشل تحميل SDK Firebase تُستخدم الواجهة REST كخطة احتياطية مباشرة (بدون كاش قديم).
 (async function initStoreFirestore(){
   function mapSnap(d,i){
@@ -999,7 +1005,7 @@ else loadLocalCatalogFirst();
   try{
     const {initializeApp}=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
     const firestore=await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js");
-    const {getFirestore,initializeFirestore,memoryLocalCache,collection,onSnapshot,getDocs,query,orderBy,limit,doc,setDoc,increment,serverTimestamp}=firestore;
+    const {getFirestore,initializeFirestore,memoryLocalCache,collection,getDocs,query,orderBy,limit,doc,setDoc,increment,serverTimestamp}=firestore;
     const app=initializeApp(firebaseConfig);
     // ذاكرة مؤقتة داخل الصفحة فقط (لا IndexedDB): الذاكرة الدائمة كانت تُعيد أول لقطة من نسخة قديمة
     // فيها منتجات حُذفت، فتظهر ثم تختفي عند وصول بيانات الخادم.
@@ -1010,7 +1016,7 @@ else loadLocalCatalogFirst();
     // قراءة واحدة (وليست مباشرة/Live) لآخر 24 منتجًا فقط، تُعرض فورًا قبل اكتمال تحميل الكتالوج الكامل بالأسفل.
     // الهدف تقليل وقت ظهور أول منتجات على شبكات 3G/4G الضعيفة، دون المساس بالبحث أو التصنيفات
     // التي تبقى تعتمد على القائمة الكاملة حال وصولها. لا يُعتمد عليها للحذف (fromCache/التزامن الحي) إطلاقًا،
-    // فقط لعرض أولي مؤقت يُستبدل تلقائيًا بأول لقطة حقيقية من onSnapshot أدناه.
+    // فقط لعرض أولي مؤقت يُستبدل تلقائيًا بأول لقطة حقيقية من القراءة الكاملة أدناه.
     const FIRST_PAINT_PRODUCTS_LIMIT=24;
     getDocs(query(collection(db,"products"),orderBy("createdAt","desc"),limit(FIRST_PAINT_PRODUCTS_LIMIT)))
       .then(fastSnap=>{
@@ -1018,22 +1024,20 @@ else loadLocalCatalogFirst();
         if(realtimeProductsLoaded) return;
         applyProductsList(fastSnap.docs.map(mapSnap));
       })
-      .catch(()=>{/* فشل القراءة السريعة لا يوقف شيئًا: onSnapshot الكامل أدناه يكمل المهمة كالمعتاد */});
-    onSnapshot(collection(db,"products"),{includeMetadataChanges:true},snap=>{
-      // لا نعرض أبدًا لقطة قادمة من الكاش (fromCache): قد تحوي منتجات حُذفت. ننتظر لقطة الخادم المؤكَّدة.
-      if(snap.metadata.fromCache) return;
+      .catch(()=>{/* فشل القراءة السريعة لا يوقف شيئًا: القراءة الكاملة أدناه تكمل المهمة كالمعتاد */});
+    getDocs(collection(db,"products")).then(snap=>{
       realtimeProductsLoaded=true;
       applyProductsList(snap.docs.map(mapSnap));
-    },async error=>{
-      console.warn("Realtime products sync failed; REST fallback",error);
+    }).catch(async error=>{
+      console.warn("Products read failed; REST fallback",error);
       const ok=await loadProductsFromFirestore();
       if(!ok){products=[];displayProducts();}
       renderHomeHighlights();
     });
-    onSnapshot(collection(db,"categories"),snap=>{
+    getDocs(collection(db,"categories")).then(snap=>{
       applyStoreCategories(snap.docs.map(d=>({key:d.id,...(d.data()||{})})));
       realtimeCategoriesLoaded=true;
-    },error=>{const box=document.getElementById("storeCategories");if(box)box.innerHTML='<div class="cat"><i>⚠️</i>'+escapeHtml(BazarI18n.t("drawer_error"))+'</div>';});
+    }).catch(error=>{const box=document.getElementById("storeCategories");if(box)box.innerHTML='<div class="cat"><i>⚠️</i>'+escapeHtml(BazarI18n.t("drawer_error"))+'</div>';});
   }catch(error){
     console.warn("Firebase SDK init failed; REST fallback",error);
     const ok=await loadProductsFromFirestore();
@@ -1509,14 +1513,19 @@ function lpDesc(tp){
   return d.length>110?d.slice(0,110).trim()+"…":d;
 }
 
-function latestCardHtml(p){
+function latestCardHtml(p,i){
   const T=k=>esc(BazarI18n.t(k));
   const tp=BazarI18n.translateProduct(p);
   const ok=lpAvailable(p);
   const name=esc(tp.name);
+  // إصلاح أداء (28/09/2026): كانت كل صور هذا الكاروسيل loading="lazy"، بما فيها البطاقة الأولى
+  // التي تظهر فور التحميل بلا تمرير — وهي غالبًا عنصر LCP الفعلي على الجوال حسب تقرير PageSpeed.
+  // البطاقة الأولى فقط (i===0) تُحمَّل الآن مباشرة مع fetchpriority="high"؛ الباقي يبقى lazy كالمعتاد.
+  const eager=i===0;
+  const imgAttrs=eager?'loading="eager" decoding="sync" fetchpriority="high"':'loading="lazy" decoding="async"';
   // بطاقة مبسّطة: صورة + عنوان + سعر فقط. الضغط على أي جزء منها يفتح صفحة المنتج.
   return `<article class="lp-card${ok?"":" lp-off"}" role="group" aria-roledescription="slide" data-act="open" data-pid="${p.id}">`
-    +`<a class="lp-media" href="#" data-act="open" data-pid="${p.id}" tabindex="-1" aria-hidden="true"><span class="lp-badge${ok?"":" off"}">${T(ok?"badge_new":"badge_unavailable")}</span><img src="${safeImg(p.image)}" alt="" loading="lazy" decoding="async" draggable="false"></a>`
+    +`<a class="lp-media" href="#" data-act="open" data-pid="${p.id}" tabindex="-1" aria-hidden="true"><span class="lp-badge${ok?"":" off"}">${T(ok?"badge_new":"badge_unavailable")}</span><img src="${safeImg(p.image)}" alt="" ${imgAttrs} draggable="false"></a>`
     +`<div class="lp-body"><h3 class="lp-name"><a href="#" data-act="open" data-pid="${p.id}">${name}</a></h3>`
     +`<div class="lp-price">${pcPriceHtml(p)}</div></div></article>`;
 }
