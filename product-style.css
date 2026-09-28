@@ -668,3 +668,5 @@ html[lang="fr"] .sim-track{direction:ltr}
 .rp:hover .rp-count{color:var(--orange);text-decoration-color:var(--orange)}
 @media(max-width:560px){.rp{padding:6px 12px;gap:7px;margin-bottom:11px}.rp-stars{font-size:15px}.rp-value{font-size:14.5px}.rp-count{font-size:12px}}
 h1.title{unicode-bidi:plaintext;text-align:center}
+/* عنوان المنتج بالعربية: محاذاة لليمين دائمًا (حتى لو بدأ الاسم بحروف لاتينية مثل Kemei). النسخة الفرنسية تبقى LTR عبر القاعدة الخاصة بها أعلاه */
+html:not([lang="fr"]) h1.title{direction:rtl;unicode-bidi:isolate;text-align:right}
