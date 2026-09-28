@@ -237,6 +237,38 @@ def raw_image_of(p):
     return next((str(x) for x in imgs if x), str(p.get('image') or p.get('imageUrl') or p.get('photo') or SITE+'logo.svg'))
 
 
+def schema_availability(p_or_data, available=True):
+    """InStock/OutOfStock حسب المخزون الحقيقي (نفس منطق home_is_available): مخزون رقمي <= 0 أو غير منشور = OutOfStock."""
+    stock = (p_or_data or {}).get('stock') if isinstance(p_or_data, dict) else None
+    try:
+        stock_num = float(stock) if stock not in (None, '') else None
+    except (TypeError, ValueError):
+        stock_num = None
+    ok = bool(available) and not (stock_num is not None and stock_num <= 0)
+    return 'https://schema.org/InStock' if ok else 'https://schema.org/OutOfStock'
+
+
+MAIN_WIDTHS = (480, 640, 800, 1000)
+MAIN_SIZES = '(max-width:900px) calc(100vw - 28px), 560px'
+
+
+def cld_w(u, w):
+    """نفس رابط Cloudinary لكن بعرض محدد (w_<w>,c_limit) — فقط للروابط بالشكل المعروف، وإلا يُعاد الرابط كما هو."""
+    if not isinstance(u, str) or not re.search(r'res\.cloudinary\.com/.+?/image/upload/(?:f_auto,q_auto/)?v\d+/', u):
+        return u
+    return re.sub(r'/image/upload/(?:f_auto,q_auto/)?', f'/image/upload/f_auto,q_auto,w_{w},c_limit/', u, count=1)
+
+
+def main_img_attrs(u):
+    """src/srcset/sizes/width/height لصورة المنتج الرئيسية (عنصر LCP): بدل الصورة الأصلية كاملة الدقة."""
+    src = cld_w(u, 800)
+    if src == u:
+        return f'src="{html.escape(u, quote=True)}"'
+    srcset = ', '.join(f'{cld_w(u, w)} {w}w' for w in MAIN_WIDTHS)
+    return (f'src="{html.escape(src, quote=True)}" srcset="{html.escape(srcset, quote=True)}" '
+            f'sizes="{html.escape(MAIN_SIZES, quote=True)}" width="800" height="800"')
+
+
 def image_of(p, width=None):
     return cld_opt(raw_image_of(p), width=width)
 
@@ -366,12 +398,12 @@ def static_product_html(name, desc, price, images, available=True, badge=None, o
     # always has, untouched.
     imgs = [i for i in images if i] or ['/logo.svg']
     thumbs = ''.join(
-        f'<button class="thumb{" active" if i==0 else ""}"><img src="{html.escape(im,quote=True)}" alt="{html.escape(name,quote=True)} {i+1}" loading="lazy"></button>'
+        f'<button class="thumb{" active" if i==0 else ""}"><img src="{html.escape(cld_w(im,160),quote=True)}" width="76" height="76" alt="{html.escape(name,quote=True)} {i+1}" loading="lazy" decoding="async"></button>'
         for i, im in enumerate(imgs)
     )
     photo_wrap = (
         f'<div class="photo-wrap"><div class="main-photo-box">'
-        f'<img class="photo" src="{html.escape(imgs[0],quote=True)}" alt="{html.escape(name,quote=True)}">'
+        f'<img class="photo" {main_img_attrs(imgs[0])} fetchpriority="high" decoding="async" alt="{html.escape(name,quote=True)}">'
         f'<span class="gallery-count">1 / {len(imgs)}</span></div>'
         f'<div class="thumbs">{thumbs}</div></div>'
     )
@@ -482,7 +514,7 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
     if hreflang_fr_url:
         # canonical العربي يبقى كما هو تمامًا؛ نضيف فقط وسوم hreflang بعده مباشرة.
         canonical_tag+=hreflang_tags(url, hreflang_fr_url)
-    ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':(desc or '')[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':price_number(price),'availability':'https://schema.org/InStock'}}
+    ld={'@context':'https://schema.org','@type':'Product','name':name,'image':list(dict.fromkeys([img]+[i for i in (images or []) if i]))[:6],'description':(desc or '')[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':price_number(price),'availability':schema_availability(static_product_data, available),'seller':{'@type':'Organization','name':'Bazar Dzair'}}}
     if price_valid_until:
         ld['offers']['priceValidUntil']=price_valid_until
     # aggregateRating فقط عند وجود تقييمات زبائن حقيقية منشورة فعلاً لهذا المنتج (rating_index)؛
@@ -549,12 +581,12 @@ def static_product_html_fr(name_fr, desc_fr, price, images, available=True, badg
     # أي شيء في product.html أو في صفحة المنتج العربية الحالية.
     imgs = [i for i in images if i] or ['/logo.svg']
     thumbs = ''.join(
-        f'<button class="thumb{" active" if i==0 else ""}"><img src="{html.escape(im,quote=True)}" alt="{html.escape(name_fr,quote=True)} {i+1}" loading="lazy"></button>'
+        f'<button class="thumb{" active" if i==0 else ""}"><img src="{html.escape(cld_w(im,160),quote=True)}" width="76" height="76" alt="{html.escape(name_fr,quote=True)} {i+1}" loading="lazy" decoding="async"></button>'
         for i, im in enumerate(imgs)
     )
     photo_wrap = (
         f'<div class="photo-wrap"><div class="main-photo-box">'
-        f'<img class="photo" src="{html.escape(imgs[0],quote=True)}" alt="{html.escape(name_fr,quote=True)}">'
+        f'<img class="photo" {main_img_attrs(imgs[0])} fetchpriority="high" decoding="async" alt="{html.escape(name_fr,quote=True)}">'
         f'<span class="gallery-count">1 / {len(imgs)}</span></div>'
         f'<div class="thumbs">{thumbs}</div></div>'
     )
@@ -627,7 +659,7 @@ def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images
         # x-default هنا يبقى النسخة العربية (نفس منطق الصفحة العربية) حتى تكون
         # الإشارة متبادلة ومتطابقة تمامًا في الصفحتين.
         canonical_tag+=hreflang_tags(hreflang_ar_url, url_fr)
-    ld={'@context':'https://schema.org','@type':'Product','name':name_fr,'image':[img],'description':(desc_fr or '')[:500],'url':url_fr,'offers':{'@type':'Offer','url':url_fr,'priceCurrency':'DZD','price':price_number(price),'availability':'https://schema.org/InStock'}}
+    ld={'@context':'https://schema.org','@type':'Product','name':name_fr,'image':list(dict.fromkeys([img]+[i for i in (images or []) if i]))[:6],'description':(desc_fr or '')[:500],'url':url_fr,'offers':{'@type':'Offer','url':url_fr,'priceCurrency':'DZD','price':price_number(price),'availability':schema_availability(static_product_data, available),'seller':{'@type':'Organization','name':'Bazar Dzair'}}}
     if price_valid_until:
         ld['offers']['priceValidUntil']=price_valid_until
     if aggregate_rating:
@@ -724,7 +756,7 @@ for p in products:
     price=float(p.get('price') or 0)
     img=image_of(p)
     cat_id=str(p.get('category') or '')
-    ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':desc[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':price_number(price),'availability':'https://schema.org/InStock'}}
+    ld={'@context':'https://schema.org','@type':'Product','name':name,'image':[img],'description':desc[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':price_number(price),'availability':schema_availability(p)}}
     # Each pretty URL is a real static directory containing the functional product app.
     # SEO tags (title/description/canonical/OG/JSON-LD) are injected server-side here so every
     # product page has genuinely unique raw HTML — this is required so Google doesn't merge
@@ -814,7 +846,7 @@ for c in categories:
         price_fr_attr=f' data-price-fr="{html.escape(money_fr(p.get("price")),quote=True)}"'
         cards.append(
             f'<article class="card"{name_fr_attr}{price_fr_attr}>'
-            f'<img src="{html.escape(image_of(p, width=400),quote=True)}" alt="{html.escape(pn,quote=True)}">'
+            f'<img src="{html.escape(image_of(p, width=400),quote=True)}" width="400" height="400" alt="{html.escape(pn,quote=True)}" loading="lazy" decoding="async">'
             f'<h2>{html.escape(pn)}</h2>'
             f'<p class="price">{html.escape(money(p.get("price")))}</p>'
             f'<a class="btn" href="{html.escape(pu,quote=True)}" data-i18n="view_product">مشاهدة المنتج</a>'
