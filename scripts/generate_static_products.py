@@ -209,19 +209,24 @@ def price_number(x):
     return int(v) if v == int(v) else v
 
 
-def cld_opt(u):
+def cld_opt(u, width=None):
     # يضيف f_auto,q_auto (صيغة وجودة تلقائيتان حسب الجهاز/المتصفح، عادة WebP/AVIF
     # مضغوطة دون فرق يُلاحظ بالعين) لروابط Cloudinary فقط — لا يمس أي رابط آخر
     # (مثل /logo.svg)، ولا يكرر الإضافة لو كانت موجودة أصلاً في الرابط.
+    # إصلاح أداء (28/09/2026): معامل width اختياري جديد — يضيف w_<width>,c_limit,dpr_auto
+    # (لا يتجاوز هذا العرض، ولا يكبّر الصور الأصغر، مع وضوح على شاشات retina عبر dpr_auto).
+    # لا يُستعمل حاليًا إلا لبطاقات الصفحة الرئيسية (انظر homepage_product_card)؛ صفحة
+    # المنتج والبيانات المنظّمة (JSON-LD) تبقى بدون تحديد عرض كما كانت، بلا أي تغيير سلوك.
     if not isinstance(u,str) or 'res.cloudinary.com' not in u:
         return u
-    return re.sub(r'/image/upload/(?!f_auto)', '/image/upload/f_auto,q_auto/', u, count=1)
+    transform='f_auto,q_auto'+(f',w_{width},c_limit,dpr_auto' if width else '')
+    return re.sub(r'/image/upload/(?!f_auto)', f'/image/upload/{transform}/', u, count=1)
 
 
-def image_of(p):
+def image_of(p, width=None):
     imgs=p.get('images') if isinstance(p.get('images'),list) else []
     raw=next((str(x) for x in imgs if x), str(p.get('image') or p.get('imageUrl') or p.get('photo') or SITE+'logo.svg'))
-    return cld_opt(raw)
+    return cld_opt(raw, width=width)
 
 
 def is_published(p):
@@ -745,7 +750,7 @@ for c in categories:
         price_fr_attr=f' data-price-fr="{html.escape(money_fr(p.get("price")),quote=True)}"'
         cards.append(
             f'<article class="card"{name_fr_attr}{price_fr_attr}>'
-            f'<img src="{html.escape(image_of(p),quote=True)}" alt="{html.escape(pn,quote=True)}">'
+            f'<img src="{html.escape(image_of(p, width=400),quote=True)}" alt="{html.escape(pn,quote=True)}">'
             f'<h2>{html.escape(pn)}</h2>'
             f'<p class="price">{html.escape(money(p.get("price")))}</p>'
             f'<a class="btn" href="{html.escape(pu,quote=True)}" data-i18n="view_product">مشاهدة المنتج</a>'
@@ -840,7 +845,7 @@ def homepage_product_card(url, name, price, img):
 
 HOME_MAX_PRODUCTS = 12
 home_products_html = ''.join(
-    homepage_product_card(u, pn, float(p.get('price') or 0), image_of(p))
+    homepage_product_card(u, pn, float(p.get('price') or 0), image_of(p, width=400))
     for u, pn, p, _slug in product_urls[:HOME_MAX_PRODUCTS]
 )
 
