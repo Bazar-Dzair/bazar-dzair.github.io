@@ -860,10 +860,98 @@ home_cats_html = ''.join(
     for c in home_cats_sorted
 )
 
+# ===================== محتوى ثابت لأقسام الصفحة الرئيسية الثلاثة (تسوّق حسب الفئة /
+# عروض مختارة / وصل حديثًا) — إصلاح CLS (28/09/2026) =====================
+# قبل هذا كانت هذه الأقسام الثلاثة تُبنى بالكامل عبر JS بعد وصول Firestore، فتقفز من
+# ارتفاع صفر إلى الارتفاع الكامل دفعة واحدة (CLS مرتفع جدًا في تقرير PageSpeed). نحقن هنا
+# نفس المحتوى (نفس بيانات product_urls/categories المستعملة أعلاه لصفحات SEO) بين علامات
+# SSG مخصّصة في index.html، بنفس بنية القوالب التي يبنيها productCardHtml/latestCardHtml/
+# hcat-card في JS — فيظهر محتوى حقيقي بنفس الحجم تقريبًا فور التحميل، والـJS يستبدله بصمت
+# بمجرد وصول البيانات الحيّة (سلوك تفاعلي كما هو، فقط لحظة الوصول الأولى لم تعد فارغة).
+HCAT_ICON_COLORS = ['#ffe3d1', '#fdf0c8', '#dceaff', '#fbdce7', '#dcf5e3', '#e6dcfb']
+
+
+def home_is_available(p):
+    stock = p.get('stock')
+    try:
+        stock_num = float(stock) if stock not in (None, '') else None
+    except (TypeError, ValueError):
+        stock_num = None
+    return p.get('published') is not False and not (stock_num is not None and stock_num <= 0)
+
+
+def home_price_html(price, old_price):
+    discount_html = ''
+    try:
+        old_p = float(old_price) if old_price not in (None, '', 0, '0') else None
+    except (TypeError, ValueError):
+        old_p = None
+    if old_p and old_p > price > 0:
+        pct = round((old_p - price) / old_p * 100)
+        if pct >= 1:
+            discount_html = (f'<span class="pc-sub"><span class="pc-old">{html.escape(money(old_p))}</span>'
+                              f'<span class="pc-off">-{pct}%</span></span>')
+    return f'<span class="pc-prices"><span class="pc-now">{html.escape(money(price))}</span>{discount_html}</span>'
+
+
+def home_latest_card_html(url, name, p, eager=False):
+    safe_url = html.escape(url, quote=True)
+    safe_name = html.escape(name, quote=True)
+    available = home_is_available(p)
+    img = image_of(p, width=360)
+    img_attrs = 'loading="eager" decoding="sync" fetchpriority="high"' if eager else 'loading="lazy" decoding="async"'
+    price = float(p.get('price') or 0)
+    old_price = p.get('oldPrice') or p.get('old_price') or p.get('compareAtPrice') or p.get('compare_at_price')
+    badge = ('<span class="lp-badge">جديد</span>' if available
+             else '<span class="lp-badge off">غير متوفر حاليًا</span>')
+    return (
+        f'<div class="lp-card{"" if available else " lp-off"}">'
+        f'<a class="lp-media" href="{safe_url}" tabindex="-1" aria-hidden="true">{badge}'
+        f'<img src="{html.escape(img, quote=True)}" alt="{safe_name}" {img_attrs}></a>'
+        f'<div class="lp-body"><h3 class="lp-name"><a href="{safe_url}" style="color:inherit;text-decoration:none">{html.escape(name)}</a></h3>'
+        f'<div class="lp-price">{home_price_html(price, old_price)}</div></div></div>'
+    )
+
+
+def home_hcat_card_html(c, i):
+    bg = HCAT_ICON_COLORS[i % len(HCAT_ICON_COLORS)]
+    href = html.escape(cat_url_map.get(str(c['_id']), SITE), quote=True)
+    icon = html.escape(str(c.get('icon') or '🛍️'))
+    name = html.escape(str(c.get('name') or ''))
+    return (
+        f'<a class="hcat-card" href="{href}" style="color:inherit;text-decoration:none">'
+        f'<span class="hcc-ic" style="background:{bg}">{icon}</span>'
+        f'<span class="hcc-name">{name}</span>'
+        f'<span class="hcc-go" aria-hidden="true">›</span></a>'
+    )
+
+
+# مميّزة: نفس منطق renderHomeHighlights في JS (featured===true، بلا ترتيب إضافي، أول 8 فقط)
+home_featured_entries = [e for e in product_urls if e[2].get('featured') is True][:HOME_HIGHLIGHT_LIMIT]
+home_featured_html = ''.join(
+    homepage_product_card(u, pn, float(p.get('price') or 0), image_of(p, width=400))
+    for u, pn, p, _slug in home_featured_entries
+)
+
+# وصل حديثًا: نفس منطق JS (ترتيب تنازلي حسب createdAt؛ الأحرف الأبجدية لتاريخ ISO تُفرز
+# صحيحًا كنص مباشرة؛ المنتجات بلا تاريخ (سلسلة فارغة) تبقى في الآخر)، أول 8 فقط
+home_latest_entries = sorted(
+    product_urls, key=lambda e: str(e[2].get('createdAt') or ''), reverse=True
+)[:HOME_HIGHLIGHT_LIMIT]
+home_latest_html = ''.join(
+    home_latest_card_html(u, pn, p, eager=(i == 0))
+    for i, (u, pn, p, _slug) in enumerate(home_latest_entries)
+)
+
+home_hcats_html = ''.join(home_hcat_card_html(c, i) for i, c in enumerate(home_cats_sorted))
+
 home_index_path = root / 'index.html'
 home = home_index_path.read_text(encoding='utf-8')
 home = inject_between_markers(home, '<!--SSG:PRODUCTS_START-->', '<!--SSG:PRODUCTS_END-->', home_products_html)
 home = inject_between_markers(home, '<!--SSG:CATS_START-->', '<!--SSG:CATS_END-->', home_cats_html)
+home = inject_between_markers(home, '<!--SSG:FEATURED_START-->', '<!--SSG:FEATURED_END-->', home_featured_html)
+home = inject_between_markers(home, '<!--SSG:LATEST_START-->', '<!--SSG:LATEST_END-->', home_latest_html)
+home = inject_between_markers(home, '<!--SSG:HCATS_START-->', '<!--SSG:HCATS_END-->', home_hcats_html)
 
 # ===================== بانر الصفحة الرئيسية (og:image / twitter:image / صورة الهيدر) =====================
 # البانر يُدار بالكامل من لوحة التحكم (settings/site → bannerUrl في Firestore)، ولم يعد الموقع
