@@ -209,6 +209,14 @@ def price_number(x):
     return int(v) if v == int(v) else v
 
 
+# جودة صور بطاقات الصفحة الرئيسية (PageSpeed «Améliorer l'affichage des images»، 28/09/2026):
+# بعد ضبط العرض عبر srcset بقي التقرير يوصي بضغط أعلى (~75 كيلوبايت)، لأن صور المنتجات مكتظة بالتفاصيل
+# والنصوص فتخرج بحجم كبير حتى مع q_auto:eco. صور البطاقات مصغّرة (≤ ~190px CSS) فيصعب ملاحظة الفرق بين
+# eco و low. قيمة واحدة هنا؛ يجب أن تبقى مطابقة لـ CARD_Q في index.html كي لا تتغير الصورة عند استبدال
+# JS للبطاقات الثابتة. للرجوع للجودة السابقة يكفي إعادتها إلى 'q_auto:eco' في الملفين.
+CARD_QUALITY = 'q_auto:low'
+
+
 def cld_opt(u, width=None):
     # يضيف f_auto,q_auto (صيغة وجودة تلقائيتان حسب الجهاز/المتصفح، عادة WebP/AVIF
     # مضغوطة دون فرق يُلاحظ بالعين) لروابط Cloudinary فقط — لا يمس أي رابط آخر
@@ -219,8 +227,8 @@ def cld_opt(u, width=None):
     # المنتج والبيانات المنظّمة (JSON-LD) تبقى بدون تحديد عرض كما كانت، بلا أي تغيير سلوك.
     if not isinstance(u,str) or 'res.cloudinary.com' not in u:
         return u
-    # بطاقات بعرض محدد (صغيرة): q_auto:eco (توفير كبير في الحجم دون فرق ملحوظ)؛ بلا عرض (صفحة المنتج/JSON-LD): q_auto كما هو.
-    transform=(f'f_auto,q_auto:eco,w_{width},c_limit' if width else 'f_auto,q_auto')
+    # بطاقات بعرض محدد (صغيرة): CARD_QUALITY (توفير كبير في الحجم دون فرق ملحوظ)؛ بلا عرض (صفحة المنتج/JSON-LD): q_auto كما هو.
+    transform=(f'f_auto,{CARD_QUALITY},w_{width},c_limit' if width else 'f_auto,q_auto')
     return re.sub(r'/image/upload/(?!f_auto)', f'/image/upload/{transform}/', u, count=1)
 
 
