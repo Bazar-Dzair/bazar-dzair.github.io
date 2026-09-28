@@ -149,7 +149,7 @@ window.BazarHomeGate=(function(){
 <aside class="drawer" id="categoryDrawer" aria-hidden="true" inert><div class="drawer-head"><h2 data-i18n="drawer_title">🗂️ الفئات</h2><button class="drawer-close" type="button" onclick="closeCategoryMenu()">×</button></div><div class="drawer-cats" id="storeCategories"><div class="cat" onclick="filterCategory('all')"><i>▦</i><span data-i18n="drawer_all">جميع الفئات</span></div><!--SSG:CATS_START--><a class="cat" href="https://bazar-dzair.github.io/product-category/outils/" style="color:inherit;text-decoration:none"><i>🛠️</i>ادوات</a><a class="cat" href="https://bazar-dzair.github.io/product-category/accessoires-et-electronique/" style="color:inherit;text-decoration:none"><i>🔋🎮</i>اكسيسوار و الكترونات</a><a class="cat" href="https://bazar-dzair.github.io/product-category/machines-a-raser/" style="color:inherit;text-decoration:none"><i>🪒</i>الات حلاقة</a><a class="cat" href="https://bazar-dzair.github.io/product-category/maison-et-cuisine/" style="color:inherit;text-decoration:none"><i>🏠</i>المنزل و المطبخ</a><a class="cat" href="https://bazar-dzair.github.io/product-category/ordinateurs-portables/" style="color:inherit;text-decoration:none"><i>💻</i>حاسوب محمول</a><a class="cat" href="https://bazar-dzair.github.io/product-category/sante-et-beaute/" style="color:inherit;text-decoration:none"><i>💄🧼</i>صحة و جمال</a><a class="cat" href="https://bazar-dzair.github.io/product-category/pieces-detachees-automobiles/" style="color:inherit;text-decoration:none"><i>🚗</i>قطع غيار سيارات</a><a class="cat" href="https://bazar-dzair.github.io/product-category/articles-pour-bebes/" style="color:inherit;text-decoration:none"><i>👶</i>مستلزمات اطفال الرضع</a><a class="cat" href="https://bazar-dzair.github.io/product-category/equipements-femme/" style="color:inherit;text-decoration:none"><i>👩</i>معدات نسوية</a><a class="cat" href="https://bazar-dzair.github.io/product-category/vetements-et-chaussures/" style="color:inherit;text-decoration:none"><i>👕</i>ملابس وأحذية</a><a class="cat" href="https://bazar-dzair.github.io/product-category/produits-d-ete/" style="color:inherit;text-decoration:none"><i>🏖️</i>منتجات صيفية</a><a class="cat" href="https://bazar-dzair.github.io/product-category/telephones/" style="color:inherit;text-decoration:none"><i>📱</i>هواتف</a><!--SSG:CATS_END--></div></aside>
 <main id="home">
 <h1 class="sr-only">Bazar Dzair | متجر إلكتروني جزائري لمنتجات متنوعة بأسعار مناسبة، توصيل سريع لجميع الولايات والدفع عند الاستلام</h1>
-<section class="hero" aria-label="العرض الرئيسي"><picture id="heroPicture"><img id="heroImg" src="https://res.cloudinary.com/ehh5xqwc/image/upload/f_auto,q_auto/v1789830417/nqiavw1ul6nc3ocbiypk.jpg" alt="Bazar Dzair - تسوق منتجات متنوعة أونلاين في الجزائر" width="412" height="154" style="aspect-ratio:412/154" fetchpriority="high"></picture></section>
+<section class="hero" aria-label="العرض الرئيسي"><picture id="heroPicture"><img id="heroImg" src="https://res.cloudinary.com/ehh5xqwc/image/upload/w_960,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg" srcset="https://res.cloudinary.com/ehh5xqwc/image/upload/w_480,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 480w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_576,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 576w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_672,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 672w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_768,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 768w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_960,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 960w, https://res.cloudinary.com/ehh5xqwc/image/upload/w_1200,c_limit,f_auto,q_auto:eco/v1789830417/nqiavw1ul6nc3ocbiypk.jpg 1200w" sizes="(max-width:800px) calc(100vw - 28px), (max-width:960px) 100vw, 960px" alt="Bazar Dzair - تسوق منتجات متنوعة أونلاين في الجزائر" width="412" height="154" style="aspect-ratio:412/154" fetchpriority="high"></picture></section>
 <script>
 /* بانر الصفحة الرئيسية — الجهة الوحيدة التي تعرضه أو تُخفيه.
    لا يُعرض شعار/اسم افتراضي مكانه أبدًا: هيكل تحميل هادئ، ثم البانر الحقيقي، أو إخفاء القسم إن لم يوجد بانر.
@@ -213,6 +213,7 @@ window.BazarHero=(function(){
     };
     img.onerror=function(){if(cur===url)clear();};
     img.src=optHero(url);
+    if(img.complete&&img.naturalWidth&&img.onload)img.onload();
   }
   function clear(){
     if(!img||!hero)return;
@@ -1020,7 +1021,15 @@ else loadLocalCatalogFirst();
 // بدء الطلب هو ما كان يُضيف الثانية الإضافية المُبلَّغ عنها. الإصلاح: تشغيله فورًا مثل باقي
 // المصادر، فيبدأ طلب REST بالتوازي مع استكمال تحليل الصفحة بدل الانتظار لحين انتهائها.
 loadFastSettings();
-loadFastCatalog();
+// تحسين الأداء (28/09/2026): طلب المنتجات (~57 KiB) خرج من المسار الحرج -- البطاقات الأولى موجودة أصلاً في HTML الثابت.
+// يبدأ التحميل بعد load أو وقت الخمول، أو فوراً عند أول تفاعل (بحث/تصفية/سكرول) أيهما أسبق.
+(function startCatalogLater(){
+  let started=false;
+  const go=()=>{if(started)return;started=true;["pointerdown","keydown","touchstart","scroll"].forEach(e=>window.removeEventListener(e,go));loadFastCatalog();};
+  ["pointerdown","keydown","touchstart","scroll"].forEach(e=>window.addEventListener(e,go,{passive:true,once:true}));
+  const idle=()=>("requestIdleCallback" in window)?requestIdleCallback(go,{timeout:2500}):setTimeout(go,1500);
+  if(document.readyState==="complete") idle(); else window.addEventListener("load",idle,{once:true});
+})();
 
 const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):((Number(n)||0).toLocaleString("en-US",{maximumFractionDigits:2}).replace(/,/g," ")+" دج");
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -1041,7 +1050,7 @@ const safeImg=u=>{const s=String(u??"").trim();if(!s)return"/logo.svg";if(/^http
 // صور متجاوبة لبطاقات الصفحة الرئيسية (PageSpeed «Améliorer l'affichage des images»، 28/09/2026): بدل صورة واحدة
 // بعرض ثابت، نُعطي المتصفح srcset + sizes فيختار العرض الأنسب لحجم البطاقة وكثافة الشاشة. مطابق لما يولّده
 // scripts/generate_static_products.py (HOME_IMG_WIDTHS / HOME_SIZES_*) كي لا تتغيّر الصورة عند استبدال JS للبطاقات الثابتة.
-const IMG_WIDTHS=[160,240,320,360,400,480,640];
+const IMG_WIDTHS=[160,240,320,400,480];
 const IMG_SIZES_GRID="(max-width:900px) calc((100vw - 38px) / 2), 228px";
 const IMG_SIZES_LATEST="(max-width:600px) 130px, 158px";
 const imgSetAttrs=(u,sizes,fallbackW)=>{
