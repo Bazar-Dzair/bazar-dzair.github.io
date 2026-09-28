@@ -245,7 +245,7 @@ def image_of(p, width=None):
 # بدل صورة واحدة بعرض ثابت (كانت أكبر من اللازم: 360px تُعرض في ~130px)، نُعطي المتصفح قائمة عروض
 # srcset + sizes فيختار الأنسب لعرض البطاقة وكثافة الشاشة (DPR). يجب أن تبقى قيم SIZES_* مطابقة
 # لعرض الصورة الفعلي في index-style.css (تكبيرها يعني تنزيل صور أكبر من اللازم، وتصغيرها صورًا ضبابية).
-HOME_IMG_WIDTHS = (160, 240, 320, 360, 400, 480, 640)
+HOME_IMG_WIDTHS = (160, 240, 320, 400, 480)
 # شبكة .products: عمودان حتى 900px (padding 14px ×2 + فجوة 10px)، ثم 4 أعمدة داخل main ≤ 960px
 HOME_SIZES_GRID = '(max-width:900px) calc((100vw - 38px) / 2), 228px'
 # بطاقات .lp-card: صورة 130px عند ≤600px، و158px فوق ذلك
@@ -262,6 +262,29 @@ def img_src_attrs(p, sizes, fallback_width):
     srcset = ', '.join(f'{u} {w}w' for u, w in candidates)
     return (f'src="{html.escape(src, quote=True)}" srcset="{html.escape(srcset, quote=True)}" '
             f'sizes="{html.escape(sizes, quote=True)}"')
+
+
+HERO_WIDTHS = (480, 576, 672, 768, 960, 1200)
+HERO_SIZES = '(max-width:800px) calc(100vw - 28px), (max-width:960px) 100vw, 960px'
+
+
+def apply_hero_responsive(text, url):
+    """يضع src/srcset/sizes النهائية للصورة الرئيسية في HTML الثابت (تطابق preload وJS)
+    كي لا تُحمَّل الصورة مرتين ولا ينتظر الـ LCP تنفيذ JavaScript."""
+    if not re.match(r'^https://res\.cloudinary\.com/', url):
+        return text
+    base = re.sub(r'(/image/upload/)w_\d+,c_limit(?:,f_auto)?(?:,q_auto(?::\w+)?)?/', r'\1', url)
+    def at(w):
+        return re.sub(r'/image/upload/(f_auto,q_auto(?::\w+)?/)?',
+                      f'/image/upload/w_{w},c_limit,f_auto,q_auto:eco/', base, count=1)
+    srcset = ', '.join(f'{at(w)} {w}w' for w in HERO_WIDTHS)
+    text = replace_tag_attr(text, 'heroImg', 'src', at(960))
+    tag_pattern = re.compile(r'<[^>]*\bid="heroImg"[^>]*>')
+    m = tag_pattern.search(text)
+    tag = m.group(0)
+    tag = re.sub(r'\s(srcset|sizes)="[^"]*"', '', tag)
+    tag = tag[:-1].rstrip() + f' srcset="{html.escape(srcset, quote=True)}" sizes="{html.escape(HERO_SIZES, quote=True)}">'
+    return text[:m.start()] + tag + text[m.end():]
 
 
 def is_published(p):
@@ -1030,6 +1053,7 @@ else:
     home = replace_tag_attr(home, 'homeOgImage', 'content', home_banner)
     home = replace_tag_attr(home, 'homeTwitterImage', 'content', home_banner)
     home = replace_tag_attr(home, 'heroImg', 'src', home_banner)
+    home = apply_hero_responsive(home, home_banner)
     print(f'Homepage banner set to: {home_banner}')
 
 home_index_path.write_text(home, encoding='utf-8')
