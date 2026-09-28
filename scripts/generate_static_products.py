@@ -831,15 +831,59 @@ def inject_between_markers(text, start_marker, end_marker, new_inner):
     return new_text
 
 
-def homepage_product_card(url, name, price, img):
+def home_is_available(p):
+    stock = p.get('stock')
+    try:
+        stock_num = float(stock) if stock not in (None, '') else None
+    except (TypeError, ValueError):
+        stock_num = None
+    return p.get('published') is not False and not (stock_num is not None and stock_num <= 0)
+
+
+def home_price_html(price, old_price):
+    discount_html = ''
+    try:
+        old_p = float(old_price) if old_price not in (None, '', 0, '0') else None
+    except (TypeError, ValueError):
+        old_p = None
+    if old_p and old_p > price > 0:
+        pct = round((old_p - price) / old_p * 100)
+        if pct >= 1:
+            discount_html = (f'<span class="pc-sub"><span class="pc-old">{html.escape(money(old_p))}</span>'
+                              f'<span class="pc-off">-{pct}%</span></span>')
+    return f'<span class="pc-prices"><span class="pc-now">{html.escape(money(price))}</span>{discount_html}</span>'
+
+
+def homepage_product_card(url, name, price, img, p=None):
+    # نفس بنية productCardHtml في index.html (الصورة + الاسم + السعر + سطر التوصيل + الأزرار) وبنفس
+    # الارتفاع تقريبًا، كي لا تقفز الصفحة (CLS) عند استبدال JS لهذه البطاقات بالبطاقات الحيّة.
+    # الأزرار هنا روابط عادية إلى صفحة المنتج (تعمل بلا JS)، ويستبدلها JS بالأزرار التفاعلية.
+    p = p or {}
+    available = home_is_available(p)
+    old_price = p.get('oldPrice') or p.get('old_price') or p.get('compareAtPrice') or p.get('compare_at_price')
     safe_url = html.escape(url, quote=True)
     safe_name = html.escape(name, quote=True)
+    badge = '' if available else '<span class="new" style="background:#9aa1ab">غير متوفر</span>'
+    img_style = '' if available else ' style="filter:grayscale(60%);opacity:.75"'
+    if available:
+        meta = '<div class="pc-meta"><span aria-hidden="true">\U0001f69a</span> متوفر للتوصيل</div>'
+        actions = (
+            f'<a class="btn buybtn" href="{safe_url}" style="text-decoration:none">\u26a1 اطلب الآن</a>'
+            f'<a class="btn cartbtn" href="{safe_url}" aria-label="إضافة إلى السلة" title="إضافة إلى السلة" '
+            f'style="text-decoration:none"><span class="plus">+</span></a>'
+        )
+    else:
+        meta = ''
+        actions = ('<button class="btn buybtn" disabled style="opacity:.55;cursor:not-allowed">'
+                   'غير متوفر حاليًا</button>')
     return (
-        f'<article class="product"><a class="pic" href="{safe_url}" aria-label="{safe_name}" '
-        f'style="display:block;color:inherit;text-decoration:none">'
-        f'<img src="{html.escape(img, quote=True)}" alt="{safe_name}" loading="lazy" decoding="async"></a>'
+        f'<article class="product{"" if available else " unavailable"}">'
+        f'<a class="pic" href="{safe_url}" aria-label="{safe_name}" '
+        f'style="display:block;color:inherit;text-decoration:none">{badge}'
+        f'<img src="{html.escape(img, quote=True)}" alt="{safe_name}" loading="lazy" decoding="async"{img_style}></a>'
         f'<div class="info"><a class="name" href="{safe_url}" style="color:inherit;text-decoration:none">{html.escape(name)}</a>'
-        f'<div class="price">{html.escape(money(price))}</div></div></article>'
+        f'<div class="price">{home_price_html(price, old_price)}</div>{meta}'
+        f'<div class="buttons">{actions}</div></div></article>'
     )
 
 
@@ -848,7 +892,7 @@ HOME_MAX_PRODUCTS = 12
 # المعرَّف في index.html (JS) حتى لا يختلف المحتوى الثابت عن المحتوى الذي يبنيه المتصفح.
 HOME_HIGHLIGHT_LIMIT = 8
 home_products_html = ''.join(
-    homepage_product_card(u, pn, float(p.get('price') or 0), image_of(p, width=400))
+    homepage_product_card(u, pn, float(p.get('price') or 0), image_of(p, width=400), p)
     for u, pn, p, _slug in product_urls[:HOME_MAX_PRODUCTS]
 )
 
@@ -872,29 +916,6 @@ home_cats_html = ''.join(
 # hcat-card في JS — فيظهر محتوى حقيقي بنفس الحجم تقريبًا فور التحميل، والـJS يستبدله بصمت
 # بمجرد وصول البيانات الحيّة (سلوك تفاعلي كما هو، فقط لحظة الوصول الأولى لم تعد فارغة).
 HCAT_ICON_COLORS = ['#ffe3d1', '#fdf0c8', '#dceaff', '#fbdce7', '#dcf5e3', '#e6dcfb']
-
-
-def home_is_available(p):
-    stock = p.get('stock')
-    try:
-        stock_num = float(stock) if stock not in (None, '') else None
-    except (TypeError, ValueError):
-        stock_num = None
-    return p.get('published') is not False and not (stock_num is not None and stock_num <= 0)
-
-
-def home_price_html(price, old_price):
-    discount_html = ''
-    try:
-        old_p = float(old_price) if old_price not in (None, '', 0, '0') else None
-    except (TypeError, ValueError):
-        old_p = None
-    if old_p and old_p > price > 0:
-        pct = round((old_p - price) / old_p * 100)
-        if pct >= 1:
-            discount_html = (f'<span class="pc-sub"><span class="pc-old">{html.escape(money(old_p))}</span>'
-                              f'<span class="pc-off">-{pct}%</span></span>')
-    return f'<span class="pc-prices"><span class="pc-now">{html.escape(money(price))}</span>{discount_html}</span>'
 
 
 def home_latest_card_html(url, name, p, eager=False):
@@ -932,7 +953,7 @@ def home_hcat_card_html(c, i):
 # مميّزة: نفس منطق renderHomeHighlights في JS (featured===true، بلا ترتيب إضافي، أول 8 فقط)
 home_featured_entries = [e for e in product_urls if e[2].get('featured') is True][:HOME_HIGHLIGHT_LIMIT]
 home_featured_html = ''.join(
-    homepage_product_card(u, pn, float(p.get('price') or 0), image_of(p, width=400))
+    homepage_product_card(u, pn, float(p.get('price') or 0), image_of(p, width=400), p)
     for u, pn, p, _slug in home_featured_entries
 )
 
