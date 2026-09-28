@@ -155,6 +155,16 @@
      التصنيف/البحث مستثناة). أثناء الانتظار يبقى هيكل التحميل (shimmer) ظاهرًا مكان البانر. */
   #home .home-highlights,#home #products { transition:opacity .25s ease; }
   html.home-gate #home .home-highlights,html.home-gate #home #products { opacity:0; pointer-events:none; }
+  /* إصلاح أداء (28/09/2026): كانت أقسام "الفئات/العروض/وصل حديثًا" بـ display:none في HTML
+     إلى أن يملأها JS، فيقفز ارتفاعها من صفر إلى الحجم الكامل دفعة واحدة عند وصول البيانات —
+     وهذا هو السبب الرئيسي لقيمة CLS المرتفعة (1.454) في تقرير PageSpeed. الآن display:none
+     أُزيل من HTML (يبقى JS يضيفه فقط إذا تبيّن أن القسم فارغ فعلًا)، ونحجز هنا مساحة تقريبية
+     أثناء الفراغ (:empty) كي لا يتغيّر الارتفاع حين تصل البيانات؛ الإخفاء البصري أثناء التحميل
+     يبقى من مهمة home-gate (opacity أعلاه). القيم تقريبية لعرض جوال معتاد ويمكن تعديلها لاحقًا
+     إذا أظهر تقرير PageSpeed التالي أي فارق متبقٍ. */
+  #featuredProductGrid:empty{min-height:380px}
+  #latestProductGrid:empty{min-height:270px}
+  #homeCategoriesGrid:empty{min-height:74px}
   html.home-gate #home .hero { background:linear-gradient(100deg,#eef1f5 30%,#f8fafc 50%,#eef1f5 70%) 0 0/200% 100%; animation:heroShimmer 1.4s linear infinite; }
   html.home-gate #home .hero img { opacity:0!important; }
   @media (prefers-reduced-motion:reduce) { #home .home-highlights,#home #products { transition:none; } html.home-gate #home .hero { animation:none; } }
