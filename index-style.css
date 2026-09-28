@@ -170,7 +170,10 @@
   #latestProductGrid:empty{min-height:270px}
   #homeCategoriesGrid:empty{min-height:74px}
   html.home-gate #home .hero { background:linear-gradient(100deg,#eef1f5 30%,#f8fafc 50%,#eef1f5 70%) 0 0/200% 100%; animation:heroShimmer 1.4s linear infinite; }
-  html.home-gate #home .hero img { opacity:0!important; }
+  /* إصلاح LCP (28/09/2026): كانت هذه القاعدة تُخفي صورة البانر (opacity:0!important) طوال فترة home-gate، أي حتى تصل
+     المنتجات والفئات من Firestore، فيُسجَّل LCP متأخرًا بحوالي 2.4 ثانية (Element render delay) رغم أن الصورة نفسها
+     حُمّلت في أقل من 300ms. البانر لا يعتمد على بيانات المنتجات، فيظهر الآن فور تحميله (.hero.is-ready)؛
+     ويبقى home-gate يخفي أقسام الفئات/المنتجات فقط كما كان. */
   @media (prefers-reduced-motion:reduce) { #home .home-highlights,#home #products { transition:none; } html.home-gate #home .hero { animation:none; } }
   @keyframes heroShimmer { to { background-position:-200% 0; } }
   @media (prefers-reduced-motion:reduce) { .hero:not(.is-ready) { animation:none; } .hero img { transition:none; } }
