@@ -162,7 +162,11 @@
      أثناء الفراغ (:empty) كي لا يتغيّر الارتفاع حين تصل البيانات؛ الإخفاء البصري أثناء التحميل
      يبقى من مهمة home-gate (opacity أعلاه). القيم تقريبية لعرض جوال معتاد ويمكن تعديلها لاحقًا
      إذا أظهر تقرير PageSpeed التالي أي فارق متبقٍ. */
-  #featuredProductGrid:empty{min-height:380px}
+  /* تصحيح (28/09/2026): الشبكة على الجوال بعمودين (900px/560px)، وقد تصل حتى 8 منتجات
+     مميزة (HOME_HIGHLIGHT_LIMIT) أي حتى 4 صفوف — 380px (صف واحد فقط) كانت غير كافية إطلاقًا،
+     فاستمر تقرير PageSpeed يسجّل CLS مرتفعًا. نرفع التقدير إلى صفّين تقريبًا كحل وسط: لا نفرغ
+     مساحة أقل مما يلزم غالبًا، ولا نبالغ لدرجة حجز شاشة كاملة حين تكون المنتجات المميزة قليلة. */
+  #featuredProductGrid:empty{min-height:680px}
   #latestProductGrid:empty{min-height:270px}
   #homeCategoriesGrid:empty{min-height:74px}
   html.home-gate #home .hero { background:linear-gradient(100deg,#eef1f5 30%,#f8fafc 50%,#eef1f5 70%) 0 0/200% 100%; animation:heroShimmer 1.4s linear infinite; }
