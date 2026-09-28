@@ -219,7 +219,8 @@ def cld_opt(u, width=None):
     # المنتج والبيانات المنظّمة (JSON-LD) تبقى بدون تحديد عرض كما كانت، بلا أي تغيير سلوك.
     if not isinstance(u,str) or 'res.cloudinary.com' not in u:
         return u
-    transform='f_auto,q_auto'+(f',w_{width},c_limit' if width else '')
+    # بطاقات بعرض محدد (صغيرة): q_auto:eco (توفير كبير في الحجم دون فرق ملحوظ)؛ بلا عرض (صفحة المنتج/JSON-LD): q_auto كما هو.
+    transform=(f'f_auto,q_auto:eco,w_{width},c_limit' if width else 'f_auto,q_auto')
     return re.sub(r'/image/upload/(?!f_auto)', f'/image/upload/{transform}/', u, count=1)
 
 
@@ -236,7 +237,7 @@ def image_of(p, width=None):
 # بدل صورة واحدة بعرض ثابت (كانت أكبر من اللازم: 360px تُعرض في ~130px)، نُعطي المتصفح قائمة عروض
 # srcset + sizes فيختار الأنسب لعرض البطاقة وكثافة الشاشة (DPR). يجب أن تبقى قيم SIZES_* مطابقة
 # لعرض الصورة الفعلي في index-style.css (تكبيرها يعني تنزيل صور أكبر من اللازم، وتصغيرها صورًا ضبابية).
-HOME_IMG_WIDTHS = (160, 240, 320, 400, 480, 640)
+HOME_IMG_WIDTHS = (160, 240, 320, 360, 400, 480, 640)
 # شبكة .products: عمودان حتى 900px (padding 14px ×2 + فجوة 10px)، ثم 4 أعمدة داخل main ≤ 960px
 HOME_SIZES_GRID = '(max-width:900px) calc((100vw - 38px) / 2), 228px'
 # بطاقات .lp-card: صورة 130px عند ≤600px، و158px فوق ذلك
