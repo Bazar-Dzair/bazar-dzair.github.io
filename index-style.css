@@ -284,9 +284,12 @@
   .toast {
     position:fixed; bottom:22px; left:50%; transform:translate(-50%,20px); opacity:0; pointer-events:none;
     background:var(--navy); color:#fff; padding:12px 18px; border-radius:13px; box-shadow:var(--shadow);
-    transition:.25s; z-index:99;
+    transition:.25s, visibility 0s linear .25s; z-index:99;
+    /* إصلاح CLS (28/09/2026): الـ toast مخفي بـ opacity فقط، فتغيّر عرضه عند كتابة النص فيه كان يُحتسب
+       "layout shift" في PageSpeed (العنصر div#toast). visibility:hidden يُخرجه من الاحتساب وهو مخفي. */
+    visibility:hidden; width:max-content; max-width:calc(100vw - 32px);
   }
-  .toast.show { opacity:1; transform:translate(-50%,0); }
+  .toast.show { opacity:1; transform:translate(-50%,0); visibility:visible; transition:.25s, visibility 0s; }
 
   @media (max-width: 800px) {
     .topbar { font-size:11px; }
