@@ -213,20 +213,46 @@ def cld_opt(u, width=None):
     # يضيف f_auto,q_auto (صيغة وجودة تلقائيتان حسب الجهاز/المتصفح، عادة WebP/AVIF
     # مضغوطة دون فرق يُلاحظ بالعين) لروابط Cloudinary فقط — لا يمس أي رابط آخر
     # (مثل /logo.svg)، ولا يكرر الإضافة لو كانت موجودة أصلاً في الرابط.
-    # إصلاح أداء (28/09/2026): معامل width اختياري جديد — يضيف w_<width>,c_limit,dpr_auto
-    # (لا يتجاوز هذا العرض، ولا يكبّر الصور الأصغر، مع وضوح على شاشات retina عبر dpr_auto).
+    # إصلاح أداء (28/09/2026): معامل width اختياري يضيف w_<width>,c_limit (لا يكبّر الصور الأصغر).
+    # بلا dpr_auto: لا يعمل دون Client Hints على github.io؛ الكثافة تُعالَج عبر srcset (انظر img_src_attrs).
     # لا يُستعمل حاليًا إلا لبطاقات الصفحة الرئيسية (انظر homepage_product_card)؛ صفحة
     # المنتج والبيانات المنظّمة (JSON-LD) تبقى بدون تحديد عرض كما كانت، بلا أي تغيير سلوك.
     if not isinstance(u,str) or 'res.cloudinary.com' not in u:
         return u
-    transform='f_auto,q_auto'+(f',w_{width},c_limit,dpr_auto' if width else '')
+    transform='f_auto,q_auto'+(f',w_{width},c_limit' if width else '')
     return re.sub(r'/image/upload/(?!f_auto)', f'/image/upload/{transform}/', u, count=1)
 
 
-def image_of(p, width=None):
+def raw_image_of(p):
     imgs=p.get('images') if isinstance(p.get('images'),list) else []
-    raw=next((str(x) for x in imgs if x), str(p.get('image') or p.get('imageUrl') or p.get('photo') or SITE+'logo.svg'))
-    return cld_opt(raw, width=width)
+    return next((str(x) for x in imgs if x), str(p.get('image') or p.get('imageUrl') or p.get('photo') or SITE+'logo.svg'))
+
+
+def image_of(p, width=None):
+    return cld_opt(raw_image_of(p), width=width)
+
+
+# صور متجاوبة لبطاقات الصفحة الرئيسية (إصلاح PageSpeed «Améliorer l'affichage des images»، 28/09/2026):
+# بدل صورة واحدة بعرض ثابت (كانت أكبر من اللازم: 360px تُعرض في ~130px)، نُعطي المتصفح قائمة عروض
+# srcset + sizes فيختار الأنسب لعرض البطاقة وكثافة الشاشة (DPR). يجب أن تبقى قيم SIZES_* مطابقة
+# لعرض الصورة الفعلي في index-style.css (تكبيرها يعني تنزيل صور أكبر من اللازم، وتصغيرها صورًا ضبابية).
+HOME_IMG_WIDTHS = (160, 240, 320, 400, 480, 640)
+# شبكة .products: عمودان حتى 900px (padding 14px ×2 + فجوة 10px)، ثم 4 أعمدة داخل main ≤ 960px
+HOME_SIZES_GRID = '(max-width:900px) calc((100vw - 38px) / 2), 228px'
+# بطاقات .lp-card: صورة 130px عند ≤600px، و158px فوق ذلك
+HOME_SIZES_LATEST = '(max-width:600px) 130px, 158px'
+
+
+def img_src_attrs(p, sizes, fallback_width):
+    raw = raw_image_of(p)
+    src = cld_opt(raw, width=fallback_width)
+    candidates = [(cld_opt(raw, width=w), w) for w in HOME_IMG_WIDTHS]
+    # رابط غير Cloudinary (مثل logo.svg) أو رابط جاهز التحويلات: لا معنى لـ srcset، نكتفي بـ src
+    if len({u for u, _ in candidates}) < 2:
+        return f'src="{html.escape(src, quote=True)}"'
+    srcset = ', '.join(f'{u} {w}w' for u, w in candidates)
+    return (f'src="{html.escape(src, quote=True)}" srcset="{html.escape(srcset, quote=True)}" '
+            f'sizes="{html.escape(sizes, quote=True)}"')
 
 
 def is_published(p):
@@ -854,7 +880,7 @@ def home_price_html(price, old_price):
     return f'<span class="pc-prices"><span class="pc-now">{html.escape(money(price))}</span>{discount_html}</span>'
 
 
-def homepage_product_card(url, name, price, img, p=None):
+def homepage_product_card(url, name, price, img_attrs, p=None):
     # نفس بنية productCardHtml في index.html (الصورة + الاسم + السعر + سطر التوصيل + الأزرار) وبنفس
     # الارتفاع تقريبًا، كي لا تقفز الصفحة (CLS) عند استبدال JS لهذه البطاقات بالبطاقات الحيّة.
     # الأزرار هنا روابط عادية إلى صفحة المنتج (تعمل بلا JS)، ويستبدلها JS بالأزرار التفاعلية.
@@ -880,7 +906,7 @@ def homepage_product_card(url, name, price, img, p=None):
         f'<article class="product{"" if available else " unavailable"}">'
         f'<a class="pic" href="{safe_url}" aria-label="{safe_name}" '
         f'style="display:block;color:inherit;text-decoration:none">{badge}'
-        f'<img src="{html.escape(img, quote=True)}" alt="{safe_name}" loading="lazy" decoding="async"{img_style}></a>'
+        f'<img {img_attrs} alt="{safe_name}" loading="lazy" decoding="async"{img_style}></a>'
         f'<div class="info"><a class="name" href="{safe_url}" style="color:inherit;text-decoration:none">{html.escape(name)}</a>'
         f'<div class="price">{home_price_html(price, old_price)}</div>{meta}'
         f'<div class="buttons">{actions}</div></div></article>'
@@ -892,7 +918,7 @@ HOME_MAX_PRODUCTS = 12
 # المعرَّف في index.html (JS) حتى لا يختلف المحتوى الثابت عن المحتوى الذي يبنيه المتصفح.
 HOME_HIGHLIGHT_LIMIT = 8
 home_products_html = ''.join(
-    homepage_product_card(u, pn, float(p.get('price') or 0), image_of(p, width=400), p)
+    homepage_product_card(u, pn, float(p.get('price') or 0), img_src_attrs(p, HOME_SIZES_GRID, 320), p)
     for u, pn, p, _slug in product_urls[:HOME_MAX_PRODUCTS]
 )
 
@@ -922,8 +948,8 @@ def home_latest_card_html(url, name, p, eager=False):
     safe_url = html.escape(url, quote=True)
     safe_name = html.escape(name, quote=True)
     available = home_is_available(p)
-    img = image_of(p, width=360)
-    img_attrs = 'loading="eager" decoding="sync" fetchpriority="high"' if eager else 'loading="lazy" decoding="async"'
+    img_src = img_src_attrs(p, HOME_SIZES_LATEST, 240)
+    load_attrs = 'loading="eager" decoding="sync" fetchpriority="high"' if eager else 'loading="lazy" decoding="async"'
     price = float(p.get('price') or 0)
     old_price = p.get('oldPrice') or p.get('old_price') or p.get('compareAtPrice') or p.get('compare_at_price')
     badge = ('<span class="lp-badge">جديد</span>' if available
@@ -931,7 +957,7 @@ def home_latest_card_html(url, name, p, eager=False):
     return (
         f'<div class="lp-card{"" if available else " lp-off"}">'
         f'<a class="lp-media" href="{safe_url}" tabindex="-1" aria-hidden="true">{badge}'
-        f'<img src="{html.escape(img, quote=True)}" alt="{safe_name}" {img_attrs}></a>'
+        f'<img {img_src} alt="{safe_name}" {load_attrs}></a>'
         f'<div class="lp-body"><h3 class="lp-name"><a href="{safe_url}" style="color:inherit;text-decoration:none">{html.escape(name)}</a></h3>'
         f'<div class="lp-price">{home_price_html(price, old_price)}</div></div></div>'
     )
@@ -953,7 +979,7 @@ def home_hcat_card_html(c, i):
 # مميّزة: نفس منطق renderHomeHighlights في JS (featured===true، بلا ترتيب إضافي، أول 8 فقط)
 home_featured_entries = [e for e in product_urls if e[2].get('featured') is True][:HOME_HIGHLIGHT_LIMIT]
 home_featured_html = ''.join(
-    homepage_product_card(u, pn, float(p.get('price') or 0), image_of(p, width=400), p)
+    homepage_product_card(u, pn, float(p.get('price') or 0), img_src_attrs(p, HOME_SIZES_GRID, 320), p)
     for u, pn, p, _slug in home_featured_entries
 )
 
