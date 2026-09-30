@@ -406,18 +406,18 @@ window.login=async()=>{const e=emailInput.value.trim(),p=passwordInput.value;log
 window.logout=()=>signOut(auth);
 onAuthStateChanged(auth,u=>{document.body.classList.remove("auth-check");
   // 👁️ علامة bazarIsAdmin: تمنع صفحات الموقع (index.html و product.html) من احتساب
-  // زيارات الأدمن نفسه ضمن إحصائية "زوار اليوم". تُوضع فقط لحساب الأدمن الحقيقي (ADMIN_UID)
-  // وتُزال عند الخروج أو عند دخول حساب غير مصرّح له.
+  // زيارات الأدمن نفسه ضمن إحصائية "زوار اليوم". تُوضع فقط لحساب الأدمن الحقيقي (ADMIN_UID).
+  // ⚠️ لا تُزال أبدًا من هذا الملف (لا عند الخروج ولا عند فتح اللوحة بدون جلسة): كانت تُمسح سابقًا
+  // في هذه الحالات فيعود احتساب زيارات صاحب المتجر. تبقى على الجهاز حتى يمسح المتصفح بياناته.
   if(u && u.uid!==ADMIN_UID){
     // حساب Firebase صحيح لكن ليس حساب الأدمن — لا نعرض حتى هيكل اللوحة، نسجّل خروجه فورًا.
     console.error("Auth: non-admin account signed in, forcing sign-out:",u.uid);
-    try{localStorage.removeItem("bazarIsAdmin");}catch(e){}
     signOut(auth);
     appBox.classList.add("hidden");loginBox.classList.remove("hidden");
     loginErrBox.textContent="هذا الحساب غير مصرّح له بالدخول إلى لوحة التحكم.";loginErrBox.classList.remove("hidden");
     return;
   }
-  try{if(u)localStorage.setItem("bazarIsAdmin","1");else localStorage.removeItem("bazarIsAdmin");}catch(e){}
+  try{if(u)localStorage.setItem("bazarIsAdmin","1");}catch(e){}
   if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();if(window.bazarLoadFraudAlerts)window.bazarLoadFraudAlerts(true);loadVisitsStat();loadVisitsChart();loadProductViews();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
 
 // الرابط الثابت للتصنيف (/product-category/<slug>/): نفس ترتيب الأولوية في index.html و scripts/generate_static_products.py.
