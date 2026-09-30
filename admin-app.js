@@ -114,16 +114,19 @@ function loadProductViews(){
 }
 // 🌐 خريطة مصادر الزيارة (نفس المفاتيح الثابتة اللي كيكتبها detectTrafficSource فـ product.html)
 // لتحويل كل مفتاح لأيقونة + اسم عربي مختصر يبانو كـ"شارات" تحت كل منتج فلوحة التحكم.
+// شعارات SVG مضمَّنة (بدون أي طلب شبكة، وتتوافق مع CSP الحالي) لكل مصدر زيارة:
+// bg = خلفية الدائرة بلون هوية المنصة، svg = الشعار نفسه.
+const _svg=(inner)=>'<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">'+inner+'</svg>';
 const TRAFFIC_SOURCE_META={
-  facebook:{icon:"📘",label:"فيسبوك"},
-  instagram:{icon:"📸",label:"إنستغرام"},
-  tiktok:{icon:"🎵",label:"تيك توك"},
-  whatsapp:{icon:"💬",label:"واتساب"},
-  google:{icon:"🔍",label:"غوغل"},
-  snapchat:{icon:"👻",label:"سناب شات"},
-  twitter:{icon:"🐦",label:"تويتر/X"},
-  direct:{icon:"🔗",label:"مباشر"},
-  other:{icon:"🌐",label:"أخرى"}
+  facebook:{label:"فيسبوك",bg:"#1877F2",svg:_svg('<path fill="#fff" d="M14 8.5V6.9c0-.7.2-1.1 1.2-1.1H17V3.1C16.7 3.1 15.7 3 14.6 3 12.3 3 10.8 4.4 10.8 6.8v1.7H8v3h2.8V21h3.2v-9.5h2.5l.4-3H14z"/>')},
+  instagram:{label:"إنستغرام",bg:"linear-gradient(45deg,#feda75,#fa7e1e 30%,#d62976 60%,#962fbf 80%,#4f5bd5)",svg:_svg('<rect x="4" y="4" width="16" height="16" rx="4.5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.6" fill="none" stroke="#fff" stroke-width="2"/><circle cx="16.8" cy="7.2" r="1.2" fill="#fff"/>')},
+  tiktok:{label:"تيك توك",bg:"#000",svg:_svg('<path fill="#fff" transform="translate(3.6 3.6) scale(.7)" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>')},
+  whatsapp:{label:"واتساب",bg:"#25D366",svg:_svg('<path fill="#fff" fill-rule="evenodd" d="M12 3.5a8.4 8.4 0 0 0-7.2 12.7L3.6 20.5l4.4-1.2A8.4 8.4 0 1 0 12 3.5zm-2.600 4.300c.2 0 .4 0 .5.4l.8 1.900c.1.200.1.300 0 .5l-.3.400c-.2.200-.3.300-.1.600.2.300.7 1.200 1.500 1.900 1 .9 1.900 1.200 2.200 1.300.3.100.4.100.6-.1l.8-1c.2-.2.3-.2.5-.1l1.800.9c.3.100.4.200.5.300.1.200.1.700-.1 1.200-.2.500-1.100 1-1.600 1-.4.100-.9.100-1.500-.1-.3-.1-.8-.3-1.400-.5-2.500-1.100-4.100-3.600-4.200-3.800-.1-.2-1-1.300-1-2.500s.6-1.800.9-2c.2-.2.5-.3.700-.3z"/>')},
+  google:{label:"غوغل",bg:"#fff",border:"#dadce0",svg:_svg('<path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.600-.2-2.300H12v4.500h6.500c-.3 1.500-1.100 2.800-2.400 3.600v3h3.900c2.300-2.100 3.500-5.200 3.500-8.800z"/><path fill="#34A853" d="M12 24c3.200 0 6-1.100 7.900-2.900l-3.900-3c-1.100.7-2.400 1.200-4 1.200-3.100 0-5.700-2.100-6.600-4.900H1.400v3.100C3.400 21.500 7.400 24 12 24z"/><path fill="#FBBC05" d="M5.400 14.300c-.2-.7-.4-1.500-.4-2.300s.1-1.600.4-2.300V6.600H1.400C.5 8.200 0 10 0 12s.5 3.800 1.400 5.400l4-3.100z"/><path fill="#EA4335" d="M12 4.800c1.800 0 3.300.6 4.600 1.800l3.400-3.400C18 1.200 15.200 0 12 0 7.400 0 3.400 2.500 1.400 6.600l4 3.100C6.300 6.900 8.900 4.800 12 4.800z"/>')},
+  snapchat:{label:"سناب شات",bg:"#FFFC00",svg:_svg('<path fill="#fff" stroke="#000" stroke-width="1.2" stroke-linejoin="round" d="M12 3.500c-2.600 0-4.400 2-4.400 4.600v2.100c-.5.100-1 .1-1.400 0-.3-.1-.6.300-.3.600.4.400 1 .6 1.600.8-.4 1.100-1.200 2-2.300 2.500-.4.200-.4.600 0 .8.6.3 1.200.4 1.700.5.1.400.2.800.4 1.100.3.100.9-.1 1.500 0 .8.1 1.300 1.500 3.200 1.500s2.400-1.400 3.200-1.500c.6-.1 1.200.1 1.500 0 .2-.3.3-.7.4-1.100.5-.1 1.100-.2 1.700-.5.4-.2.4-.6 0-.8-1.100-.5-1.900-1.400-2.300-2.500.6-.2 1.200-.4 1.600-.8.3-.3 0-.7-.3-.6-.4.1-.9.1-1.400 0V8.100c0-2.600-1.800-4.600-4.400-4.600z"/>')},
+  twitter:{label:"تويتر/X",bg:"#000",svg:_svg('<path d="M6.500 5.500l11 13M17.500 5.500l-11 13" fill="none" stroke="#fff" stroke-width="2.200" stroke-linecap="round"/>')},
+  direct:{label:"مباشر",bg:"#eef1f5",border:"#dfe3e8",svg:_svg('<path d="M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1" fill="none" stroke="#5b6472" stroke-width="2" stroke-linecap="round"/>')},
+  other:{label:"أخرى",bg:"#eef1f5",border:"#dfe3e8",svg:_svg('<g fill="none" stroke="#5b6472" stroke-width="1.800" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.500 2.300 2.500 13.700 0 16M12 4c-2.500 2.300-2.500 13.700 0 16"/></g>')}
 };
 // شارة كل مصدر تُعرض عموديًا: الأيقونة فوق، وعدد المشاهدات من هذا المصدر تحتها مباشرة
 // (بدل شارة أفقية بنص طويل) — أخف بصريًا وأسهل مسحًا بالعين ضمن قائمة طويلة من المنتجات.
@@ -132,7 +135,7 @@ function sourceChipsHtml(sources){
   if(!entries.length)return"";
   const chips=entries.slice(0,5).map(([key,n])=>{
     const meta=TRAFFIC_SOURCE_META[key]||TRAFFIC_SOURCE_META.other;
-    return '<div class="pv-src" title="'+esc(meta.label)+'"><span class="pv-src-ic">'+meta.icon+'</span><b>'+Number(n).toLocaleString("ar-DZ")+'</b></div>';
+    return '<div class="pv-src" title="'+esc(meta.label)+'"><span class="pv-src-ic" style="width:28px;height:28px;background:'+meta.bg+';border:1px solid '+(meta.border||"transparent")+'">'+meta.svg+'</span><b>'+Number(n).toLocaleString("ar-DZ")+'</b></div>';
   }).join("");
   const restCount=entries.slice(5).reduce((s,[,n])=>s+Number(n),0);
   const rest=restCount>0?'<div class="pv-src pv-src-more" title="مصادر أخرى"><span class="pv-src-ic">＋</span><b>'+restCount.toLocaleString("ar-DZ")+'</b></div>':"";
