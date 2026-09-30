@@ -11,6 +11,19 @@ SITE='https://bazar-dzair.github.io/'
 PRICE_VALID_UNTIL=(datetime.now(timezone.utc)+timedelta(days=90)).strftime('%Y-%m-%d')
 
 
+def w3c_date(v):
+    """يحوّل طابع Firestore (timestampValue بصيغة ISO) إلى صيغة W3C 'YYYY-MM-DDTHH:MM:SSZ'، أو None إن لم يكن صالحًا."""
+    m=re.match(r'^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})', str(v or ''))
+    return f'{m.group(1)}T{m.group(2)}Z' if m else None
+
+
+def product_lastmod(p):
+    """آخر تعديل حقيقي للمنتج (updatedAt ثم createdAt). None إن لم يوجد أي تاريخ:
+    نحذف وسم lastmod حينها بدل وضع تاريخ اليوم (تاريخ غير صحيح يجعل Google يتجاهل الإشارة كلها)."""
+    a=w3c_date(p.get('updatedAt')); b=w3c_date(p.get('createdAt'))
+    return max([x for x in (a,b) if x], default=None)
+
+
 def value(v):
     if not v: return None
     if 'stringValue' in v: return v['stringValue']
@@ -819,7 +832,7 @@ for p in products:
 # ملاحظة الفرنسية: لا نُخمّن أي ترجمة. نستخدم name_fr/description_fr فقط إن كانت
 # موجودة فعلاً في مستند الفئة أو المنتج في Firestore، وإلا يبقى النص عربيًا كما هو —
 # نفس فلسفة translateProduct في i18n.js تمامًا.
-cat_seen={}; cat_legacy_seen={}; cat_urls=[]; cat_url_map={}; legacy_category_redirects=[]
+cat_seen={}; cat_legacy_seen={}; cat_urls=[]; cat_url_map={}; legacy_category_redirects=[]; cat_lastmod={}
 for c in categories:
     name=str(c['name']); base=category_slug_base(c); n=cat_seen.get(base,0); cat_seen[base]=n+1
     slug=base if n==0 else f'{base}-{n+1}'
@@ -866,7 +879,9 @@ for c in categories:
     # فئة بلا منتجات = صفحة رقيقة: noindex,follow وتُستثنى من sitemap (تبقى الصفحة موجودة فلا 404).
     cat_robots='index,follow,max-image-preview:large' if matched else 'noindex,follow'
     write_page(root/'product-category'/slug/'index.html',name+' – تسوق أونلاين في الجزائر | Bazar Dzair',desc,url,body,ld,robots=cat_robots)
-    if matched: cat_urls.append((url,name))
+    if matched:
+        cat_urls.append((url,name))
+        cat_lastmod[url]=max([product_lastmod(x[2]) for x in matched if product_lastmod(x[2])], default=None)
     cat_url_map[cid]=url
 
 # ===== صفحات التحويل (redirect stubs) =====
@@ -895,16 +910,71 @@ print(f'Wrote {n_cs} category redirect stubs for legacy Arabic URLs (no product 
 # حتى تكون sitemap.xml مصدر اكتشاف/فهرسة فعلي لها بدل الاعتماد فقط على وسم hreflang
 # (الذي هو إشارة ربط بين نسختين وليس أداة اكتشاف قوية بمفرده).
 today=datetime.now(timezone.utc).date().isoformat()
-urls=[(SITE,'daily','1.0')]+[(u,'weekly','0.9') for u,_,_,_ in product_urls]+[(u,'weekly','0.85') for u in fr_urls]+[(u,'weekly','0.8') for u,_ in cat_urls]
+now_w3c=datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+# lastmod حقيقي لكل رابط (بدل تاريخ اليوم للجميع): هكذا يعرف Google أي المنتجات جديد أو معدَّل فيعيد زحفه أولًا.
+lm_by_url={u:product_lastmod(p) for u,_,p,_ in product_urls}
+def _lm(u):
+    return lm_by_url.get(u) or lm_by_url.get(u.replace('/fr/product/','/product/',1))
+_all_lm=[v for v in lm_by_url.values() if v]
+home_lm=max(_all_lm, default=None)
+# صفحة /latest/ (أحدث المنتجات كروابط HTML ثابتة) — تُولَّد أدناه ويُدرج رابطها هنا.
+LATEST_URL=SITE+'latest/'
+def _lm_tag(v): return f'<lastmod>{v}</lastmod>' if v else ''
+urls=[(SITE,'daily','1.0',home_lm),(LATEST_URL,'daily','0.9',home_lm)]+[(u,'weekly','0.9',_lm(u)) for u,_,_,_ in product_urls]+[(u,'weekly','0.85',_lm(u)) for u in fr_urls]+[(u,'weekly','0.8',cat_lastmod.get(u)) for u,_ in cat_urls]
 xml=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-for u,freq,priority in urls:
-    xml.append(f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod><changefreq>{freq}</changefreq><priority>{priority}</priority></url>')
+for u,freq,priority,lm in urls:
+    xml.append(f'<url><loc>{html.escape(u)}</loc>{_lm_tag(lm)}<changefreq>{freq}</changefreq><priority>{priority}</priority></url>')
 xml.append('</urlset>')
 (root/'sitemap.xml').write_text('\n'.join(xml)+'\n',encoding='utf-8')
 # نسخة مطابقة باسم جديد: Search Console علق على sitemap.xml بحالة «Impossible de récupérer»؛ إرسال الملف باسم جديد يتجاوز حالة الفشل المخزّنة.
 (root/'sitemap-bazar.xml').write_text('\n'.join(xml)+'\n',encoding='utf-8')
-(root/'sitemap-products.xml').write_text('\n'.join(['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']+[f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod></url>' for u,_,_,_ in product_urls]+[f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod></url>' for u in fr_urls]+['</urlset>'])+'\n',encoding='utf-8')
-(root/'sitemap-categories.xml').write_text('\n'.join(['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']+[f'<url><loc>{html.escape(u)}</loc><lastmod>{today}</lastmod></url>' for u,_ in cat_urls]+['</urlset>'])+'\n',encoding='utf-8')
+(root/'sitemap-products.xml').write_text('\n'.join(['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']+[f'<url><loc>{html.escape(u)}</loc>{_lm_tag(_lm(u))}</url>' for u,_,_,_ in product_urls]+[f'<url><loc>{html.escape(u)}</loc>{_lm_tag(_lm(u))}</url>' for u in fr_urls]+['</urlset>'])+'\n',encoding='utf-8')
+(root/'sitemap-categories.xml').write_text('\n'.join(['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']+[f'<url><loc>{html.escape(u)}</loc>{_lm_tag(cat_lastmod.get(u))}</url>' for u,_ in cat_urls]+['</urlset>'])+'\n',encoding='utf-8')
+
+# ===== Atom feed لأحدث المنتجات (feed.xml) + صفحة ثابتة /latest/ =====
+# Search Console يقبل Atom/RSS كـ sitemap؛ Google يعيد قراءة الـ feeds بوتيرة أعلى من ملفات sitemap العادية.
+LATEST_LIMIT=50
+latest_entries=sorted(product_urls, key=lambda e: str(e[2].get('createdAt') or ''), reverse=True)[:LATEST_LIMIT]
+feed=['<?xml version="1.0" encoding="UTF-8"?>','<feed xmlns="http://www.w3.org/2005/Atom">',
+      '<title>Bazar Dzair – أحدث المنتجات</title>',
+      f'<link href="{html.escape(SITE+"feed.xml")}" rel="self" type="application/atom+xml"/>',
+      f'<link href="{html.escape(LATEST_URL)}" rel="alternate" type="text/html"/>',
+      f'<id>{html.escape(SITE)}</id>',
+      f'<updated>{home_lm or now_w3c}</updated>']
+for u,pn,p,_s in latest_entries:
+    _upd=product_lastmod(p) or now_w3c
+    _pub=w3c_date(p.get('createdAt')) or _upd
+    _d=str(p.get('description') or p.get('desc') or '')[:300]
+    feed.append('<entry>'
+                f'<title>{html.escape(pn)}</title>'
+                f'<link href="{html.escape(u)}" rel="alternate" type="text/html"/>'
+                f'<id>{html.escape(u)}</id>'
+                f'<published>{_pub}</published><updated>{_upd}</updated>'
+                f'<summary>{html.escape(_d)}</summary>'
+                '</entry>')
+feed.append('</feed>')
+(root/'feed.xml').write_text('\n'.join(feed)+'\n',encoding='utf-8')
+
+_lat_cards=[]
+for u,pn,p,_s in latest_entries:
+    pn_fr=str(p.get('name_fr') or '').strip()
+    _nf=f' data-name-fr="{html.escape(pn_fr,quote=True)}"' if pn_fr else ''
+    _pf=f' data-price-fr="{html.escape(money_fr(p.get("price")),quote=True)}"'
+    _lat_cards.append(
+        f'<article class="card"{_nf}{_pf}>'
+        f'<img src="{html.escape(image_of(p, width=400),quote=True)}" width="400" height="400" alt="{html.escape(pn,quote=True)}" loading="lazy" decoding="async">'
+        f'<h2>{html.escape(pn)}</h2>'
+        f'<p class="price">{html.escape(money(p.get("price")))}</p>'
+        f'<a class="btn" href="{html.escape(u,quote=True)}" data-i18n="view_product">مشاهدة المنتج</a>'
+        '</article>')
+_lat_desc='أحدث المنتجات المضافة إلى متجر Bazar Dzair: توصيل لجميع ولايات الجزائر والدفع عند الاستلام.'
+_lat_body=('<nav aria-label="breadcrumb" class="breadcrumb"><a href="/">Bazar Dzair</a> / <span aria-current="page">أحدث المنتجات</span></nav>'
+           '<div class="cat-head"><h1>أحدث المنتجات</h1><p class="cat-desc">'+html.escape(_lat_desc)+'</p></div>'
+           '<section class="grid">'+''.join(_lat_cards)+'</section>')
+_lat_ld={'@context':'https://schema.org','@type':'CollectionPage','name':'أحدث المنتجات','url':LATEST_URL,
+         'mainEntity':{'@type':'ItemList','itemListElement':[{'@type':'ListItem','position':i+1,'url':u,'name':pn} for i,(u,pn,_p,_s) in enumerate(latest_entries)]}}
+write_page(root/'latest'/'index.html','أحدث المنتجات – Bazar Dzair',_lat_desc,LATEST_URL,_lat_body,_lat_ld)
+print(f'Wrote feed.xml and latest/index.html with {len(latest_entries)} newest products.')
 print(f'Generated {len(product_urls)} product pages and {len(cat_urls)} category pages.')
 print(f'Generated {fr_generated} French product pages under /fr/product/ (name_fr + description_fr both present).')
 if fr_skipped:
