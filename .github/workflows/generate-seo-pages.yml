@@ -47,7 +47,7 @@ jobs:
             # fr/ مُضاف هنا: مرحلة 2 من إصلاح SEO الفرنسية تولّد /fr/product/<slug>/ (نسخة
           # فرنسية ثابتة حقيقية من صفحة المنتج). بدون إضافته هنا لن تُدفَع هذه الملفات
           # المولَّدة أبدًا إلى main رغم إنشائها محليًا في كل تشغيل.
-          git add index.html product product-category fr sitemap.xml sitemap-bazar.xml sitemap-products.xml sitemap-categories.xml
+          git add index.html product product-category fr latest feed.xml sitemap.xml sitemap-bazar.xml sitemap-products.xml sitemap-categories.xml
             git rm -r --cached --ignore-unmatch category >/dev/null 2>&1 || true
 
             if git diff --cached --quiet; then
