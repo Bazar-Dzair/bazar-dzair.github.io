@@ -491,8 +491,11 @@ function showVisitBadge(status,kind){
 // firebase-app + firebase-firestore (~140 KiB) وفتح قناة Write دائمة مع Firestore لمجرد زيادة رقم واحد.
 // الآن يُرسَل نفس التعديل بالضبط (count +1 و updatedAt بوقت الخادم) عبر REST commit — نفس قواعد
 // الأمان (visits/{date}) ونفس النتيجة، بدون SDK وبدون اتصال دائم، ويُؤجَّل لوقت خمول المتصفح.
+// 🤖 الروبوتات (Googlebot/Lighthouse/فحص الرابط...) لا تُحتسب زوارًا.
+function bazarIsBot(){try{var u=navigator.userAgent||"";return navigator.webdriver===true||/bot|crawl|spider|slurp|adsbot|mediapartners|inspectiontool|storebot|lighthouse|pagespeed|headlesschrome|facebookexternalhit|bingpreview|petalbot|yandex|baiduspider|semrush|ahrefs|gtmetrix|pingdom/i.test(u)}catch(e){return false}}
 async function trackSiteVisit(){
   try{
+    if(bazarIsBot())return;
     if(localStorage.getItem("bazarIsAdmin")==="1"){showVisitBadge("admin","site");return;} // زيارة الأدمن لا تُحتسب
     const today=new Date().toLocaleDateString("en-CA",{timeZone:"Africa/Algiers"}); // YYYY-MM-DD
     if(localStorage.getItem("bazarVisitDate")===today){showVisitBadge("duplicate","site");return;} // احتُسبت هذه الزيارة اليوم مسبقًا
