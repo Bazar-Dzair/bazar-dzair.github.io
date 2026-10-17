@@ -1267,6 +1267,107 @@ async function handleSubmitReview(request, env) {
 // ---------------------------------------------------------------------
 
 // ---------------------------------------------------------------------
+// 📥 الطلبات غير المكتملة: POST /abandoned-order
+// الزبون أدخل اسمه ورقمه الصحيح ثم غادر/توقف دون ضغط «تأكيد الطلب». الصفحة ترسل ما كتبه
+// (بعد خمول 90 ثانية أو عند مغادرة الصفحة) فيصلك إشعار Telegram مميّز لتتصل به.
+// حماية من الإزعاج: نفس (الهاتف + المنتج) مرة كل 6 ساعات، وكل IP مرة كل 60 ثانية، والأرقام/الـ IP
+// المحظورة لا تُرسَل. لا يُنشأ أي «طلب» في Firestore (collection abandonedCheckouts للتكرار فقط).
+// ---------------------------------------------------------------------
+const ABANDON_PHONE_COOLDOWN_MS = 6 * 3600 * 1000;
+const ABANDON_IP_COOLDOWN_MS = 60 * 1000;
+
+async function handleAbandonedOrder(request, env, ctx) {
+  const cors = corsHeaders(request);
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+  if (request.method !== "POST") return json({ error: "Method not allowed" }, 405, cors);
+  const origin = request.headers.get("Origin");
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) return json({ error: "Origin not allowed" }, 403, cors);
+  if (!["FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"].every((k) => env[k])) {
+    return json({ ok: false, code: "config_missing" }, 500, cors);
+  }
+
+  let b;
+  try {
+    b = await request.json();
+  } catch {
+    return json({ error: "بيانات غير صالحة" }, 400, cors);
+  }
+  b = b || {};
+  const str = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+  const name = str(b.customerName, 99);
+  const phone = typeof b.customerPhone === "string" ? b.customerPhone : "";
+  const product = str(b.product, 199);
+  const productId = str(b.productId, 199);
+  const wilaya = str(b.wilaya, 99);
+  const address = str(b.address, 299);
+  const variant = str(b.variant, 199);
+  const qty = Number.isInteger(b.quantity) && b.quantity > 0 && b.quantity <= 50 ? b.quantity : 1;
+  const total = typeof b.total === "number" && Number.isFinite(b.total) && b.total >= 0 ? b.total : 0;
+  if (!name || !/^0[5-7][0-9]{8}$/.test(phone) || !product) {
+    return json({ error: "بيانات ناقصة" }, 400, cors);
+  }
+
+  let accessToken;
+  try {
+    accessToken = await getGoogleAccessToken(env);
+  } catch (e) {
+    return json({ ok: false, code: "auth_failed", detail: errDetail(e) }, 502, cors);
+  }
+
+  const clientIp = getClientIp(request);
+  try {
+    // الأرقام وعناوين IP المحظورة: نتجاهل بصمت (لا إشعار) ونرد بنجاح حتى لا نكشف الحظر.
+    const [ipBlock, phoneBlock] = await Promise.all([
+      clientIp ? getBlockRecord(env, accessToken, "blockedIps", clientIp.key) : null,
+      getBlockRecord(env, accessToken, "blockedPhones", phone),
+    ]);
+    if (ipBlock || phoneBlock) return json({ ok: true, skipped: "blocked" }, 200, cors);
+
+    const now = Date.now();
+    const phoneKey = safeId("p_" + phone + "_" + (productId || product));
+    const ipDocId = clientIp ? safeId("ip_" + clientIp.key) : "";
+    const [prev, prevIp] = await Promise.all([
+      getDocFields(env, accessToken, "abandonedCheckouts", phoneKey),
+      ipDocId ? getDocFields(env, accessToken, "abandonedCheckouts", ipDocId) : null,
+    ]);
+    const lastP = prev && prev.data.sentAt instanceof Date ? prev.data.sentAt.getTime() : 0;
+    if (now - lastP < ABANDON_PHONE_COOLDOWN_MS) return json({ ok: true, skipped: "duplicate" }, 200, cors);
+    const lastI = prevIp && prevIp.data.sentAt instanceof Date ? prevIp.data.sentAt.getTime() : 0;
+    if (now - lastI < ABANDON_IP_COOLDOWN_MS) return json({ ok: true, skipped: "rate" }, 200, cors);
+
+    // نسجّل قبل الإرسال حتى لا يتكرر الإشعار عند إعادة المحاولة.
+    await patchDoc(env, accessToken, "abandonedCheckouts", phoneKey, {
+      customerPhone: phone,
+      product,
+      productId,
+      sentAt: new Date(now),
+    });
+    if (ipDocId) await patchDoc(env, accessToken, "abandonedCheckouts", ipDocId, { sentAt: new Date(now) });
+  } catch (e) {
+    console.error("Abandoned checkout check failed:", e);
+    return json({ ok: false, code: "check_failed", detail: errDetail(e) }, 502, cors);
+  }
+
+  if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
+    const text =
+      `⏳ طلب غير مكتمل (لم يضغط «تأكيد الطلب»)\n👤 الاسم: ${name}\n📞 الهاتف: ${phone}\n` +
+      `📍 الولاية: ${wilaya || "—"}\n🏠 العنوان: ${address || "—"}\n📦 المنتج: ${product}\n` +
+      (variant ? `🎨 الخيار: ${variant}\n` : "") +
+      `🔢 الكمية: ${qty}\n💰 المجموع التقريبي: ${total} دج\n` +
+      `ℹ️ قد يكون أكمل طلبه لاحقًا — راجع الطلبات قبل الاتصال.`;
+    await background(
+      ctx,
+      fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text }),
+      })
+    );
+  }
+  return json({ ok: true }, 200, cors);
+}
+
+// ---------------------------------------------------------------------
 // نقطة الدخول: تجعل هذا الملف قابلًا للنشر وحده كـ Worker كامل (Cloudflare Dashboard >
 // Workers > Edit code، الصق الملف كاملاً). لو كان لديك Worker رئيسي فيه راوتر، تجاهل هذا
 // الجزء واستورد handleCreateOrder فقط كما في المثال أعلاه.
@@ -1275,6 +1376,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === "/create-order") return handleCreateOrder(request, env, ctx);
+    if (url.pathname === "/abandoned-order") return handleAbandonedOrder(request, env, ctx);
     if (url.pathname === "/submit-review") return handleSubmitReview(request, env);
     if (url.pathname === "/trigger-seo") return handleTriggerSeo(request, env);
     if (url.pathname === "/health") return handleHealth(request, env);
