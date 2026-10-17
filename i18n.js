@@ -116,7 +116,7 @@
     placeholder_address:   { ar: "العنوان / البلدية *",     fr: "Adresse / Commune *" },
     delivery_method_label: { ar: "طريقة الاستلام",          fr: "Mode de réception" },
     ship_note_default:     { ar: "اختر الولاية لمعرفة سعر التوصيل.", fr: "Choisissez la wilaya pour connaître le prix de livraison." },
-    confirm_button:        { ar: "✅ تأكيد الطلب بالدفع عند الاستلام", fr: "✅ Confirmer la commande (paiement à la livraison)" },
+    confirm_button:        { ar: "✅ تأكيد الطلب", fr: "✅ Confirmer la commande" },
 
     cart_empty_title: { ar: "السلة فارغة 🛒",                         fr: "Votre panier est vide 🛒" },
     cart_empty_sub:   { ar: "اضغط على أي منتج لمشاهدة التفاصيل.",     fr: "Cliquez sur un produit pour voir les détails." },
