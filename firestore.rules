@@ -37,20 +37,7 @@ service cloud.firestore {
     // من المتصفح إطلاقًا. التقييم يُحفظ دائمًا بحالة approved == false ولا يظهر للزبائن إلا بعد
     // موافقة الأدمن. القراءة العامة تقتصر على التقييمات المنشورة؛ الأدمن وحده يقرأ/ينشر/يحذف أي تقييم.
     // isValidReview() لم تعد مستعملة (مرجع موثّق لنفس شروط الـ Worker، مثل isValidOrder).
-    function isValidReview(d) {
-      return
-        d.keys().hasOnly(['productId','productName','authorName','ratingValue','text','approved','createdAt']) &&
-        d.keys().hasAll(['productId','authorName','ratingValue','text','approved','createdAt']) &&
-        // التاريخ يضعه الخادم فقط (serverTimestamp)
-        d.createdAt == request.time &&
-        d.approved == false &&
-        d.productId is string && d.productId.size() > 0 && d.productId.size() < 200 &&
-        exists(/databases/$(database)/documents/products/$(d.productId)) &&
-        d.authorName is string && d.authorName.size() >= 2 && d.authorName.size() <= 60 &&
-        d.text is string && d.text.size() >= 3 && d.text.size() <= 600 &&
-        d.ratingValue is int && d.ratingValue >= 1 && d.ratingValue <= 5 &&
-        (!('productName' in d) || (d.productName is string && d.productName.size() < 200));
-    }
+    // (دالة isValidReview() حُذفت: لم تكن مستعملة؛ شروطها موثّقة في تعليق أعلاه وفي worker/create-order.js، وكانت تُظهر تحذيرات في محرر Firebase.)
     match /reviews/{id} {
       allow read: if resource.data.approved == true || isAdmin();
       allow create: if false;
@@ -119,45 +106,7 @@ service cloud.firestore {
     // لكنها تبقى مرجعًا موثّقًا لنفس الشروط التي يعيد الـ Worker (create-order.js)
     // تطبيقها يدويًا قبل الكتابة بصلاحيات Service Account. لا تحذفها: أي تعديل على شروط
     // الطلب يجب أن يُطبَّق في الاثنين معًا.
-    function isValidOrder(d) {
-      return
-        // الحقول المسموحة فقط — أي حقل إضافي (adminNotes، role، isAdmin...) يرفض الطلب
-        // (الحقول الأخيرة ip/ipKey/country/deviceId/addrKey/risk* يضيفها الـ Worker وحده)
-        d.keys().hasOnly(['customerName','customerPhone','wilaya','address','product','productId','quantity','price','shipping','deliveryType','shippingCompany','total','variant','status','createdAt','ip','ipKey','country','deviceId','addrKey','riskLevel','riskScore','riskFlags']) &&
-        // ✅ productId أصبح إجباريًا (وليس اختياريًا) لسد ثغرة كانت تسمح بتجاوز
-        // التحقق من السعر الحقيقي عبر إرسال طلب بدون productId.
-        d.keys().hasAll(['customerName','customerPhone','wilaya','address','product','productId','quantity','price','total','status']) &&
-
-        // status يجب أن يكون قيمة البداية الثابتة فقط — لا يقدر الزبون يبعث طلب "مؤكد" مباشرة
-        d.status == 'جديد' &&
-
-        // نصوص أساسية بحدود طول منطقية (تمنع payloads ضخمة أو حقول فارغة)
-        d.customerName is string && d.customerName.size() > 0 && d.customerName.size() < 100 &&
-        d.customerPhone is string && d.customerPhone.matches('^0[5-7][0-9]{8}$') &&
-        // 🚫 رقم محظور من طرف الأدمن (collection blockedPhones) لا يقدر يسجّل طلب جديد.
-        !exists(/databases/$(database)/documents/blockedPhones/$(d.customerPhone)) &&
-        d.wilaya is string && d.wilaya.size() > 0 && d.wilaya.size() < 100 &&
-        d.address is string && d.address.size() > 0 && d.address.size() < 300 &&
-        d.product is string && d.product.size() > 0 && d.product.size() < 200 &&
-        d.productId is string && d.productId.size() > 0 && d.productId.size() < 200 &&
-        (!('deliveryType' in d) || (d.deliveryType is string && d.deliveryType.size() < 50)) &&
-        (!('shippingCompany' in d) || (d.shippingCompany is string && d.shippingCompany.size() < 100)) &&
-        (!('variant' in d) || (d.variant is string && d.variant.size() < 200)) &&
-
-        // أرقام منطقية — يمنع كمية سالبة أو صفر أو كمية ضخمة (بوت)، وسعر/مجموع سالب
-        d.quantity is int && d.quantity > 0 && d.quantity <= 50 &&
-        d.price is number && d.price >= 0 &&
-        d.total is number && d.total >= 0 &&
-        (!('shipping' in d) || (d.shipping is number && d.shipping >= 0)) &&
-
-        // ✅ حماية من التلاعب بالمجموع: total يجب أن يساوي حسابيًا price×quantity + shipping
-        d.total == (d.price * d.quantity) + (('shipping' in d) ? d.shipping : 0) &&
-
-        // ✅ حماية من التلاعب بالسعر: productId إجباري الآن، ويجب أن يطابق price
-        // السعر الحقيقي المخزّن فعليًا في المنتج — هذا يمنع مهاجم يتواصل مباشرة مع
-        // Firestore (بدون المرور بواجهة الموقع) من إرسال سعر مزيف أو منتج وهمي غير موجود.
-        get(/databases/$(database)/documents/products/$(d.productId)).data.price == d.price;
-    }
+    // (دالة isValidOrder() حُذفت: لم تكن مستعملة؛ شروطها موثّقة في تعليق أعلاه وفي worker/create-order.js، وكانت تُظهر تحذيرات في محرر Firebase.)
 
     // 👁️ زوار الموقع (إحصائية يومية) — مستند واحد لكل يوم، معرّفه YYYY-MM-DD (مثلاً 2026-09-25)،
     // يحتوي فقط على count (عدد الزيارات) و updatedAt. الكتابة مسموحة للجميع لكن بشكل ضيّق جدًا:
