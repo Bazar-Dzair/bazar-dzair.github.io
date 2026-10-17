@@ -56,6 +56,7 @@
     <button class="nav-item" data-view="users" onclick="showView('users',this)">♧ <span>المستخدمون</span></button>
     <button class="nav-item" data-view="blocked" onclick="showView('blocked',this)">🚫 <span>المحظورون</span></button>
     <button class="nav-item" data-view="fraud" onclick="showView('fraud',this)">🛡️ <span>الإنذارات</span><b id="fraudNavBadge" class="nav-badge hidden">0</b></button>
+    <button class="nav-item" data-view="abandoned" onclick="showView('abandoned',this)">📥 <span>غير المكتملة</span><b id="abandonedNavBadge" class="nav-badge hidden">0</b></button>
   </nav>
   <div class="nav-title">النظام</div><nav class="nav">
     <button class="nav-item" data-view="settings" onclick="showView('settings',this)">⚙ <span>الإعدادات</span></button>
@@ -300,6 +301,15 @@
 </div>
 <p class="fr-note">⚠️ عنوان IP وحده مؤشر ضعيف لأن عدة زبائن قد يتشاركون نفس العنوان (خاصة عبر شبكات الهاتف)؛ لذلك يعطي إنذارًا منخفضًا فقط. الإنذارات المتوسطة والعالية تعتمد على الهاتف أو الجهاز أو العنوان.</p>
 <div id="fraudList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الإنذارات...</div></div></div></section>
+
+<section id="view-abandoned" class="view hidden"><div class="page-head"><div><h1>الطلبات غير المكتملة</h1><p>زبائن كتبوا اسمهم ورقمهم الصحيح في صفحة المنتج ثم غادروا دون ضغط «تأكيد الطلب». اتصل بهم أو راسلهم على واتساب. إن أكمل الزبون طلبه لاحقًا تظهر العلامة «أكمل الطلب».</p></div></div>
+<div class="panel" style="margin-bottom:16px"><div id="abandonedStats" class="fr-stats"></div></div>
+<div class="panel"><div class="fr-toolbar">
+<select id="abandonedFilterSel" onchange="window.abandonedSetFilter(this.value)"><option value="open">المفتوحة (لم تُعالج)</option><option value="new">الجديدة (غير المقروءة)</option><option value="converted">أكملوا الطلب</option><option value="resolved">المعالجة</option><option value="all">الكل</option></select>
+<button class="bk-btn info" type="button" onclick="window.bazarLoadAbandoned()">🔄 تحديث</button>
+<button class="bk-btn ok" type="button" onclick="window.abandonedMarkAllSeen()">👁 تعليم الكل كمقروء</button>
+</div>
+<div id="abandonedList" class="categories-list"><div class="empty-card">⏳ جاري التحميل...</div></div></div></section>
 
 <div id="blockDialog" class="bk-modal hidden" onclick="if(event.target===this)window.bkDialogCancel()"><div class="bk-dialog" role="dialog" aria-modal="true" aria-labelledby="bkDlgTitle">
 <h3 id="bkDlgTitle">حظر</h3>

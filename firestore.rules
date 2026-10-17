@@ -100,6 +100,11 @@ service cloud.firestore {
     // 🛡️ نظام كشف الإساءة (Fraud / Abuse) — يكتبه الـ Worker حصرًا بصلاحيات Service Account،
     // فلا يوجد أي create/write من المتصفح هنا إطلاقًا (لو سُمح، لأمكن لأي زائر تزوير الإنذارات
     // أو إغراق اللوحة). الأدمن يقرأ الإنذارات ويعدّل حالتها (seen/resolved) ويحذفها.
+    // الطلبات غير المكتملة: يكتبها الـ Worker فقط (Service Account)، والأدمن يقرأ ويغيّر الحالة ويحذف.
+    match /abandonedCheckouts/{id} {
+      allow read, update, delete: if isAdmin();
+    }
+
     match /fraudAlerts/{id} {
       allow read, update, delete: if isAdmin();
     }
