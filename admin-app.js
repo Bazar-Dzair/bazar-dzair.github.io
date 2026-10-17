@@ -953,10 +953,22 @@ function renderOrderDetail(o){
     })()}
     <div class="order-detail-row"><span>طريقة الدفع</span><span>الدفع عند الاستلام</span></div>
     <div class="order-detail-row"><span>المجموع الكلي</span><span style="color:var(--green)">${money(o.total)}</span></div>
+    ${(()=>{
+      const ph=String(o.customerPhone||o.phone||"");
+      let w=ph.replace(/\D/g,"");
+      w=/^0[5-7]\d{8}$/.test(w)?"https://wa.me/213"+w.slice(1)+"?text="+encodeURIComponent((o.customerName?"مرحبًا "+o.customerName+"،\n":"")+"معك Bazar Dzair 👋 بخصوص طلبك ("+String(o.product||"").slice(0,80)+")."):"";
+      const oid=esc(o.id);
+      return `<div class="act-bar">
+        ${ph?`<a class="act-btn act-call" href="tel:${esc(ph)}"><i>📞</i><span>اتصال</span></a>`:""}
+        ${w?`<a class="act-btn act-wa" href="${esc(w)}" target="_blank" rel="noopener"><i>💬</i><span>واتساب</span></a>`:""}
+        <button class="act-btn act-block" type="button" onclick="window.blockOrderPhoneAndIp('${oid}')"><i>🚫</i><span>حظر الرقم${o.ip?" + IP":""}</span></button>
+        <button class="act-btn act-del" type="button" onclick="deleteOrder('${oid}')"><i>🗑</i><span>حذف</span></button>
+      </div>`;
+    })()}
   `;
   if(custBox) custBox.innerHTML=`
     <div class="order-detail-row"><span>الاسم الكامل</span><span>${esc(o.customerName||o.name||"غير متوفر")}</span></div>
-    <div class="order-detail-row"><span>رقم الهاتف</span><span>${esc(o.customerPhone||o.phone||"غير متوفر")} <button class="edit-cat" type="button" style="margin-inline-start:8px" onclick="window.blockOrderPhoneAndIp('${esc(o.id)}')">🚫 حظر الهاتف${o.ip?" + IP":""}</button></span></div>
+    <div class="order-detail-row"><span>رقم الهاتف</span><span dir="ltr">${esc(o.customerPhone||o.phone||"غير متوفر")}</span></div>
     ${o.wilaya?`<div class="order-detail-row"><span>الولاية</span><span>${esc(o.wilaya)}</span></div>`:""}
     ${o.address?`<div class="order-detail-row"><span>العنوان</span><span>${esc(o.address)}</span></div>`:""}
     ${ipRows}
@@ -1261,7 +1273,7 @@ window.bazarLoadAddons=function(){
   },function(e){console.warn("addons realtime",e);});
 };
 
-window.deleteOrder=async id=>{if(!confirm("حذف هذه الطلبية؟"))return;try{await deleteDoc(doc(db,"orders",id));window.adminOrders=(window.adminOrders||[]).filter(o=>o.id!==id);selectedOrders.delete(id);const total=Math.max(1,Math.ceil((window.adminOrders||[]).length/ITEMS_PER_PAGE));if(ordersPage>total)ordersPage=total;updateOrderStats((window.adminOrders||[]).length);renderOrders();show("تم حذف الطلبية ✅","ok")}catch(e){alert("تعذر حذف الطلبية: "+e.message)}};
+window.deleteOrder=async id=>{if(!confirm("حذف هذه الطلبية؟"))return;try{await deleteDoc(doc(db,"orders",id));window.adminOrders=(window.adminOrders||[]).filter(o=>o.id!==id);selectedOrders.delete(id);const total=Math.max(1,Math.ceil((window.adminOrders||[]).length/ITEMS_PER_PAGE));if(ordersPage>total)ordersPage=total;updateOrderStats((window.adminOrders||[]).length);renderOrders();show("تم حذف الطلبية ✅","ok");if(window.__detailOrderId===id)window.backToOrders()}catch(e){alert("تعذر حذف الطلبية: "+e.message)}};
 
 // ===== سجل الحظر المتقدم: مشترك بين أرقام الهاتف وعناوين IP =====
 // كل وثيقة فـ collection "blockedPhones" (المعرّف = رقم الهاتف) أو "blockedIps" (المعرّف = ipKey) تحمل:
