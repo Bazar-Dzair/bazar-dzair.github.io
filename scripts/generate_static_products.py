@@ -206,12 +206,14 @@ def redirect_stub_html(target):
 def money(x):
     # فاصل الآلاف هنا مسافة عادية (لا فاصل الآلاف العربي U+066C) حتى لا يلتبس على محركات
     # البحث عند تحليل السعر الظاهر نصيًا؛ القيمة الحقيقية والعملة تبقى دائمًا من JSON-LD.
-    try: return f'{int(float(x or 0)):,} دج'.replace(',', ' ')
+    # \u2066 … \u2069 (عزل LTR) كما في BazarI18n.formatMoney: بدونه يعرض المتصفح "7 200 دج" داخل صفحة RTL
+    # بالمقلوب ("200 7 دج") لأن المسافة العادية تفصل الرقم إلى مقطعين، ثم يصحّحه JS لاحقًا فيظهر الوميض.
+    try: return '\u2066' + f'{int(float(x or 0)):,} دج'.replace(',', ' ') + '\u2069'
     except: return 'السعر عند الطلب'
 
 
 def money_fr(x):
-    try: return f'{int(float(x or 0)):,} DA'.replace(',', ' ')
+    try: return '\u2066' + f'{int(float(x or 0)):,} DA'.replace(',', ' ') + '\u2069'
     except: return 'Prix sur demande'
 
 
