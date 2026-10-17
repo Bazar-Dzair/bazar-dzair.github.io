@@ -386,6 +386,9 @@ export async function handleCreateOrder(request, env, ctx) {
 
   const id = doc && doc.name ? doc.name.split("/").pop() : null;
 
+  // إن كان لهذا الزبون طلب غير مكتمل لنفس المنتج، نعلّمه «أكمل الطلب» في لوحة التحكم (لا ننشئ وثيقة جديدة).
+  await background(ctx, markLeadConverted(env, accessToken, customerPhone, productIdClean || productClean));
+
   // 6.b) إنذارات للإدارة (مرة كل ساعة لكل إشارة ومفتاح حتى لا تُغرق اللوحة)
   if (risk.flags.length) {
     await background(
@@ -1276,6 +1279,12 @@ async function handleSubmitReview(request, env) {
 const ABANDON_PHONE_COOLDOWN_MS = 6 * 3600 * 1000;
 const ABANDON_IP_COOLDOWN_MS = 60 * 1000;
 
+async function markLeadConverted(env, accessToken, phone, pid) {
+  const id = safeId("p_" + phone + "_" + pid);
+  if (!(await docExists(env, accessToken, "abandonedCheckouts", id))) return;
+  await patchDoc(env, accessToken, "abandonedCheckouts", id, { converted: true, convertedAt: new Date() });
+}
+
 async function handleAbandonedOrder(request, env, ctx) {
   const cors = corsHeaders(request);
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
@@ -1328,7 +1337,7 @@ async function handleAbandonedOrder(request, env, ctx) {
     const ipDocId = clientIp ? safeId("ip_" + clientIp.key) : "";
     const [prev, prevIp] = await Promise.all([
       getDocFields(env, accessToken, "abandonedCheckouts", phoneKey),
-      ipDocId ? getDocFields(env, accessToken, "abandonedCheckouts", ipDocId) : null,
+      ipDocId ? getDocFields(env, accessToken, "abandonedRate", ipDocId) : null,
     ]);
     const lastP = prev && prev.data.sentAt instanceof Date ? prev.data.sentAt.getTime() : 0;
     if (now - lastP < ABANDON_PHONE_COOLDOWN_MS) return json({ ok: true, skipped: "duplicate" }, 200, cors);
@@ -1337,12 +1346,24 @@ async function handleAbandonedOrder(request, env, ctx) {
 
     // نسجّل قبل الإرسال حتى لا يتكرر الإشعار عند إعادة المحاولة.
     await patchDoc(env, accessToken, "abandonedCheckouts", phoneKey, {
+      customerName: name,
       customerPhone: phone,
+      wilaya,
+      address,
       product,
       productId,
+      variant,
+      quantity: qty,
+      total,
+      country: (request.cf && request.cf.country) || "",
+      createdAt: new Date(now),
       sentAt: new Date(now),
+      // تصفير الحالة إن عاد نفس الزبون بعد انتهاء فترة التكرار
+      seen: false,
+      resolved: false,
+      converted: false,
     });
-    if (ipDocId) await patchDoc(env, accessToken, "abandonedCheckouts", ipDocId, { sentAt: new Date(now) });
+    if (ipDocId) await patchDoc(env, accessToken, "abandonedRate", ipDocId, { sentAt: new Date(now) });
   } catch (e) {
     console.error("Abandoned checkout check failed:", e);
     return json({ ok: false, code: "check_failed", detail: errDetail(e) }, 502, cors);
