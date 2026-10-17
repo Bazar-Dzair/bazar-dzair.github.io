@@ -525,7 +525,7 @@ function appPage(){
     const params=new URLSearchParams(window.location.search);
     view=params.get("view")||sessionStorage.getItem("bazarAdminView")||"dashboard";
   }catch(e){}
-  const valid=["dashboard","orders","product","products","categories","shipping-rates","sections","footer","users","settings","addons","order-detail","blocked","fraud","abandoned"];
+  const valid=["dashboard","orders","product","products","categories","shipping-rates","sections","footer","users","settings","addons","order-detail","blocked","fraud"];
   if(!valid.includes(view)) view="dashboard";
   const nav=[...document.querySelectorAll(".nav-item")];
   const ordersNavItem=document.querySelector('.nav-item[onclick*="orders"]');
@@ -534,7 +534,7 @@ function appPage(){
   // بدل السقوط الصامت إلى لوحة التحكم وفقدان السياق.
   if(view==="order-detail"){
     const oid=new URLSearchParams(window.location.search).get("order");
-    const o=(window.adminOrders||[]).find(x=>x.id===oid);
+    const o=findDetailRecord(oid);
     if(o){ renderOrderDetail(o); showView("order-detail",ordersNavItem,false,false); }
     else { showView("orders",ordersNavItem,false,false); }
     return;
@@ -734,7 +734,7 @@ function abandonedAsOrderRows(){
   if(!Array.isArray(abandonedList)||!abandonedList.length)return[];
   if(orderStatusFilter!=="all"&&orderStatusFilter!=="غير مكتملة")return[];
   const q=String(orderSearchQuery||"").trim().toLowerCase();
-  return abandonedList.filter(a=>a.status!=="done"&&!abandonedCompleted(a)).filter(a=>{
+  return abandonedList.filter(a=>!abandonedCompleted(a)).filter(a=>{
     if(!q)return true;
     return [a.customerName,a.customerPhone,a.product].map(v=>String(v||"").toLowerCase()).join(" ").includes(q);
   }).map(a=>({...a,__abandoned:true}));
@@ -745,22 +745,29 @@ function ordersListRows(){
   if(!ab.length)return orders;
   return [...orders,...ab].sort((x,y)=>tsMs(y.createdAt)-tsMs(x.createdAt));
 }
+function abandonedBadgeHtml(a){
+  return a.status==="done"
+    ?'<span class="order-status-badge bd-badge" style="background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;font-weight:800">غير مكتملة · تم التواصل</span>'
+    :'<span class="order-status-badge bd-badge" style="background:#fdecea;color:#c62828;border:1px solid #f5c2c0;font-weight:800">طلبية غير مكتملة</span>';
+}
 function abandonedOrderRowHtml(a){
   const img=findOrderProductImage(a.product);
   const id=escJs(a.id);
   const phone=String(a.customerPhone||"");
-  return `<div class="order-row-pro" style="background:#fff5f5;border-inline-start:4px solid #dc2626">
-      <div class="order-cell oc-select"></div>
+  const done=a.status==="done";
+  return `<div class="order-row-pro" style="cursor:pointer;background:${done?"#f6fbf6":"#fff5f5"};border-inline-start:4px solid ${done?"#2e7d32":"#dc2626"}" onclick="window.openOrderDetail('${id}')">
+      <div class="order-cell oc-select" onclick="event.stopPropagation()"></div>
       <div class="order-cell oc-num">—</div>
       <div class="order-cell oc-customer">${esc(a.customerName||"غير متوفر")}<br><small dir="ltr" style="color:#8a93a0">${esc(phone)}</small>${a.wilaya?`<br><small style="color:#8a93a0">${esc(a.wilaya)}</small>`:""}</div>
       <div class="order-cell oc-product"><div class="order-product-cell">${img?`<img class="order-product-img" src="${esc(img)}" onerror="this.style.display='none'">`:`<span class="order-product-img ph">📦</span>`}<div><span class="order-product-name">${esc(a.product||"منتج غير محدد")}</span>${a.variant?`<br><small>${esc(a.variant)}</small>`:""}</div></div></div>
       <div class="order-cell oc-qty">${Number(a.quantity||1)}</div>
       <div class="order-cell oc-total">${Number(a.total)>0?money(a.total):"—"}</div>
-      <div class="order-cell oc-status"><span class="order-status-badge bd-badge" style="background:#fdecea;color:#c62828;border:1px solid #f5c2c0;font-weight:800">طلبية غير مكتملة</span></div>
+      <div class="order-cell oc-status">${abandonedBadgeHtml(a)}</div>
       <div class="order-cell oc-date"><div class="order-date-cell"><b>${orderListDate(a)}</b><span>${orderListTime(a)}</span></div></div>
-      <div class="order-cell oc-actions"><div class="order-actions-cell">
+      <div class="order-cell oc-actions" onclick="event.stopPropagation()"><div class="order-actions-cell">
+        <button class="icon-action-btn view-icon" title="عرض الطلبية" type="button" onclick="window.openOrderDetail('${id}')">👁</button>
         ${phone?`<a class="icon-action-btn" title="اتصال" href="tel:${esc(phone)}" style="text-decoration:none">📞</a>`:""}
-        <button class="icon-action-btn" title="تم التواصل (إخفاء)" type="button" onclick="window.abandonedAct('done','${id}')">✔</button>
+        <button class="icon-action-btn" title="${done?"إعادة فتح":"تم التواصل"}" type="button" onclick="window.abandonedAct('${done?"reopen":"done"}','${id}')">${done?"↩":"✔"}</button>
         <button class="icon-action-btn delete-icon" title="حذف" type="button" onclick="window.abandonedAct('delete','${id}')">🗑</button>
       </div></div>
     </div>`;
@@ -847,8 +854,15 @@ window.applyBulkStatus=async function(){
   }catch(e){console.error(e);toast("تعذر تحديث الحالة: "+(e.message||"خطأ غير معروف"),"err");}
   finally{ if(sel) sel.value=""; }
 };
-window.openOrderDetail=function(id){
+function findDetailRecord(id){
   const o=(window.adminOrders||[]).find(x=>x.id===id);
+  if(o)return o;
+  const a=(abandonedList||[]).find(x=>x.id===id);
+  return a?{...a,__abandoned:true}:null;
+}
+window.__findDetailRecord=findDetailRecord;
+window.openOrderDetail=function(id){
+  const o=findDetailRecord(id);
   if(!o){toast("تعذر العثور على الطلبية","err");return;}
   renderOrderDetail(o);
   showView("order-detail",document.querySelector('.nav-item[onclick*="orders"]'));
@@ -859,7 +873,48 @@ window.openOrderDetail=function(id){
   }catch(e){}
 };
 window.backToOrders=function(){ showView("orders",document.querySelector('.nav-item[onclick*="orders"]')); };
+function renderAbandonedDetail(o){
+  window.__detailOrderId=o.id;
+  const id=escJs(o.id);
+  const phone=String(o.customerPhone||"");
+  const done=o.status==="done";
+  const infoBox=document.getElementById("orderDetailInfo");
+  const custBox=document.getElementById("orderDetailCustomer");
+  const prodBox=document.getElementById("orderDetailProducts");
+  const notesBox=document.getElementById("orderDetailNotes");
+  if(infoBox) infoBox.innerHTML=`
+    <div class="order-detail-row"><span>رقم الطلب</span><span>—</span></div>
+    <div class="order-detail-row"><span>تاريخ المحاولة</span><span>${orderDetailDateTime(o)}</span></div>
+    <div class="order-detail-row"><span>الحالة</span><span>${abandonedBadgeHtml(o)}</span></div>
+    <div class="order-detail-row"><span>إجراءات</span><span style="display:flex;gap:6px;flex-wrap:wrap">
+      ${phone?`<a class="edit-cat" style="text-decoration:none" href="tel:${esc(phone)}">📞 اتصال</a>`:""}
+      <button class="edit-cat" type="button" onclick="window.abandonedAct('${done?"reopen":"done"}','${id}')">${done?"↩ إعادة فتح":"✔ تم التواصل"}</button>
+      <button class="edit-cat" type="button" onclick="window.abandonedAct('delete','${id}')">🗑 حذف</button>
+    </span></div>
+    <div class="order-detail-row"><span>طريقة الدفع</span><span>الدفع عند الاستلام</span></div>
+    <div class="order-detail-row"><span>المجموع الكلي</span><span style="color:var(--green)">${Number(o.total)>0?money(o.total):"—"}</span></div>
+  `;
+  if(custBox) custBox.innerHTML=`
+    <div class="order-detail-row"><span>الاسم الكامل</span><span>${esc(o.customerName||"غير متوفر")}</span></div>
+    <div class="order-detail-row"><span>رقم الهاتف</span><span>${esc(phone||"غير متوفر")} ${phone?`<button class="edit-cat" type="button" style="margin-inline-start:8px" onclick="window.blockOrderPhoneAndIp('${id}')">🚫 حظر الهاتف</button>`:""}</span></div>
+    ${o.wilaya?`<div class="order-detail-row"><span>الولاية</span><span>${esc(o.wilaya)}</span></div>`:""}
+    ${o.commune?`<div class="order-detail-row"><span>البلدية</span><span>${esc(o.commune)}</span></div>`:""}
+    ${o.address?`<div class="order-detail-row"><span>العنوان</span><span>${esc(o.address)}</span></div>`:""}
+  `;
+  const img=findOrderProductImage(o.product);
+  const qty=Number(o.quantity||1);
+  if(prodBox) prodBox.innerHTML=`
+    <table class="order-products-table"><thead><tr><th>المنتج</th><th>الكمية</th><th>المجموع</th></tr></thead>
+    <tbody><tr>
+      <td><div class="order-product-line">${img?`<img class="order-product-img" src="${esc(img)}" onerror="this.style.display='none'">`:`<span class="order-product-img ph">📦</span>`}<div><span class="order-product-name">${esc(o.product||"منتج غير محدد")}</span>${o.variant?`<br><small style="color:#7c8798">🎨 ${esc(o.variant)}</small>`:""}</div></div></td>
+      <td>${qty}</td>
+      <td>${Number(o.total)>0?money(o.total):"—"}</td>
+    </tr></tbody></table>
+  `;
+  if(notesBox) notesBox.textContent="⚠ الزبون أدخل معلوماته ولم يضغط «تأكيد الطلب». اتصل به لإتمام الطلب.";
+}
 function renderOrderDetail(o){
+  if(o&&o.__abandoned)return renderAbandonedDetail(o);
   window.__detailOrderId=o.id;
   const ipN=o.ip?normalizeIp(o.ip):null;
   if(ipN&&!blockedIpsLoaded&&!blockedIpsTried){
@@ -1423,7 +1478,7 @@ window.blockPhone=async function(phone,customerName){
 };
 // حظر رقم هاتف الزبون + عنوان IP متاع نفس الطلب بضغطة واحدة (زر 🚫 في صفحة الطلبات).
 window.blockOrderPhoneAndIp=async function(orderId){
-  const o=(window.adminOrders||[]).find(x=>x.id===orderId)||{};
+  const o=(window.adminOrders||[]).find(x=>x.id===orderId)||(abandonedList||[]).find(x=>x.id===orderId)||{};
   const p=normalizePhone(o.customerPhone||o.phone||"");
   const n=o.ip?normalizeIp(o.ip):null;
   if(!p&&!n){alert("لا يوجد رقم هاتف أو عنوان IP صالح لهذا الطلب");return}
@@ -1859,75 +1914,21 @@ window.fraudBlock=async function(kind,alertId){
 // يكتبها الـ Worker (مسار /abandoned-order) في collection "abandonedOrders"؛ الأدمن يقرأها ويغيّر حالتها (new/done) ويحذفها.
 let abandonedList=[];
 let abandonedLoaded=false;
-let abandonedFilter="open";
 function abandonedCompleted(a){
   const t=tsMs(a.createdAt)-5*60*1000;
   return(window.adminOrders||[]).some(o=>o&&o.customerPhone===a.customerPhone&&(!a.productId||!o.productId||o.productId===a.productId)&&tsMs(o.createdAt)>=t);
 }
-function updateAbandonedBadge(){
-  const el=document.getElementById("abandonedNavBadge");
-  if(!el)return;
-  const n=abandonedList.filter(a=>a.status!=="done").length;
-  el.textContent=n>99?"99+":String(n);
-  el.classList.toggle("hidden",n===0);
-}
-window.bazarLoadAbandoned=async function(quiet){
-  const box=document.getElementById("abandonedList");
-  if(!quiet&&box&&!abandonedLoaded)box.innerHTML='<div class="empty-card">⏳ جاري تحميل الطلبات غير المكتملة...</div>';
+function updateAbandonedBadge(){}
+window.bazarLoadAbandoned=async function(){
   try{
     const snap=await getDocs(query(collection(db,"abandonedOrders"),orderBy("createdAt","desc"),limit(300)));
     abandonedList=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
     abandonedLoaded=true;
-    updateAbandonedBadge();
-    if(!quiet){
-      try{await window.bazarLoadOrders(true);}catch(e){}
-      renderAbandoned();
-    }else if(ordersLoaded)renderOrders();
+    if(ordersLoaded)renderOrders();
   }catch(e){
     console.error("abandonedOrders load",e);
-    if(!quiet&&box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل الطلبات غير المكتملة. تحقق من نشر Firestore Rules (يجب أن تحتوي على abandonedOrders).</div>';
   }
 };
-window.abandonedSetFilter=function(v){abandonedFilter=v;renderAbandoned();};
-function abandonedRow(a){
-  const done=a.status==="done";
-  const completed=abandonedCompleted(a);
-  const id=escJs(a.id);
-  const phone=String(a.customerPhone||"");
-  const btn=(c,fn,arg,txt)=>`<button class="bk-btn ${c}" type="button" onclick="window.${fn}(${arg})">${txt}</button>`;
-  const chips=[
-    `<span class="fr-chip">📞 <span dir="ltr">${esc(phone)}</span></span>`,
-    a.wilaya?`<span class="fr-chip">📍 ${esc(a.wilaya)}</span>`:"",
-    a.address?`<span class="fr-chip">🏠 ${esc(a.address)}</span>`:"",
-    `<span class="fr-chip">📦 ${esc(a.product||"")}${a.variant?` — ${esc(a.variant)}`:""} ×${Number(a.quantity||1).toLocaleString("ar-DZ")}</span>`,
-    Number(a.total)>0?`<span class="fr-chip">💰 ${Number(a.total).toLocaleString("ar-DZ")} دج</span>`:"",
-    completed?'<span class="fr-chip fr-chip-red" style="background:#e8f5e9;color:#2e7d32;border-color:#c8e6c9">✅ أكمل طلبه</span>':""
-  ].join("");
-  const actions=[
-    phone?`<a class="bk-btn ok" href="tel:${esc(phone)}" style="text-decoration:none">📞 اتصال</a>`:"",
-    done?btn("info","abandonedAct",`'reopen','${id}'`,"↩ إعادة فتح"):btn("ok","abandonedAct",`'done','${id}'`,"✔ تم التواصل"),
-    btn("danger","abandonedAct",`'delete','${id}'`,"🗑")
-  ].join("");
-  return `<div class="fr-item ${done?"fr-resolved":"fr-new"}"><div class="fr-head"><b class="fr-msg">👤 ${esc(a.customerName||"—")}</b><span class="fr-time">${fmtDT(tsMs(a.createdAt))}</span></div><div class="fr-chips">${chips}</div><div class="bk-actions">${actions}</div></div>`;
-}
-function renderAbandoned(){
-  const box=document.getElementById("abandonedList");
-  if(!box)return;
-  const open=abandonedList.filter(a=>a.status!=="done");
-  const st=document.getElementById("abandonedStats");
-  if(st){
-    const cell=(n,l,c)=>`<div class="fr-stat ${c||""}"><b>${Number(n).toLocaleString("ar-DZ")}</b><span>${l}</span></div>`;
-    st.innerHTML=cell(open.length,"مفتوحة","fr-new")+cell(open.filter(a=>!abandonedCompleted(a)).length,"لم يكملوا طلبهم","fr-med")+cell(abandonedList.filter(a=>a.status==="done").length,"تم التواصل")+cell(abandonedList.length,"الإجمالي");
-  }
-  const rows=abandonedList.filter(a=>{
-    if(abandonedFilter==="open"&&a.status==="done")return false;
-    if(abandonedFilter==="new"&&a.status!=="new")return false;
-    if(abandonedFilter==="done"&&a.status!=="done")return false;
-    return true;
-  });
-  box.innerHTML=rows.length?rows.map(abandonedRow).join(""):'<div class="empty-card">✅ لا توجد طلبات غير مكتملة مطابقة.</div>';
-  if(ordersLoaded)renderOrders();
-}
 window.abandonedAct=async function(action,id){
   const a=abandonedList.find(x=>x.id===id);
   if(!a)return;
@@ -1937,28 +1938,16 @@ window.abandonedAct=async function(action,id){
       if(!confirm("حذف هذا الطلب غير المكتمل؟"))return;
       await deleteDoc(ref);
       abandonedList=abandonedList.filter(x=>x.id!==id);
+      renderOrders();
+      if(window.__detailOrderId===id){window.backToOrders();}
     }else{
       const status=action==="done"?"done":"new";
       await updateDoc(ref,{status});
       a.status=status;
+      renderOrders();
+      if(window.__detailOrderId===id)renderAbandonedDetail({...a,__abandoned:true});
     }
-    updateAbandonedBadge();
-    renderAbandoned();
   }catch(e){alert("تعذر تنفيذ العملية: "+(e.message||"خطأ غير معروف"));}
-};
-window.abandonedDeleteDone=async function(){
-  const ids=abandonedList.filter(a=>a.status==="done").map(a=>a.id);
-  if(!ids.length)return;
-  if(!confirm("حذف "+ids.length+" طلب تم التواصل معه؟"))return;
-  try{
-    for(let i=0;i<ids.length;i+=400){
-      const b=writeBatch(db);
-      ids.slice(i,i+400).forEach(x=>b.delete(doc(db,"abandonedOrders",x)));
-      await b.commit();
-    }
-    abandonedList=abandonedList.filter(a=>a.status!=="done");
-    updateAbandonedBadge();renderAbandoned();
-  }catch(e){alert("تعذر الحذف: "+(e.message||"خطأ غير معروف"));}
 };
 
 // ===== علامة الخطر على الطلبات (الحقول riskLevel / riskFlags يضيفها الـ Worker عند وجود إشارة) =====
