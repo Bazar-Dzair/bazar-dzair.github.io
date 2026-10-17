@@ -882,21 +882,27 @@ function renderAbandonedDetail(o){
   const custBox=document.getElementById("orderDetailCustomer");
   const prodBox=document.getElementById("orderDetailProducts");
   const notesBox=document.getElementById("orderDetailNotes");
+  const wa=(()=>{let ph=phone.replace(/\D/g,"");if(/^0[5-7]\d{8}$/.test(ph))ph="213"+ph.slice(1);else return"";return"https://wa.me/"+ph+"?text="+encodeURIComponent((o.customerName?"مرحبًا "+o.customerName+"،\n":"")+"معك Bazar Dzair 👋 لاحظنا أنك لم تُكمل طلبك لـ ("+String(o.product||"").slice(0,80)+"). هل تريد تأكيده؟");})();
   if(infoBox) infoBox.innerHTML=`
     <div class="order-detail-row"><span>رقم الطلب</span><span>—</span></div>
     <div class="order-detail-row"><span>تاريخ المحاولة</span><span>${orderDetailDateTime(o)}</span></div>
-    <div class="order-detail-row"><span>الحالة</span><span>${abandonedBadgeHtml(o)}</span></div>
-    <div class="order-detail-row"><span>إجراءات</span><span style="display:flex;gap:6px;flex-wrap:wrap">
-      ${phone?`<a class="edit-cat" style="text-decoration:none" href="tel:${esc(phone)}">📞 اتصال</a>`:""}
-      <button class="edit-cat" type="button" onclick="window.abandonedAct('${done?"reopen":"done"}','${id}')">${done?"↩ إعادة فتح":"✔ تم التواصل"}</button>
-      <button class="edit-cat" type="button" onclick="window.abandonedAct('delete','${id}')">🗑 حذف</button>
-    </span></div>
+    <div class="order-detail-row"><span>الحالة</span><span><select class="order-status-select-detail" onchange="window.abandonedSetStatus('${id}',this.value)">
+      <option value="" selected>${done?"غير مكتملة · تم التواصل":"غير مكتملة"}</option>
+      ${["جديد","قيد المعالجة","مكتملة","ملغية"].map(st=>`<option value="${esc(st)}">${esc(st)}</option>`).join("")}
+    </select></span></div>
     <div class="order-detail-row"><span>طريقة الدفع</span><span>الدفع عند الاستلام</span></div>
     <div class="order-detail-row"><span>المجموع الكلي</span><span style="color:var(--green)">${Number(o.total)>0?money(o.total):"—"}</span></div>
+    <div class="act-bar">
+      ${phone?`<a class="act-btn act-call" href="tel:${esc(phone)}"><i>📞</i><span>اتصال</span></a>`:""}
+      ${wa?`<a class="act-btn act-wa" href="${esc(wa)}" target="_blank" rel="noopener"><i>💬</i><span>واتساب</span></a>`:""}
+      <button class="act-btn ${done?"act-info":"act-ok"}" type="button" onclick="window.abandonedAct('${done?"reopen":"done"}','${id}')"><i>${done?"↩":"✔"}</i><span>${done?"إعادة فتح":"تم التواصل"}</span></button>
+      ${phone?`<button class="act-btn act-block" type="button" onclick="window.blockOrderPhoneAndIp('${id}')"><i>🚫</i><span>حظر الرقم</span></button>`:""}
+      <button class="act-btn act-del" type="button" onclick="window.abandonedAct('delete','${id}')"><i>🗑</i><span>حذف</span></button>
+    </div>
   `;
   if(custBox) custBox.innerHTML=`
     <div class="order-detail-row"><span>الاسم الكامل</span><span>${esc(o.customerName||"غير متوفر")}</span></div>
-    <div class="order-detail-row"><span>رقم الهاتف</span><span>${esc(phone||"غير متوفر")} ${phone?`<button class="edit-cat" type="button" style="margin-inline-start:8px" onclick="window.blockOrderPhoneAndIp('${id}')">🚫 حظر الهاتف</button>`:""}</span></div>
+    <div class="order-detail-row"><span>رقم الهاتف</span><span dir="ltr">${esc(phone||"غير متوفر")}</span></div>
     ${o.wilaya?`<div class="order-detail-row"><span>الولاية</span><span>${esc(o.wilaya)}</span></div>`:""}
     ${o.commune?`<div class="order-detail-row"><span>البلدية</span><span>${esc(o.commune)}</span></div>`:""}
     ${o.address?`<div class="order-detail-row"><span>العنوان</span><span>${esc(o.address)}</span></div>`:""}
@@ -1928,6 +1934,30 @@ window.bazarLoadAbandoned=async function(){
   }catch(e){
     console.error("abandonedOrders load",e);
   }
+};
+// تحويل طلبية غير مكتملة إلى طلبية عادية بالحالة المختارة (بعد التواصل مع الزبون)
+window.abandonedSetStatus=async function(id,status){
+  if(!status)return;
+  const a=abandonedList.find(x=>x.id===id);
+  if(!a)return;
+  if(!confirm(`تحويل هذه الطلبية إلى طلبية عادية بحالة "${status}"؟`)){renderAbandonedDetail({...a,__abandoned:true});return;}
+  try{
+    const qty=Number(a.quantity||1)||1, total=Number(a.total)||0;
+    const data={
+      customerName:a.customerName||"",customerPhone:a.customerPhone||"",wilaya:a.wilaya||"",address:a.address||"",
+      product:a.product||"",productId:a.productId||"",quantity:qty,price:total>0?Math.round(total/qty):0,shipping:0,total,
+      ...(a.variant?{variant:a.variant}:{}),
+      status,createdAt:a.createdAt||serverTimestamp(),updatedAt:serverTimestamp(),
+      notes:"طلبية كانت غير مكتملة — تم التواصل مع الزبون وتحويلها يدويًا.",source:"abandoned"
+    };
+    Object.assign(data,bazarReviewTokenFields(data,status));
+    const ref=await addDoc(collection(db,"orders"),data);
+    await deleteDoc(doc(db,"abandonedOrders",id));
+    abandonedList=abandonedList.filter(x=>x.id!==id);
+    toast("تم تحويلها إلى طلبية عادية ✅","ok");
+    await window.bazarLoadOrders(true);
+    window.openOrderDetail(ref.id);
+  }catch(e){console.error(e);toast("تعذر التحويل: "+(e.message||"خطأ غير معروف"),"err");renderAbandonedDetail({...a,__abandoned:true});}
 };
 window.abandonedAct=async function(action,id){
   const a=abandonedList.find(x=>x.id===id);
