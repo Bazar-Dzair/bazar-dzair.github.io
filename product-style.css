@@ -148,7 +148,8 @@ main{max-width:1180px;width:94%;margin:6px auto 60px}
 .back{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--navy);color:var(--navy);padding:12px 18px;border-radius:12px;margin-top:14px;font-weight:700;transition:.2s;justify-content:center}
 .back:hover{background:var(--navy);color:#fff}
 .loading,.error{text-align:center;padding:60px 20px;background:#fff;border-radius:24px;box-shadow:var(--shadow);color:var(--navy);font-weight:700}
-.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,100px);background:var(--navy);color:#fff;padding:13px 22px;border-radius:14px;z-index:50;transition:.25s;box-shadow:0 8px 20px rgba(6,30,61,.3);font-weight:600}.toast.show{transform:translate(-50%,0)}
+.toast{position:fixed;bottom:calc(110px + env(safe-area-inset-bottom,0px));left:50%;transform:translate(-50%,40px);opacity:0;pointer-events:none;max-width:90vw;text-align:center;background:var(--navy);color:#fff;padding:13px 22px;border-radius:14px;z-index:100000;/* فوق .site-footer (z-index:9999) وإلا تختفي رسائل الخطأ خلفه */transition:.25s;box-shadow:0 8px 20px rgba(6,30,61,.3);font-weight:600}.toast.show{transform:translate(-50%,0);opacity:1}
+.field.bazar-invalid{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38,.18)!important}
 
 .delivery-opt{display:flex;align-items:center;justify-content:space-between;gap:8px;border:2px solid var(--border);border-radius:13px;padding:11px 15px;cursor:pointer;background:#fff;font-size:13px;font-weight:700;color:var(--text);transition:.2s}
 .delivery-opt.active{border-color:var(--orange);background:#fff7f0;box-shadow:0 3px 10px rgba(255,106,0,.12)}
