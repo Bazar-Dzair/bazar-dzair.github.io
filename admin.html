@@ -44,6 +44,7 @@
   <div class="nav-title">الرئيسية</div><nav class="nav">
     <button class="nav-item active" data-view="dashboard" onclick="showView('dashboard',this)">⌂ <span>لوحة التحكم</span></button>
     <button class="nav-item" data-view="orders" onclick="showView('orders',this)">🛒 <span>الطلبات</span></button>
+    <button class="nav-item" data-view="abandoned" onclick="showView('abandoned',this)">⏳ <span>غير المكتملة</span><b id="abandonedNavBadge" class="nav-badge hidden">0</b></button>
     <button class="nav-item" data-view="reviews" onclick="showView('reviews',this)">⭐ <span>التقييمات</span><span id="reviewsPendingBadge" class="nav-badge hidden">0</span></button>
   </nav>
   <div class="nav-title">إدارة المتجر</div><nav class="nav">
@@ -56,7 +57,6 @@
     <button class="nav-item" data-view="users" onclick="showView('users',this)">♧ <span>المستخدمون</span></button>
     <button class="nav-item" data-view="blocked" onclick="showView('blocked',this)">🚫 <span>المحظورون</span></button>
     <button class="nav-item" data-view="fraud" onclick="showView('fraud',this)">🛡️ <span>الإنذارات</span><b id="fraudNavBadge" class="nav-badge hidden">0</b></button>
-    <button class="nav-item" data-view="abandoned" onclick="showView('abandoned',this)">📥 <span>غير المكتملة</span><b id="abandonedNavBadge" class="nav-badge hidden">0</b></button>
   </nav>
   <div class="nav-title">النظام</div><nav class="nav">
     <button class="nav-item" data-view="settings" onclick="showView('settings',this)">⚙ <span>الإعدادات</span></button>
@@ -302,14 +302,15 @@
 <p class="fr-note">⚠️ عنوان IP وحده مؤشر ضعيف لأن عدة زبائن قد يتشاركون نفس العنوان (خاصة عبر شبكات الهاتف)؛ لذلك يعطي إنذارًا منخفضًا فقط. الإنذارات المتوسطة والعالية تعتمد على الهاتف أو الجهاز أو العنوان.</p>
 <div id="fraudList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الإنذارات...</div></div></div></section>
 
-<section id="view-abandoned" class="view hidden"><div class="page-head"><div><h1>الطلبات غير المكتملة</h1><p>زبائن كتبوا اسمهم ورقمهم الصحيح في صفحة المنتج ثم غادروا دون ضغط «تأكيد الطلب». اتصل بهم أو راسلهم على واتساب. إن أكمل الزبون طلبه لاحقًا تظهر العلامة «أكمل الطلب».</p></div></div>
+<section id="view-abandoned" class="view hidden"><div class="page-head"><div><h1>الطلبات غير المكتملة</h1><p>زبائن كتبوا اسمهم ورقمهم الصحيح ثم غادروا دون ضغط «تأكيد الطلب». نفس الإشعار الذي يصلك في تليغرام، محفوظ هنا لتتصل بهم.</p></div></div>
 <div class="panel" style="margin-bottom:16px"><div id="abandonedStats" class="fr-stats"></div></div>
 <div class="panel"><div class="fr-toolbar">
-<select id="abandonedFilterSel" onchange="window.abandonedSetFilter(this.value)"><option value="open">المفتوحة (لم تُعالج)</option><option value="new">الجديدة (غير المقروءة)</option><option value="converted">أكملوا الطلب</option><option value="resolved">المعالجة</option><option value="all">الكل</option></select>
+<select id="abandonedStatusSel" onchange="window.abandonedSetFilter(this.value)"><option value="open">المفتوحة</option><option value="new">الجديدة</option><option value="done">تم التواصل</option><option value="all">الكل</option></select>
 <button class="bk-btn info" type="button" onclick="window.bazarLoadAbandoned()">🔄 تحديث</button>
-<button class="bk-btn ok" type="button" onclick="window.abandonedMarkAllSeen()">👁 تعليم الكل كمقروء</button>
+<button class="bk-btn danger" type="button" onclick="window.abandonedDeleteDone()">🗑 حذف المعالجة</button>
 </div>
-<div id="abandonedList" class="categories-list"><div class="empty-card">⏳ جاري التحميل...</div></div></div></section>
+<p class="fr-note">⚠️ قد يكون الزبون أكمل طلبه لاحقًا؛ في هذه الحالة تظهر علامة «✅ أكمل طلبه» بجانبه (مطابقة رقم الهاتف والمنتج مع صفحة الطلبات).</p>
+<div id="abandonedList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الطلبات غير المكتملة...</div></div></div></section>
 
 <div id="blockDialog" class="bk-modal hidden" onclick="if(event.target===this)window.bkDialogCancel()"><div class="bk-dialog" role="dialog" aria-modal="true" aria-labelledby="bkDlgTitle">
 <h3 id="bkDlgTitle">حظر</h3>
@@ -390,7 +391,7 @@
 </div>
 
 <script src="admin-config.js?v=1eedbd91"></script>
-<script src="admin-init.js?v=0a6b65e2"></script>
-<script type="module" src="admin-app.js?v=43dfb77d"></script>
+<script src="admin-init.js?v=707da9d0"></script>
+<script type="module" src="admin-app.js?v=8c1ea7a5"></script>
 </body>
 </html>
