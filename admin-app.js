@@ -690,7 +690,7 @@ window.bazarLoadProducts=async function(force=false){
 
 window.bazarLoadOrders=async function(force=false){
   if(ordersLoading)return ordersLoading;
-  if(ordersLoaded&&!force){renderOrders();return;}
+  if(ordersLoaded&&!force){renderOrders();if(window.bazarLoadAbandoned)window.bazarLoadAbandoned(true);return;}
   const box=document.getElementById("orders");
   if(!box)return;
   box.innerHTML='<div class="empty-card">⏳ جاري تحميل الطلبات...</div>';
@@ -704,6 +704,7 @@ window.bazarLoadOrders=async function(force=false){
       window.adminOrders.sort((a,b)=>{const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;return tb-ta;});
       ordersLoaded=true;
       ordersPage=1; selectedOrders.clear(); renderOrders();
+      if(window.bazarLoadAbandoned&&!abandonedLoaded)window.bazarLoadAbandoned(true);
       if(window.bazarLoadBlockedIps && !blockedIpsLoaded) window.bazarLoadBlockedIps().then(()=>{ if(document.getElementById("view-orders")&&!document.getElementById("view-orders").classList.contains("hidden")) renderOrders(); }).catch(()=>{});
       if(window.bazarLoadProducts && !productsLoaded){
         window.bazarLoadProducts().then(()=>{ if(document.getElementById("view-orders")&&!document.getElementById("view-orders").classList.contains("hidden")) renderOrders(); }).catch(()=>{});
@@ -728,6 +729,42 @@ function getFilteredOrders(){
     return hay.includes(q);
   });
 }
+// الطلبات غير المكتملة المفتوحة (لم يُعلَّم «تم التواصل» ولم يُكمل الزبون طلبه) تظهر داخل قائمة الطلبات بعلامة حمراء.
+function abandonedAsOrderRows(){
+  if(!Array.isArray(abandonedList)||!abandonedList.length)return[];
+  if(orderStatusFilter!=="all"&&orderStatusFilter!=="غير مكتملة")return[];
+  const q=String(orderSearchQuery||"").trim().toLowerCase();
+  return abandonedList.filter(a=>a.status!=="done"&&!abandonedCompleted(a)).filter(a=>{
+    if(!q)return true;
+    return [a.customerName,a.customerPhone,a.product].map(v=>String(v||"").toLowerCase()).join(" ").includes(q);
+  }).map(a=>({...a,__abandoned:true}));
+}
+function ordersListRows(){
+  const orders=orderStatusFilter==="غير مكتملة"?[]:getFilteredOrders();
+  const ab=abandonedAsOrderRows();
+  if(!ab.length)return orders;
+  return [...orders,...ab].sort((x,y)=>tsMs(y.createdAt)-tsMs(x.createdAt));
+}
+function abandonedOrderRowHtml(a){
+  const img=findOrderProductImage(a.product);
+  const id=escJs(a.id);
+  const phone=String(a.customerPhone||"");
+  return `<div class="order-row-pro" style="background:#fff5f5;border-inline-start:4px solid #dc2626">
+      <div class="order-cell oc-select"></div>
+      <div class="order-cell oc-num">—</div>
+      <div class="order-cell oc-customer">${esc(a.customerName||"غير متوفر")}<br><small dir="ltr" style="color:#8a93a0">${esc(phone)}</small>${a.wilaya?`<br><small style="color:#8a93a0">${esc(a.wilaya)}</small>`:""}</div>
+      <div class="order-cell oc-product"><div class="order-product-cell">${img?`<img class="order-product-img" src="${esc(img)}" onerror="this.style.display='none'">`:`<span class="order-product-img ph">📦</span>`}<div><span class="order-product-name">${esc(a.product||"منتج غير محدد")}</span>${a.variant?`<br><small>${esc(a.variant)}</small>`:""}</div></div></div>
+      <div class="order-cell oc-qty">${Number(a.quantity||1)}</div>
+      <div class="order-cell oc-total">${Number(a.total)>0?money(a.total):"—"}</div>
+      <div class="order-cell oc-status"><span class="order-status-badge bd-badge" style="background:#fdecea;color:#c62828;border:1px solid #f5c2c0;font-weight:800">طلبية غير مكتملة</span></div>
+      <div class="order-cell oc-date"><div class="order-date-cell"><b>${orderListDate(a)}</b><span>${orderListTime(a)}</span></div></div>
+      <div class="order-cell oc-actions"><div class="order-actions-cell">
+        ${phone?`<a class="icon-action-btn" title="اتصال" href="tel:${esc(phone)}" style="text-decoration:none">📞</a>`:""}
+        <button class="icon-action-btn" title="تم التواصل (إخفاء)" type="button" onclick="window.abandonedAct('done','${id}')">✔</button>
+        <button class="icon-action-btn delete-icon" title="حذف" type="button" onclick="window.abandonedAct('delete','${id}')">🗑</button>
+      </div></div>
+    </div>`;
+}
 function renderOrdersStats(all){
   const total=all.length;
   const completed=all.filter(o=>String(o.status||"")==="مكتملة").length;
@@ -740,7 +777,7 @@ function renderOrders(){
   const box=document.getElementById("orders"); if(!box)return;
   const all=Array.isArray(window.adminOrders)?window.adminOrders:[];
   renderOrdersStats(all);
-  const rows=getFilteredOrders();
+  const rows=ordersListRows();
   const totalPages=Math.max(1,Math.ceil(rows.length/ITEMS_PER_PAGE));
   if(ordersPage>totalPages)ordersPage=totalPages;
   if(!rows.length){
@@ -752,6 +789,7 @@ function renderOrders(){
   const start=(ordersPage-1)*ITEMS_PER_PAGE, pageRows=rows.slice(start,start+ITEMS_PER_PAGE);
   const ipCounts=orderIpCounts(all);
   box.innerHTML=pageRows.map(o=>{
+    if(o.__abandoned)return abandonedOrderRowHtml(o);
     const img=findOrderProductImage(o.product);
     const statusTxt=String(o.status||"جديد");
     const ipN=o.ip?normalizeIp(o.ip):null;
@@ -1091,9 +1129,9 @@ function updateBulkUi(type){
   const isProducts=type==="products";
   const set=isProducts?selectedProducts:selectedOrders;
   const page=isProducts?productsPage:ordersPage;
-  const filtered=isProducts?getFilteredProducts():getFilteredOrders();
+  const filtered=isProducts?getFilteredProducts():ordersListRows();
   const start=(page-1)*ITEMS_PER_PAGE, pageRows=filtered.slice(start,start+ITEMS_PER_PAGE);
-  const ids=pageRows.map(x=>x.id); const count=ids.filter(id=>set.has(id)).length;
+  const ids=pageRows.filter(x=>!x.__abandoned).map(x=>x.id); const count=ids.filter(id=>set.has(id)).length;
   const all=ids.length>0&&count===ids.length;
   const cb=document.getElementById(isProducts?"selectAllProducts":"selectAllOrders"); if(cb)cb.checked=all;
   const countBox=document.getElementById(isProducts?"productsSelectedCount":"ordersSelectedCount"); if(countBox)countBox.textContent=`${set.size} محدد`;
@@ -1124,7 +1162,7 @@ window.toggleProductSelection=function(id,checked){
   updateBulkUi("products");
 };
 window.toggleAllOrders=function(checked){
-  const rows=getFilteredOrders(), start=(ordersPage-1)*ITEMS_PER_PAGE, pageRows=rows.slice(start,start+ITEMS_PER_PAGE);
+  const rows=ordersListRows(), start=(ordersPage-1)*ITEMS_PER_PAGE, pageRows=rows.slice(start,start+ITEMS_PER_PAGE).filter(o=>!o.__abandoned);
   pageRows.forEach(o=>checked?selectedOrders.add(o.id):selectedOrders.delete(o.id));
   updateBulkUi("orders"); renderOrders();
 };
@@ -1844,7 +1882,7 @@ window.bazarLoadAbandoned=async function(quiet){
     if(!quiet){
       try{await window.bazarLoadOrders(true);}catch(e){}
       renderAbandoned();
-    }
+    }else if(ordersLoaded)renderOrders();
   }catch(e){
     console.error("abandonedOrders load",e);
     if(!quiet&&box)box.innerHTML='<div class="empty-card">❌ تعذر تحميل الطلبات غير المكتملة. تحقق من نشر Firestore Rules (يجب أن تحتوي على abandonedOrders).</div>';
@@ -1888,6 +1926,7 @@ function renderAbandoned(){
     return true;
   });
   box.innerHTML=rows.length?rows.map(abandonedRow).join(""):'<div class="empty-card">✅ لا توجد طلبات غير مكتملة مطابقة.</div>';
+  if(ordersLoaded)renderOrders();
 }
 window.abandonedAct=async function(action,id){
   const a=abandonedList.find(x=>x.id===id);
