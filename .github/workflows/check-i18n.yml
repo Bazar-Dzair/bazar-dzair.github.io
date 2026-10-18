@@ -4,7 +4,7 @@ name: فحص مفاتيح الترجمة
 # فيُكتشف الخطأ قبل أن يرى الزبون اسم المفتاح الخام (مثل checkout_policy_link).
 on:
   push:
-    paths: ['*.html', 'i18n.js', 'product-app.js', 'scripts/check_i18n.py']
+    paths: ['*.html', 'i18n.js', 'product-app.js', '**/check_i18n.py']
   pull_request:
   workflow_dispatch:
 
@@ -16,4 +16,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/check_i18n.py
+      - name: فحص المفاتيح
+        run: python3 "$(find . -name check_i18n.py -not -path "./.git/*" | head -1)"
