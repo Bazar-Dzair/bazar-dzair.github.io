@@ -680,3 +680,11 @@ html[lang="fr"] .gallery-count{direction:ltr}
 .checkout-links{margin:8px 0 0;text-align:center;font-size:12.5px;font-weight:700}
 .checkout-links a{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
 .checkout-links a:hover{color:var(--orange)}
+
+.checkout-help{margin:14px 0 0;padding:12px;border:1px solid #d8dee7;border-radius:14px;background:#f8fafc;text-align:center;display:flex;flex-direction:column;gap:10px}
+.checkout-help .ch-title{font-size:13.5px;font-weight:800;color:var(--navy)}
+.checkout-help .ch-actions{display:flex;gap:8px;flex-wrap:wrap}
+.checkout-help .ch-btn{flex:1 1 140px;display:inline-flex;justify-content:center;align-items:center;gap:6px;padding:10px 12px;border-radius:12px;font-weight:800;font-size:13.5px;text-decoration:none;min-height:44px}
+.checkout-help .ch-wa{background:#25d366;color:#fff}
+.checkout-help .ch-call{background:var(--navy);color:#fff}
+.checkout-help .ch-note{font-size:12px;font-weight:700;color:var(--muted)}
