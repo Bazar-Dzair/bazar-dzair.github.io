@@ -681,17 +681,17 @@ html[lang="fr"] .gallery-count{direction:ltr}
 .checkout-links a{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
 .checkout-links a:hover{color:var(--orange)}
 
-.checkout-help{margin:12px 0 0;display:flex;flex-direction:column;align-items:center;gap:6px}
-.checkout-help .ch-row{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
-.checkout-help .ch-title{font-size:12.5px;font-weight:700;color:var(--muted)}
+.checkout-delivery-time{margin:4px 0 0;text-align:center;font-size:12.5px;font-weight:600;color:var(--muted)}
+.checkout-help{margin:12px 0 0}
+.checkout-help .ch-row{display:flex;align-items:center;justify-content:center;gap:10px}
+.checkout-help .ch-title{font-size:12.5px;font-weight:600;color:var(--muted)}
 .checkout-help .ch-actions{display:inline-flex;gap:8px}
-.checkout-help .ch-circle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#fff;border:1px solid #d8dee7;transition:background .15s,border-color .15s,transform .15s}
-.checkout-help .ch-circle svg{width:17px;height:17px;display:block}
+.checkout-help .ch-circle{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#fff;border:1px solid #d8dee7;transition:background .15s,border-color .15s,transform .15s}
+.checkout-help .ch-circle svg{width:16px;height:16px;display:block}
 .checkout-help .ch-wa svg{fill:#25d366}
 .checkout-help .ch-fb svg{fill:#1877f2}
 .checkout-help .ch-wa:hover,.checkout-help .ch-wa:focus-visible{background:#25d366;border-color:#25d366}
 .checkout-help .ch-fb:hover,.checkout-help .ch-fb:focus-visible{background:#1877f2;border-color:#1877f2}
 .checkout-help .ch-circle:hover svg,.checkout-help .ch-circle:focus-visible svg{fill:#fff}
 .checkout-help .ch-circle:active{transform:scale(.93)}
-.checkout-help .ch-note{font-size:11.5px;font-weight:600;color:var(--muted);text-align:center;opacity:.85}
-.checkout-delivery-time{margin:8px 0 0;text-align:center;font-size:12.5px;font-weight:700;color:var(--navy)}
+.checkout-links{margin-top:10px}

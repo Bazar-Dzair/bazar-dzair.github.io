@@ -89,8 +89,8 @@
       fr: "Les prix affichés sont en dinars algériens (DA) et peuvent être modifiés sans préavis.\n\nLe seul mode de paiement disponible actuellement est le paiement à la livraison (COD).\n\nLes photos des produits sont indicatives et certains détails mineurs (comme la couleur) peuvent différer du produit réel.\n\nLe client a le droit d'annuler sa commande avant son expédition en nous contactant directement.\n\nEn utilisant ce site et en passant une commande, vous acceptez ces conditions."
     },
     faq_text: {
-      ar: "🛒 كيف أطلب؟\nاختر المنتج، ثم اضغط \"اطلب الآن\" وأدخل معلوماتك (الاسم، الهاتف، الولاية، العنوان).\n\n💵 ما هي طريقة الدفع؟\nالدفع عند الاستلام فقط — تدفع نقدًا عند وصول الطلب لبابك، بلا حاجة لبطاقة بنكية أو دفع مسبق.\n\n🚚 كم يستغرق التوصيل؟\nيختلف حسب الولاية، عادة بين 2 إلى 7 أيام عمل.\n\n↩️ هل أقدر أرجع المنتج؟\nنعم، تواصل معنا عبر الهاتف أو واتساب قبل استلام الطلب أو خلال مدة قصيرة بعده، وسنوضح لك خطوات الإرجاع.",
-      fr: "🛒 Comment commander ?\nChoisissez le produit, puis cliquez sur \"Commander\" et entrez vos informations (nom, téléphone, wilaya, adresse).\n\n💵 Quel est le mode de paiement ?\nPaiement à la livraison uniquement — vous payez en espèces à la réception de votre commande, sans carte bancaire ni paiement anticipé.\n\n🚚 Combien de temps prend la livraison ?\nCela varie selon la wilaya, généralement entre 2 et 7 jours ouvrables.\n\n↩️ Puis-je retourner le produit ?\nOui, contactez-nous par téléphone ou WhatsApp avant la réception de la commande ou peu après, et nous vous expliquerons les étapes du retour."
+      ar: "🛒 كيف أطلب؟\nاختر المنتج، ثم اضغط \"اطلب الآن\" وأدخل معلوماتك (الاسم، الهاتف، الولاية، العنوان).\n\n💵 ما هي طريقة الدفع؟\nالدفع عند الاستلام فقط — تدفع نقدًا عند وصول الطلب لبابك، بلا حاجة لبطاقة بنكية أو دفع مسبق.\n\n🚚 كم يستغرق التوصيل؟\nيختلف حسب الولاية، عادة بين 2 إلى 4 أيام عمل.\n\n↩️ هل أقدر أرجع المنتج؟\nنعم، تواصل معنا عبر الهاتف أو واتساب قبل استلام الطلب أو خلال مدة قصيرة بعده، وسنوضح لك خطوات الإرجاع.",
+      fr: "🛒 Comment commander ?\nChoisissez le produit, puis cliquez sur \"Commander\" et entrez vos informations (nom, téléphone, wilaya, adresse).\n\n💵 Quel est le mode de paiement ?\nPaiement à la livraison uniquement — vous payez en espèces à la réception de votre commande, sans carte bancaire ni paiement anticipé.\n\n🚚 Combien de temps prend la livraison ?\nCela varie selon la wilaya, généralement entre 2 et 4 jours ouvrables.\n\n↩️ Puis-je retourner le produit ?\nOui, contactez-nous par téléphone ou WhatsApp avant la réception de la commande ou peu après, et nous vous expliquerons les étapes du retour."
     },
     track_text: {
       ar: "لمتابعة حالة طلبك، تواصل معنا مباشرة عبر الهاتف أو واتساب مع ذكر اسمك ورقم هاتفك المسجل في الطلب، وسنعطيك آخر تحديث عن حالة التوصيل.",
@@ -128,13 +128,12 @@
     summary_total:    { ar: "المجموع النهائي", fr: "Total à payer" },
 
     // مفاتيح صفحة إتمام الطلب (تُكرَّر هنا حتى لا يظهر اسم المفتاح الخام إن لم يُطبَّق قاموس الصفحة)
-    checkout_help_title: { ar: "تحتاج مساعدة قبل التأكيد؟", fr: "Une question avant de confirmer ?" },
-    checkout_help_note: { ar: "نؤكد طلبك هاتفيًا قبل الشحن · ولا تدفع إلا عند الاستلام", fr: "Nous confirmons votre commande par téléphone avant l'expédition · Paiement uniquement à la livraison" },
+    checkout_help_title: { ar: "تحتاج مساعدة؟", fr: "Besoin d\'aide ?" },
     show_more_products:    { ar: "إظهار المزيد ↓", fr: "Afficher plus ↓" },
-    checkout_delivery_time:{ ar: "🚚 التوصيل عادة خلال 2 إلى 7 أيام عمل حسب الولاية", fr: "🚚 Livraison généralement sous 2 à 7 jours ouvrables selon la wilaya" },
+    checkout_delivery_time:{ ar: "🚚 التوصيل خلال 2 إلى 4 أيام حسب الولاية", fr: "🚚 Livraison sous 2 à 4 jours selon la wilaya" },
     checkout_qty_label:    { ar: "الكمية", fr: "Quantité" },
     checkout_policy_link:  { ar: "↩️ سياسة الإرجاع والتوصيل", fr: "↩️ Politique de retour et de livraison" },
-    checkout_trust_note:   { ar: "💵 الدفع عند الاستلام فقط — لا تدفع أي شيء الآن", fr: "💵 Paiement à la livraison uniquement — rien à payer maintenant" },
+    checkout_trust_note:   { ar: "💵 الدفع عند الاستلام — لا تدفع شيئًا الآن", fr: "💵 Paiement à la livraison — rien à payer maintenant" },
     checkout_summary_title:{ ar: "ملخص الطلب", fr: "Résumé de la commande" },
     summary_price_label:   { ar: "سعر المنتج", fr: "Prix du produit" },
     summary_shipping_label:{ ar: "تكلفة التوصيل", fr: "Frais de livraison" },

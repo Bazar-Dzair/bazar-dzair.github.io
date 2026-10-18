@@ -169,7 +169,7 @@ const PAGE_DICT={
   checkout_summary_title:{ar:"ملخص الطلب",fr:"Résumé de la commande"},
   summary_price_label:{ar:"سعر المنتج",fr:"Prix du produit"},
   summary_shipping_label:{ar:"تكلفة التوصيل",fr:"Frais de livraison"},
-  checkout_trust_note:{ar:"💵 الدفع عند الاستلام فقط — لا تدفع أي شيء الآن",fr:"💵 Paiement à la livraison uniquement — rien à payer maintenant"},
+  checkout_trust_note:{ar:"💵 الدفع عند الاستلام — لا تدفع شيئًا الآن",fr:"💵 Paiement à la livraison — rien à payer maintenant"},
   sec_contact_info:{ar:"معلومات التواصل",fr:"Informations de contact"},
   sec_delivery_address:{ar:"عنوان التوصيل",fr:"Adresse de livraison"},
   ship_note_default_emoji:{ar:"🚚 اختر الولاية لمعرفة سعر التوصيل.",fr:"🚚 Choisissez la wilaya pour connaître le prix de livraison."},
