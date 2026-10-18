@@ -568,6 +568,7 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
         # canonical العربي يبقى كما هو تمامًا؛ نضيف فقط وسوم hreflang بعده مباشرة.
         canonical_tag+=hreflang_tags(url, hreflang_fr_url)
     ld={'@context':'https://schema.org','@type':'Product','name':name,'image':list(dict.fromkeys([img]+[i for i in (images or []) if i]))[:6],'description':(desc or '')[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':price_number(price),'availability':schema_availability(static_product_data, available),'seller':{'@type':'Organization','name':'Bazar Dzair'}}}
+    ld['offers']['hasMerchantReturnPolicy']=dict(RETURN_POLICY_LD)
     if price_valid_until:
         ld['offers']['priceValidUntil']=price_valid_until
     # aggregateRating فقط عند وجود تقييمات زبائن حقيقية منشورة فعلاً لهذا المنتج (rating_index)؛
@@ -713,6 +714,7 @@ def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images
         # الإشارة متبادلة ومتطابقة تمامًا في الصفحتين.
         canonical_tag+=hreflang_tags(hreflang_ar_url, url_fr)
     ld={'@context':'https://schema.org','@type':'Product','name':name_fr,'image':list(dict.fromkeys([img]+[i for i in (images or []) if i]))[:6],'description':(desc_fr or '')[:500],'url':url_fr,'offers':{'@type':'Offer','url':url_fr,'priceCurrency':'DZD','price':price_number(price),'availability':schema_availability(static_product_data, available),'seller':{'@type':'Organization','name':'Bazar Dzair'}}}
+    ld['offers']['hasMerchantReturnPolicy']=dict(RETURN_POLICY_LD)
     if price_valid_until:
         ld['offers']['priceValidUntil']=price_valid_until
     if aggregate_rating:
@@ -962,6 +964,11 @@ LATEST_URL=SITE+'latest/'
 # صفحة السياسات الثابتة (policies.html في جذر المستودع، تُكتب يدويًا لا بالتوليد): تُدرج في sitemap فقط إن وُجد الملف.
 # بلا lastmod عمدًا — تاريخ الملف بعد checkout في GitHub Actions ليس تاريخ تعديل حقيقيًا.
 POLICIES_URL=SITE+'policies.html'
+# سياسة الإرجاع كما كتبها المتجر في policies.html (48 ساعة من الاستلام): تُضاف إلى offers في JSON-LD لكل منتج.
+# لا نضع returnFees عمدًا: النص يجعلها على المتجر إن كان الخطأ منه وعلى الزبون إن كان الإرجاع برغبته، ولا يطابق FreeReturn.
+RETURN_POLICY_LD={'@type':'MerchantReturnPolicy','applicableCountry':'DZ',
+    'returnPolicyCategory':'https://schema.org/MerchantReturnFiniteReturnWindow','merchantReturnDays':2,
+    'merchantReturnLink':POLICIES_URL+'#returns'}
 def _lm_tag(v): return f'<lastmod>{v}</lastmod>' if v else ''
 urls=[(SITE,'daily','1.0',home_lm),(LATEST_URL,'daily','0.9',home_lm)]+[(u,'weekly','0.9',_lm(u)) for u,_,_,_ in product_urls]+[(u,'weekly','0.85',_lm(u)) for u in fr_urls]+[(u,'weekly','0.8',cat_lastmod.get(u)) for u,_ in cat_urls]+([(POLICIES_URL,'monthly','0.5',None)] if (root/'policies.html').exists() else [])
 xml=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
