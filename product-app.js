@@ -161,6 +161,7 @@ const PAGE_DICT={
   checkout_head_sub:{ar:"لا تدفع شيئًا الآن، فقط أكمل بياناتك وسنتصل بك لتأكيد الطلب",fr:"Ne payez rien maintenant, complétez simplement vos informations et nous vous contacterons pour confirmer la commande"},
   back_to_product:{ar:"رجوع",fr:"Retour"},
   summary_ship_pending:{ar:"حسب الولاية",fr:"Selon la wilaya"},
+  checkout_qty_label:{ar:"الكمية",fr:"Quantité"},
   checkout_policy_link:{ar:"↩️ سياسة الإرجاع والتوصيل",fr:"↩️ Politique de retour et de livraison"},
   similar_title:{ar:"قد يعجبك أيضًا",fr:"Vous pourriez aussi aimer"},
   similar_sub:{ar:"منتجات من نفس الفئة",fr:"Produits de la même catégorie"},
@@ -361,7 +362,7 @@ try{
 const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):(Number(n||0).toLocaleString("en-US",{maximumFractionDigits:2}).replace(/,/g," ")+" دج");
 // سطر المنتج في ملخص الطلب: الاسم والسعر في عنصرين منفصلين (كان نصًا واحدًا "الاسم × 1 — السعر" فيتقطّع السعر
 // ويتبعثر ترتيبه في الاتجاه RTL مع اسم لاتيني). لا علاقة له بالطلب نفسه (للعرض فقط).
-function setCheckoutLine(name,qty,price){const el=document.getElementById("checkoutProduct");if(!el)return;el.innerHTML='<span class="co-name" dir="auto">'+esc(name)+" × "+esc(qty)+'</span><b class="co-price">'+esc(money(price))+"</b>";}
+function setCheckoutLine(name,qty,price){const el=document.getElementById("checkoutProduct");if(!el)return;el.innerHTML='<span data-i18n="checkout_qty_label">'+esc(pt("checkout_qty_label"))+'</span><b class="co-price">'+esc(qty)+"</b>";}
 // يمنع بروتوكولات خطيرة (javascript:, data:, vbscript:) في روابط الصور القادمة من Firestore — يسمح فقط بـ https/http أو مسار نسبي.
 // f_auto,q_auto: صيغة وجودة تلقائيتان حسب جهاز الزائر (WebP/AVIF عادة) لصور Cloudinary فقط،
 // دون أي فرق يُلاحظ بالعين. لا يمس الروابط الأخرى (/logo.svg)، ولا يكرر الإضافة لو كانت موجودة.
@@ -1881,3 +1882,5 @@ async function load(){
   }
 }
 load();
+
+;(function(){try{var a=document.querySelector('.checkout-links a[href^="/policies.html"]');if(a)a.addEventListener("click",function(){a.href="/policies.html?back="+encodeURIComponent(location.pathname+location.search)+"#returns";});}catch(e){}})();

@@ -127,6 +127,7 @@
     summary_total:    { ar: "المجموع النهائي", fr: "Total à payer" },
 
     // مفاتيح صفحة إتمام الطلب (تُكرَّر هنا حتى لا يظهر اسم المفتاح الخام إن لم يُطبَّق قاموس الصفحة)
+    checkout_qty_label:    { ar: "الكمية", fr: "Quantité" },
     checkout_policy_link:  { ar: "↩️ سياسة الإرجاع والتوصيل", fr: "↩️ Politique de retour et de livraison" },
     checkout_trust_note:   { ar: "💵 الدفع عند الاستلام فقط — لا تدفع أي شيء الآن", fr: "💵 Paiement à la livraison uniquement — rien à payer maintenant" },
     checkout_summary_title:{ ar: "ملخص الطلب", fr: "Résumé de la commande" },

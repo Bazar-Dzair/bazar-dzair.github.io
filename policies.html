@@ -89,6 +89,12 @@ nav.chips a:hover{border-color:var(--orange);color:var(--orange)}
     document.getElementById("lead").textContent=D.lead[l]||D.lead.ar;
     document.getElementById("helpTxt").textContent=D.help[l]||D.help.ar;
     document.getElementById("backLink").textContent=D.back[l]||D.back.ar;
+    try{var bk=new URLSearchParams(location.search).get("back");
+      // مسار داخلي فقط (يبدأ بـ / وليس //) لمنع التحويل إلى مواقع خارجية
+      if(bk&&/^\/(?!\/)[^\s\\]*$/.test(bk)){
+        var bl=document.getElementById("backLink");bl.setAttribute("href",bk);
+        var BP={ar:"← العودة إلى المنتج",fr:"← Retour au produit"};bl.textContent=BP[l]||BP.ar;
+      }}catch(e){}
     var btn=document.getElementById("langToggleBtn");if(btn)btn.textContent=l==="ar"?"FR":"AR";
     document.querySelectorAll("[data-t]").forEach(function(el){
       var t=D.titles[el.getAttribute("data-t")];if(t)el.textContent=t[l]||t.ar;
