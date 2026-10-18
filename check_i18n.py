@@ -6,7 +6,9 @@
 """
 import pathlib, re, sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+_here = pathlib.Path(__file__).resolve().parent
+# يعمل سواء وُضع الملف في scripts/ أو في جذر المستودع
+ROOT = _here if (_here / "product.html").exists() else _here.parent
 read = lambda n: (ROOT / n).read_text(encoding="utf-8")
 
 i18n, app = read("i18n.js"), read("product-app.js")
