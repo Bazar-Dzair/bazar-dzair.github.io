@@ -130,6 +130,7 @@
     checkout_help_title: { ar: "تحتاج مساعدة قبل التأكيد؟", fr: "Une question avant de confirmer ?" },
     checkout_help_note: { ar: "نؤكد طلبك هاتفيًا قبل الشحن · ولا تدفع إلا عند الاستلام", fr: "Nous confirmons votre commande par téléphone avant l'expédition · Paiement uniquement à la livraison" },
     show_more_products:    { ar: "إظهار المزيد ↓", fr: "Afficher plus ↓" },
+    checkout_delivery_time:{ ar: "🚚 التوصيل عادة خلال 2 إلى 7 أيام عمل حسب الولاية", fr: "🚚 Livraison généralement sous 2 à 7 jours ouvrables selon la wilaya" },
     checkout_qty_label:    { ar: "الكمية", fr: "Quantité" },
     checkout_policy_link:  { ar: "↩️ سياسة الإرجاع والتوصيل", fr: "↩️ Politique de retour et de livraison" },
     checkout_trust_note:   { ar: "💵 الدفع عند الاستلام فقط — لا تدفع أي شيء الآن", fr: "💵 Paiement à la livraison uniquement — rien à payer maintenant" },
