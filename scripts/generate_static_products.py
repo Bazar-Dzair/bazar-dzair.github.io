@@ -490,6 +490,44 @@ def make_meta_description(desc, limit=155):
     return cut.rstrip(' ,-–—') + '…'
 
 
+def make_product_meta_description(name, desc, price, available=True, lang='ar', limit=158):
+    """وصف Meta لصفحة منتج مبني ليُنقَر عليه في Google: اسم المنتج + السعر + «الدفع عند الاستلام
+    والتوصيل» (من نص المتجر نفسه) ثم مقتطف نظيف من المواصفات يملأ ما تبقّى من الحد.
+    كان الوصف السابق نص المواصفات الخام فقط (بلا اسم ولا سعر). لا يغيّر أي بيانات منتج ولا JSON-LD
+    (الوصف الكامل desc يبقى كما هو هناك)؛ يُستعمل لـ meta description و og:description فقط."""
+    name = ' '.join(str(name or '').split())
+    flat = ' '.join(str(desc or '').split())
+    # أيقونات/رموز الإيموجي تشوّش مقتطف البحث: نزيلها من المقتطف فقط
+    flat = re.sub(r'[\u2600-\u27BF\u2B00-\u2BFF\U0001F000-\U0001FAFF\uFE0F\u200d]+', ' ', flat)
+    flat = ' '.join(flat.split()).lstrip('-–—•:|،, ')
+    if name and flat.startswith(name):            # لا نكرر الاسم إن بدأ الوصف به
+        flat = flat[len(name):].lstrip(' -–—:|،,.')
+    try:
+        pv = float(price)
+        ptxt = f"{int(round(pv)):,}".replace(',', ' ') if pv > 0 else ''
+    except (TypeError, ValueError):
+        ptxt = ''
+    if lang == 'fr':
+        if available:
+            heads = [f"{name} à {ptxt} DA — paiement à la livraison, livraison dans toutes les wilayas." if ptxt else f"{name} — paiement à la livraison, livraison dans toutes les wilayas.",
+                     f"{name} à {ptxt} DA — paiement à la livraison." if ptxt else f"{name} — paiement à la livraison."]
+        else:
+            heads = [f"{name} — actuellement indisponible."]
+    else:
+        if available:
+            heads = [f"{name} بسعر {ptxt} دج، الدفع عند الاستلام وتوصيل لمختلف الولايات." if ptxt else f"{name}، الدفع عند الاستلام وتوصيل لمختلف الولايات.",
+                     f"{name} بسعر {ptxt} دج، الدفع عند الاستلام." if ptxt else f"{name}، الدفع عند الاستلام."]
+        else:
+            heads = [f"{name} — غير متوفر حاليًا."]
+    head = next((h for h in heads if len(h) <= limit - 20), heads[-1])
+    if len(head) > limit:                         # اسم طويل جدًا: نقتطعه عند حدّ كلمة
+        return make_meta_description(head, limit)
+    room = limit - len(head) - 1
+    if room >= 25 and flat:
+        return head + ' ' + make_meta_description(flat, room)
+    return head
+
+
 def hreflang_tags(url_ar, url_fr):
     """يبني وسوم <link rel="alternate" hreflang="..."> المتبادلة بين النسخة العربية
     والفرنسية لنفس المنتج (URLs كاملة، x-default = النسخة العربية، وهي اللغة
@@ -522,7 +560,7 @@ def lang_alt_link_tag(target_url, label):
 
 
 def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None, aggregate_rating=None, price_valid_until=None, hreflang_fr_url=None):
-    d155=make_meta_description(desc)
+    d155=make_product_meta_description(name, desc, price, available, 'ar')
     title_tag=f'<title>{html.escape(name)} | Bazar Dzair</title>'
     desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
     canonical_tag=f'<link id="canonical" rel="canonical" href="{html.escape(url,quote=True)}">'
@@ -665,7 +703,7 @@ def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images
     name_fr/desc_fr (وليس name/desc)، والوجهة صفحة فرنسية مستقلة (url_fr) لها
     canonical خاص بها. لا تُغيَّر بيانات المنتج نفسها (السعر، المخزون...) إطلاقًا —
     فقط طبقة العرض/الميتاداتا لهذه الصفحة الثابتة تحديدًا."""
-    d155=make_meta_description(desc_fr)
+    d155=make_product_meta_description(name_fr, desc_fr, price, available, 'fr')
     title_tag=f'<title>{html.escape(name_fr)} | Bazar Dzair</title>'
     desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
     canonical_tag=f'<link id="canonical" rel="canonical" href="{html.escape(url_fr,quote=True)}">'
