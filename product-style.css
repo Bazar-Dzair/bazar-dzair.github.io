@@ -681,13 +681,16 @@ html[lang="fr"] .gallery-count{direction:ltr}
 .checkout-links a{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
 .checkout-links a:hover{color:var(--orange)}
 
-.checkout-help{margin:14px 0 0;padding:12px;border:1px solid #d8dee7;border-radius:14px;background:#f8fafc;text-align:center;display:flex;flex-direction:column;gap:10px}
-.checkout-help .ch-title{font-size:13.5px;font-weight:800;color:var(--navy)}
-.checkout-help .ch-actions{display:flex;justify-content:center;gap:22px}
-.checkout-help .ch-circle{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:var(--navy);font-size:11.5px;font-weight:800}
-.checkout-help .ch-circle svg{box-sizing:content-box;width:22px;height:22px;padding:13px;border-radius:50%;fill:#fff;box-shadow:0 6px 14px rgba(7,29,59,.18);transition:transform .15s,box-shadow .15s}
-.checkout-help .ch-wa svg{background:#25d366}
-.checkout-help .ch-fb svg{background:#1877f2}
-.checkout-help .ch-circle:hover svg,.checkout-help .ch-circle:focus-visible svg{transform:translateY(-2px);box-shadow:0 10px 20px rgba(7,29,59,.25)}
-.checkout-help .ch-circle:active svg{transform:scale(.94)}
-.checkout-help .ch-note{font-size:12px;font-weight:700;color:var(--muted)}
+.checkout-help{margin:12px 0 0;display:flex;flex-direction:column;align-items:center;gap:6px}
+.checkout-help .ch-row{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.checkout-help .ch-title{font-size:12.5px;font-weight:700;color:var(--muted)}
+.checkout-help .ch-actions{display:inline-flex;gap:8px}
+.checkout-help .ch-circle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#fff;border:1px solid #d8dee7;transition:background .15s,border-color .15s,transform .15s}
+.checkout-help .ch-circle svg{width:17px;height:17px;display:block}
+.checkout-help .ch-wa svg{fill:#25d366}
+.checkout-help .ch-fb svg{fill:#1877f2}
+.checkout-help .ch-wa:hover,.checkout-help .ch-wa:focus-visible{background:#25d366;border-color:#25d366}
+.checkout-help .ch-fb:hover,.checkout-help .ch-fb:focus-visible{background:#1877f2;border-color:#1877f2}
+.checkout-help .ch-circle:hover svg,.checkout-help .ch-circle:focus-visible svg{fill:#fff}
+.checkout-help .ch-circle:active{transform:scale(.93)}
+.checkout-help .ch-note{font-size:11.5px;font-weight:600;color:var(--muted);text-align:center;opacity:.85}
