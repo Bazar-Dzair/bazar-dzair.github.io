@@ -86,7 +86,7 @@
 window.BazarHomeGate=(function(){
   var root=document.documentElement,state={hero:false,products:false,cats:false},done=false,timer=0;
   function reveal(){if(done)return;done=true;clearTimeout(timer);root.classList.remove("home-gate");}
-  function mark(k){if(done||!(k in state))return;state[k]=true;if(state.hero)reveal();}
+  function mark(k){if(done||!(k in state))return;state[k]=true;if(state.hero&&state.products)reveal();}
   function watchHero(){
     var hero=document.querySelector("#home .hero");
     if(!hero){mark("hero");return;}
@@ -102,7 +102,7 @@ window.BazarHomeGate=(function(){
     var plainHome=(location.pathname==="/"||location.pathname==="/index.html")&&!sp.get("q")&&!(sp.get("category")&&sp.get("category")!=="all");
     var isBot=/bot|crawl|spider|slurp|bingpreview|facebookexternalhit|whatsapp|telegram|twitterbot|linkedin|pinterest|embedly|preview/i.test(navigator.userAgent||"");
     if(plainHome&&!isBot){
-      timer=setTimeout(reveal,1500);
+      timer=setTimeout(reveal,2800);
       root.classList.add("home-gate");
       if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",watchHero);else watchHero();
     }
@@ -1544,7 +1544,7 @@ function latestCardHtml(p,i){
   // التي تظهر فور التحميل بلا تمرير — وهي غالبًا عنصر LCP الفعلي على الجوال حسب تقرير PageSpeed.
   // البطاقة الأولى فقط (i===0) تُحمَّل الآن مباشرة مع fetchpriority="high"؛ الباقي يبقى lazy كالمعتاد.
   const eager=i===0;
-  const imgAttrs=eager?'loading="eager" decoding="sync" fetchpriority="high"':'loading="lazy" decoding="async"';
+  const imgAttrs=eager?'loading="eager" decoding="sync" fetchpriority="high"':(i<4?'loading="eager" decoding="async"':'loading="lazy" decoding="async"');
   // بطاقة مبسّطة: صورة + عنوان + سعر فقط. الضغط على أي جزء منها يفتح صفحة المنتج.
   // إصلاح إتاحة (28/09/2026): كان الوسم <article role="group"> غير صالح حسب PageSpeed/axe
   // ("ARIA role should be appropriate for the element") لأن "group" ليس من الأدوار المسموحة
