@@ -116,6 +116,26 @@ service cloud.firestore {
       allow read, delete: if isAdmin();
     }
 
+    // 💬 رسائل "تواصل معنا" — الزائر يكتب رسالة جديدة فقط (create) بحقول محددة وأطوال محدودة،
+    // لا قراءة ولا تعديل ولا حذف إلا للأدمن. createdAt يضعه الخادم حصرًا (REQUEST_TIME).
+    function isValidContactMessage(d) {
+      return
+        d.keys().hasOnly(['name','email','message','page','lang','status','createdAt']) &&
+        d.keys().hasAll(['email','message','status','createdAt']) &&
+        d.status == 'new' &&
+        d.createdAt == request.time &&
+        d.email is string && d.email.size() >= 5 && d.email.size() <= 120 &&
+        d.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$') &&
+        d.message is string && d.message.size() >= 2 && d.message.size() <= 1000 &&
+        (!('name' in d) || (d.name is string && d.name.size() <= 60)) &&
+        (!('page' in d) || (d.page is string && d.page.size() <= 200)) &&
+        (!('lang' in d) || (d.lang is string && d.lang.size() <= 5));
+    }
+    match /messages/{id} {
+      allow create: if isValidContactMessage(request.resource.data);
+      allow read, update, delete: if isAdmin();
+    }
+
     // isValidOrder() لم تعد مستعملة في أي قاعدة (إنشاء الطلب صار عبر الـ Worker فقط)،
     // لكنها تبقى مرجعًا موثّقًا لنفس الشروط التي يعيد الـ Worker (create-order.js)
     // تطبيقها يدويًا قبل الكتابة بصلاحيات Service Account. لا تحذفها: أي تعديل على شروط

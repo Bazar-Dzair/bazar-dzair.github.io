@@ -50,6 +50,7 @@
     <button class="nav-item active" data-view="dashboard" onclick="showView('dashboard',this)">⌂ <span>لوحة التحكم</span></button>
     <button class="nav-item" data-view="orders" onclick="showView('orders',this)">🛒 <span>الطلبات</span></button>
     <button class="nav-item" data-view="reviews" onclick="showView('reviews',this)">⭐ <span>التقييمات</span><span id="reviewsPendingBadge" class="nav-badge hidden">0</span></button>
+    <button class="nav-item" data-view="messages" onclick="showView('messages',this)">✉️ <span>الرسائل</span><span id="messagesNewBadge" class="nav-badge hidden">0</span></button>
   </nav>
   <div class="nav-title">إدارة المتجر</div><nav class="nav">
     <button class="nav-item" data-view="product" onclick="showView('product',this,true)">＋ <span>إنشاء منتج</span></button>
@@ -290,6 +291,32 @@
   </div>
 </section>
 
+<section id="view-messages" class="view hidden">
+  <div class="page-head" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+    <div><h1>الرسائل</h1><p>رسائل الزبائن من زر «تواصل معنا». اقرأ الرسالة ثم رد على بريد الزبون عبر Gmail.</p></div>
+    <div class="orders-filter-wrap" style="display:flex;gap:8px">
+      <button type="button" class="funnel-btn" id="messagesFilterBtn" onclick="window.toggleMessagesFilterMenu()">🔽 فلتر</button>
+      <div id="messagesFilterMenu" class="orders-filter-menu hidden">
+        <button type="button" class="active" data-status="new" onclick="window.setMessageStatusFilter('new')">جديدة</button>
+        <button type="button" data-status="read" onclick="window.setMessageStatusFilter('read')">مقروءة</button>
+        <button type="button" data-status="all" onclick="window.setMessageStatusFilter('all')">الكل</button>
+      </div>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><span class="stat-icon purple">✉️</span><div><small>إجمالي الرسائل</small><strong id="messagesStatTotal">0</strong><span class="stat-unit">رسالة</span></div></div>
+    <div class="stat-card"><span class="stat-icon orange">🆕</span><div><small>جديدة</small><strong id="messagesStatNew">0</strong><span class="stat-unit">رسالة</span></div></div>
+    <div class="stat-card"><span class="stat-icon green">✅</span><div><small>مقروءة</small><strong id="messagesStatRead">0</strong><span class="stat-unit">رسالة</span></div></div>
+  </div>
+  <div class="panel">
+    <div class="orders-toolbar">
+      <div class="search-wrap"><span class="search-ic">🔎</span><input id="messagesSearch" placeholder="ابحث بالاسم أو البريد أو نص الرسالة..." oninput="window.__messagesSearchInput(this.value)"></div>
+    </div>
+    <div id="messagesList"><div class="empty-card">⏳ جاري تحميل الرسائل...</div></div>
+    <div id="messagesPagination" class="pagination"></div>
+  </div>
+</section>
+
 <section id="view-blocked" class="view hidden"><div class="page-head"><div><h1>المحظورون</h1><p>أرقام الهاتف وعناوين IP هذه لا يمكنها تسجيل أي طلب جديد فالمتجر.</p></div></div>
 <div class="panel" style="margin-bottom:16px"><h3 style="margin:0 0 6px;font-size:16px">🛡️ حماية الطلبات (حظر IP)</h3><p style="margin:0 0 12px;color:#8a93a0;font-size:13px;line-height:1.8">كل الطلبات تمر حصرًا عبر Cloudflare Worker الذي يرى عنوان IP الحقيقي ويطبّق الحظر وكشف الإساءة. لا يوجد أي مسار احتياطي للكتابة المباشرة — firestore.rules تمنعها دائمًا، من أي صفحة كانت. لو تعطّل الـ Worker تفشل الطلبات مؤقتًا (يظهر للزبون طلب إعادة المحاولة) بدل أن تُحفظ بلا حماية.</p><div id="workerHealthBox" class="empty-card">لم يتم فحص الـ Worker بعد.</div><div class="form-actions" style="display:flex;flex-wrap:wrap;gap:8px"><button class="green" type="button" onclick="window.bazarCheckWorker()">🔍 فحص الـ Worker</button></div></div>
 <div class="panel"><h3 style="margin:0 0 14px;font-size:16px">📞 أرقام الهاتف المحظورة</h3><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>رقم الهاتف<input id="blockPhoneInput" placeholder="مثال: 0551234567" inputmode="tel"></label></div><div class="form-actions"><button class="green" type="button" onclick="window.blockPhoneManual()">🚫 حظر هذا الرقم</button></div></div><div id="blockedList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الأرقام المحظورة...</div></div></div>
@@ -388,7 +415,7 @@
 </div>
 
 <script src="admin-config.js?v=1eedbd91"></script>
-<script src="admin-init.js?v=c709677b"></script>
-<script type="module" src="admin-app.js?v=e3809f42"></script>
+<script src="admin-init.js?v=6d80798b"></script>
+<script type="module" src="admin-app.js?v=5bbe487e"></script>
 </body>
 </html>

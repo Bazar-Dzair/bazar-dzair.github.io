@@ -421,7 +421,7 @@ onAuthStateChanged(auth,u=>{document.body.classList.remove("auth-check");
     return;
   }
   try{if(u)localStorage.setItem("bazarIsAdmin","1");}catch(e){}
-  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();if(window.bazarLoadFraudAlerts)window.bazarLoadFraudAlerts(true);if(window.bazarLoadAbandoned)window.bazarLoadAbandoned(true);loadVisitsStat();loadVisitsChart();loadProductViews();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
+  if(u){loginBox.classList.add("hidden");appPage();renderCategorySelect();renderCategories();loadCategories();renderCurrentUser(u);if(window.bazarLoadReviews)window.bazarLoadReviews();if(window.bazarLoadMessages)window.bazarLoadMessages();if(window.bazarLoadFraudAlerts)window.bazarLoadFraudAlerts(true);if(window.bazarLoadAbandoned)window.bazarLoadAbandoned(true);loadVisitsStat();loadVisitsChart();loadProductViews();try{const cachedCount=localStorage.getItem("bazarProductsCount"),pc=document.getElementById("statProducts");if(pc&&cachedCount)pc.textContent=Number(cachedCount).toLocaleString("ar-DZ")}catch(e){}}else{appBox.classList.add("hidden");loginBox.classList.remove("hidden")}});
 
 // الرابط الثابت للتصنيف (/product-category/<slug>/): نفس ترتيب الأولوية في index.html و scripts/generate_static_products.py.
 // slug المحفوظ أولًا (لا يتغيّر بتعديل الاسم)، وإلا الاشتقاق القديم من name_fr ثم المعرّف.
@@ -525,7 +525,7 @@ function appPage(){
     const params=new URLSearchParams(window.location.search);
     view=params.get("view")||sessionStorage.getItem("bazarAdminView")||"dashboard";
   }catch(e){}
-  const valid=["dashboard","orders","product","products","categories","shipping-rates","sections","footer","users","settings","addons","order-detail","blocked","fraud"];
+  const valid=["dashboard","orders","product","products","categories","shipping-rates","sections","footer","users","settings","addons","order-detail","blocked","fraud","messages"];
   if(!valid.includes(view)) view="dashboard";
   const nav=[...document.querySelectorAll(".nav-item")];
   const ordersNavItem=document.querySelector('.nav-item[onclick*="orders"]');
@@ -1057,6 +1057,141 @@ window.wipeOldManualRatings=async function(){
     toast(`تم حذف التقييمات اليدوية من ${targets.length} منتج ✅`,"ok");
     productsLoaded=false; // لإجبار إعادة تحميل قائمة المنتجات بالأرقام المحدثة
   }catch(e){console.error(e);toast("تعذر حذف التقييمات اليدوية: "+(e.message||"خطأ غير معروف"),"err");}
+};
+
+// ===== الرسائل: رسائل "تواصل معنا" من الزبائن (collection: messages) =====
+// الزبون يكتب بريده + رسالته من نافذة contact-widget.js؛ هنا نقرأها، نعلّمها كمقروءة،
+// ونرد عبر Gmail (نافذة كتابة جاهزة موجهة لبريد الزبون).
+let messagesAll=[], messagesLoaded=false, messagesLoading=null;
+let messagesPage=1, messagesStatusFilter="new", messagesSearchQuery="";
+window.bazarLoadMessages=async function(force=false){
+  if(messagesLoading) return messagesLoading;
+  if(messagesLoaded && !force){ renderMessages(); return; }
+  messagesLoading=(async()=>{
+    try{
+      const snap=await getDocs(collection(db,"messages"));
+      messagesAll=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+      messagesAll.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+      messagesLoaded=true;
+      renderMessages();
+    }catch(e){
+      console.error(e);
+      const box=document.getElementById("messagesList");
+      if(box) box.innerHTML='<div class="empty-card">⚠️<b>تعذر تحميل الرسائل</b><span>'+esc(e.message||"تأكد من نشر قواعد Firestore الجديدة (collection messages).")+'</span></div>';
+    }finally{ messagesLoading=null; }
+  })();
+  return messagesLoading;
+};
+function messageDateStr(m){ return m.createdAt?.seconds ? new Date(m.createdAt.seconds*1000).toLocaleString("ar-DZ",{dateStyle:"medium",timeStyle:"short"}) : ""; }
+function getFilteredMessages(){
+  const q=String(messagesSearchQuery||"").trim().toLowerCase();
+  return messagesAll.filter(m=>{
+    const isNew=m.status!=="read";
+    if(messagesStatusFilter==="new" && !isNew) return false;
+    if(messagesStatusFilter==="read" && isNew) return false;
+    if(!q) return true;
+    return [m.name,m.email,m.message].some(v=>String(v||"").toLowerCase().includes(q));
+  });
+}
+function renderMessagesStats(){
+  const total=messagesAll.length, fresh=messagesAll.filter(m=>m.status!=="read").length;
+  const set=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v;};
+  set("messagesStatTotal",total); set("messagesStatNew",fresh); set("messagesStatRead",total-fresh);
+  const badge=document.getElementById("messagesNewBadge");
+  if(badge){ badge.textContent=fresh; badge.classList.toggle("hidden",fresh===0); }
+}
+function gmailReplyUrl(m){
+  const subject="Re: رسالتك إلى Bazar Dzair";
+  const quoted="\n\n---\n"+String(m.message||"");
+  return "https://mail.google.com/mail/?view=cm&fs=1&to="+encodeURIComponent(m.email||"")+"&su="+encodeURIComponent(subject)+"&body="+encodeURIComponent(quoted);
+}
+function renderMessages(){
+  const box=document.getElementById("messagesList"); if(!box) return;
+  renderMessagesStats();
+  const rows=getFilteredMessages();
+  const totalPages=Math.max(1,Math.ceil(rows.length/ITEMS_PER_PAGE));
+  if(messagesPage>totalPages) messagesPage=totalPages;
+  if(!rows.length){
+    box.innerHTML = messagesAll.length
+      ? '<div class="empty-card">🔎<b>لا توجد رسائل مطابقة</b><span>جرّب تعديل البحث أو الفلتر.</span></div>'
+      : '<div class="empty-card">✉️<b>لا توجد رسائل بعد</b><span>عندما يراسلك زبون من زر «تواصل معنا» ستظهر رسالته هنا.</span></div>';
+    renderMessagesPagination(1,0); return;
+  }
+  const start=(messagesPage-1)*ITEMS_PER_PAGE, pageRows=rows.slice(start,start+ITEMS_PER_PAGE);
+  box.innerHTML='<div class="reviews-list">'+pageRows.map(m=>{
+    const isNew=m.status!=="read", id=esc(m.id);
+    return `<div class="review-row">
+      <div class="review-row-top">
+        <div class="review-row-who">
+          <span class="review-row-name">${esc(String(m.name||"زبون"))}</span>
+          <span class="review-row-product" dir="ltr">${esc(String(m.email||""))}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="review-row-status ${isNew?'pending':'approved'}">${isNew?'جديدة 🆕':'مقروءة ✅'}</span>
+          <span class="review-row-date">${esc(messageDateStr(m))}</span>
+        </div>
+      </div>
+      <div class="review-row-text">${esc(String(m.message||""))}</div>
+      <div class="review-row-actions">
+        <a class="review-approve" style="text-decoration:none;border-radius:9px;padding:9px 14px;font-weight:800;font-size:12.5px" href="${esc(gmailReplyUrl(m))}" target="_blank" rel="noopener" onclick="window.markMessageRead('${id}',true)">✉️ رد عبر Gmail</a>
+        <button type="button" class="review-unapprove" onclick="window.copyMessageEmail('${id}')">📋 نسخ البريد</button>
+        ${isNew
+          ?`<button type="button" class="review-unapprove" onclick="window.markMessageRead('${id}')">✅ تمت القراءة</button>`
+          :`<button type="button" class="review-unapprove" onclick="window.markMessageUnread('${id}')">↩ إرجاعها كجديدة</button>`}
+        <button type="button" class="review-delete" onclick="window.deleteMessage('${id}')">🗑 حذف</button>
+      </div>
+    </div>`;
+  }).join("")+'</div>';
+  renderMessagesPagination(messagesPage,totalPages);
+}
+function renderMessagesPagination(current,totalPages){
+  const box=document.getElementById("messagesPagination"); if(!box)return;
+  if(!totalPages||totalPages<=1){box.innerHTML="";return;}
+  let html=`<button class="page-btn" type="button" ${current<=1?"disabled":""} onclick="window.__messagesGoPage(${Math.max(1,current-1)})">‹</button>`;
+  for(let n=1;n<=totalPages;n++){ if(n===1||n===totalPages||Math.abs(n-current)<=2) html+=`<button class="page-btn ${n===current?'active':''}" type="button" onclick="window.__messagesGoPage(${n})">${n}</button>`; }
+  html+=`<button class="page-btn" type="button" ${current>=totalPages?"disabled":""} onclick="window.__messagesGoPage(${Math.min(totalPages,current+1)})">›</button><span class="page-info">صفحة ${current} من ${totalPages}</span>`;
+  box.innerHTML=html;
+}
+window.__messagesGoPage=function(n){ messagesPage=Math.max(1,Number(n)||1); renderMessages(); };
+window.__messagesSearchInput=function(v){ messagesSearchQuery=v; messagesPage=1; renderMessages(); };
+window.toggleMessagesFilterMenu=function(){ document.getElementById("messagesFilterMenu")?.classList.toggle("hidden"); };
+window.setMessageStatusFilter=function(status){
+  messagesStatusFilter=status; messagesPage=1;
+  document.querySelectorAll("#messagesFilterMenu button").forEach(b=>b.classList.toggle("active",b.dataset.status===status));
+  document.getElementById("messagesFilterMenu")?.classList.add("hidden");
+  renderMessages();
+};
+document.addEventListener("click",(e)=>{
+  const menu=document.getElementById("messagesFilterMenu");
+  if(menu && !menu.classList.contains("hidden") && !e.target.closest(".orders-filter-wrap")) menu.classList.add("hidden");
+});
+async function setMessageStatus(id,status,silent){
+  const cur=messagesAll.find(m=>m.id===id);
+  if(cur && (cur.status==="read")===(status==="read")) return;
+  try{
+    await updateDoc(doc(db,"messages",id),{status,...(status==="read"?{readAt:serverTimestamp()}:{})});
+    messagesAll=messagesAll.map(m=>m.id===id?{...m,status}:m);
+    if(!silent) toast(status==="read"?"تم تعليم الرسالة كمقروءة ✅":"أُرجعت الرسالة كجديدة","ok");
+    // عند الرد عبر Gmail نترك الرسالة ظاهرة لحظة قبل أن تنتقل لقائمة "مقروءة"
+    setTimeout(renderMessages, silent?600:0);
+  }catch(e){console.error(e);toast("تعذر تحديث الرسالة: "+(e.message||"خطأ غير معروف"),"err");}
+}
+// عند الرد عبر Gmail (silent=true) تُعلَّم الرسالة كمقروءة بصمت
+window.markMessageRead=function(id,silent){ return setMessageStatus(id,"read",!!silent); };
+window.markMessageUnread=function(id){ return setMessageStatus(id,"new"); };
+window.copyMessageEmail=async function(id){
+  const m=messagesAll.find(x=>x.id===id); if(!m) return;
+  try{ await navigator.clipboard.writeText(m.email||""); toast("تم نسخ البريد: "+m.email,"ok"); }
+  catch(e){ toast(m.email||"","ok"); }
+};
+window.deleteMessage=async function(id){
+  if(!confirm("حذف هذه الرسالة نهائيًا؟ لا يمكن التراجع.")) return;
+  try{
+    await deleteDoc(doc(db,"messages",id));
+    messagesAll=messagesAll.filter(m=>m.id!==id);
+    toast("تم حذف الرسالة ✅","ok");
+    renderMessages();
+  }catch(e){console.error(e);toast("تعذر حذف الرسالة: "+(e.message||"خطأ غير معروف"),"err");}
 };
 
 // ===== التقييمات: تقييمات حقيقية فقط، كل تقييم جديد من الزبون يصل بحالة =====

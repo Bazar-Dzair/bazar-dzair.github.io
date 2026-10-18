@@ -32,6 +32,7 @@ function showView(name, el, createNew=false, updateUrl=true){
   if(name==="product" && !createNew && window.bazarLoadProducts) window.bazarLoadProducts();
   if(name==="orders" && window.bazarLoadOrders) window.bazarLoadOrders();
   if(name==="reviews" && window.bazarLoadReviews) window.bazarLoadReviews();
+  if(name==="messages" && window.bazarLoadMessages) window.bazarLoadMessages(true);
   if(name==="blocked"){ if(window.bazarLoadBlockedPhones) window.bazarLoadBlockedPhones(); if(window.bazarLoadBlockedIps) window.bazarLoadBlockedIps(); }
   if(name==="fraud" && window.bazarLoadFraudAlerts) window.bazarLoadFraudAlerts();
   if(name==="shipping-rates" && window.bazarLoadShippingRates) window.bazarLoadShippingRates();
@@ -48,7 +49,7 @@ window.addEventListener("popstate",()=>{
   try{
     const params=new URLSearchParams(window.location.search);
     let view=params.get("view")||"dashboard";
-    const valid=["dashboard","orders","reviews","product","products","categories","shipping-rates","sections","footer","users","settings","addons","order-detail","blocked","fraud"];
+    const valid=["dashboard","orders","reviews","product","products","categories","shipping-rates","sections","footer","users","settings","addons","order-detail","blocked","fraud","messages"];
     if(!valid.includes(view)) view="dashboard";
     const ordersNavItem=document.querySelector('.nav-item[onclick*="orders"]');
     if(view==="order-detail"){
