@@ -11,7 +11,7 @@
     if (v.integerValue !== undefined) return Number(v.integerValue);
     if (v.doubleValue !== undefined) return Number(v.doubleValue);
     if (v.arrayValue) return (v.arrayValue.values || []).map(val);
-    if (v.mapValue) return mapData(v);
+    if (v.mapValue) return mapData(v.mapValue); // الحقول المتداخلة (metaPixel وغيرها) داخل mapValue.fields
     return null;
   }
   function mapData(doc) {
@@ -42,6 +42,15 @@
 
   var cfg = {};
   var installing = false;
+
+  // طابور الأحداث: نؤجّل تحميل أكواد التتبع الخارجية حتى تظهر الصفحة، وأي حدث يُطلق قبل ذلك
+  // (ViewContent، FormStart...) يُحفظ هنا ثم يُعاد تشغيله بعد التحميل بدل أن يضيع.
+  var evQueue = [];
+  if (!window.bazarTrackEvent) {
+    var stub = function (name, data) { if (evQueue.length < 50) evQueue.push([name, data]); };
+    stub.__q = true;
+    window.bazarTrackEvent = stub;
+  }
 
   function initGoogleAnalytics(a) {
     var c = a.googleAnalytics || {};
@@ -152,7 +161,7 @@
   }
 
   function installEvents() {
-    if (window.bazarTrackEvent) return;
+    if (window.bazarTrackEvent && !window.bazarTrackEvent.__q) return;
     window.bazarTrackEvent = function (eventName, data) {
       data = data || {};
       function on(x) { return !!(x && x.enabled === true); }
@@ -202,6 +211,10 @@
         }
       } catch (e) {  }
     };
+    var pending = evQueue.splice(0);
+    for (var qi = 0; qi < pending.length; qi++) {
+      try { window.bazarTrackEvent(pending[qi][0], pending[qi][1]); } catch (e) {}
+    }
   }
 
   function install() {
@@ -231,13 +244,12 @@
           install();
         }
       };
+      req.timeout = 8000;
+      req.ontimeout = function () { install(); };
       req.send();
     } catch (e) { install(); }
   }
 
-  window.addEventListener("DOMContentLoaded", function () {
-    setTimeout(function () { if (!installing) install(); }, 4500);
-  });
 
   window.gscVerificationContent = function (code) {
     code = (code || "").trim();
@@ -258,5 +270,17 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 100);
   };
 
-  startLoad();
+  // لا نحمّل إعدادات التتبع ولا سكربتات Google/Meta/TikTok أثناء رسم الصفحة الأولى (تخفيف على شبكة 4G).
+  var booted = false;
+  function boot() {
+    if (booted) return;
+    booted = true;
+    ["pointerdown", "touchstart", "keydown", "scroll"].forEach(function (t) { window.removeEventListener(t, boot, true); });
+    startLoad();
+  }
+  ["pointerdown", "touchstart", "keydown", "scroll"].forEach(function (t) {
+    window.addEventListener(t, boot, { capture: true, passive: true, once: true });
+  });
+  if (document.readyState === "complete") setTimeout(boot, 1000);
+  else window.addEventListener("load", function () { setTimeout(boot, 1000); });
 })();
