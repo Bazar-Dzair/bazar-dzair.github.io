@@ -9,6 +9,11 @@ SITE='https://bazar-dzair.github.io/'
 # priceValidUntil لكل عروض JSON-LD: تاريخ مستقبلي يُحسب في كل تشغيل للسكربت (كل 6 ساعات عبر
 # GitHub Action الحالي)، فيبقى دائمًا في المستقبل تلقائيًا دون أي تدخل يدوي أو تعديل للـ workflow.
 PRICE_VALID_UNTIL=(datetime.now(timezone.utc)+timedelta(days=90)).strftime('%Y-%m-%d')
+# سياسة الإرجاع كما كتبها المتجر في policies.html (48 ساعة من الاستلام): تُضاف إلى offers في JSON-LD لصفحات المنتج.
+# تُعرَّف هنا في أعلى الملف (قبل حلقة المنتجات) — تعريفها لاحقًا يسبّب NameError. لا returnFees عمدًا: النص لا يطابق FreeReturn.
+RETURN_POLICY_LD={'@type':'MerchantReturnPolicy','applicableCountry':'DZ',
+    'returnPolicyCategory':'https://schema.org/MerchantReturnFiniteReturnWindow','merchantReturnDays':2,
+    'merchantReturnLink':SITE+'policies.html#returns'}
 
 
 def w3c_date(v):
@@ -964,11 +969,6 @@ LATEST_URL=SITE+'latest/'
 # صفحة السياسات الثابتة (policies.html في جذر المستودع، تُكتب يدويًا لا بالتوليد): تُدرج في sitemap فقط إن وُجد الملف.
 # بلا lastmod عمدًا — تاريخ الملف بعد checkout في GitHub Actions ليس تاريخ تعديل حقيقيًا.
 POLICIES_URL=SITE+'policies.html'
-# سياسة الإرجاع كما كتبها المتجر في policies.html (48 ساعة من الاستلام): تُضاف إلى offers في JSON-LD لكل منتج.
-# لا نضع returnFees عمدًا: النص يجعلها على المتجر إن كان الخطأ منه وعلى الزبون إن كان الإرجاع برغبته، ولا يطابق FreeReturn.
-RETURN_POLICY_LD={'@type':'MerchantReturnPolicy','applicableCountry':'DZ',
-    'returnPolicyCategory':'https://schema.org/MerchantReturnFiniteReturnWindow','merchantReturnDays':2,
-    'merchantReturnLink':POLICIES_URL+'#returns'}
 def _lm_tag(v): return f'<lastmod>{v}</lastmod>' if v else ''
 urls=[(SITE,'daily','1.0',home_lm),(LATEST_URL,'daily','0.9',home_lm)]+[(u,'weekly','0.9',_lm(u)) for u,_,_,_ in product_urls]+[(u,'weekly','0.85',_lm(u)) for u in fr_urls]+[(u,'weekly','0.8',cat_lastmod.get(u)) for u,_ in cat_urls]+([(POLICIES_URL,'monthly','0.5',None)] if (root/'policies.html').exists() else [])
 xml=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
