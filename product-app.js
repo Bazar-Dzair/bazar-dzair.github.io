@@ -192,6 +192,8 @@ const PAGE_DICT={
   out_of_5:{ar:"من 5",fr:"sur 5"},
   delivery_strip_text:{ar:"توصيل سريع لجميع الولايات",fr:"Livraison rapide dans toutes les wilayas"},
   trust_cod_card:{ar:"دفع عند الاستلام",fr:"Paiement à la livraison"},
+  trust_return_note:{ar:"↩️ إرجاع مجاني إذا وصلك المنتج تالفًا أو مختلفًا — خلال 48 ساعة",fr:"↩️ Retour possible si le produit est endommagé ou différent — sous 48 h"},
+  trust_return_link:{ar:"سياسة الإرجاع",fr:"Politique de retour"},
   trust_delivery_card:{ar:"توصيل سريع لجميع الولايات",fr:"Livraison rapide partout"},
   trust_original_card:{ar:"منتوج أصلي ومضمون",fr:"Produit original garanti"},
   trust_support_card:{ar:"خدمة ما بعد البيع",fr:"Service après-vente"},
@@ -676,7 +678,7 @@ document.getElementById("infoContent").innerHTML=`${badgeHtml}<h1 class="title">
   <div class="trust-card"><span class="ic">🚚</span><span>${esc(pt("trust_delivery_card"))}</span></div>
   <div class="trust-card"><span class="ic">🎧</span><span>${esc(pt("trust_support_card"))}</span></div>
   <div class="trust-card"><span class="ic">💵</span><span>${esc(pt("trust_cod_card"))}</span></div>
-</div>${stockNoteHtml}${highlightsHtml}<div id="variantPickerHolder">${variantPickerHtml(p)}</div><div class="purchase-controls"><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}</div>`;
+</div><p class="trust-return-note">${esc(pt("trust_return_note"))} <a href="/policies.html#returns">${esc(pt("trust_return_link"))}</a></p>${stockNoteHtml}${highlightsHtml}<div id="variantPickerHolder">${variantPickerHtml(p)}</div><div class="purchase-controls"><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}</div>`;
 
 setCheckoutLine(name,1,p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);const sbBtn=sb.querySelector(".sb-btn");const sbCart=sb.querySelector(".sb-cart");if(sbBtn){sbBtn.disabled=!available;sbBtn.style.opacity=available?"1":".55";sbBtn.textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}if(sbCart){sbCart.disabled=!available;sbCart.style.opacity=available?"1":".55";}}
 

@@ -695,3 +695,5 @@ html[lang="fr"] .gallery-count{direction:ltr}
 .checkout-help .ch-circle:hover svg,.checkout-help .ch-circle:focus-visible svg{fill:#fff}
 .checkout-help .ch-circle:active{transform:scale(.93)}
 .checkout-links{margin-top:10px}
+
+.trust-return-note{margin:-8px 0 16px;font-size:12px;line-height:1.7;color:#475569;text-align:center}.trust-return-note a{color:#cc4400;font-weight:700;text-decoration:underline}
