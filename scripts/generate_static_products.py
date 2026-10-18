@@ -921,8 +921,11 @@ _all_lm=[v for v in lm_by_url.values() if v]
 home_lm=max(_all_lm, default=None)
 # صفحة /latest/ (أحدث المنتجات كروابط HTML ثابتة) — تُولَّد أدناه ويُدرج رابطها هنا.
 LATEST_URL=SITE+'latest/'
+# صفحة السياسات الثابتة (policies.html في جذر المستودع، تُكتب يدويًا لا بالتوليد): تُدرج في sitemap فقط إن وُجد الملف.
+# بلا lastmod عمدًا — تاريخ الملف بعد checkout في GitHub Actions ليس تاريخ تعديل حقيقيًا.
+POLICIES_URL=SITE+'policies.html'
 def _lm_tag(v): return f'<lastmod>{v}</lastmod>' if v else ''
-urls=[(SITE,'daily','1.0',home_lm),(LATEST_URL,'daily','0.9',home_lm)]+[(u,'weekly','0.9',_lm(u)) for u,_,_,_ in product_urls]+[(u,'weekly','0.85',_lm(u)) for u in fr_urls]+[(u,'weekly','0.8',cat_lastmod.get(u)) for u,_ in cat_urls]
+urls=[(SITE,'daily','1.0',home_lm),(LATEST_URL,'daily','0.9',home_lm)]+[(u,'weekly','0.9',_lm(u)) for u,_,_,_ in product_urls]+[(u,'weekly','0.85',_lm(u)) for u in fr_urls]+[(u,'weekly','0.8',cat_lastmod.get(u)) for u,_ in cat_urls]+([(POLICIES_URL,'monthly','0.5',None)] if (root/'policies.html').exists() else [])
 xml=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
 for u,freq,priority,lm in urls:
     xml.append(f'<url><loc>{html.escape(u)}</loc>{_lm_tag(lm)}<changefreq>{freq}</changefreq><priority>{priority}</priority></url>')
