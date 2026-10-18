@@ -160,6 +160,8 @@ const PAGE_DICT={
   checkout_head_title:{ar:"تأكيد الطلب — الدفع عند الاستلام",fr:"Confirmation de commande — Paiement à la livraison"},
   checkout_head_sub:{ar:"لا تدفع شيئًا الآن، فقط أكمل بياناتك وسنتصل بك لتأكيد الطلب",fr:"Ne payez rien maintenant, complétez simplement vos informations et nous vous contacterons pour confirmer la commande"},
   back_to_product:{ar:"رجوع",fr:"Retour"},
+  summary_ship_pending:{ar:"حسب الولاية",fr:"Selon la wilaya"},
+  checkout_policy_link:{ar:"↩️ سياسة الإرجاع والتوصيل",fr:"↩️ Politique de retour et de livraison"},
   similar_title:{ar:"قد يعجبك أيضًا",fr:"Vous pourriez aussi aimer"},
   similar_sub:{ar:"منتجات من نفس الفئة",fr:"Produits de la même catégorie"},
   similar_view_all:{ar:"عرض الكل",fr:"Voir tout"},
@@ -357,6 +359,9 @@ try{
   document.documentElement.style.visibility="";
 }
 const money=n=>window.BazarI18n?BazarI18n.formatMoney(n):(Number(n||0).toLocaleString("en-US",{maximumFractionDigits:2}).replace(/,/g," ")+" دج");
+// سطر المنتج في ملخص الطلب: الاسم والسعر في عنصرين منفصلين (كان نصًا واحدًا "الاسم × 1 — السعر" فيتقطّع السعر
+// ويتبعثر ترتيبه في الاتجاه RTL مع اسم لاتيني). لا علاقة له بالطلب نفسه (للعرض فقط).
+function setCheckoutLine(name,qty,price){const el=document.getElementById("checkoutProduct");if(!el)return;el.innerHTML='<span class="co-name" dir="auto">'+esc(name)+" × "+esc(qty)+'</span><b class="co-price">'+esc(money(price))+"</b>";}
 // يمنع بروتوكولات خطيرة (javascript:, data:, vbscript:) في روابط الصور القادمة من Firestore — يسمح فقط بـ https/http أو مسار نسبي.
 // f_auto,q_auto: صيغة وجودة تلقائيتان حسب جهاز الزائر (WebP/AVIF عادة) لصور Cloudinary فقط،
 // دون أي فرق يُلاحظ بالعين. لا يمس الروابط الأخرى (/logo.svg)، ولا يكرر الإضافة لو كانت موجودة.
@@ -672,7 +677,7 @@ document.getElementById("infoContent").innerHTML=`${badgeHtml}<h1 class="title">
   <div class="trust-card"><span class="ic">💵</span><span>${esc(pt("trust_cod_card"))}</span></div>
 </div>${stockNoteHtml}${highlightsHtml}<div id="variantPickerHolder">${variantPickerHtml(p)}</div><div class="purchase-controls"><div class="qty"><button onclick="changeQty(-1)">−</button><span id="qty">1</span><button onclick="changeQty(1)">+</button></div>${buyHtml}</div>`;
 
-document.getElementById("checkoutProduct").textContent=name+" × 1 — "+money(p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);const sbBtn=sb.querySelector(".sb-btn");const sbCart=sb.querySelector(".sb-cart");if(sbBtn){sbBtn.disabled=!available;sbBtn.style.opacity=available?"1":".55";sbBtn.textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}if(sbCart){sbCart.disabled=!available;sbCart.style.opacity=available?"1":".55";}}
+setCheckoutLine(name,1,p.price);updateTotal();const sb=document.getElementById("stickyBuy");if(sb){document.getElementById("sbPrice").textContent=money(p.price);const sbBtn=sb.querySelector(".sb-btn");const sbCart=sb.querySelector(".sb-cart");if(sbBtn){sbBtn.disabled=!available;sbBtn.style.opacity=available?"1":".55";sbBtn.textContent=available?pt("detail_buy_now"):pt("badge_unavailable");}if(sbCart){sbCart.disabled=!available;sbCart.style.opacity=available?"1":".55";}}
 
 // ===== بطاقة التفاصيل والتقييمات الموحدة =====
 const descLines=String(desc||"").split("\n").map(l=>l.trim()).filter(Boolean);
@@ -868,7 +873,7 @@ window.addToCartUI=()=>{
 };
 window.galleryGo=i=>{if(!galleryImages.length)return;galleryIndex=Math.max(0,Math.min(i,galleryImages.length-1));const main=document.getElementById('mainProductPhoto');if(main){const gi=galleryImages[galleryIndex],ms=mainSet(gi);main.src=cldW(gi,800);if(ms){main.srcset=ms;main.sizes='(max-width:900px) calc(100vw - 28px), 560px'}else main.removeAttribute('srcset')}const count=document.getElementById('galleryCount');if(count)count.textContent=(galleryIndex+1)+' / '+galleryImages.length;document.querySelectorAll('.thumb').forEach((el,n)=>el.classList.toggle('active',n===galleryIndex));if(document.getElementById('imageLightbox')?.classList.contains('open'))window.syncLightbox();};window.galleryMove=step=>{if(galleryImages.length<2)return;galleryGo((galleryIndex+step+galleryImages.length)%galleryImages.length);};
 window.openImageLightbox=()=>{const l=document.getElementById('imageLightbox'),i=document.getElementById('lightboxImg');if(!l||!i)return;i.src=safeImg(galleryImages[galleryIndex]);i.alt=document.getElementById('mainProductPhoto')?.alt||'';l.classList.add('open');document.body.style.overflow='hidden';};window.closeImageLightbox=()=>{const l=document.getElementById('imageLightbox');if(l)l.classList.remove('open');document.body.style.overflow='';};window.syncLightbox=()=>{const i=document.getElementById('lightboxImg');if(i)i.src=safeImg(galleryImages[galleryIndex]);};
-window.changeQty=x=>{const stockCap=Number(product?.stock);const maxQty=Number.isFinite(stockCap)&&stockCap>0?stockCap:Infinity;quantity=Math.max(1,Math.min(maxQty,quantity+x));document.getElementById("qty").textContent=quantity;const tp2=window.BazarI18n?BazarI18n.translateProduct(product):{name:product.name||product.product};document.getElementById("checkoutProduct").textContent=tp2.name+" × "+quantity+" — "+money(product.price*quantity);const sbp=document.getElementById("sbPrice");if(sbp)sbp.textContent=money(product.price*quantity);updateTotal();saveCheckoutDraft()};
+window.changeQty=x=>{const stockCap=Number(product?.stock);const maxQty=Number.isFinite(stockCap)&&stockCap>0?stockCap:Infinity;quantity=Math.max(1,Math.min(maxQty,quantity+x));document.getElementById("qty").textContent=quantity;const tp2=window.BazarI18n?BazarI18n.translateProduct(product):{name:product.name||product.product};setCheckoutLine(tp2.name,quantity,product.price*quantity);const sbp=document.getElementById("sbPrice");if(sbp)sbp.textContent=money(product.price*quantity);updateTotal();saveCheckoutDraft()};
 // ===== التبديل بين معلومات المنتج ونموذج COD داخل نفس عمود .info =====
 // hideProductInfo/showProductInfo: يُخفيان أو يُظهران محتوى المنتج (العنوان/السعر/الكمية/الأزرار) فقط،
 // دون لمس عمود الصور أو الوصف أو التقييمات في الأسفل.
@@ -1035,7 +1040,7 @@ function updateTotal(){
   const spEl=document.getElementById("summaryPrice");
   const ssEl=document.getElementById("summaryShipping");
   if(spEl) spEl.textContent=money(base);
-  if(!w){shippingEl.textContent=pt("ship_note_default");if(ssEl)ssEl.textContent="—";document.getElementById("grandTotal").textContent=money(base);return;}
+  if(!w){shippingEl.textContent=pt("ship_note_default");if(ssEl)ssEl.textContent=pt("summary_ship_pending");document.getElementById("grandTotal").textContent=money(base);return;}
   if(!chosen){shippingEl.textContent=pt("ship_unavailable_now");if(ssEl)ssEl.textContent="—";document.getElementById("grandTotal").textContent=money(base);return;}
   const s=chosen.price;
   const carrierNames=chosen.codes.map(c=>carrierLabels[c]||c).join(" + ");

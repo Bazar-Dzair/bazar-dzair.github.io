@@ -671,3 +671,12 @@ html[lang="fr"] .sim-track{direction:ltr}
 h1.title{unicode-bidi:plaintext;text-align:center}
 /* عنوان المنتج بالعربية: محاذاة لليمين دائمًا (حتى لو بدأ الاسم بحروف لاتينية مثل Kemei). النسخة الفرنسية تبقى LTR عبر القاعدة الخاصة بها أعلاه */
 html:not([lang="fr"]) h1.title{direction:rtl;unicode-bidi:isolate;text-align:right}
+
+/* ===== تحسينات صفحة الشراء (ملخص الطلب + عدّاد المعرض + رابط السياسة) ===== */
+#checkoutProduct{display:flex;justify-content:space-between;align-items:baseline;gap:12px;width:100%}
+#checkoutProduct .co-name{min-width:0;overflow-wrap:anywhere}
+#checkoutProduct .co-price{flex:none;white-space:nowrap;color:var(--navy);font-weight:800;unicode-bidi:isolate}
+html[lang="fr"] .gallery-count{direction:ltr}
+.checkout-links{margin:8px 0 0;text-align:center;font-size:12.5px;font-weight:700}
+.checkout-links a{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.checkout-links a:hover{color:var(--orange)}
