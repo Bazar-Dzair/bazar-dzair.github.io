@@ -72,6 +72,7 @@
     footer_track:         { ar: "📦 تتبع طلبي",     fr: "📦 Suivre ma commande" },
     footer_delivery_policy:{ ar: "🚚 سياسة التوصيل", fr: "🚚 Politique de livraison" },
     footer_return_policy: { ar: "↩️ سياسة الإرجاع والاسترجاع", fr: "↩️ Politique de retour" },
+    footer_facebook:      { ar: "📘 صفحتنا على فيسبوك", fr: "📘 Notre page Facebook" },
     footer_whatsapp:      { ar: "💬 واتساب متوفر للطلبات", fr: "💬 WhatsApp disponible pour les commandes" },
     footer_copyright:     { ar: "© 2026 Bazar Dzair ❤️ — جميع الحقوق محفوظة", fr: "© 2026 Bazar Dzair ❤️ — Tous droits réservés" },
 
