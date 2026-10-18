@@ -126,6 +126,14 @@
     summary_delivery: { ar: "التوصيل",         fr: "Livraison" },
     summary_total:    { ar: "المجموع النهائي", fr: "Total à payer" },
 
+    // مفاتيح صفحة إتمام الطلب (تُكرَّر هنا حتى لا يظهر اسم المفتاح الخام إن لم يُطبَّق قاموس الصفحة)
+    checkout_policy_link:  { ar: "↩️ سياسة الإرجاع والتوصيل", fr: "↩️ Politique de retour et de livraison" },
+    checkout_trust_note:   { ar: "💵 الدفع عند الاستلام فقط — لا تدفع أي شيء الآن", fr: "💵 Paiement à la livraison uniquement — rien à payer maintenant" },
+    checkout_summary_title:{ ar: "ملخص الطلب", fr: "Résumé de la commande" },
+    summary_price_label:   { ar: "سعر المنتج", fr: "Prix du produit" },
+    summary_shipping_label:{ ar: "تكلفة التوصيل", fr: "Frais de livraison" },
+    checkout_total_label:  { ar: "💰 المجموع الكلي", fr: "💰 Total à payer" },
+
     delivery_home_label:   { ar: "🏠 توصيل إلى المنزل",  fr: "🏠 Livraison à domicile" },
     delivery_office_label: { ar: "🏤 استلام من المكتب",  fr: "🏤 Retrait au bureau" },
 
