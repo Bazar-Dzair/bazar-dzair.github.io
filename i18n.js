@@ -128,8 +128,6 @@
 
     // مفاتيح صفحة إتمام الطلب (تُكرَّر هنا حتى لا يظهر اسم المفتاح الخام إن لم يُطبَّق قاموس الصفحة)
     checkout_help_title: { ar: "🤝 تحتاج مساعدة قبل التأكيد؟ نحن بالخدمة", fr: "🤝 Besoin d'aide avant de confirmer ? Nous sommes à votre service" },
-    checkout_help_wa: { ar: "💬 واتساب", fr: "💬 WhatsApp" },
-    checkout_help_call: { ar: "📞 اتصال", fr: "📞 Appeler" },
     checkout_help_note: { ar: "نؤكد طلبك هاتفيًا قبل الشحن · ولا تدفع إلا عند الاستلام", fr: "Nous confirmons votre commande par téléphone avant l'expédition · Paiement uniquement à la livraison" },
     show_more_products:    { ar: "إظهار المزيد ↓", fr: "Afficher plus ↓" },
     checkout_qty_label:    { ar: "الكمية", fr: "Quantité" },

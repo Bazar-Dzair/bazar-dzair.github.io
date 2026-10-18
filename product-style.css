@@ -683,8 +683,11 @@ html[lang="fr"] .gallery-count{direction:ltr}
 
 .checkout-help{margin:14px 0 0;padding:12px;border:1px solid #d8dee7;border-radius:14px;background:#f8fafc;text-align:center;display:flex;flex-direction:column;gap:10px}
 .checkout-help .ch-title{font-size:13.5px;font-weight:800;color:var(--navy)}
-.checkout-help .ch-actions{display:flex;gap:8px;flex-wrap:wrap}
-.checkout-help .ch-btn{flex:1 1 140px;display:inline-flex;justify-content:center;align-items:center;gap:6px;padding:10px 12px;border-radius:12px;font-weight:800;font-size:13.5px;text-decoration:none;min-height:44px}
-.checkout-help .ch-wa{background:#25d366;color:#fff}
-.checkout-help .ch-call{background:var(--navy);color:#fff}
+.checkout-help .ch-actions{display:flex;justify-content:center;gap:22px}
+.checkout-help .ch-circle{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:var(--navy);font-size:11.5px;font-weight:800}
+.checkout-help .ch-circle svg{box-sizing:content-box;width:22px;height:22px;padding:13px;border-radius:50%;fill:#fff;box-shadow:0 6px 14px rgba(7,29,59,.18);transition:transform .15s,box-shadow .15s}
+.checkout-help .ch-wa svg{background:#25d366}
+.checkout-help .ch-fb svg{background:#1877f2}
+.checkout-help .ch-circle:hover svg,.checkout-help .ch-circle:focus-visible svg{transform:translateY(-2px);box-shadow:0 10px 20px rgba(7,29,59,.25)}
+.checkout-help .ch-circle:active svg{transform:scale(.94)}
 .checkout-help .ch-note{font-size:12px;font-weight:700;color:var(--muted)}
