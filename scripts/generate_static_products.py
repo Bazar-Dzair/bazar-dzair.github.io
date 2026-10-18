@@ -454,6 +454,8 @@ def static_product_html(name, desc, price, images, available=True, badge=None, o
         '<div class="trust-card"><span class="ic">🎧</span><span>خدمة ما بعد البيع</span></div>'
         '<div class="trust-card"><span class="ic">💵</span><span>دفع عند الاستلام</span></div>'
         '</div>'
+        '<p class="trust-return-note">↩️ إرجاع مجاني إذا وصلك المنتج تالفًا أو مختلفًا — خلال 48 ساعة '
+        '<a href="/policies.html#returns">سياسة الإرجاع</a></p>'
     )
 
     if available:
@@ -676,6 +678,8 @@ def static_product_html_fr(name_fr, desc_fr, price, images, available=True, badg
         '<div class="trust-card"><span class="ic">🎧</span><span>Service après-vente</span></div>'
         '<div class="trust-card"><span class="ic">💵</span><span>Paiement à la livraison</span></div>'
         '</div>'
+        '<p class="trust-return-note">↩️ Retour possible si le produit est endommagé ou différent — sous 48 h '
+        '<a href="/policies.html#returns">Politique de retour</a></p>'
     )
 
     if available:
