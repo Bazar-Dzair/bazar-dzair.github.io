@@ -3,14 +3,11 @@ rules_version = '2';
 // =====================================================================
 // Bazar Dzair — Firebase Storage Security Rules (نسخة معززة v2)
 // انسخ هذا الملف كاملاً إلى Firebase Console > Storage > Rules ثم انشر
-// (أو فعّل نشره التلقائي — راجع firebase.json و تعليمات_نشر التي بالأسفل).
+// (أو انشره من المستودع بـ: firebase deploy --only storage — راجع firebase.json).
 //
-// ⚠️ كانت القيمة هنا لا تزال 'ADMIN_UID_HERE' (لم تُستبدل أبدًا) بينما
-//    firestore.rules يستعمل UID حقيقيًا — ما كان يمنع رفع شعار/بانر المتجر من
-//    admin.html نهائيًا (isAdmin() كانت ترجع false دائمًا). تم الآن مزامنة
-//    القيمة مع نفس UID المستخدم في firestore.rules. إذا تغيّر حساب الأدمن مستقبلاً
-//    يجب تحديث القيمة هنا وفي firestore.rules معًا (Firebase Console → Authentication
-//    → Users → User UID).
+// ملاحظة: القيمة هنا مطابقة لـ UID حساب الأدمن في firestore.rules. إذا تغيّر حساب الأدمن
+// يجب تحديث القيمة هنا وفي firestore.rules وفي الكود المرتبط به (انظر تعليق firestore.rules)
+// (Firebase Console → Authentication → Users → User UID).
 // =====================================================================
 
 service firebase.storage {
