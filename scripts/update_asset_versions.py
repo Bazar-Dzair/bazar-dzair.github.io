@@ -21,6 +21,18 @@ HTML_FILES = [
     "product.html",
     "orders.html",
     "404.html",
+    "policies.html",
+    "success.html",
+]
+
+# صفحات مولَّدة (يعيد generate_static_products.py كتابتها). كانت خارج هذا السكربت، فتبقى
+# بصمة product-app.js القديمة في كل صفحات /product/ و/fr/product/ (وبلا بصمة أصلًا في
+# الفئات و/latest/) حتى التشغيل المجدول التالي للتوليد، فيخدم الكاش نسخة JS قديمة للزائر.
+HTML_GLOBS = [
+    "product/*/index.html",
+    "fr/product/*/index.html",
+    "product-category/*/index.html",
+    "latest/index.html",
 ]
 
 # href="...css?v=xxx"  أو  src="...js?v=xxx"  (مع أو بدون / في البداية، مع أو بدون ?v= أصلًا)
@@ -54,13 +66,22 @@ def process_file(html_path: pathlib.Path) -> bool:
 
 def main() -> int:
     changed_any = False
-    for name in HTML_FILES:
-        html_path = ROOT / name
+    targets = [ROOT / name for name in HTML_FILES]
+    for pattern in HTML_GLOBS:
+        targets.extend(sorted(ROOT.glob(pattern)))
+    updated_generated = 0
+    for html_path in targets:
         if not html_path.is_file():
             continue
         if process_file(html_path):
-            print(f"Updated asset versions in {name}")
+            rel = html_path.relative_to(ROOT).as_posix()
+            if "/" in rel:
+                updated_generated += 1  # صفحات مولَّدة كثيرة: نطبع عددها فقط
+            else:
+                print(f"Updated asset versions in {rel}")
             changed_any = True
+    if updated_generated:
+        print(f"Updated asset versions in {updated_generated} generated pages")
     if not changed_any:
         print("No asset version changes needed.")
     return 0
