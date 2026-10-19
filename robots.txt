@@ -7,4 +7,3 @@ Disallow: /product.html
 Disallow: /*?q=
 
 Sitemap: https://bazar-dzair.github.io/sitemap-bazar.xml
-Sitemap: https://bazar-dzair.github.io/feed.xml
