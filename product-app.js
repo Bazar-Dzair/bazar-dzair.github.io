@@ -1018,6 +1018,36 @@ function computeDeliveryOptions(w){
   }
   return opts;
 }
+function renderDeliveryRange(){
+  try{
+    const host=document.getElementById("shipping");
+    if(!host||!host.parentNode) return;
+    let box=document.getElementById("deliveryRangeBox");
+    if(!box){
+      box=document.createElement("div");
+      box.id="deliveryRangeBox";
+      box.style.cssText="margin:10px 0;padding:10px 12px;border-radius:12px;background:#f4f8ff;border:1px solid #dbe7f7;font-size:13px;line-height:1.8;color:#071d3b;text-align:start";
+      host.parentNode.insertBefore(box,host);
+    }
+    const fr=document.documentElement.lang==="fr";
+    const prices=[];
+    const keys=new Set([...Object.keys(shippingRatesData||{}),...Object.keys(legacyShippingPrices||{}),...Object.keys(legacyOfficeShippingPrices||{})]);
+    keys.forEach(w=>{ const o=computeDeliveryOptions(w); Object.values(o).forEach(x=>{ if(x&&typeof x.price==="number") prices.push(x.price); }); });
+    const wa="https://wa.me/213542195834";
+    const policy=fr?"Politique de retour":"سياسة الإرجاع";
+    const contact=fr?"Contact WhatsApp":"تواصل عبر واتساب";
+    let priceLine;
+    if(prices.length){
+      const lo=Math.min(...prices), hi=Math.max(...prices);
+      const range=lo===hi?money(lo):money(lo)+" – "+money(hi);
+      priceLine=fr?("🚚 Frais de livraison : "+range+" selon la wilaya, payés à la livraison."):("🚚 سعر التوصيل: "+range+" حسب الولاية، يُدفع عند الاستلام.");
+    } else {
+      priceLine=fr?"🚚 Frais de livraison selon la wilaya, payés à la livraison.":"🚚 سعر التوصيل حسب الولاية، يُدفع عند الاستلام.";
+    }
+    const retLine=fr?"↩️ Retour sous 48 h si le produit est endommagé ou différent.":"↩️ إرجاع خلال 48 ساعة إذا وصل المنتج تالفاً أو مختلفاً.";
+    box.innerHTML=esc(priceLine)+"<br>"+esc(retLine)+"<br><a href=\"/policies.html#returns\" style=\"font-weight:700;color:#cc4400\">"+esc(policy)+"</a> · <a href=\""+wa+"\" target=\"_blank\" rel=\"noopener\" style=\"font-weight:700;color:#15803d\">"+esc(contact)+"</a>";
+  }catch(e){}
+}
 function renderDeliveryOptions(opts){
   const wrap=document.getElementById("deliveryTypeWrap");
   const box=document.getElementById("deliveryTypeOptions");
@@ -1038,6 +1068,7 @@ function updateTotal(){
   const base=Number(product?.price||0)*quantity;
   const opts=computeDeliveryOptions(w);
   renderDeliveryOptions(opts);
+  renderDeliveryRange();
   const chosen=selectedDeliveryType&&opts[selectedDeliveryType]?opts[selectedDeliveryType]:null;
   const shippingEl=document.getElementById("shipping");
   const spEl=document.getElementById("summaryPrice");
