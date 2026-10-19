@@ -2,3 +2,13 @@
 /* عنوان «جميع المنتجات»: نفس شكل عنوان «وصل حديثًا» (أيقونة برتقالية + عنوان + زر) */.section-head.ap-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:14px;row-gap:6px}.ap-head .section-title{display:contents}.ap-head .lp-ico{grid-column:1;grid-row:1}.ap-head .section-title h2{grid-column:2;grid-row:1;font-size:26px;line-height:1.25;font-weight:900;color:var(--navy)}.ap-head .section-title p{grid-column:2;grid-row:2;margin:0;font-size:14px;line-height:1.55;color:#55657f}.ap-head .view-all{grid-column:3;grid-row:1/span 2;align-self:center;flex:none;white-space:nowrap}@media(max-width:600px){.section-head.ap-head{column-gap:11px}.ap-head .lp-ico{width:44px;height:44px;border-radius:14px}.ap-head .lp-ico .lp-svg{width:24px;height:24px}.ap-head .section-title h2{font-size:20px}.ap-head .section-title p{grid-column:1/-1;grid-row:2;font-size:13px}.ap-head .view-all{grid-row:1;padding:8px 13px;font-size:13px}}
 #footerWhatsapp{display:block;padding:6px 4px}
 /* عناوين المنتجات: اتجاه كل عنوان يتبع أول حرف فيه (عربي/فرنسي) والنص في الوسط */.product .name,.lp-name{unicode-bidi:plaintext;text-align:center}.lp-name a{unicode-bidi:plaintext;display:inline}
+
+html[lang="fr"] #footer,html[lang="fr"] #footer *{direction:ltr}
+html[lang="fr"] #footer{text-align:left}
+html[lang="fr"] #footer .footer-toggle{text-align:left;justify-content:flex-start}
+html[lang="fr"] #footer .footer-link-text{border-right:0;border-left:2px solid rgba(255,255,255,.28);padding-left:12px}
+#footer .footer-toggle{gap:8px;padding:6px 4px;min-height:34px}
+#footer ul li a{display:flex;align-items:center;gap:8px;padding:6px 4px;min-height:34px;color:#d5dfed;text-decoration:none;line-height:1.35}
+#footer ul li a:hover{text-decoration:underline}
+#footer .copyright{text-align:center}
+#footer h3{padding-bottom:6px;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,.12)}
