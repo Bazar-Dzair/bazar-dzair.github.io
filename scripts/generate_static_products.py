@@ -41,6 +41,12 @@ def value(v):
     return next(iter(v.values()), None)
 
 
+def ld_dumps(obj):
+    """JSON آمن للتضمين داخل <script>: نص المنتج (اسم/وصف يكتبه الأدمن) قد يحوي "</script>" أو "<!--"،
+    وهذا كان يُغلق وسم السكربت مبكرًا ويكسر الصفحة. "<\\/" و"<\\u0021--" تعنيان نفس الحرف في JSON فلا يتغير المعنى."""
+    return json.dumps(obj,ensure_ascii=False).replace('</','<\\/').replace('<!--','<\\u0021--')
+
+
 def collection(name):
     out=[]; token=None
     while True:
@@ -353,7 +359,7 @@ def write_page(path, title, description, canonical, body, jsonld, robots='index,
     # صغير في أسفل الصفحة يقرأ تفضيل اللغة المحفوظ (bazarLang في localStorage عبر
     # BazarI18n) ويُبدّل النصوص القابلة للترجمة فوريًا دون إعادة تحميل الصفحة.
     path.parent.mkdir(parents=True,exist_ok=True)
-    doc=f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="referrer" content="strict-origin-when-cross-origin"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"><script>(function(){{try{{var ua=navigator.userAgent||"";if(/bot|crawl|spider|slurp|bingpreview|facebookexternalhit|whatsapp|telegram|twitterbot|linkedin|pinterest|embedly|preview/i.test(ua))return;var m=location.pathname.match(/\\/product-category\\/([^\\/]+)\\/?$/);if(m)location.replace("/?category="+m[1]);}}catch(e){{}}}})();</script><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title><meta name="description" content="{html.escape(description, quote=True)}"><meta name="robots" content="{html.escape(robots, quote=True)}"><link rel="canonical" href="{html.escape(canonical,quote=True)}"><meta property="og:type" content="website"><meta property="og:title" content="{html.escape(title,quote=True)}"><meta property="og:description" content="{html.escape(description,quote=True)}"><meta property="og:url" content="{html.escape(canonical,quote=True)}"><link rel="icon" href="/logo.svg"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#061e3d"><script src="/i18n.js" defer></script><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:1000px;margin:auto;padding:24px;line-height:1.8;color:#172033}}a{{color:#e65c00;text-decoration:none}}.card{{border:1px solid #e5e7eb;border-radius:18px;padding:18px;margin:14px 0;background:#fff}}img{{max-width:100%;height:auto;object-fit:contain;max-height:420px}}.price{{font-size:24px;font-weight:800;color:#e65c00}}.btn{{display:inline-block;background:#16a34a;color:#fff;padding:12px 18px;border-radius:10px;font-weight:800}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}}body{{background:#f7f8fb}}.top-bar{{display:flex;justify-content:flex-end;margin-bottom:10px}}#langToggleBtn{{border:1px solid #d8dee8;background:#fff;color:#172033;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit}}#langToggleBtn:hover{{background:#f1f4f9}}</style><script type="application/ld+json">{json.dumps(jsonld,ensure_ascii=False)}</script></head><body><div class="top-bar"><button id="langToggleBtn" type="button" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية">FR</button></div>{body}<script>
+    doc=f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="referrer" content="strict-origin-when-cross-origin"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"><script>(function(){{try{{var ua=navigator.userAgent||"";if(/bot|crawl|spider|slurp|bingpreview|facebookexternalhit|whatsapp|telegram|twitterbot|linkedin|pinterest|embedly|preview/i.test(ua))return;var m=location.pathname.match(/\\/product-category\\/([^\\/]+)\\/?$/);if(m)location.replace("/?category="+m[1]);}}catch(e){{}}}})();</script><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title><meta name="description" content="{html.escape(description, quote=True)}"><meta name="robots" content="{html.escape(robots, quote=True)}"><link rel="canonical" href="{html.escape(canonical,quote=True)}"><meta property="og:type" content="website"><meta property="og:title" content="{html.escape(title,quote=True)}"><meta property="og:description" content="{html.escape(description,quote=True)}"><meta property="og:url" content="{html.escape(canonical,quote=True)}"><link rel="icon" href="/logo.svg"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#061e3d"><script src="/i18n.js" defer></script><style>body{{font-family:Arial,Tahoma,sans-serif;max-width:1000px;margin:auto;padding:24px;line-height:1.8;color:#172033}}a{{color:#e65c00;text-decoration:none}}.card{{border:1px solid #e5e7eb;border-radius:18px;padding:18px;margin:14px 0;background:#fff}}img{{max-width:100%;height:auto;object-fit:contain;max-height:420px}}.price{{font-size:24px;font-weight:800;color:#e65c00}}.btn{{display:inline-block;background:#16a34a;color:#fff;padding:12px 18px;border-radius:10px;font-weight:800}}.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}}body{{background:#f7f8fb}}.top-bar{{display:flex;justify-content:flex-end;margin-bottom:10px}}#langToggleBtn{{border:1px solid #d8dee8;background:#fff;color:#172033;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit}}#langToggleBtn:hover{{background:#f1f4f9}}</style><script type="application/ld+json">{ld_dumps(jsonld)}</script></head><body><div class="top-bar"><button id="langToggleBtn" type="button" onclick="BazarI18n.toggleLang()" aria-label="Français / العربية">FR</button></div>{body}<script>
 (function(){{
   // نصوص خاصة بهذه الصفحة فقط (غير موجودة في قاموس i18n.js المشترك)، بنفس أسلوب
   // PAGE_DICT المُستخدم في product.html حتى لا نحتاج لتعديل i18n.js من هذا الملف.
@@ -594,8 +600,8 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
         f'<meta id="ogImage" property="og:image" content="{html.escape(img,quote=True)}">'
         f'<meta id="ogPriceAmount" property="product:price:amount" content="{price_number(price)}">'
         f'<meta id="ogPriceCurrency" property="product:price:currency" content="DZD">'
-        f'<script type="application/ld+json" id="bazar_product_jsonld">{json.dumps(ld,ensure_ascii=False)}</script>'
-        f'<script type="application/ld+json" id="bazar_breadcrumb_jsonld">{json.dumps(bc,ensure_ascii=False)}</script>'
+        f'<script type="application/ld+json" id="bazar_product_jsonld">{ld_dumps(ld)}</script>'
+        f'<script type="application/ld+json" id="bazar_breadcrumb_jsonld">{ld_dumps(bc)}</script>'
     )
     if static_product_data is not None:
         # ===== إصلاح "الطبقتين" =====
@@ -740,8 +746,8 @@ def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images
         f'<meta id="ogImage" property="og:image" content="{html.escape(img,quote=True)}">'
         f'<meta id="ogPriceAmount" property="product:price:amount" content="{price_number(price)}">'
         f'<meta id="ogPriceCurrency" property="product:price:currency" content="DZD">'
-        f'<script type="application/ld+json" id="bazar_product_jsonld">{json.dumps(ld,ensure_ascii=False)}</script>'
-        f'<script type="application/ld+json" id="bazar_breadcrumb_jsonld">{json.dumps(bc,ensure_ascii=False)}</script>'
+        f'<script type="application/ld+json" id="bazar_product_jsonld">{ld_dumps(ld)}</script>'
+        f'<script type="application/ld+json" id="bazar_breadcrumb_jsonld">{ld_dumps(bc)}</script>'
     )
     if static_product_data is not None:
         data_json=json.dumps(static_product_data,ensure_ascii=False).replace('</','<\\/')
@@ -794,6 +800,12 @@ categories=[c for c in collection('categories') if c.get('name')]
 # داخل HTML الثابت من البداية بدل انتظار JS بعد التحميل (نفس مصدر الحقيقة الذي
 # يستعمله product.html، مجموعة reviews في Firestore — لا أرقام يدوية أبدًا).
 rating_index=build_rating_index(collection_where_eq('reviews', 'approved', True))
+
+# حارس أمان: المجلدات أدناه تُحذف بالكامل ثم تُعاد كتابتها ثم يدفعها الـ workflow إلى main. لو أعاد
+# Firestore نتيجة فارغة بنجاح ظاهر (HTTP 200 بلا وثائق: خلل عابر أو تغيير قواعد/مشروع) فكانت كل
+# صفحات /product/ و/fr/ والفئات تُحذف وتُنشر محذوفة. نوقف التشغيل بخطأ صريح قبل أي حذف.
+if not products:
+    raise SystemExit('ERROR: no published products fetched from Firestore; aborting before deleting generated pages.')
 
 # Reset only generated SEO folders; never touch the live store files.
 # fr/product/ هو مجلد مولَّد بالكامل من هذا السكربت (مرحلة 2: نسخة فرنسية ثابتة من
