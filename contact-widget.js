@@ -40,13 +40,13 @@
   var dir = lang === "fr" ? "ltr" : "rtl";
 
   var css = [
-    /* زر الواتساب يرتفع ليصبح زر تواصل معنا تحته */
-    ".wa-float{bottom:76px!important}",
-    ".bcw-btn{position:fixed;left:14px;bottom:20px;z-index:46;height:48px;padding:0 18px 0 14px;border:0;border-radius:26px;background:#061e3d;color:#fff;font:700 14px/1 Tahoma,Arial,sans-serif;display:flex;align-items:center;gap:8px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.25);direction:" + dir + "}",
+    /* زر الواتساب يرتفع فوق زر الدردشة، والاثنان فوق شريط التذييل */
+    ".wa-float{bottom:calc(var(--bcw-b,20px) + 56px)!important}",
+    ".bcw-btn{position:fixed;left:14px;bottom:var(--bcw-b,20px);z-index:46;height:48px;padding:0 18px 0 14px;border:0;border-radius:26px;background:#061e3d;color:#fff;font:700 14px/1 Tahoma,Arial,sans-serif;display:flex;align-items:center;gap:8px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.25);direction:" + dir + "}",
     ".bcw-btn svg{width:22px;height:22px;flex:none}",
     ".bcw-btn:hover{background:#0b2c56}",
     ".bcw-btn:focus-visible,.bcw-x:focus-visible,.bcw-send:focus-visible{outline:3px solid #ff8a4a;outline-offset:2px}",
-    ".bcw-panel{position:fixed;left:14px;bottom:80px;z-index:60;width:300px;max-width:calc(100vw - 28px);height:400px;max-height:calc(100vh - 110px);background:#fff;border-radius:18px;box-shadow:0 14px 44px rgba(7,29,59,.32);display:none;flex-direction:column;overflow:hidden;font-family:Tahoma,Arial,sans-serif;direction:" + dir + "}",
+    ".bcw-panel{position:fixed;left:14px;bottom:calc(var(--bcw-b,20px) + 60px);z-index:60;width:300px;max-width:calc(100vw - 28px);height:400px;max-height:calc(100vh - 110px);background:#fff;border-radius:18px;box-shadow:0 14px 44px rgba(7,29,59,.32);display:none;flex-direction:column;overflow:hidden;font-family:Tahoma,Arial,sans-serif;direction:" + dir + "}",
     ".bcw-panel.open{display:flex;animation:bcwIn .18s ease-out}",
     "@keyframes bcwIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}",
     ".bcw-head{background:linear-gradient(135deg,#061e3d,#0b2c56);color:#fff;padding:10px 12px;display:flex;align-items:center;gap:11px}",
@@ -83,8 +83,23 @@
   }
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
 
+  function fitAboveFooter() {
+    function fit() {
+      var f = document.querySelector(".site-footer");
+      var h = f ? Math.round(f.getBoundingClientRect().height) : 0;
+      document.documentElement.style.setProperty("--bcw-b", (h + 16) + "px");
+    }
+    fit();
+    window.addEventListener("load", fit);
+    window.addEventListener("resize", fit);
+    var f2 = document.querySelector(".site-footer");
+    if (f2 && window.ResizeObserver) new ResizeObserver(fit).observe(f2);
+    setTimeout(fit, 400);
+  }
+
   function init() {
     var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+    fitAboveFooter();
 
     var btn = document.createElement("button");
     btn.type = "button"; btn.className = "bcw-btn"; btn.setAttribute("aria-haspopup", "dialog");
