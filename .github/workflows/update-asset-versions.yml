@@ -16,6 +16,8 @@ on:
       - 'product.html'
       - 'orders.html'
       - '404.html'
+      - 'policies.html'
+      - 'success.html'
       - 'scripts/update_asset_versions.py'
       - '.github/workflows/update-asset-versions.yml'
 
@@ -45,7 +47,7 @@ jobs:
           for attempt in 1 2 3; do
             python3 scripts/update_asset_versions.py
 
-            git add admin.html index.html product.html orders.html 404.html
+            git add admin.html index.html product.html orders.html 404.html policies.html success.html product fr product-category latest
 
             if git diff --cached --quiet; then
               echo 'No version changes.'
