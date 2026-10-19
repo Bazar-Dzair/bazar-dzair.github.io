@@ -263,8 +263,12 @@ async function openSetting(key){
       const val=saved[name] ?? defaultVal;
       const isBool=val==="true" || defaultVal==="true" || defaultVal==="false";
       if(isBool) return `<div class="toggle-row"><label for="sf_${name}" style="margin:0">${label}</label><input id="sf_${name}" data-key="${name}" type="checkbox" ${String(val)==="true"?"checked":""}></div>`;
-      const type=name.toLowerCase().includes("port")?"number":"text";
-      return `<label>${label}<input id="sf_${name}" data-key="${name}" type="${type}" value="${escapeAttr(val)}"></label>`;
+      const lname=name.toLowerCase();
+      const type=lname.includes("port")?"number":lname.includes("password")?"password":"text";
+      // كلمة مرور SMTP كانت تظهر كنص صريح على الشاشة (type=text)؛ autocomplete=new-password يمنع المتصفح
+      // من ملء الحقل تلقائيًا بكلمة مرور حساب آخر محفوظة عنده.
+      const ac=type==="password"?' autocomplete="new-password"':"";
+      return `<label>${label}<input id="sf_${name}" data-key="${name}" type="${type}"${ac} value="${escapeAttr(val)}"></label>`;
     }).join("")}</div>`;
   }
   document.getElementById("settingsModal").classList.remove("hidden");
