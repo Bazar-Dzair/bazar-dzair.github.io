@@ -7,8 +7,9 @@ html[lang="fr"] #footer,html[lang="fr"] #footer *{direction:ltr}
 html[lang="fr"] #footer{text-align:left}
 html[lang="fr"] #footer .footer-toggle{text-align:left;justify-content:flex-start}
 html[lang="fr"] #footer .footer-link-text{border-right:0;border-left:2px solid rgba(255,255,255,.28);padding-left:12px}
-#footer .footer-toggle{gap:8px;padding:6px 4px;min-height:34px}
-#footer ul li a{display:flex;align-items:center;gap:8px;padding:6px 4px;min-height:34px;color:#d5dfed;text-decoration:none;line-height:1.35}
+#footer .footer-toggle{gap:8px;padding:2px 4px;min-height:24px;line-height:1.5}
+#footer ul li a{display:flex;align-items:center;gap:8px;padding:2px 4px;min-height:24px;color:#d5dfed;text-decoration:none;line-height:1.5}
+#footer ul li{margin:0;padding:0}
 #footer ul li a:hover{text-decoration:underline}
 #footer .copyright{text-align:center}
-#footer h3{padding-bottom:6px;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,.12)}
+#footer h3{padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.12)}
