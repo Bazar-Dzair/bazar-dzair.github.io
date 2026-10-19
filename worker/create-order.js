@@ -362,8 +362,9 @@ export async function handleCreateOrder(request, env, ctx) {
       quantity: Number(quantity),
       price: Number(price),
       shipping: Number(shipping || 0),
-      deliveryType: deliveryType || "",
-      shippingCompany: shippingCompany || "",
+      // نفس حدود firestore.rules (<50 و<100): قيمة غير نصية (object/array) أو ضخمة كانت تُحفظ كما هي.
+      deliveryType: typeof deliveryType === "string" ? deliveryType.trim().slice(0, 49) : "",
+      shippingCompany: typeof shippingCompany === "string" ? shippingCompany.trim().slice(0, 99) : "",
       total: Number(total),
       ...(variantClean ? { variant: variantClean } : {}),
       status: "جديد",
@@ -885,7 +886,11 @@ async function getProductPrice(env, productId) {
     productId
   )}`;
   const resp = await fetch(url);
-  if (!resp.ok) return null;
+  // 404 فقط = المنتج غير موجود فعلًا (null → رفض 400 "السعر لا يطابق"). أي فشل آخر (503، 429،
+  // انقطاع عابر من Firestore) كان يُعاد هنا أيضًا كـ null، فيرى الزبون رفضًا نهائيًا (400) ولا
+  // تعيد الواجهة المحاولة. الآن نرمي الخطأ ليعود 502 product_check_failed فتُعاد المحاولة تلقائيًا.
+  if (resp.status === 404) return null;
+  if (!resp.ok) throw new Error("product lookup failed: " + resp.status);
   const data = await resp.json();
   const p = data.fields && data.fields.price;
   if (!p) return null;
