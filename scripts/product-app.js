@@ -659,7 +659,11 @@ function ensureSkeleton(){
   if(infoCol&&checkoutEl) infoCol.appendChild(checkoutEl);
 }
 ensureSkeleton();
-document.getElementById("photoWrap").innerHTML=`<div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="${esc(pt("gallery_prev"))}">‹</button><img id="mainProductPhoto" class="photo" onclick="openImageLightbox()" tabindex="0" role="button" src="${cldW(galleryImages[0],800)}"${mainSet(galleryImages[0])?` srcset="${mainSet(galleryImages[0])}" sizes="(max-width:900px) calc(100vw - 28px), 560px" width="800" height="800"`:""} fetchpriority="high" decoding="async" alt="${esc(name)}" onerror="this.removeAttribute('srcset');this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="${esc(pt("gallery_next"))}">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${cldW(im,160)}" width="76" height="76" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>`;
+{const __pw=document.getElementById("photoWrap");const __re=new Map();__pw.querySelectorAll("img").forEach(im=>{const u=im.getAttribute("src");if(u&&!__re.has(u))__re.set(u,im)});
+__pw.innerHTML=`<div class="main-photo-box"><button class="gallery-arrow prev" onclick="galleryMove(-1)" aria-label="${esc(pt("gallery_prev"))}">‹</button><img id="mainProductPhoto" class="photo" onclick="openImageLightbox()" tabindex="0" role="button" src="${cldW(galleryImages[0],800)}"${mainSet(galleryImages[0])?` srcset="${mainSet(galleryImages[0])}" sizes="(max-width:900px) calc(100vw - 28px), 560px" width="800" height="800"`:""} fetchpriority="high" decoding="async" alt="${esc(name)}" onerror="this.removeAttribute('srcset');this.src='/logo.svg'" style="${available?"":"filter:grayscale(60%);opacity:.75"}"><button class="gallery-arrow next" onclick="galleryMove(1)" aria-label="${esc(pt("gallery_next"))}">›</button><span id="galleryCount" class="gallery-count">1 / ${galleryImages.length}</span></div><div id="productThumbs" class="thumbs">${galleryImages.map((im,i)=>`<button class="thumb ${i===0?'active':''}" onclick="galleryGo(${i})"><img src="${cldW(im,160)}" width="76" height="76" alt="${esc(name)} ${i+1}" loading="lazy" decoding="async" onerror="this.style.opacity=.35"></button>`).join('')}</div>`;
+// إعادة استعمال عناصر <img> المحمَّلة أصلاً (نفس الرابط) بدل إنشاء عناصر جديدة: render() يُستدعى مرتين (بيانات الصفحة ثم Firestore)،
+// وإعادة إنشاء الصور كانت تُظهرها فارغة لحظة على الشبكات الضعيفة. لا نلمس src/srcset فلا يُعاد أي تحميل.
+__pw.querySelectorAll("img").forEach(ni=>{const u=ni.getAttribute("src"),o=__re.get(u);if(!o||o===ni)return;__re.delete(u);for(const a of Array.from(ni.attributes)){if(a.name!=="src"&&a.name!=="srcset"&&a.name!=="sizes")o.setAttribute(a.name,a.value);}ni.replaceWith(o);});}
 
 const badgeHtml=available?"":`<span class="badge-featured unavailable">${esc(pt("badge_unavailable"))}</span>`;
 // ===== Social proof تحت السعر: لا يظهر أي شيء إلا إذا وُجدت تقييمات حقيقية منشورة (لا أرقام مختلقة). =====
@@ -1547,6 +1551,8 @@ function simCacheWrite(scope,items){try{sessionStorage.setItem("bazar_sim_"+scop
 async function loadSimilarProducts(fb,db,cur){
   const boxEl=document.getElementById("similarCard");
   if(!boxEl||!cur||!fb||!db) return;
+  // قسم «قد يعجبك أيضًا» مكتوب مسبقًا في HTML وقت التوليد (data-ssg): نتركه كما هو (بلا إعادة بناء ولا وميض) ونفعّل السحب فقط.
+  if(boxEl.dataset.ssg==="1"){initSimilarDrag(document.getElementById("simTrack"));return;}
   const key=String(cur.firestoreId||cur.name||"");
   if(!key||similarFor===key) return;
   similarFor=key;
