@@ -623,6 +623,7 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
         data_json=json.dumps(static_product_data,ensure_ascii=False).replace('</','<\\/')
         extra+=f'<script type="application/json" id="bazar-static-product">{data_json}</script>'
     out=template.replace('<title>المنتج | Bazar Dzair</title>',title_tag,1)
+    out=out.replace('<meta name="robots" content="noindex, follow">','<meta name="robots" content="index, follow, max-image-preview:large">',1)  # product.html قالب noindex؛ الصفحات المولَّدة الحقيقية يجب أن تُفهرس
     out=out.replace('<meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">',desc_tag,1)
     out=out.replace('<link id="canonical" rel="canonical">',canonical_tag+extra,1)
     if hreflang_fr_url:
@@ -757,6 +758,7 @@ def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images
     # fr_DZ في الصفحة الفرنسية لأنه بيان حقيقي عن لغة محتوى *هذه* الصفحة تحديدًا.
     out=out.replace('<meta property="og:locale" content="ar_DZ">','<meta property="og:locale" content="fr_DZ">',1)
     out=out.replace('<title>المنتج | Bazar Dzair</title>',title_tag,1)
+    out=out.replace('<meta name="robots" content="noindex, follow">','<meta name="robots" content="index, follow, max-image-preview:large">',1)  # product.html قالب noindex؛ الصفحات المولَّدة الحقيقية يجب أن تُفهرس
     out=out.replace('<meta id="metaDescription" name="description" content="منتج من متجر Bazar Dzair">',desc_tag,1)
     out=out.replace('<link id="canonical" rel="canonical">',canonical_tag+extra,1)
     if hreflang_ar_url:
