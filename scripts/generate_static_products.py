@@ -814,6 +814,85 @@ for folder in (root/'product',root/'product-category',root/'fr'):
     if folder.exists():
         import shutil; shutil.rmtree(folder)
 
+
+# ===== «قد يعجبك أيضًا» ثابتة داخل HTML (بدل انتظار Firebase) =====
+# كان القسم يظهر متأخرًا جدًا على الشبكات الضعيفة لأنه يحتاج تحميل مكتبة Firebase ثم استعلامًا. الآن تُكتب
+# البطاقات (نفس فئة المنتج) في الصفحة نفسها وقت التوليد؛ product-app.js يتركها كما هي (data-ssg="1").
+SIM_PLACEHOLDER = '<section id="similarCard" class="similar-card" aria-labelledby="similarTitle" hidden></section>'
+SIM_ICON = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+            'stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/>'
+            '<rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>'
+            '<rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>')
+
+def _sim_available(p):
+    try: st = float(p.get('stock')) if p.get('stock') not in (None, '') else None
+    except (TypeError, ValueError): st = None
+    return p.get('published') is not False and not (st is not None and st <= 0)
+
+def _sim_words(p):
+    txt = f"{p.get('name') or p.get('product') or ''} {p.get('name_fr') or ''}"
+    txt = unicodedata.normalize('NFKD', txt)
+    txt = ''.join(ch for ch in txt if not unicodedata.combining(ch)).lower()
+    return {w for w in re.split(r'[^\w]+', txt) if len(w) >= 3 and not any(c.isdigit() for c in w)}
+
+def similar_html(cur, fr, slug_of, pool):
+    """4 منتجات من نفس الفئة (المتوفر أولًا، ثم الأقرب اسمًا وسعرًا). نص فارغ إن لا فئة أو لا منتجات مشابهة."""
+    cat = str(cur.get('category') or '').strip()
+    if not cat or cat == 'all': return ''
+    cur_words = _sim_words(cur)
+    try: cur_price = float(cur.get('price') or 0)
+    except (TypeError, ValueError): cur_price = 0
+    ranked = []
+    for x in pool:
+        if x is cur or x.get('_id') == cur.get('_id') or str(x.get('category') or '').strip() != cat: continue
+        if not (x.get('name') or x.get('product')) or x.get('_id') not in slug_of: continue
+        try: px = float(x.get('price') or 0)
+        except (TypeError, ValueError): px = 0
+        near = (1 - min(1, abs(px - cur_price) / cur_price)) if cur_price > 0 and px > 0 else 0
+        score = len(cur_words & _sim_words(x)) * 2 + (3 if _sim_available(x) else 0) + near * 2
+        ranked.append((score, x))
+    ranked.sort(key=lambda t: -t[0])  # فرز مستقر: عند التعادل يبقى ترتيب Firestore
+    items = [x for _, x in ranked[:4]]
+    if not items: return ''
+    mny = money_fr if fr else money
+    prefix = SITE + ('fr/product/' if fr else 'product/')
+    cards = []
+    for x in items:
+        nm = str((x.get('name_fr') if fr and x.get('name_fr') else x.get('name') or x.get('product')) or '')
+        ok = _sim_available(x)
+        try:
+            price = float(x.get('price') or 0)
+            oldp = float(x.get('oldPrice') or x.get('old_price') or x.get('compareAtPrice') or x.get('compare_at_price') or 0)
+        except (TypeError, ValueError):
+            price, oldp = 0, 0
+        disc = round((oldp - price) / oldp * 100) if oldp > price > 0 else 0
+        if not ok: badge = f'<span class="sim-badge gray">{"Indisponible" if fr else "غير متوفر حاليًا"}</span>'
+        elif disc: badge = f'<span class="sim-badge">-{disc}%</span>'
+        else: badge = ''
+        href = prefix + urllib.parse.quote(slug_of[x['_id']], safe='-._~') + '/'
+        img = html.escape(cld_w(raw_image_of(x), 360), quote=True)
+        old_html = f'<span class="sim-old">{html.escape(mny(oldp))}</span>' if disc else ''
+        cards.append(
+            f'<a class="sim-card{"" if ok else " sim-off"}" draggable="false" href="{html.escape(href, quote=True)}">'
+            f'<div class="sim-media"><img src="{img}" alt="{html.escape(nm, quote=True)}" loading="lazy" decoding="async" draggable="false">{badge}</div>'
+            f'<div class="sim-body"><h3 class="sim-name">{html.escape(nm)}</h3>'
+            f'<div class="sim-price"><span class="sim-now">{html.escape(mny(price))}</span>{old_html}</div></div></a>')
+    t_title, t_sub, t_all = (('Vous pourriez aussi aimer', 'Produits de la même catégorie', 'Voir tout') if fr
+                             else ('قد يعجبك أيضًا', 'منتجات من نفس الفئة', 'عرض الكل'))
+    all_link = f'<a class="sim-all" href="/?category={urllib.parse.quote(cat, safe="")}">{t_all}</a>'
+    return (f'<section id="similarCard" class="similar-card" aria-labelledby="similarTitle" data-ssg="1">'
+            f'<div class="sim-head"><div><h2 class="sim-title" id="similarTitle">{SIM_ICON}{t_title}</h2>'
+            f'<p class="sim-sub">{t_sub}</p></div>{all_link}</div><div class="sim-track" id="simTrack">{"".join(cards)}</div></section>')
+
+def inject_similar(template, cur, fr, slug_of, pool):
+    block = similar_html(cur, fr, slug_of, pool)
+    return template.replace(SIM_PLACEHOLDER, block, 1) if block and SIM_PLACEHOLDER in template else template
+
+_sim_slug_of = {}; _sim_seen = {}
+for _sp in products:  # نفس منطق إنشاء slug أدناه تمامًا (نفس الترتيب ونفس عدّاد التكرار)
+    _sb = product_slug_base(_sp); _sn = _sim_seen.get(_sb, 0); _sim_seen[_sb] = _sn + 1
+    _sim_slug_of[_sp['_id']] = _sb if _sn == 0 else f'{_sb}-{_sn+1}'
+
 seen={}; product_urls=[]
 fr_generated=0; fr_skipped=[]; fr_urls=[]
 for p in products:
@@ -869,6 +948,7 @@ for p in products:
     url_fr=SITE+'fr/product/'+urllib.parse.quote(slug_fr,safe='-._~')+'/' if has_fr else None
 
     template=inject_product_seo(template,name,desc,url,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data,aggregate_rating=agg,price_valid_until=PRICE_VALID_UNTIL,hreflang_fr_url=url_fr)
+    template=inject_similar(template,p,False,_sim_slug_of,products)
     (root/'product'/slug).mkdir(parents=True,exist_ok=True)
     (root/'product'/slug/'index.html').write_text(template,encoding='utf-8')
     product_urls.append((url,name,p,slug))
@@ -884,6 +964,7 @@ for p in products:
         template_fr=(root/'product.html').read_text(encoding='utf-8')
         static_product_data_fr=dict(static_product_data)  # نفس بيانات المنتج الحقيقية بالضبط (لا تعديل على السعر/المخزون/إلخ)
         template_fr=inject_product_seo_fr(template_fr,name_fr_p,desc_fr_p,url_fr,price,img,imgs_list,available,badge=badge,old_price=old_price,static_product_data=static_product_data_fr,aggregate_rating=agg,price_valid_until=PRICE_VALID_UNTIL,hreflang_ar_url=url)
+        template_fr=inject_similar(template_fr,p,True,_sim_slug_of,products)
         (root/'fr'/'product'/slug_fr).mkdir(parents=True,exist_ok=True)
         (root/'fr'/'product'/slug_fr/'index.html').write_text(template_fr,encoding='utf-8')
         fr_generated+=1
