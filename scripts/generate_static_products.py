@@ -1127,9 +1127,20 @@ HOME_MAX_PRODUCTS = 12
 # عدد بطاقات قسمي «عروض مختارة» و«وصل حديثًا» في الصفحة الرئيسية؛ يجب أن يساوي HOME_HIGHLIGHT_LIMIT
 # المعرَّف في index.html (JS) حتى لا يختلف المحتوى الثابت عن المحتوى الذي يبنيه المتصفح.
 HOME_HIGHLIGHT_LIMIT = 8
+def _created_ms(p):
+    """createdAt (ISO من Firestore) بالمللي ثانية — نفس createdAtMs في index.html؛ 0 إن غاب/لم يصح."""
+    v = str(p.get('createdAt') or '')
+    try:
+        return int(datetime.fromisoformat(v.replace('Z', '+00:00')).timestamp() * 1000)
+    except ValueError:
+        return 0
+
+# شبكة «منتجاتنا» الثابتة يجب أن تطابق ترتيب المتصفح تمامًا (sortNewestFirst: الأحدث أولًا، بلا تاريخ في الآخر،
+# وفرز مستقر) وإلا تظهر البطاقات بترتيب ثم تقفز لترتيب آخر عند وصول البيانات الحية على الشبكات الضعيفة.
+home_grid_entries = sorted(product_urls, key=lambda e: _created_ms(e[2]), reverse=True)[:HOME_MAX_PRODUCTS]
 home_products_html = ''.join(
     homepage_product_card(u, pn, float(p.get('price') or 0), img_src_attrs(p, HOME_SIZES_GRID, 320), p)
-    for u, pn, p, _slug in product_urls[:HOME_MAX_PRODUCTS]
+    for u, pn, p, _slug in home_grid_entries
 )
 
 home_cats_sorted = sorted(
