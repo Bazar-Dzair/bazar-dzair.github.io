@@ -192,7 +192,7 @@ const PAGE_DICT={
   out_of_5:{ar:"من 5",fr:"sur 5"},
   delivery_strip_text:{ar:"توصيل سريع لجميع الولايات",fr:"Livraison rapide dans toutes les wilayas"},
   trust_cod_card:{ar:"دفع عند الاستلام",fr:"Paiement à la livraison"},
-  trust_return_note:{ar:"↩️ إرجاع مجاني إذا وصلك المنتج تالفًا أو مختلفًا — خلال 48 ساعة",fr:"↩️ Retour possible si le produit est endommagé ou différent — sous 48 h"},
+  trust_return_note:{ar:"↩️ إرجاع خلال 48 ساعة عند وجود عيب أو اختلاف",fr:"↩️ Retour sous 48 h en cas de défaut ou de produit différent"},
   trust_return_link:{ar:"سياسة الإرجاع",fr:"Politique de retour"},
   trust_delivery_card:{ar:"توصيل سريع لجميع الولايات",fr:"Livraison rapide partout"},
   trust_original_card:{ar:"منتوج أصلي ومضمون",fr:"Produit original garanti"},
@@ -1033,9 +1033,6 @@ function renderDeliveryRange(){
     const prices=[];
     const keys=new Set([...Object.keys(shippingRatesData||{}),...Object.keys(legacyShippingPrices||{}),...Object.keys(legacyOfficeShippingPrices||{})]);
     keys.forEach(w=>{ const o=computeDeliveryOptions(w); Object.values(o).forEach(x=>{ if(x&&typeof x.price==="number") prices.push(x.price); }); });
-    const wa="https://wa.me/213542195834";
-    const policy=fr?"Politique de retour":"سياسة الإرجاع";
-    const contact=fr?"Contact WhatsApp":"تواصل عبر واتساب";
     let priceLine;
     if(prices.length){
       const lo=Math.min(...prices), hi=Math.max(...prices);
@@ -1044,8 +1041,7 @@ function renderDeliveryRange(){
     } else {
       priceLine=fr?"🚚 Frais de livraison selon la wilaya, payés à la livraison.":"🚚 سعر التوصيل حسب الولاية، يُدفع عند الاستلام.";
     }
-    const retLine=fr?"↩️ Retour sous 48 h si le produit est endommagé ou différent.":"↩️ إرجاع خلال 48 ساعة إذا وصل المنتج تالفاً أو مختلفاً.";
-    box.innerHTML=esc(priceLine)+"<br>"+esc(retLine)+"<br><a href=\"/policies.html#returns\" style=\"font-weight:700;color:#cc4400\">"+esc(policy)+"</a> · <a href=\""+wa+"\" target=\"_blank\" rel=\"noopener\" style=\"font-weight:700;color:#15803d\">"+esc(contact)+"</a>";
+    box.textContent=priceLine;
   }catch(e){}
 }
 function renderDeliveryOptions(opts){
