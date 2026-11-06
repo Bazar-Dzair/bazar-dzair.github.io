@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "Bazar Dzair",
   "short_name": "Bazar Dzair",
   "description": "متجر إلكتروني جزائري — الدفع عند الاستلام وتوصيل لجميع الولايات",
@@ -9,6 +10,7 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#061e3d",
+  "categories": ["shopping"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -27,6 +29,18 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "أحدث المنتجات",
+      "short_name": "الجديد",
+      "url": "/latest/"
+    },
+    {
+      "name": "سلة المشتريات",
+      "short_name": "السلة",
+      "url": "/?cart=1"
     }
   ]
 }
