@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>فحص PWA</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<style>body{font-family:Tahoma,Arial,sans-serif;margin:0;padding:14px;background:#f4f6fa;color:#10213a}h1{font-size:18px;margin:0 0 10px}
+.r{background:#fff;border-radius:10px;padding:9px 11px;margin:6px 0;font-size:14px;line-height:1.6;border-right:5px solid #999}
+.ok{border-color:#1a9d4a}.no{border-color:#d62d2d}.wn{border-color:#e08a00}small{color:#667}button{font:inherit;padding:9px 14px;border:0;border-radius:10px;background:#ff6a00;color:#fff;font-weight:700;margin:6px 4px 0 0}</style></head>
+<body><h1>فحص تطبيق Bazar Dzair</h1><div id="o"></div><div id="b"></div>
+<script>
+var o=document.getElementById('o'),deferred=null;
+function row(c,t,x){var d=document.createElement('div');d.className='r '+c;d.innerHTML=(c=='ok'?'✅ ':c=='no'?'❌ ':'⚠️ ')+t+(x?'<br><small>'+x+'</small>':'');o.appendChild(d);return d}
+async function get(u){try{var r=await fetch(u+(u.indexOf('?')<0?'?':'&')+'t='+Date.now(),{cache:'no-store'});return{s:r.status,t:await r.text()}}catch(e){return{s:0,t:''}}}
+function img(u){return new Promise(function(r){var i=new Image();i.onload=function(){r(i.naturalWidth)};i.onerror=function(){r(0)};i.src=u+'?t='+Date.now()})}
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;
+ var b=document.getElementById('b');b.innerHTML='<div class="r ok">✅ Chrome سمح بالتثبيت (حدث beforeinstallprompt وصل)</div><button id="ib">ثبّت الآن</button>';
+ document.getElementById('ib').onclick=function(){deferred.prompt()}});
+(async function(){
+ var h=await get('/');row(h.t.indexOf('pwa-install.js')>-1?'ok':'no','الصفحة الرئيسية تحتوي سطر pwa-install.js',h.t.indexOf('pwa-install.js')>-1?'':'ملف index.html لم يُحدَّث بعد (أو لم يُنشر)');
+ var p=await get('/pwa-install.js');row(p.s==200&&p.t.indexOf('insertBefore')>-1?'ok':'no','ملف pwa-install.js (نسخة الشريط العلوي)','الحالة: '+p.s+(p.s==200&&p.t.indexOf('insertBefore')<0?' — نسخة قديمة':''));
+ var s=await get('/sw.js');row(s.s==200&&s.t.indexOf('bazar-v2')>-1?'ok':'no','ملف sw.js (الإصدار v2)','الحالة: '+s.s);
+ var of=await get('/offline.html');row(of.s==200?'ok':'no','ملف offline.html','الحالة: '+of.s);
+ var m=await get('/manifest.webmanifest'),mj=null;try{mj=JSON.parse(m.t)}catch(e){}
+ row(mj&&mj.id==='/'?'ok':'no','manifest.webmanifest (المتجر)',mj?'id='+mj.id+' | display='+mj.display:'الحالة: '+m.s);
+ var ic=await Promise.all(['/icons/icon-192.png','/icons/icon-512.png','/icons/icon-maskable-512.png'].map(img));
+ row(ic.every(Boolean)?'ok':'no','أيقونات المتجر',ic.join(' / '));
+ var a=await get('/admin.html');
+ row(a.t.indexOf('admin-pwa.js')>-1&&a.t.indexOf('manifest-admin.webmanifest')>-1?'ok':'no','admin.html يحتوي رابط manifest-admin وسطر admin-pwa.js','manifest: '+(a.t.indexOf('manifest-admin.webmanifest')>-1)+' | script: '+(a.t.indexOf('admin-pwa.js')>-1));
+ var ap=await get('/admin-pwa.js');row(ap.s==200&&ap.t.indexOf('bazarAdminPwa')>-1?'ok':'no','ملف admin-pwa.js','الحالة: '+ap.s);
+ var am=await get('/manifest-admin.webmanifest'),amj=null;try{amj=JSON.parse(am.t)}catch(e){}
+ row(amj&&amj.id==='/admin.html'?'ok':'no','manifest-admin.webmanifest',amj?'id='+amj.id:'الحالة: '+am.s);
+ var ai=await Promise.all(['/icons/admin-192.png','/icons/admin-512.png','/icons/admin-maskable-512.png','/icons/admin-apple-touch-icon.png'].map(img));
+ row(ai.every(Boolean)?'ok':'no','أيقونات الإدارة (4)',ai.join(' / '));
+ var reg=navigator.serviceWorker?await navigator.serviceWorker.getRegistration():null;
+ row(reg&&reg.active?'ok':'wn','Service Worker مسجَّل ونشط',reg?'الحالة: '+(reg.active?'active':'غير نشط بعد'):'غير مسجّل — افتح الصفحة الرئيسية مرة ثم أعد هذه الصفحة');
+ var sa=(matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+ row(sa?'wn':'ok','وضع التشغيل',sa?'التطبيق يعمل الآن كتطبيق مثبّت — الشريط لا يظهر داخل التطبيق المثبّت':'متصفح عادي (جيد)');
+ var ua=navigator.userAgent,notChrome=/wv\)|FBAN|FBAV|Instagram|MiuiBrowser|SamsungBrowser|Firefox|OPR\/|EdgA|UCBrowser|Kiwi|DuckDuckGo/i.test(ua)||!/Chrome\//.test(ua);
+ row(notChrome?'no':'ok','المتصفح',notChrome?'يبدو أنه ليس Chrome الأصلي (أو متصفح داخل تطبيق). افتح الرابط في Chrome مباشرة':'Chrome');
+ row(window.isSecureContext?'ok':'no','اتصال آمن HTTPS');
+ var k1=localStorage.getItem('bazarPwaDismissedAt'),k2=localStorage.getItem('bazarAdminPwaDismissedAt');
+ var d=row((k1||k2)?'wn':'ok','هل أغلقتَ الشريط سابقاً؟',(k1||k2)?'نعم — يختفي 7 أيام بعد الإغلاق. <button id="cl">امسح الإغلاق</button>':'لا');
+ if(k1||k2)document.getElementById('cl').onclick=function(){localStorage.removeItem('bazarPwaDismissedAt');localStorage.removeItem('bazarAdminPwaDismissedAt');location.reload()};
+ setTimeout(function(){if(!deferred)row('wn','Chrome لم يرسل حدث التثبيت (beforeinstallprompt) بعد 5 ثوانٍ','أسباب شائعة: التطبيق مثبّت مسبقاً على هذا الهاتف (احذفه من الشاشة الرئيسية ثم جرّب)، أو نافذة التصفح الخفي، أو أغلقتَ نافذة التثبيت الأصلية قبل قليل.')},5000);
+})();
+</script></body></html>
