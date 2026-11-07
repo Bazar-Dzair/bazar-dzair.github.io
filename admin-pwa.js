@@ -1,23 +1,28 @@
-/* Bazar Dzair — تطبيق الإدارة (PWA): شريط "ثبّت تطبيق الإدارة" + تسجيل الـ Service Worker.
-   - يعمل فقط داخل admin.html، ولا يلمس تسجيل الدخول ولا Firebase ولا أي وظيفة في لوحة التحكم.
-   - يظهر فقط إذا سمح Chrome بالتثبيت ولم يكن التطبيق مثبتًا، وعند الإغلاق لا يعود قبل 7 أيام.
-   - الـ Service Worker الحالي (sw.js) لا يتدخل في admin.html ولا يخزّن أي صفحة إدارة.
-   - أي عنصر يحمل data-pwa-install يُظهَر عند إمكانية التثبيت وينفّذه عند الضغط. */
+/* Bazar Dzair — لوحة الإدارة: شريط "حمّل تطبيق الإدارة" (ملف APK) + تسجيل الـ Service Worker.
+   - يظهر على هواتف Android فقط، وبعد ثانيتين ونصف من فتح الصفحة، دون الاعتماد على قرار Chrome.
+   - لا يظهر داخل التطبيق نفسه (Bazar Admin) ولا داخل تطبيق PWA مثبّت.
+   - زر "تحميل" يفتح ملف Bazar-Admin.apk من GitHub Releases. إغلاق الشريط يخفيه 7 أيام.
+   - أي عنصر يحمل data-pwa-install يُظهَر على Android ويفتح نفس التحميل.
+   - لا يلمس تسجيل الدخول ولا Firebase ولا أي وظيفة أخرى في لوحة التحكم. */
 (function () {
   'use strict';
   if (window.__bazarAdminPwaLoaded) return;
   window.__bazarAdminPwaLoaded = true;
 
+  var APK_URL = 'https://github.com/Bazar-Dzair/bazar-dzair.github.io/releases/download/apps/Bazar-Admin.apk';
   var KEY = 'bazarAdminPwaDismissedAt';
   var WAIT_MS = 7 * 24 * 60 * 60 * 1000;
-  var SHOW_DELAY = 3000;
-  var deferred = null, banner = null, timer = 0;
+  var SHOW_DELAY = 2500;
+  var banner = null, timer = 0;
 
   function ls(get, k, v) { try { return get ? localStorage.getItem(k) : localStorage.setItem(k, v); } catch (e) { return null; } }
   function standalone() {
     try { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
     catch (e) { return false; }
   }
+  function inApp() { return /BazarDzairApp/.test(navigator.userAgent); }
+  function android() { return /Android/i.test(navigator.userAgent); }
+  function eligible() { return android() && !inApp() && !standalone(); }
   function dismissedRecently() { var t = Number(ls(true, KEY)); return !!t && Date.now() - t < WAIT_MS; }
 
   function css() {
@@ -50,64 +55,50 @@
     setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 400);
   }
 
+  function download() {
+    hide(true);
+    location.href = APK_URL;
+  }
+
   function show() {
-    if (banner || !deferred || standalone() || dismissedRecently()) return;
+    if (banner || !eligible() || dismissedRecently()) return;
     if (document.visibilityState === 'hidden') { timer = setTimeout(show, 2000); return; }
     css();
     var d = document.createElement('div');
     d.id = 'bazarAdminPwa';
     d.dir = 'rtl';
     d.setAttribute('role', 'dialog');
-    d.setAttribute('aria-label', 'تثبيت تطبيق الإدارة');
+    d.setAttribute('aria-label', 'تحميل تطبيق الإدارة');
     d.innerHTML =
       '<img src="/icons/admin-192.png" alt="" width="42" height="42">' +
-      '<div class="t"><b>ثبّت تطبيق الإدارة</b><span>افتح لوحة التحكم بسرعة من شاشتك الرئيسية</span></div>' +
-      '<button type="button" class="go">تثبيت</button>' +
+      '<div class="t"><b>حمّل تطبيق الإدارة</b><span>افتح لوحة التحكم كتطبيق على هاتفك</span></div>' +
+      '<button type="button" class="go">تحميل</button>' +
       '<button type="button" class="no" aria-label="لاحقًا">&times;</button>';
-    d.querySelector('.go').addEventListener('click', install);
+    d.querySelector('.go').addEventListener('click', download);
     d.querySelector('.no').addEventListener('click', function () { hide(true); });
     document.body.appendChild(d);
     banner = d;
     requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.add('on'); }); });
   }
 
-  function install() {
-    var ev = deferred;
-    if (!ev) return;
-    deferred = null;
-    hide(false);
-    syncButtons();
-    try {
-      ev.prompt();
-      if (ev.userChoice && ev.userChoice.then) {
-        ev.userChoice.then(function (c) {
-          if (!c || c.outcome !== 'accepted') ls(false, KEY, String(Date.now()));
-        }).catch(function () {});
-      }
-    } catch (e) {}
-  }
-
   function syncButtons() {
-    var on = !!deferred && !standalone();
+    var on = eligible();
     var els = document.querySelectorAll('[data-pwa-install]');
     for (var i = 0; i < els.length; i++) els[i].hidden = !on;
   }
 
-  window.addEventListener('beforeinstallprompt', function (e) {
-    e.preventDefault();
-    deferred = e;
-    syncButtons();
-    clearTimeout(timer);
-    if (!dismissedRecently() && !standalone()) timer = setTimeout(show, SHOW_DELAY);
-  });
-  window.addEventListener('appinstalled', function () { deferred = null; hide(false); syncButtons(); });
   document.addEventListener('click', function (e) {
     var t = e.target && e.target.closest ? e.target.closest('[data-pwa-install]') : null;
-    if (t) { e.preventDefault(); install(); }
+    if (t) { e.preventDefault(); download(); }
   });
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncButtons); else syncButtons();
 
-  window.BazarAdminPWA = { canInstall: function () { return !!deferred && !standalone(); }, promptInstall: install };
+  function start() {
+    syncButtons();
+    if (!dismissedRecently()) timer = setTimeout(show, SHOW_DELAY);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+
+  window.BazarAdminPWA = { canInstall: eligible, promptInstall: download };
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
