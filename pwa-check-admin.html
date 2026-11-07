@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>فحص تطبيق الإدارة</title>
+<link rel="manifest" href="/manifest-admin.webmanifest">
+<style>body{font-family:Tahoma,Arial,sans-serif;margin:0;padding:14px;background:#f4f6fa;color:#10213a}h1{font-size:18px;margin:0 0 10px}
+.r{background:#fff;border-radius:10px;padding:9px 11px;margin:6px 0;font-size:14px;line-height:1.6;border-right:5px solid #999}
+.ok{border-color:#1a9d4a}.no{border-color:#d62d2d}.wn{border-color:#e08a00}small{color:#667;word-break:break-all}button{font:inherit;padding:9px 14px;border:0;border-radius:10px;background:#ff6a00;color:#fff;font-weight:700;margin:6px 4px 0 0}</style></head>
+<body><h1>فحص تطبيق الإدارة (Bazar Admin)</h1><div id="b"></div><div id="o"></div>
+<script>
+var o=document.getElementById('o'),deferred=null;
+function row(c,t,x){var d=document.createElement('div');d.className='r '+c;d.innerHTML=(c=='ok'?'✅ ':c=='no'?'❌ ':'⚠️ ')+t+(x?'<br><small>'+x+'</small>':'');o.appendChild(d);return d}
+async function get(u){try{var r=await fetch(u+(u.indexOf('?')<0?'?':'&')+'t='+Date.now(),{cache:'no-store'});return{s:r.status,t:await r.text()}}catch(e){return{s:0,t:''}}}
+function img(u){return new Promise(function(r){var i=new Image();i.onload=function(){r(i.naturalWidth)};i.onerror=function(){r(0)};i.src=u+'?t='+Date.now()})}
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;
+ document.getElementById('b').innerHTML='<div class="r ok">✅ Chrome سمح بتثبيت تطبيق الإدارة (الحدث وصل)</div><button id="ib">ثبّت تطبيق الإدارة الآن</button>';
+ document.getElementById('ib').onclick=function(){deferred.prompt()}});
+(async function(){
+ var a=await get('/admin.html');
+ row(a.s==200?'ok':'no','صفحة admin.html تُفتح','الحالة: '+a.s);
+ var hasM=a.t.indexOf('manifest-admin.webmanifest')>-1,hasS=a.t.indexOf('admin-pwa.js')>-1;
+ row(hasM?'ok':'no','admin.html فيه سطر &lt;link rel="manifest" href="/manifest-admin.webmanifest"&gt;',hasM?'':'ناقص — أضِف السطر تحت سطر logo.svg في رأس الملف');
+ row(hasS?'ok':'no','admin.html فيه سطر &lt;script src="admin-pwa.js" defer&gt;',hasS?'':'ناقص — أضِفه تحت سطر admin-app.js في آخر الملف');
+ var m=a.t.match(/<link[^>]*rel="manifest"[^>]*>/i);row(m?'ok':'wn','رابط manifest الموجود فعلاً في admin.html',m?m[0].replace(/</g,'&lt;'):'لا يوجد');
+ var ap=await get('/admin-pwa.js');row(ap.s==200&&ap.t.indexOf('bazarAdminPwa')>-1?'ok':'no','ملف admin-pwa.js','الحالة: '+ap.s);
+ var am=await get('/manifest-admin.webmanifest'),mj=null;try{mj=JSON.parse(am.t)}catch(e){}
+ row(mj&&mj.id==='/admin.html'?'ok':'no','ملف manifest-admin.webmanifest',mj?'id='+mj.id+' | scope='+mj.scope+' | start_url='+mj.start_url:'الحالة: '+am.s+' (غير صالح أو غير موجود)');
+ var ic=await Promise.all(['/icons/admin-192.png','/icons/admin-512.png','/icons/admin-maskable-512.png'].map(img));
+ row(ic.every(Boolean)?'ok':'no','أيقونات الإدارة المطلوبة في manifest',ic.join(' / ')+' (0 = الملف غير موجود)');
+ try{await navigator.serviceWorker.register('/sw.js');var rg=await navigator.serviceWorker.ready;row('ok','Service Worker نشط')}catch(e){row('no','Service Worker لا يعمل',String(e))}
+ var sa=(matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+ row(sa?'wn':'ok','وضع التشغيل',sa?'الصفحة تعمل داخل تطبيق مثبّت — لا يظهر شريط التثبيت داخل التطبيق':'متصفح عادي (جيد)');
+ var ua=navigator.userAgent,nc=/wv\)|FBAN|FBAV|Instagram|MiuiBrowser|SamsungBrowser|Firefox|OPR\/|EdgA|UCBrowser|Kiwi|DuckDuckGo/i.test(ua)||!/Chrome\//.test(ua);
+ row(nc?'no':'ok','المتصفح',nc?'ليس Chrome الأصلي — افتح الرابط في Chrome':'Chrome');
+ var k=localStorage.getItem('bazarAdminPwaDismissedAt');
+ row(k?'wn':'ok','هل أغلقتَ شريط الإدارة سابقاً؟',k?'نعم (يختفي 7 أيام) <button id="cl">امسح الإغلاق</button>':'لا');
+ if(k)document.getElementById('cl').onclick=function(){localStorage.removeItem('bazarAdminPwaDismissedAt');location.reload()};
+ setTimeout(function(){if(!deferred)row('wn','Chrome لم يرسل حدث التثبيت لتطبيق الإدارة بعد 6 ثوانٍ','إذا كانت كل الأسطر أعلاه ✅ فالسبب في Chrome/الهاتف (تطبيق مثبّت، أو أُغلقت نافذة التثبيت سابقاً). جرّب: قائمة ⋮ ← «تثبيت التطبيق».')},6000);
+})();
+</script></body></html>
