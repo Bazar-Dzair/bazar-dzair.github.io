@@ -1,0 +1,442 @@
+name: بناء تطبيقات أندرويد (APK)
+
+# يبني تطبيقين حقيقيين من موقعك: Bazar Dzair (المتجر) و Bazar Admin (الإدارة)
+# شغّله يدويًا: Actions ← بناء تطبيقات أندرويد (APK) ← Run workflow
+# النتيجة تظهر في Releases (الشريط الجانبي للمستودع) كملفات APK جاهزة للتحميل.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: تجهيز Android SDK
+        run: |
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$SDK/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0" > /dev/null
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: توليد مشروع الأندرويد
+        run: |
+          set -euo pipefail
+          A=android-build
+          rm -rf "$A"
+          mkdir -p "$A/app/src/main/java/com/bazardzair/app" "$A/app/src/main/res/values" "$A/app/src/main/res/mipmap-anydpi-v26" "$A/app/src/main/assets"
+          for f in store admin; do mkdir -p "$A/app/src/$f/res/values" "$A/app/src/$f/res/mipmap-xxxhdpi"; done
+
+          # ---------- مفتاح التوقيع (ثابت ليتحدّث التطبيق فوق نسخته القديمة) ----------
+          base64 -d > "$A/release.keystore" <<'KSEOF'
+          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
+          2XGo6AICJxA=
+          KSEOF
+
+          # ---------- ملفات Gradle ----------
+          cat > "$A/settings.gradle" <<'EOF_X'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = 'BazarDzair'
+          include ':app'
+          EOF_X
+
+          cat > "$A/build.gradle" <<'EOF_X'
+          plugins {
+              id 'com.android.application' version '8.5.2' apply false
+          }
+          EOF_X
+
+          cat > "$A/gradle.properties" <<'EOF_X'
+          org.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8
+          android.useAndroidX=false
+          android.nonTransitiveRClass=true
+          EOF_X
+
+          cat > "$A/app/build.gradle" <<'EOF_X'
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'com.bazardzair.app'
+              compileSdk 34
+
+              defaultConfig {
+                  minSdk 24
+                  targetSdk 34
+                  versionCode 1
+                  versionName '1.0'
+              }
+
+              buildFeatures {
+                  buildConfig true
+              }
+
+              signingConfigs {
+                  release {
+                      storeFile file('../release.keystore')
+                      storePassword 'bazardzair'
+                      keyAlias 'bazar'
+                      keyPassword 'bazardzair'
+                  }
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                      signingConfig signingConfigs.release
+                  }
+              }
+
+              flavorDimensions 'app'
+              productFlavors {
+                  store {
+                      dimension 'app'
+                      applicationId 'com.bazardzair.store'
+                      resValue 'string', 'app_name', 'Bazar Dzair'
+                      buildConfigField 'String', 'START_URL', '"https://bazar-dzair.github.io/"'
+                  }
+                  admin {
+                      dimension 'app'
+                      applicationId 'com.bazardzair.admin'
+                      resValue 'string', 'app_name', 'Bazar Admin'
+                      buildConfigField 'String', 'START_URL', '"https://bazar-dzair.github.io/admin.html"'
+                  }
+              }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+
+              lint {
+                  checkReleaseBuilds false
+                  abortOnError false
+              }
+          }
+          EOF_X
+
+          # ---------- AndroidManifest + الموارد ----------
+          cat > "$A/app/src/main/AndroidManifest.xml" <<'EOF_X'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+              <application
+                  android:label="@string/app_name"
+                  android:icon="@mipmap/ic_launcher"
+                  android:allowBackup="false"
+                  android:usesCleartextTraffic="false"
+                  android:supportsRtl="true"
+                  android:theme="@style/AppTheme">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:windowSoftInputMode="adjustResize"
+                      android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF_X
+
+          cat > "$A/app/src/main/res/values/styles.xml" <<'EOF_X'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
+                  <item name="android:statusBarColor">@color/brand</item>
+                  <item name="android:navigationBarColor">@color/brand</item>
+                  <item name="android:windowBackground">@color/brand</item>
+              </style>
+          </resources>
+          EOF_X
+
+          cat > "$A/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" <<'EOF_X'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/brand" />
+              <foreground android:drawable="@mipmap/ic_launcher_fg" />
+          </adaptive-icon>
+          EOF_X
+
+          printf '<?xml version="1.0" encoding="utf-8"?>\n<resources><color name="brand">#061e3d</color></resources>\n' > "$A/app/src/store/res/values/brand.xml"
+          printf '<?xml version="1.0" encoding="utf-8"?>\n<resources><color name="brand">#182536</color></resources>\n' > "$A/app/src/admin/res/values/brand.xml"
+
+          # الأيقونات: من نفس أيقونات المستودع (بدون إنشاء شعار جديد)
+          cp icons/icon-192.png "$A/app/src/store/res/mipmap-xxxhdpi/ic_launcher.png"
+          cp icons/icon-maskable-512.png "$A/app/src/store/res/mipmap-xxxhdpi/ic_launcher_fg.png"
+          cp icons/admin-192.png "$A/app/src/admin/res/mipmap-xxxhdpi/ic_launcher.png"
+          cp icons/admin-maskable-512.png "$A/app/src/admin/res/mipmap-xxxhdpi/ic_launcher_fg.png"
+
+          # صفحة "لا يوجد اتصال" داخل التطبيق
+          cat > "$A/app/src/main/assets/offline.html" <<'EOF_X'
+          <!doctype html>
+          <html lang="ar" dir="rtl"><head><meta charset="utf-8">
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>Bazar Dzair</title>
+          <style>
+          body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:#061e3d;color:#fff;font-family:sans-serif;text-align:center}
+          h1{font-size:21px;margin:0 0 8px}p{margin:0 0 6px;color:#cfd8e6;line-height:1.7}
+          a{display:block;margin-top:22px;padding:14px;border-radius:12px;background:#ff6a00;color:#fff;font-weight:700;text-decoration:none;font-size:16px}
+          </style></head><body><div>
+          <h1>لا يوجد اتصال بالإنترنت</h1>
+          <p>تأكد من اتصالك ثم أعد المحاولة.</p>
+          <p dir="ltr">Pas de connexion Internet. Vérifiez votre connexion puis réessayez.</p>
+          <a href="bazar-retry://go">إعادة المحاولة / Réessayer</a>
+          </div></body></html>
+          EOF_X
+
+          # ---------- الشاشة الرئيسية: WebView كامل الشاشة يفتح الموقع ----------
+          cat > "$A/app/src/main/java/com/bazardzair/app/MainActivity.java" <<'EOF_X'
+          package com.bazardzair.app;
+
+          import android.app.Activity;
+          import android.content.Intent;
+          import android.graphics.Color;
+          import android.net.Uri;
+          import android.os.Bundle;
+          import android.view.ViewGroup;
+          import android.webkit.CookieManager;
+          import android.webkit.ValueCallback;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebResourceError;
+          import android.webkit.WebResourceRequest;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+
+          public class MainActivity extends Activity {
+
+              private static final String HOST = "bazar-dzair.github.io";
+              private static final int FILE_REQ = 1001;
+
+              private WebView web;
+              private ValueCallback<Uri[]> fileCb;
+
+              @Override
+              protected void onCreate(Bundle state) {
+                  super.onCreate(state);
+
+                  web = new WebView(this);
+                  web.setLayoutParams(new ViewGroup.LayoutParams(
+                          ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                  web.setBackgroundColor(Color.TRANSPARENT);
+                  setContentView(web);
+
+                  WebSettings s = web.getSettings();
+                  s.setJavaScriptEnabled(true);
+                  s.setDomStorageEnabled(true);
+                  s.setDatabaseEnabled(true);
+                  s.setUserAgentString(s.getUserAgentString() + " BazarDzairApp/1.0");
+                  CookieManager.getInstance().setAcceptCookie(true);
+
+                  web.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                          Uri u = request.getUrl();
+                          String scheme = u.getScheme();
+                          if ("bazar-retry".equals(scheme)) {
+                              view.loadUrl(BuildConfig.START_URL);
+                              return true;
+                          }
+                          if ("file".equals(scheme) || "about".equals(scheme)) {
+                              return false;
+                          }
+                          if (("https".equals(scheme) || "http".equals(scheme)) && HOST.equals(u.getHost())) {
+                              return false;
+                          }
+                          openExternal(u);
+                          return true;
+                      }
+
+                      @Override
+                      public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                          if (request.isForMainFrame()) {
+                              view.loadUrl("file:///android_asset/offline.html");
+                          }
+                      }
+                  });
+
+                  web.setWebChromeClient(new WebChromeClient() {
+                      @Override
+                      public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback,
+                                                       FileChooserParams params) {
+                          if (fileCb != null) {
+                              fileCb.onReceiveValue(null);
+                          }
+                          fileCb = callback;
+                          try {
+                              startActivityForResult(params.createIntent(), FILE_REQ);
+                          } catch (Exception e) {
+                              fileCb = null;
+                              return false;
+                          }
+                          return true;
+                      }
+                  });
+
+                  web.setDownloadListener((url, userAgent, contentDisposition, mimeType, length) ->
+                          openExternal(Uri.parse(url)));
+
+                  if (state == null) {
+                      web.loadUrl(BuildConfig.START_URL);
+                  } else {
+                      web.restoreState(state);
+                  }
+              }
+
+              private void openExternal(Uri uri) {
+                  try {
+                      startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                  } catch (Exception ignored) {
+                  }
+              }
+
+              @Override
+              protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+                  if (requestCode == FILE_REQ && fileCb != null) {
+                      fileCb.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
+                      fileCb = null;
+                      return;
+                  }
+                  super.onActivityResult(requestCode, resultCode, data);
+              }
+
+              @Override
+              protected void onSaveInstanceState(Bundle out) {
+                  super.onSaveInstanceState(out);
+                  web.saveState(out);
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (web.canGoBack()) {
+                      web.goBack();
+                  } else {
+                      super.onBackPressed();
+                  }
+              }
+
+              @Override
+              protected void onPause() {
+                  web.onPause();
+                  super.onPause();
+              }
+
+              @Override
+              protected void onResume() {
+                  super.onResume();
+                  web.onResume();
+              }
+
+              @Override
+              protected void onDestroy() {
+                  web.destroy();
+                  super.onDestroy();
+              }
+          }
+          EOF_X
+          echo "project generated in $A"
+
+      - name: بناء التطبيقين
+        working-directory: android-build
+        run: gradle assembleStoreRelease assembleAdminRelease --no-daemon --stacktrace
+
+      - name: تجميع ملفات APK
+        run: |
+          mkdir -p out
+          cp android-build/app/build/outputs/apk/store/release/app-store-release.apk out/Bazar-Dzair.apk
+          cp android-build/app/build/outputs/apk/admin/release/app-admin-release.apk out/Bazar-Admin.apk
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bazar-apks
+          path: out/*.apk
+
+      - name: نشر الملفات في Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apps
+          name: تطبيقات Bazar Dzair (APK)
+          body: |
+            حمّل الملف المناسب ثبّته على هاتفك Android:
+            - Bazar-Dzair.apk : تطبيق المتجر
+            - Bazar-Admin.apk : تطبيق الإدارة
+          files: out/*.apk
+          make_latest: true
