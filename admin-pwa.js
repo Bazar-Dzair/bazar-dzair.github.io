@@ -1,0 +1,117 @@
+/* Bazar Dzair — تطبيق الإدارة (PWA): شريط "ثبّت تطبيق الإدارة" + تسجيل الـ Service Worker.
+   - يعمل فقط داخل admin.html، ولا يلمس تسجيل الدخول ولا Firebase ولا أي وظيفة في لوحة التحكم.
+   - يظهر فقط إذا سمح Chrome بالتثبيت ولم يكن التطبيق مثبتًا، وعند الإغلاق لا يعود قبل 7 أيام.
+   - الـ Service Worker الحالي (sw.js) لا يتدخل في admin.html ولا يخزّن أي صفحة إدارة.
+   - أي عنصر يحمل data-pwa-install يُظهَر عند إمكانية التثبيت وينفّذه عند الضغط. */
+(function () {
+  'use strict';
+  if (window.__bazarAdminPwaLoaded) return;
+  window.__bazarAdminPwaLoaded = true;
+
+  var KEY = 'bazarAdminPwaDismissedAt';
+  var WAIT_MS = 7 * 24 * 60 * 60 * 1000;
+  var SHOW_DELAY = 3000;
+  var deferred = null, banner = null, timer = 0;
+
+  function ls(get, k, v) { try { return get ? localStorage.getItem(k) : localStorage.setItem(k, v); } catch (e) { return null; } }
+  function standalone() {
+    try { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+    catch (e) { return false; }
+  }
+  function dismissedRecently() { var t = Number(ls(true, KEY)); return !!t && Date.now() - t < WAIT_MS; }
+
+  function css() {
+    if (document.getElementById('bazarAdminPwaCss')) return;
+    var s = document.createElement('style');
+    s.id = 'bazarAdminPwaCss';
+    s.textContent =
+      '#bazarAdminPwa{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:440px;margin:0 auto;z-index:70;' +
+      'display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;background:#182536;color:#fff;' +
+      'border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 32px rgba(0,0,0,.35);font-family:Tahoma,Arial,sans-serif;' +
+      'transform:translateY(140%);opacity:0;transition:transform .35s ease,opacity .35s ease}' +
+      '#bazarAdminPwa.on{transform:none;opacity:1}' +
+      '#bazarAdminPwa img{width:42px;height:42px;border-radius:10px;flex:none}' +
+      '#bazarAdminPwa .t{flex:1;min-width:0}' +
+      '#bazarAdminPwa .t b{display:block;font-size:14px;line-height:1.4}' +
+      '#bazarAdminPwa .t span{display:block;font-size:11.5px;color:#b9c6d9;line-height:1.4}' +
+      '#bazarAdminPwa button{font-family:inherit;cursor:pointer;border:0;border-radius:10px;font-weight:800}' +
+      '#bazarAdminPwa .go{background:#ff6a00;color:#fff;padding:9px 16px;font-size:14px;flex:none}' +
+      '#bazarAdminPwa .no{background:transparent;color:#b9c6d9;font-size:22px;line-height:1;padding:6px 8px;flex:none}' +
+      '@media (prefers-reduced-motion:reduce){#bazarAdminPwa{transition:none}}';
+    document.head.appendChild(s);
+  }
+
+  function hide(remember) {
+    clearTimeout(timer);
+    if (remember) ls(false, KEY, String(Date.now()));
+    if (!banner) return;
+    var b = banner; banner = null;
+    b.classList.remove('on');
+    setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 400);
+  }
+
+  function show() {
+    if (banner || !deferred || standalone() || dismissedRecently()) return;
+    if (document.visibilityState === 'hidden') { timer = setTimeout(show, 2000); return; }
+    css();
+    var d = document.createElement('div');
+    d.id = 'bazarAdminPwa';
+    d.dir = 'rtl';
+    d.setAttribute('role', 'dialog');
+    d.setAttribute('aria-label', 'تثبيت تطبيق الإدارة');
+    d.innerHTML =
+      '<img src="/icons/admin-192.png" alt="" width="42" height="42">' +
+      '<div class="t"><b>ثبّت تطبيق الإدارة</b><span>افتح لوحة التحكم بسرعة من شاشتك الرئيسية</span></div>' +
+      '<button type="button" class="go">تثبيت</button>' +
+      '<button type="button" class="no" aria-label="لاحقًا">&times;</button>';
+    d.querySelector('.go').addEventListener('click', install);
+    d.querySelector('.no').addEventListener('click', function () { hide(true); });
+    document.body.appendChild(d);
+    banner = d;
+    requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.add('on'); }); });
+  }
+
+  function install() {
+    var ev = deferred;
+    if (!ev) return;
+    deferred = null;
+    hide(false);
+    syncButtons();
+    try {
+      ev.prompt();
+      if (ev.userChoice && ev.userChoice.then) {
+        ev.userChoice.then(function (c) {
+          if (!c || c.outcome !== 'accepted') ls(false, KEY, String(Date.now()));
+        }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+
+  function syncButtons() {
+    var on = !!deferred && !standalone();
+    var els = document.querySelectorAll('[data-pwa-install]');
+    for (var i = 0; i < els.length; i++) els[i].hidden = !on;
+  }
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferred = e;
+    syncButtons();
+    clearTimeout(timer);
+    if (!dismissedRecently() && !standalone()) timer = setTimeout(show, SHOW_DELAY);
+  });
+  window.addEventListener('appinstalled', function () { deferred = null; hide(false); syncButtons(); });
+  document.addEventListener('click', function (e) {
+    var t = e.target && e.target.closest ? e.target.closest('[data-pwa-install]') : null;
+    if (t) { e.preventDefault(); install(); }
+  });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncButtons); else syncButtons();
+
+  window.BazarAdminPWA = { canInstall: function () { return !!deferred && !standalone(); }, promptInstall: install };
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      try { navigator.serviceWorker.register('/sw.js').catch(function () {}); } catch (e) {}
+    });
+  }
+})();

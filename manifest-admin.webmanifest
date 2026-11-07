@@ -1,0 +1,19 @@
+{
+  "id": "/admin.html",
+  "name": "Bazar Dzair — لوحة الإدارة",
+  "short_name": "Bazar Admin",
+  "description": "تطبيق إدارة متجر Bazar Dzair: الطلبات والمنتجات والإعدادات",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/admin.html",
+  "scope": "/admin.html",
+  "display": "standalone",
+  "background_color": "#182536",
+  "theme_color": "#182536",
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "/icons/admin-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/admin-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/admin-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
