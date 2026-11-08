@@ -1,35 +1,61 @@
-/* Bazar Dzair — واجهة التطبيق (على طراز تطبيقات التسوق)
-   تعمل فقط عندما يكون على <html> الصنف bz-app، ويضيفه app-shell.js داخل تطبيق Android فقط.
-   في المتصفح العادي لا يتغير أي شيء. لا تمسّ أي وظيفة: تنسيق + شريط تنقل سفلي فقط. */
-html.bz-app{--bz-nav:62px;--bz-navy:#061e3d;--bz-orange:#ff6a00;-webkit-tap-highlight-color:transparent}
-html.bz-app body{padding-bottom:calc(var(--bz-nav) + env(safe-area-inset-bottom));background:#eef1f6;-webkit-user-select:none;user-select:none}
+/* Bazar Dzair — واجهة التطبيق (تسوّق على طراز التطبيقات)
+   تعمل فقط حين يحمل <html> الصنف bz-app (يضيفه app-shell.js داخل تطبيق Android فقط).
+   في المتصفح العادي لا يتغيّر شيء. لا تغيّر أي منطق في الموقع: تنسيق وعناصر تنقّل فقط. */
+html.bz-app{--bz-nav:62px;--bz-navy:#061e3d;--bz-orange:#ff6a00;--bz-bg:#e9eef5;-webkit-tap-highlight-color:transparent;--bcw-b:calc(var(--bz-nav) + env(safe-area-inset-bottom) + 14px)}
+html.bz-app body{background:var(--bz-bg);padding-bottom:calc(var(--bz-nav) + env(safe-area-inset-bottom));-webkit-user-select:none;user-select:none}
 html.bz-app input,html.bz-app textarea{-webkit-user-select:text;user-select:text}
-html.bz-app .site-footer,html.bz-app footer.site-footer{display:none!important}
+html.bz-app .site-footer,html.bz-app .wa-float,html.bz-app .bcw-btn,html.bz-app .trust-strip{display:none!important}
 
-/* ===== الصفحة الرئيسية: الشريط العلوي ===== */
-html.bz-app header>.topbar{display:none}
-html.bz-app header nav,html.bz-app header .nav-ink{display:none!important}
-html.bz-app header .header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 12px;min-height:0}
-html.bz-app header .header-actions{order:1;display:flex;gap:8px;margin-inline-start:auto}
-html.bz-app header .header-search{order:2;flex:1 1 100%;margin:0}
-html.bz-app header .header-search input{border-radius:14px;height:42px}
+/* ===== الصفحة الرئيسية: شريط الأيقونات + المنتجات مباشرة ===== */
+html.bz-app:not(.bz-pp) header{position:sticky;top:0;z-index:55;background:#fff;box-shadow:0 1px 0 #e3e8f0}
+html.bz-app header>.topbar,html.bz-app header .header-actions,html.bz-app header nav,html.bz-app header .nav-ink,html.bz-app header .brand,html.bz-app header .logo{display:none!important}
+html.bz-app .hero,html.bz-app #homeCategoriesSection,html.bz-app #latestProductsSection,html.bz-app #featuredProductsSection{display:none!important}
+html.bz-app header .header{display:block;padding:0;min-height:0;background:#fff}
+html.bz-app header .header-search{display:none;position:relative!important;inset:auto!important;transform:none!important;width:auto!important;max-width:none!important;margin:0;padding:8px 12px;border-top:1px solid #eef1f6}
+html.bz-app.bz-search header .header-search{display:block}
+html.bz-app header .header-search input{width:100%;box-sizing:border-box;border-radius:14px;height:42px}
+#bzBar{display:none}
+html.bz-app #bzBar{display:flex;align-items:center;justify-content:space-between;height:58px;padding:0 6px;background:#fff}
+#bzBar button{position:relative;display:grid;place-items:center;width:48px;height:48px;border:0;background:transparent;color:var(--bz-navy);padding:0}
+#bzBar button svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#bzBar button.on{color:var(--bz-orange)}
+#bzBar button.on svg{fill:currentColor}
+#bzBar .bzdot{position:absolute;top:8px;inset-inline-end:8px;min-width:16px;height:16px;border-radius:8px;background:var(--bz-orange);color:#fff;font-size:10px;line-height:16px;font-weight:800;padding:0 3px}
+#bzBar .bzdot:empty{display:none}
 
-/* ===== شبكة المنتجات: عمودان ===== */
+html.bz-app main{padding:0}
+html.bz-app #products.section{padding:10px 0 0;margin:0;background:transparent}
+html.bz-app #products .ap-head{display:flex;align-items:center;gap:10px;margin:0 12px 4px;padding:13px 16px;border-radius:18px;background:var(--bz-navy);box-shadow:none}
+html.bz-app #products .ap-head .lp-ico{display:grid;place-items:center;width:26px;height:26px;background:transparent;color:#fff;flex:none}
+html.bz-app #products .ap-head .lp-svg{width:24px;height:24px;stroke:#fff;color:#fff}
+html.bz-app #products .ap-head .section-title{flex:1}
+html.bz-app #products .ap-head h2{margin:0;font-size:16px;font-weight:900;color:#fff;letter-spacing:.2px}
+html.bz-app #products .ap-head p,html.bz-app #products .ap-head .view-all{display:none}
+
+/* ===== بطاقات المنتجات ===== */
 html.bz-app .products{display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;padding:12px!important}
-html.bz-app .product{background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 2px 10px rgba(7,26,51,.08);display:flex;flex-direction:column;margin:0;border:0}
+html.bz-app .product{position:relative;display:flex;flex-direction:column;margin:0;border:0;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 2px 12px rgba(7,26,51,.07)}
+html.bz-app .product.bz-nofav{display:none}
 html.bz-app .product .pic{aspect-ratio:1/1;background:#fafbfd;overflow:hidden}
 html.bz-app .product .pic img{width:100%;height:100%;object-fit:contain}
-html.bz-app .product .info{padding:10px 10px 12px;display:flex;flex-direction:column;gap:6px;flex:1;height:auto}
-html.bz-app .product .name{font-size:14px;font-weight:800;line-height:1.35;color:var(--bz-navy);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-height:2.7em;line-height:1.35}
-html.bz-app .product .price{margin:0;display:flex;align-items:center;justify-content:space-between;gap:6px}
-html.bz-app .product .pc-now{font-size:16px;font-weight:900;color:#e55a00}
-html.bz-app .product .pc-meta{align-self:flex-start;background:#e6f8ef;color:#12935a;border:1px solid #bfe9d3;border-radius:999px;padding:2px 10px;font-size:11.5px;font-weight:800}
+html.bz-app .product .info{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px 6px;padding:12px 12px 14px;height:auto;flex:1}
+html.bz-app .product .name{grid-column:1/-1;margin:0;font-size:15px;font-weight:900;line-height:1.35;color:var(--bz-navy);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;max-height:1.4em}
+html.bz-app .product .price{margin:0;display:block}
+html.bz-app .product .pc-now{font-size:17px;font-weight:900;color:#e55a00;white-space:nowrap}
+html.bz-app .product .pc-old,html.bz-app .product .pc-prices del{font-size:12px}
+html.bz-app .product .pc-meta{margin:0;background:#e6f8ef;color:#12935a;border:1px solid #bfe9d3;border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:800;white-space:nowrap}
 html.bz-app .product .pc-meta span{display:none}
-html.bz-app .product .buttons{display:flex;gap:8px;margin-top:auto}
-html.bz-app .product .buybtn{flex:1;background:var(--bz-navy)!important;color:#fff!important;border-radius:999px;padding:11px 8px;font-size:14px;font-weight:900;text-align:center;box-shadow:none}
-html.bz-app .product .cartbtn{flex:0 0 42px;width:42px;height:42px;border-radius:50%;background:var(--bz-orange)!important;color:#fff!important;display:grid;place-items:center;padding:0}
+html.bz-app .product .buttons{grid-column:1/-1;display:flex;gap:8px;margin:2px 0 0}
+html.bz-app .product .buybtn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:46px;background:var(--bz-navy)!important;color:#fff!important;border-radius:999px;font-size:15px;font-weight:900;box-shadow:none;padding:0}
+html.bz-app .product .cartbtn{flex:0 0 46px;width:46px;height:46px;border-radius:50%;background:var(--bz-orange)!important;color:#fff!important;display:grid;place-items:center;padding:0}
+html.bz-app .product .cartbtn .plus{font-size:24px;line-height:1}
+.bzfav{display:none}
+html.bz-app .bzfav{position:absolute;top:10px;inset-inline-start:10px;z-index:3;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:#fff;color:var(--bz-navy);box-shadow:0 2px 8px rgba(7,26,51,.14);padding:0}
+html.bz-app .bzfav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+html.bz-app .bzfav.on{color:#e5365a}
+html.bz-app .bzfav.on svg{fill:currentColor}
 
-/* ===== الشريط السفلي (3 تبويبات) ===== */
+/* ===== الشريط السفلي ===== */
 #bzNav{display:none}
 html.bz-app #bzNav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;height:calc(var(--bz-nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:#fff;border-top:1px solid #e3e8f0;box-shadow:0 -4px 18px rgba(7,26,51,.08);font-family:inherit}
 #bzNav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#8591a3;text-decoration:none;font-size:12px;font-weight:800;position:relative}
@@ -37,30 +63,55 @@ html.bz-app #bzNav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:6
 #bzNav a.on{color:var(--bz-navy)}
 #bzNav a.on svg{stroke:var(--bz-orange)}
 #bzNav a.on::before{content:"";position:absolute;top:0;width:34px;height:3px;border-radius:0 0 4px 4px;background:var(--bz-orange)}
-#bzNav .bzc{position:absolute;top:6px;inset-inline-start:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;background:var(--bz-orange);color:#fff;font-size:11px;line-height:18px;text-align:center;padding:0 4px}
+#bzNav .bzc{position:absolute;top:6px;inset-inline-start:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;background:var(--bz-orange);color:#fff;font-size:11px;line-height:18px;text-align:center;padding:0 4px;font-style:normal}
 #bzNav .bzc:empty,#bzNav .bzc[data-n="0"]{display:none}
-html.bz-app .wa-float{display:none!important}
-html.bz-app{--bcw-b:calc(var(--bz-nav) + env(safe-area-inset-bottom) + 14px)}
 
-/* ===== صفحة المنتج: شريط علوي "‹ تفاصيل المنتج" وشريط شراء سفلي ===== */
-html.bz-app.bz-pp #bzNav{display:none}
-html.bz-app.bz-pp body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
-html.bz-app.bz-pp .crumb-bar,html.bz-app.bz-pp .topbar .brand,html.bz-app.bz-pp .topbar .backtop{display:none!important}
-html.bz-app.bz-pp header.topbar{background:#fff!important;border-bottom:1px solid #e3e8f0;box-shadow:none}
-html.bz-app.bz-pp .header-right button,html.bz-app.bz-pp .header-right .cart-link{background:#f1f4f9!important;color:var(--bz-navy)!important;border:0!important}
-html.bz-app.bz-pp .topbar-in{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px}
-html.bz-app.bz-pp .bz-back{display:grid;place-items:center;width:42px;height:42px;border:0;background:transparent;color:var(--bz-navy);font-size:0}
-html.bz-app.bz-pp .bz-back svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-html[dir=rtl].bz-app.bz-pp .bz-back svg{transform:scaleX(-1)}
-html.bz-app.bz-pp .bz-title{flex:1;text-align:center;font-size:17px;font-weight:900;color:var(--bz-navy)}
-html.bz-app.bz-pp .header-right{display:flex;gap:6px}
+/* قائمة ⋮ */
+#bzMenu{display:none}
+html.bz-app #bzMenu.on{display:block;position:fixed;inset:0;z-index:80;background:rgba(7,26,51,.35)}
+#bzMenu .sheet{position:absolute;top:60px;inset-inline-start:10px;min-width:210px;background:#fff;border-radius:16px;box-shadow:0 12px 34px rgba(7,26,51,.25);padding:6px;overflow:hidden}
+#bzMenu a,#bzMenu button{display:block;width:100%;text-align:start;border:0;background:transparent;color:var(--bz-navy);font:800 15px/1.2 inherit;font-family:inherit;padding:14px 16px;border-radius:12px;text-decoration:none}
+#bzMenu a:active,#bzMenu button:active{background:#f1f4f9}
+
+/* ===== صفحة المنتج ===== */
+html.bz-app.bz-pp #bzNav,html.bz-app.bz-pp #bzBar{display:none}
 html.bz-app.bz-pp{--bcw-b:calc(86px + env(safe-area-inset-bottom))}
+html.bz-app.bz-pp body{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+html.bz-app.bz-pp header.topbar{position:sticky;top:0;z-index:55;background:#fff!important;border-bottom:1px solid #e3e8f0;box-shadow:none}
+html.bz-app.bz-pp .crumb-bar,html.bz-app.bz-pp .topbar .brand,html.bz-app.bz-pp .topbar .backtop,html.bz-app.bz-pp .header-right{display:none!important}
+html.bz-app.bz-pp .topbar-in{display:flex;align-items:center;height:56px;padding:0 6px}
+html.bz-app.bz-pp .bz-back{display:grid;place-items:center;width:46px;height:46px;border:0;background:transparent;color:var(--bz-navy);padding:0}
+html.bz-app.bz-pp .bz-back svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+html[dir=rtl].bz-app.bz-pp .bz-back svg{transform:scaleX(-1)}
+html.bz-app.bz-pp .bz-title{flex:1;text-align:center;font-size:17px;font-weight:900;color:var(--bz-navy);padding-inline-end:46px}
+html.bz-app.bz-pp main{padding:0;max-width:none}
+html.bz-app.bz-pp #product.product-card{display:block;padding:0;margin:0;border:0;box-shadow:none;background:transparent;border-radius:0}
+html.bz-app.bz-pp #photoWrap{padding:0;margin:0;background:#fff;border:0;border-radius:0}
+html.bz-app.bz-pp .main-photo-box{border-radius:0;background:#fff!important;border:0;box-shadow:none;aspect-ratio:1/1;max-height:62vh}
+html.bz-app.bz-pp .main-photo-box img.photo{width:100%;height:100%;object-fit:contain}
+html.bz-app.bz-pp .gallery-arrow,html.bz-app.bz-pp .gallery-count,html.bz-app.bz-pp .thumbs{display:none!important}
+#bzDots{display:none}
+html.bz-app.bz-pp #bzDots{display:flex;background:#fff;justify-content:center;gap:6px;padding:10px 0 12px;background:#fff}
+#bzDots i{width:8px;height:8px;border-radius:4px;background:#d3dae5;transition:width .2s,background .2s}
+#bzDots i.on{width:26px;background:var(--bz-navy)}
+html.bz-app.bz-pp #infoCol{margin:12px;padding:0}
+html.bz-app.bz-pp #infoContent{background:#fff;border-radius:20px;padding:16px;box-shadow:0 2px 10px rgba(7,26,51,.06);border:1px solid #e3e8f0}
+html.bz-app.bz-pp .title{font-size:19px;line-height:1.45;margin:0 0 10px;color:var(--bz-navy)}
+html.bz-app.bz-pp .price-row{margin:0 0 10px}
+html.bz-app.bz-pp .price-current{font-size:24px;font-weight:900;color:#e55a00}
+html.bz-app.bz-pp .stock-note{display:inline-block;background:#e6f8ef;color:#12935a;border:1px solid #bfe9d3;border-radius:999px;padding:4px 12px;font-size:13px;font-weight:800;margin:0 0 12px}
+html.bz-app.bz-pp .delivery-strip,html.bz-app.bz-pp .trust-grid,html.bz-app.bz-pp .trust-return-note,html.bz-app.bz-pp #whyCard,html.bz-app.bz-pp .purchase-controls .action-row{display:none!important}
+#bzShareRow{display:none}
+html.bz-app.bz-pp #bzShareRow{display:flex;align-items:center;margin:12px -4px 0;padding-top:10px;border-top:1px solid #e3e8f0}
+#bzShareRow button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border:0;background:transparent;color:var(--bz-navy);font:800 15px inherit;font-family:inherit}
+#bzShareRow button+button{border-inline-start:1px solid #e3e8f0}
+#bzShareRow svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#bzShareRow .fav.on{color:#e5365a}
+#bzShareRow .fav.on svg{fill:currentColor}
+html.bz-app.bz-pp .info-card,html.bz-app.bz-pp .desc-card,html.bz-app.bz-pp .similar-card{margin:12px;border-radius:20px;background:#fff;border:1px solid #e3e8f0;box-shadow:0 2px 10px rgba(7,26,51,.06)}
 html.bz-app .sticky-buy{display:flex!important;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #e3e8f0;box-shadow:0 -4px 18px rgba(7,26,51,.08)}
 html.bz-app .sticky-buy .sb-price{display:none}
-html.bz-app .sticky-buy .sb-cart{order:1;flex:1;height:50px;border:0;border-radius:16px;background:var(--bz-orange);color:#fff;font-size:0;font-weight:900;box-shadow:none;width:auto}
+html.bz-app .sticky-buy .sb-cart{order:1;flex:1;height:52px;width:auto;border:0;border-radius:18px;background:var(--bz-orange);color:#fff;font-size:0;font-weight:900;box-shadow:none}
 html.bz-app .sticky-buy .sb-cart::after{content:"🛒  السلة";font-size:16px}
 html[lang=fr].bz-app .sticky-buy .sb-cart::after{content:"🛒  Panier"}
-html.bz-app .sticky-buy .sb-btn{order:2;flex:1;height:50px;border-radius:16px;background:var(--bz-navy);color:#fff;font-size:16px;font-weight:900;box-shadow:none;padding:0}
-html.bz-app #product.product-card{border-radius:0 0 22px 22px}
-html.bz-app .product-card,html.bz-app #checkout .checkout-body{border-radius:20px}
-html.bz-app.bz-pp .bcw-btn,html.bz-app.bz-pp .bcw-panel{display:none!important}
+html.bz-app .sticky-buy .sb-btn{order:2;flex:1;height:52px;border-radius:18px;background:var(--bz-navy);color:#fff;font-size:16px;font-weight:900;box-shadow:none;padding:0}
