@@ -1,9 +1,9 @@
-/* Bazar Dzair — زر/شريط تثبيت التطبيق (PWA) على Android + تسجيل الـ Service Worker.
-   - يظهر فقط عندما يسمح Chrome بالتثبيت (حدث beforeinstallprompt) وإذا لم يكن التطبيق مثبتًا.
-   - لا يزعج الزائر: يظهر كشريط في أعلى الصفحة بعد ثانيتين ونصف، وعند الرفض لا يعود قبل 7 أيام.
-   - لا يعمل في admin / orders / success ولا يلمس أي وظيفة أخرى في الموقع.
-   - أي عنصر يحمل الخاصية data-pwa-install (مثلاً زر في القائمة) يُظهَر تلقائيًا عند إمكانية التثبيت
-     وينفّذ التثبيت عند الضغط. للاستدعاء البرمجي: window.BazarPWA.promptInstall() */
+/* Bazar Dzair — المتجر: شريط "حمّل تطبيق Bazar Dzair" (ملف APK) + تسجيل الـ Service Worker.
+   - يظهر في أعلى الصفحة على هواتف Android فقط، بعد ثانيتين ونصف، دون الاعتماد على قرار Chrome.
+   - لا يظهر داخل التطبيق نفسه ولا داخل تطبيق PWA مثبّت ولا على الكمبيوتر.
+   - زر "تحميل" يفتح Bazar-Dzair.apk من GitHub Releases. الإغلاق يخفيه 7 أيام.
+   - أي عنصر يحمل data-pwa-install يُظهَر على Android ويفتح نفس التحميل.
+   - لا يعمل في admin / orders / success ولا يلمس أي وظيفة أخرى في الموقع. */
 (function () {
   'use strict';
   if (window.__bazarPwaLoaded) return;
@@ -12,12 +12,19 @@
   var SKIP = /^\/(admin|orders|success)(\.html|\/|$)/;
   if (SKIP.test(location.pathname)) return;
 
-  var KEY = 'bazarPwaDismissedAt';
-  var WAIT_MS = 7 * 24 * 60 * 60 * 1000;   // 7 أيام بعد الرفض
-  var SHOW_DELAY = 2500;                    // لا يظهر فور فتح الصفحة
-  var deferred = null;
-  var banner = null;
-  var timer = 0;
+  /* داخل تطبيق Android فقط: تحميل واجهة التطبيق (app-shell.js) — لا تُحمَّل لزوّار المتصفح */
+  if (/BazarDzairApp/.test(navigator.userAgent)) {
+    var sh = document.createElement('script');
+    sh.src = '/app-shell.js';
+    sh.defer = true;
+    (document.head || document.documentElement).appendChild(sh);
+  }
+
+  var APK_URL = 'https://github.com/Bazar-Dzair/bazar-dzair.github.io/releases/download/apps/Bazar-Dzair.apk';
+  var KEY = 'bazarApkDismissedAt';
+  var WAIT_MS = 7 * 24 * 60 * 60 * 1000;
+  var SHOW_DELAY = 2500;
+  var banner = null, timer = 0;
 
   function store(get, k, v) {
     try { return get ? localStorage.getItem(k) : localStorage.setItem(k, v); } catch (e) { return null; }
@@ -31,14 +38,17 @@
       return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
     } catch (e) { return false; }
   }
+  function inApp() { return /BazarDzairApp/.test(navigator.userAgent); }
+  function android() { return /Android/i.test(navigator.userAgent); }
+  function eligible() { return android() && !inApp() && !standalone(); }
   function dismissedRecently() {
     var t = Number(store(true, KEY));
     return !!t && Date.now() - t < WAIT_MS;
   }
 
   var TXT = {
-    ar: { title: 'ثبّت تطبيق Bazar Dzair', sub: 'تصفّح أسرع وأيقونة على شاشتك الرئيسية', ok: 'تثبيت', later: 'لاحقًا' },
-    fr: { title: "Installer l'appli Bazar Dzair", sub: "Navigation plus rapide, icône sur votre écran d'accueil", ok: 'Installer', later: 'Plus tard' }
+    ar: { title: 'حمّل تطبيق Bazar Dzair', sub: 'تسوّق أسرع من تطبيق على هاتفك', ok: 'تحميل', later: 'لاحقًا' },
+    fr: { title: "Téléchargez l'appli Bazar Dzair", sub: 'Achetez plus vite depuis votre téléphone', ok: 'Télécharger', later: 'Plus tard' }
   };
 
   function css() {
@@ -70,8 +80,13 @@
     setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 400);
   }
 
+  function download() {
+    hide(true);
+    location.href = APK_URL;
+  }
+
   function show() {
-    if (banner || !deferred || standalone() || dismissedRecently()) return;
+    if (banner || !eligible() || dismissedRecently()) return;
     if (document.visibilityState === 'hidden') { timer = setTimeout(show, 2000); return; }
     css();
     var L = TXT[lang()];
@@ -88,63 +103,32 @@
     d.querySelector('span').textContent = L.sub;
     d.querySelector('.go').textContent = L.ok;
     d.querySelector('.no').setAttribute('aria-label', L.later);
-    d.querySelector('.go').addEventListener('click', install);
+    d.querySelector('.go').addEventListener('click', download);
     d.querySelector('.no').addEventListener('click', function () { hide(true); });
     document.body.insertBefore(d, document.body.firstChild);
     banner = d;
     requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.add('on'); }); });
   }
 
-  function install() {
-    var ev = deferred;
-    if (!ev) return;
-    deferred = null;            // prompt() يعمل مرة واحدة فقط لكل حدث
-    hide(false);
-    syncButtons();
-    try {
-      ev.prompt();
-      if (ev.userChoice && ev.userChoice.then) {
-        ev.userChoice.then(function (c) {
-          if (!c || c.outcome !== 'accepted') store(false, KEY, String(Date.now()));
-        }).catch(function () {});
-      }
-    } catch (e) {}
-  }
-
   function syncButtons() {
-    var on = !!deferred && !standalone();
+    var on = eligible();
     var els = document.querySelectorAll('[data-pwa-install]');
     for (var i = 0; i < els.length; i++) els[i].hidden = !on;
   }
 
-  window.addEventListener('beforeinstallprompt', function (e) {
-    e.preventDefault();
-    deferred = e;
-    syncButtons();
-    clearTimeout(timer);
-    if (!dismissedRecently() && !standalone()) timer = setTimeout(show, SHOW_DELAY);
-  });
-
-  window.addEventListener('appinstalled', function () {
-    deferred = null;
-    hide(false);
-    syncButtons();
-  });
-
   document.addEventListener('click', function (e) {
     var t = e.target && e.target.closest ? e.target.closest('[data-pwa-install]') : null;
-    if (t) { e.preventDefault(); install(); }
+    if (t) { e.preventDefault(); download(); }
   });
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncButtons);
-  else syncButtons();
+  function start() {
+    syncButtons();
+    if (!dismissedRecently()) timer = setTimeout(show, SHOW_DELAY);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-  window.BazarPWA = {
-    canInstall: function () { return !!deferred && !standalone(); },
-    promptInstall: install
-  };
+  window.BazarPWA = { canInstall: eligible, promptInstall: download };
 
-  // تسجيل الـ Service Worker (آمن لو سُجّل من صفحة أخرى: التسجيل المتكرر لنفس الملف لا يضر)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
       try { navigator.serviceWorker.register('/sw.js').catch(function () {}); } catch (e) {}
