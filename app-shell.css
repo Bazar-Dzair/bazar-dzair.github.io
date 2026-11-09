@@ -1,7 +1,7 @@
 /* Bazar Dzair — واجهة التطبيق (تسوّق على طراز التطبيقات)
    تعمل فقط حين يحمل <html> الصنف bz-app (يضيفه app-shell.js داخل تطبيق Android فقط).
    في المتصفح العادي لا يتغيّر شيء. لا تغيّر أي منطق في الموقع: تنسيق وعناصر تنقّل فقط. */
-html.bz-app{--bz-nav:62px;--bz-navy:#061e3d;--bz-orange:#ff6a00;--bz-bg:#e9eef5;-webkit-tap-highlight-color:transparent;--bcw-b:calc(var(--bz-nav) + env(safe-area-inset-bottom) + 14px)}
+html.bz-app{--bz-nav:62px;--bz-navy:#98145f;--bz-orange:#ff6a00;--bz-bg:#e9eef5;-webkit-tap-highlight-color:transparent;--bcw-b:calc(var(--bz-nav) + env(safe-area-inset-bottom) + 14px)}
 html.bz-app body{background:var(--bz-bg);padding-bottom:calc(var(--bz-nav) + env(safe-area-inset-bottom));-webkit-user-select:none;user-select:none}
 html.bz-app input,html.bz-app textarea{-webkit-user-select:text;user-select:text}
 html.bz-app .site-footer,html.bz-app .wa-float,html.bz-app .bcw-btn,html.bz-app .trust-strip{display:none!important}
@@ -34,7 +34,7 @@ html.bz-app #products .ap-head p,html.bz-app #products .ap-head .view-all{displa
 
 /* ===== بطاقات المنتجات ===== */
 html.bz-app .products{display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;padding:12px!important}
-html.bz-app .product{position:relative;display:flex;flex-direction:column;margin:0;border:0;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 2px 12px rgba(7,26,51,.07)}
+html.bz-app .product{position:relative;display:flex;flex-direction:column;margin:0;border:0;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 2px 12px rgba(65,12,48,.07)}
 html.bz-app .product.bz-nofav{display:none}
 html.bz-app .product .pic{aspect-ratio:1/1;background:#fafbfd;overflow:hidden}
 html.bz-app .product .pic img{width:100%;height:100%;object-fit:contain}
@@ -50,14 +50,14 @@ html.bz-app .product .buybtn{flex:1;display:flex;align-items:center;justify-cont
 html.bz-app .product .cartbtn{flex:0 0 46px;width:46px;height:46px;border-radius:50%;background:var(--bz-orange)!important;color:#fff!important;display:grid;place-items:center;padding:0}
 html.bz-app .product .cartbtn .plus{font-size:24px;line-height:1}
 .bzfav{display:none}
-html.bz-app .bzfav{position:absolute;top:10px;inset-inline-start:10px;z-index:3;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:#fff;color:var(--bz-navy);box-shadow:0 2px 8px rgba(7,26,51,.14);padding:0}
+html.bz-app .bzfav{position:absolute;top:10px;inset-inline-start:10px;z-index:3;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:#fff;color:var(--bz-navy);box-shadow:0 2px 8px rgba(65,12,48,.14);padding:0}
 html.bz-app .bzfav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 html.bz-app .bzfav.on{color:#e5365a}
 html.bz-app .bzfav.on svg{fill:currentColor}
 
 /* ===== الشريط السفلي ===== */
 #bzNav{display:none}
-html.bz-app #bzNav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;height:calc(var(--bz-nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:#fff;border-top:1px solid #e3e8f0;box-shadow:0 -4px 18px rgba(7,26,51,.08);font-family:inherit}
+html.bz-app #bzNav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;height:calc(var(--bz-nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:#fff;border-top:1px solid #e3e8f0;box-shadow:0 -4px 18px rgba(65,12,48,.08);font-family:inherit}
 #bzNav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#8591a3;text-decoration:none;font-size:12px;font-weight:800;position:relative}
 #bzNav a svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #bzNav a.on{color:var(--bz-navy)}
@@ -68,8 +68,8 @@ html.bz-app #bzNav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:6
 
 /* قائمة ⋮ */
 #bzMenu{display:none}
-html.bz-app #bzMenu.on{display:block;position:fixed;inset:0;z-index:80;background:rgba(7,26,51,.35)}
-#bzMenu .sheet{position:absolute;top:60px;inset-inline-start:10px;min-width:210px;background:#fff;border-radius:16px;box-shadow:0 12px 34px rgba(7,26,51,.25);padding:6px;overflow:hidden}
+html.bz-app #bzMenu.on{display:block;position:fixed;inset:0;z-index:80;background:rgba(65,12,48,.35)}
+#bzMenu .sheet{position:absolute;top:60px;inset-inline-start:10px;min-width:210px;background:#fff;border-radius:16px;box-shadow:0 12px 34px rgba(65,12,48,.25);padding:6px;overflow:hidden}
 #bzMenu a,#bzMenu button{display:block;width:100%;text-align:start;border:0;background:transparent;color:var(--bz-navy);font:800 15px/1.2 inherit;font-family:inherit;padding:14px 16px;border-radius:12px;text-decoration:none}
 #bzMenu a:active,#bzMenu button:active{background:#f1f4f9}
 
@@ -95,7 +95,7 @@ html.bz-app.bz-pp #bzDots{display:flex;background:#fff;justify-content:center;ga
 #bzDots i{width:8px;height:8px;border-radius:4px;background:#d3dae5;transition:width .2s,background .2s}
 #bzDots i.on{width:26px;background:var(--bz-navy)}
 html.bz-app.bz-pp #infoCol{margin:12px;padding:0}
-html.bz-app.bz-pp #infoContent{background:#fff;border-radius:20px;padding:16px;box-shadow:0 2px 10px rgba(7,26,51,.06);border:1px solid #e3e8f0}
+html.bz-app.bz-pp #infoContent{background:#fff;border-radius:20px;padding:16px;box-shadow:0 2px 10px rgba(65,12,48,.06);border:1px solid #e3e8f0}
 html.bz-app.bz-pp .title{font-size:19px;line-height:1.45;margin:0 0 10px;color:var(--bz-navy)}
 html.bz-app.bz-pp .price-row{margin:0 0 10px}
 html.bz-app.bz-pp .price-current{font-size:24px;font-weight:900;color:#e55a00}
@@ -108,8 +108,8 @@ html.bz-app.bz-pp #bzShareRow{display:flex;align-items:center;margin:12px -4px 0
 #bzShareRow svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #bzShareRow .fav.on{color:#e5365a}
 #bzShareRow .fav.on svg{fill:currentColor}
-html.bz-app.bz-pp .info-card,html.bz-app.bz-pp .desc-card,html.bz-app.bz-pp .similar-card{margin:12px;border-radius:20px;background:#fff;border:1px solid #e3e8f0;box-shadow:0 2px 10px rgba(7,26,51,.06)}
-html.bz-app .sticky-buy{display:flex!important;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #e3e8f0;box-shadow:0 -4px 18px rgba(7,26,51,.08)}
+html.bz-app.bz-pp .info-card,html.bz-app.bz-pp .desc-card,html.bz-app.bz-pp .similar-card{margin:12px;border-radius:20px;background:#fff;border:1px solid #e3e8f0;box-shadow:0 2px 10px rgba(65,12,48,.06)}
+html.bz-app .sticky-buy{display:flex!important;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #e3e8f0;box-shadow:0 -4px 18px rgba(65,12,48,.08)}
 html.bz-app .sticky-buy .sb-price{display:none}
 html.bz-app .sticky-buy .sb-cart{order:1;flex:1;height:52px;width:auto;border:0;border-radius:18px;background:var(--bz-orange);color:#fff;font-size:0;font-weight:900;box-shadow:none}
 html.bz-app .sticky-buy .sb-cart::after{content:"🛒  السلة";font-size:16px}
