@@ -175,7 +175,7 @@
     return n > 0 ? n : 0;
   }
   function buildNav() {
-    if (document.getElementById('bzNav') || isSuccess) return;
+    if (document.getElementById('bzNav') || isSuccess || isProduct) return;
     var n = document.createElement('nav');
     n.id = 'bzNav';
     n.setAttribute('aria-label', 'Navigation');
@@ -183,7 +183,9 @@
     n.innerHTML =
       '<a href="/" data-t="home"' + (isHome && !cartOn ? ' class="on"' : '') + '>' + I.home + '<span></span></a>' +
       '<a href="/?cart=1" data-t="cart"' + (cartOn ? ' class="on"' : '') + '>' + I.cart + '<span></span><i class="bzc" data-n="0"></i></a>' +
-      '<a href="/orders.html" data-t="acc"' + (isOrders ? ' class="on"' : '') + '>' + I.acc + '<span></span></a>';
+      '<button type="button" data-t="favs">' + I.heart + '<span></span></button>' +
+      '<button type="button" data-t="search">' + I.search + '<span></span></button>' +
+      '<button type="button" data-t="menu">' + I.acc + '<span></span></button>';
     document.body.appendChild(n);
     n.querySelector('[data-t=cart]').addEventListener('click', function (e) {
       if (typeof window.openCart === 'function' && document.getElementById('cartBtn')) { e.preventDefault(); window.openCart(); }
@@ -191,6 +193,17 @@
     n.querySelector('[data-t=home]').addEventListener('click', function (e) {
       if (isHome && location.pathname === '/' && !location.search) { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
     });
+    n.querySelector('[data-t=favs]').addEventListener('click', function () {
+      de.classList.toggle('bz-favs'); syncFavUI();
+      if (de.classList.contains('bz-favs') && !favs().length) bzToast(L().noFav);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    n.querySelector('[data-t=search]').addEventListener('click', function () {
+      de.classList.add('bz-search');
+      var input = document.getElementById('search');
+      if (input) { window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(function () { input.focus(); }, 180); }
+    });
+    n.querySelector('[data-t=menu]').addEventListener('click', openMenu);
   }
 
   /* ---------- صفحة المنتج ---------- */
@@ -268,10 +281,15 @@
   function refresh() {
     var l = L(), n = document.getElementById('bzNav');
     if (n) {
-      var as = n.querySelectorAll('a');
-      for (var i = 0; i < as.length; i++) as[i].querySelector('span').textContent = l[as[i].getAttribute('data-t')];
+      var items = n.querySelectorAll('[data-t]');
+      for (var i = 0; i < items.length; i++) {
+        var key = items[i].getAttribute('data-t');
+        var label = key === 'favs' ? l.favs : key === 'search' ? l.search : key === 'menu' ? l.menu : l[key];
+        var span = items[i].querySelector('span'); if (span) span.textContent = label || '';
+        items[i].setAttribute('aria-label', label || key);
+      }
       var c = cartCount(), b = n.querySelector('.bzc');
-      b.textContent = c ? String(c) : ''; b.setAttribute('data-n', String(c));
+      if (b) { b.textContent = c ? String(c) : ''; b.setAttribute('data-n', String(c)); }
     }
     var t = document.querySelector('.bz-title'); if (t) t.textContent = l.det;
     var bb = document.querySelector('.bz-back'); if (bb) bb.setAttribute('aria-label', l.back);
