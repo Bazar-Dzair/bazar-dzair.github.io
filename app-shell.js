@@ -9,6 +9,8 @@
 
   var de = document.documentElement;
   de.classList.add('bz-app');
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeMeta) themeMeta.setAttribute('content', '#99145f');
   var lk = document.createElement('link');
   lk.rel = 'stylesheet'; lk.href = '/app-shell.css';
   (document.head || de).appendChild(lk);
@@ -25,10 +27,10 @@
   var T = {
     ar: { home: 'الرئيسية', cart: 'السلة', acc: 'حسابي', det: 'تفاصيل المنتج', back: 'رجوع', buy: 'اطلب الآن', share: 'مشاركة',
       more: 'عرض المزيد', less: 'عرض أقل', lang: 'Français', orders: 'طلباتي', pol: 'السياسات', copied: 'تم نسخ رابط المنتج',
-      favs: 'المفضلة', search: 'بحث', cats: 'الأقسام', chat: 'تواصل معنا', menu: 'القائمة', noFav: 'لا توجد منتجات مفضلة بعد' },
+      favs: 'المفضلة', search: 'بحث', cats: 'الأقسام', chat: 'تواصل معنا', menu: 'القائمة', notifications: 'الإشعارات', noFav: 'لا توجد منتجات مفضلة بعد' },
     fr: { home: 'Accueil', cart: 'Panier', acc: 'Mon compte', det: 'Détails du produit', back: 'Retour', buy: 'Acheter', share: 'Partager',
       more: 'Afficher plus', less: 'Afficher moins', lang: 'العربية', orders: 'Mes commandes', pol: 'Politiques', copied: 'Lien copié',
-      favs: 'Favoris', search: 'Recherche', cats: 'Catégories', chat: 'Contact', menu: 'Menu', noFav: 'Aucun favori pour le moment' }
+      favs: 'Favoris', search: 'Recherche', cats: 'Catégories', chat: 'Contact', menu: 'Menu', notifications: 'Notifications', noFav: 'Aucun favori pour le moment' }
   };
   function L() { return T[lang()]; }
   function S(d) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + d + '</svg>'; }
@@ -43,7 +45,9 @@
     search: S('<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>'),
     grid: S('<rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>'),
     share: S('<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.6M8.2 13.2l7.6 4.6"/>'),
-    bag: S('<path d="M6 8h12l1 12H5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>')
+    bag: S('<path d="M6 8h12l1 12H5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>'),
+    bell: S('<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>'),
+    orders: S('<path d="M7 3h10l3 3v15H4V3z"/><path d="M7 3v5h10V3M8 13h8M8 17h6"/>')
   };
 
   /* ---------- المفضلة (محليًا على الجهاز) ---------- */
@@ -92,7 +96,8 @@
       '<button type="button" data-a="chat">' + I.chat + '</button>' +
       '<button type="button" data-a="fav">' + I.heart + '</button>' +
       '<button type="button" data-a="search">' + I.search + '</button>' +
-      '<button type="button" data-a="cats">' + I.grid + '</button>';
+      '<button type="button" data-a="cats">' + I.grid + '</button>' +
+      '<button type="button" data-a="bell">' + I.bell + '</button>';
     h.insertBefore(b, h.firstChild);
     b.addEventListener('click', function (e) {
       var t = e.target.closest ? e.target.closest('button[data-a]') : null;
@@ -111,8 +116,9 @@
         if (i && de.classList.contains('bz-search')) setTimeout(function () { i.focus(); }, 50);
       }
       else if (a === 'cats') { if (typeof window.openCategoryMenu === 'function') window.openCategoryMenu(); }
+      else if (a === 'bell') { location.href = '/orders.html'; }
     });
-    var ti = ['menu', 'chat', 'fav', 'search', 'cats'], tk = ['menu', 'chat', 'favs', 'search', 'cats'];
+    var ti = ['menu', 'chat', 'fav', 'search', 'cats', 'bell'], tk = ['menu', 'chat', 'favs', 'search', 'cats', 'notifications'];
     for (var k = 0; k < ti.length; k++) b.querySelector('[data-a="' + ti[k] + '"]').setAttribute('aria-label', L()[tk[k]]);
   }
 
@@ -183,8 +189,9 @@
     n.innerHTML =
       '<a href="/" data-t="home"' + (isHome && !cartOn ? ' class="on"' : '') + '>' + I.home + '<span></span></a>' +
       '<a href="/?cart=1" data-t="cart"' + (cartOn ? ' class="on"' : '') + '>' + I.cart + '<span></span><i class="bzc" data-n="0"></i></a>' +
-      '<button type="button" data-t="favs">' + I.heart + '<span></span></button>' +
+      '<a href="/orders.html" data-t="orders"' + (isOrders ? ' class="on"' : '') + '>' + I.orders + '<span></span></a>' +
       '<button type="button" data-t="search">' + I.search + '<span></span></button>' +
+      '<button type="button" data-t="favs">' + I.heart + '<span></span></button>' +
       '<button type="button" data-t="menu">' + I.acc + '<span></span></button>';
     document.body.appendChild(n);
     n.querySelector('[data-t=cart]').addEventListener('click', function (e) {
@@ -297,7 +304,7 @@
     var buys = document.querySelectorAll('.product .buybtn span'); for (var k = 0; k < buys.length; k++) buys[k].textContent = l.buy;
     var bar = document.getElementById('bzBar');
     if (bar) {
-      var ti = ['menu', 'chat', 'fav', 'search', 'cats'], tk = ['menu', 'chat', 'favs', 'search', 'cats'];
+      var ti = ['menu', 'chat', 'fav', 'search', 'cats', 'bell'], tk = ['menu', 'chat', 'favs', 'search', 'cats', 'notifications'];
       for (var q = 0; q < ti.length; q++) bar.querySelector('[data-a="' + ti[q] + '"]').setAttribute('aria-label', l[tk[q]]);
     }
   }

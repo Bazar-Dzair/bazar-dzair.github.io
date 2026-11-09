@@ -173,3 +173,51 @@ html.bz-app .sticky-buy .sb-btn{background:var(--bz-primary)!important}
   html.bz-app .product .buybtn{height:45px;font-size:14px}
   html.bz-app #bzNav a,html.bz-app #bzNav button{font-size:11px}
 }
+
+/* ===== Mayna-inspired Android app skin ===== */
+html.bz-app{
+  --bz-nav:76px;
+  --bz-navy:#99145f;
+  --bz-orange:#b21b70;
+  --bz-bg:#e8edf4;
+  --bz-magenta:#99145f;
+  --bz-green:#24b58b;
+  --bcw-b:calc(var(--bz-nav) + env(safe-area-inset-bottom) + 14px);
+}
+html.bz-app body{background:var(--bz-bg)}
+html.bz-app:not(.bz-pp) header{background:#fff;box-shadow:none}
+html.bz-app #bzBar{height:88px;padding:0 8px;background:#fff;gap:2px}
+html.bz-app #bzBar button{width: min(16.66%,56px);height:62px;color:var(--bz-magenta)}
+html.bz-app #bzBar button svg{width:29px;height:29px;stroke-width:2.15}
+html.bz-app #bzBar button:active{transform:scale(.94)}
+html.bz-app #products.section{padding-top:16px}
+html.bz-app #products .ap-head{margin:0 18px 14px;padding:17px 18px;border-radius:20px;background:var(--bz-magenta)}
+html.bz-app .products{gap:12px!important;padding:12px 18px 18px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+html.bz-app .product{border-radius:22px;box-shadow:0 3px 12px rgba(25,35,55,.07)}
+html.bz-app .product .pic{aspect-ratio:1/1;background:#fff}
+html.bz-app .product .pic img{object-fit:cover}
+html.bz-app .product .info{padding:12px 12px 14px;gap:9px 6px}
+html.bz-app .product .name{font-size:15px;color:#182033;line-height:1.4}
+html.bz-app .product .pc-now{color:#d65a18;font-size:17px}
+html.bz-app .product .pc-meta{background:#e4f8f1;color:#20a982;border-color:#bdebdc;font-size:11.5px;padding:4px 9px}
+html.bz-app .product .buttons{margin-top:3px}
+html.bz-app .product .buybtn{height:48px;background:var(--bz-magenta)!important;border-radius:999px;font-size:15px}
+html.bz-app .product .cartbtn{display:none!important}
+html.bz-app .bzfav{top:10px;inset-inline-start:auto;inset-inline-end:10px;width:54px;height:54px;color:var(--bz-magenta);box-shadow:0 2px 10px rgba(0,0,0,.12)}
+html.bz-app .bzfav svg{width:27px;height:27px;stroke-width:2.5}
+html.bz-app #bzNav{height:calc(82px + env(safe-area-inset-bottom));padding:5px 2px env(safe-area-inset-bottom);box-shadow:0 -3px 14px rgba(20,25,40,.05);border-top:1px solid #f0f1f4}
+html.bz-app #bzNav a,html.bz-app #bzNav button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:3px 1px;color:#98a2b2;background:transparent;border:0;text-decoration:none;font:700 11px/1.15 inherit;font-family:inherit;white-space:nowrap}
+html.bz-app #bzNav a svg,html.bz-app #bzNav button svg{width:27px;height:27px;stroke:currentColor;stroke-width:2.1}
+html.bz-app #bzNav a.on,html.bz-app #bzNav button:active{color:var(--bz-magenta)}
+html.bz-app #bzNav a.on svg{stroke:var(--bz-magenta);fill:none}
+html.bz-app #bzNav a.on::before{display:none}
+html.bz-app #bzNav .bzc{top:3px;inset-inline-start:calc(50% + 7px);background:var(--bz-magenta)}
+html.bz-app body{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+@media(max-width:360px){
+  html.bz-app .products{gap:9px!important;padding:10px!important}
+  html.bz-app .product .info{padding:10px 9px 12px}
+  html.bz-app .product .name{font-size:13px}
+  html.bz-app .product .pc-now{font-size:15px}
+  html.bz-app .product .buybtn{height:44px;font-size:13px}
+  html.bz-app #bzNav a,html.bz-app #bzNav button{font-size:10px}
+}
