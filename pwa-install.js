@@ -57,7 +57,7 @@
     s.id = 'bazarPwaCss';
     s.textContent =
       '#bazarPwa{display:flex;align-items:center;gap:10px;padding:0 12px;max-height:0;opacity:0;overflow:hidden;box-sizing:border-box;' +
-      'background:#98145f;color:#fff;border-bottom:0 solid #ef6a00;font-family:Tahoma,Arial,sans-serif;' +
+      'background:#061e3d;color:#fff;border-bottom:0 solid #ff6a00;font-family:Tahoma,Arial,sans-serif;' +
       'transition:max-height .35s ease,opacity .35s ease,padding .35s ease,border-width .35s ease}' +
       '#bazarPwa.on{max-height:96px;opacity:1;padding:8px 12px;border-bottom-width:3px}' +
       '#bazarPwa img{width:38px;height:38px;border-radius:9px;background:#fff;flex:none}' +
@@ -65,7 +65,7 @@
       '#bazarPwa .t b{display:block;font-size:14px;line-height:1.4}' +
       '#bazarPwa .t span{display:block;font-size:11.5px;color:#b9c6d9;line-height:1.4}' +
       '#bazarPwa button{font-family:inherit;cursor:pointer;border:0;border-radius:10px;font-weight:800}' +
-      '#bazarPwa .go{background:#ef6a00;color:#fff;padding:9px 16px;font-size:14px;flex:none}' +
+      '#bazarPwa .go{background:#ff6a00;color:#fff;padding:9px 16px;font-size:14px;flex:none}' +
       '#bazarPwa .no{background:transparent;color:#b9c6d9;font-size:22px;line-height:1;padding:6px 8px;flex:none}' +
       '@media (prefers-reduced-motion:reduce){#bazarPwa{transition:none}}';
     document.head.appendChild(s);
