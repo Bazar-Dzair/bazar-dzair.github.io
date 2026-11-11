@@ -2202,6 +2202,7 @@ window.copyProductLink=async function(id){
 };
 
 // تجهيز بيانات المنتج لإعلان Marketplace مع إبقاء النشر النهائي يدويًا داخل Facebook.
+const BD_MP_BOOKMARKLET='javascript:(async()=>{try{const t=await navigator.clipboard.readText();if(t.indexOf("BDMP:")!==0){alert("انسخ المنتج أولاً من لوحة التحكم (زر نسخ للماركيت)");return;}const d=JSON.parse(t.slice(5));const set=(el,v)=>{const pr=el.tagName==="TEXTAREA"?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(pr,"value").set.call(el,v);el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}));};const find=(keys,tag)=>[...document.querySelectorAll(tag)].find(e=>{const l=((e.getAttribute("aria-label")||"")+" "+(e.closest("label")?e.closest("label").innerText:"")).toLowerCase();return keys.some(k=>l.includes(k));});const rows=[[["title","العنوان","titre"],"input",d.title],[["price","السعر","prix"],"input",d.price],[["description","الوصف"],"textarea",d.description]];let n=0;for(const r of rows){const e=find(r[0],r[1]);if(e){e.focus();set(e,r[2]);n++;}}alert(n===3?"تمت تعبئة الحقول ✅ أضف الصورة ثم انشر":"تمت تعبئة "+n+" من 3 حقول فقط، أكمل الباقي يدويًا");}catch(e){alert("تعذر التعبئة: "+e.message);}})();';
 window.prepareMarketplaceListing=function(id){
   const p=products.find(x=>x.id===id);
   if(!p){show("تعذر العثور على المنتج","err");return;}
@@ -2210,7 +2211,7 @@ window.prepareMarketplaceListing=function(id){
   const cleanText=value=>{
     const box=document.createElement("div");
     box.innerHTML=String(value||"");
-    return (box.textContent||box.innerText||"").replace(/\\s+\\n/g,"\\n").trim();
+    return (box.textContent||box.innerText||"").replace(/[ \t]+\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
   };
   const title=String(p.name||"منتج من Bazar Dzair").trim().slice(0,100);
   const price=String(Math.max(0,Number(p.price)||0));
@@ -2221,7 +2222,7 @@ window.prepareMarketplaceListing=function(id){
     "الدفع عند الاستلام.",
     "للمزيد من التفاصيل أو الطلب:",
     productUrl
-  ].filter(Boolean).join("\\n\\n");
+  ].filter(Boolean).join("\n\n");
   let modal=document.getElementById("bdMarketplaceModal");
   if(!modal){
     modal=document.createElement("div");
@@ -2230,18 +2231,20 @@ window.prepareMarketplaceListing=function(id){
     modal.innerHTML=`<section class="bd-marketplace-dialog" role="dialog" aria-modal="true" aria-labelledby="bdMarketplaceHeading">
       <button type="button" class="bd-marketplace-close" aria-label="إغلاق">×</button>
       <h2 id="bdMarketplaceHeading">تجهيز إعلان Facebook Marketplace</h2>
-      <p class="bd-marketplace-note">راجع المعلومات ثم انسخها إلى إعلانك. لن يتم النشر تلقائيًا.</p>
+      <p class="bd-marketplace-note">راجع المعلومات ثم اضغط «نسخ للماركيت». في صفحة فيسبوك شغّل المفضلة «ماركيت» لتعبئة الحقول، ثم أضف الصورة وانشر بنفسك.</p>
       <label>عنوان الإعلان<input id="bdMarketplaceTitle" maxlength="100"></label>
       <label>السعر بالدينار الجزائري<input id="bdMarketplacePrice" inputmode="numeric"></label>
       <label>الوصف<textarea id="bdMarketplaceDescription" rows="8"></textarea></label>
       <div class="bd-marketplace-actions">
-        <button type="button" data-copy="all" class="primary">نسخ العنوان والسعر والوصف</button>
+        <button type="button" data-copy="mp" class="primary" style="grid-column:1/-1">⚡ نسخ للماركيت وفتح فيسبوك</button>
+        <button type="button" data-copy="all">نسخ العنوان والسعر والوصف</button>
         <button type="button" data-copy="title">نسخ العنوان</button>
         <button type="button" data-copy="description">نسخ الوصف</button>
         <button type="button" data-copy="price">نسخ السعر</button>
         <button type="button" data-open="facebook" class="bd-marketplace-facebook">فتح Marketplace</button>
         <button type="button" data-open="image" class="bd-marketplace-secondary">فتح صورة المنتج</button>
       </div>
+      <details class="bd-marketplace-foot"><summary>إعداد المفضلة (مرة واحدة فقط)</summary><ol><li>اضغط «نسخ كود المفضلة».</li><li>في Chrome أضف أي صفحة إلى المفضلة وسمّها <b>ماركيت</b>.</li><li>عدّل المفضلة: امسح الرابط والصق الكود (إن حُذفت كلمة javascript: في أوله اكتبها بيدك).</li><li>في صفحة إنشاء الإعلان اكتب <b>ماركيت</b> في شريط العنوان واختر المفضلة من الاقتراحات.</li></ol><button type="button" data-copy="bookmarklet">نسخ كود المفضلة</button></details>
       <small class="bd-marketplace-foot">في Facebook أضف الصورة وحدد الفئة والموقع ثم راجع الإعلان واضغط نشر بنفسك.</small>
     </section>`;
     document.body.appendChild(modal);
@@ -2256,7 +2259,9 @@ window.prepareMarketplaceListing=function(id){
       });
       if(copyBtn){
         const v=getValues();
-        const text=copyBtn.dataset.copy==="all"?`${v.title}\\nالسعر: ${v.price} دج\\n\\n${v.description}`:
+        if(copyBtn.dataset.copy==="mp"){window.open("https://www.facebook.com/marketplace/create/item/","_blank","noopener");}
+        const text=copyBtn.dataset.copy==="mp"?"BDMP:"+JSON.stringify({title:v.title,price:v.price,description:v.description}):
+          copyBtn.dataset.copy==="bookmarklet"?BD_MP_BOOKMARKLET:copyBtn.dataset.copy==="all"?`${v.title}\nالسعر: ${v.price} دج\n\n${v.description}`:
           copyBtn.dataset.copy==="title"?v.title:
           copyBtn.dataset.copy==="price"?v.price:v.description;
         try{await navigator.clipboard.writeText(text);show("تم نسخ البيانات","ok");}
