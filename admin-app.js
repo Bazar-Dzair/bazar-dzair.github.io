@@ -2202,6 +2202,7 @@ window.copyProductLink=async function(id){
 };
 
 // تجهيز بيانات المنتج لإعلان Marketplace مع إبقاء النشر النهائي يدويًا داخل Facebook.
+const BD_MP_USERSCRIPT="// ==UserScript==\n// @name         Bazar Dzair - تعبئة Marketplace\n// @namespace    bazar-dzair\n// @version      1.0\n// @description  يملأ العنوان والسعر والوصف تلقائياً في إعلان Marketplace من لوحة تحكم Bazar Dzair\n// @match        https://*.facebook.com/*\n// @run-at       document-start\n// @grant        GM_getValue\n// @grant        GM_setValue\n// @grant        GM_deleteValue\n// ==/UserScript==\n(function () {\n  \"use strict\";\n  var KEY = \"bdmp_data\";\n  try {\n    var m = location.hash.match(/bdmp=([^&]+)/);\n    if (m) {\n      var json = decodeURIComponent(escape(atob(decodeURIComponent(m[1]))));\n      GM_setValue(KEY, JSON.stringify({ t: Date.now(), d: JSON.parse(json) }));\n      history.replaceState(null, \"\", location.pathname + location.search);\n    }\n  } catch (e) {}\n\n  function load() {\n    try {\n      var raw = GM_getValue(KEY, \"\");\n      if (!raw) return null;\n      var o = JSON.parse(raw);\n      if (Date.now() - o.t > 15 * 60 * 1000) { GM_deleteValue(KEY); return null; }\n      return o.d;\n    } catch (e) { return null; }\n  }\n  function setVal(el, v) {\n    var proto = el.tagName === \"TEXTAREA\" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;\n    Object.getOwnPropertyDescriptor(proto, \"value\").set.call(el, v);\n    el.dispatchEvent(new Event(\"input\", { bubbles: true }));\n    el.dispatchEvent(new Event(\"change\", { bubbles: true }));\n  }\n  function find(keys, tag) {\n    return Array.prototype.slice.call(document.querySelectorAll(tag)).find(function (e) {\n      var lab = e.closest(\"label\");\n      var l = ((e.getAttribute(\"aria-label\") || \"\") + \" \" + (lab ? lab.innerText : \"\")).toLowerCase();\n      return keys.some(function (k) { return l.indexOf(k) > -1; });\n    });\n  }\n  function banner(text) {\n    var b = document.getElementById(\"bdmp-banner\");\n    if (!b) {\n      b = document.createElement(\"div\");\n      b.id = \"bdmp-banner\";\n      b.style.cssText = \"position:fixed;z-index:2147483647;bottom:14px;left:50%;transform:translateX(-50%);background:#182536;color:#fff;padding:10px 16px;border-radius:12px;font:14px sans-serif;direction:rtl;box-shadow:0 6px 24px rgba(0,0,0,.3)\";\n      document.documentElement.appendChild(b);\n    }\n    b.textContent = text;\n    return b;\n  }\n\n  var done = {};\n  var started = Date.now();\n  var timer = setInterval(function () {\n    if (Date.now() - started > 90000) { clearInterval(timer); return; }\n    if (location.pathname.indexOf(\"/marketplace/create\") === -1) return;\n    var d = load();\n    if (!d) { clearInterval(timer); return; }\n    var rows = [\n      [\"title\", [\"title\", \"العنوان\", \"titre\"], \"input\", d.title],\n      [\"price\", [\"price\", \"السعر\", \"prix\"], \"input\", d.price],\n      [\"description\", [\"description\", \"الوصف\"], \"textarea\", d.description]\n    ];\n    rows.forEach(function (r) {\n      if (done[r[0]]) return;\n      var el = find(r[1], r[2]);\n      if (el) { el.focus(); setVal(el, r[3]); done[r[0]] = true; }\n    });\n    var n = Object.keys(done).length;\n    if (n === 3) {\n      clearInterval(timer);\n      GM_deleteValue(KEY);\n      var b = banner(\"تمت تعبئة الحقول ✅ أضف الصورة ثم انشر\");\n      setTimeout(function () { b.remove(); }, 8000);\n    }\n  }, 700);\n})();\n";
 const BD_MP_BOOKMARKLET='javascript:(async()=>{try{const t=await navigator.clipboard.readText();if(t.indexOf("BDMP:")!==0){alert("انسخ المنتج أولاً من لوحة التحكم (زر نسخ للماركيت)");return;}const d=JSON.parse(t.slice(5));const set=(el,v)=>{const pr=el.tagName==="TEXTAREA"?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(pr,"value").set.call(el,v);el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}));};const find=(keys,tag)=>[...document.querySelectorAll(tag)].find(e=>{const l=((e.getAttribute("aria-label")||"")+" "+(e.closest("label")?e.closest("label").innerText:"")).toLowerCase();return keys.some(k=>l.includes(k));});const rows=[[["title","العنوان","titre"],"input",d.title],[["price","السعر","prix"],"input",d.price],[["description","الوصف"],"textarea",d.description]];let n=0;for(const r of rows){const e=find(r[0],r[1]);if(e){e.focus();set(e,r[2]);n++;}}alert(n===3?"تمت تعبئة الحقول ✅ أضف الصورة ثم انشر":"تمت تعبئة "+n+" من 3 حقول فقط، أكمل الباقي يدويًا");}catch(e){alert("تعذر التعبئة: "+e.message);}})();';
 window.prepareMarketplaceListing=function(id){
   const p=products.find(x=>x.id===id);
@@ -2231,13 +2232,13 @@ window.prepareMarketplaceListing=function(id){
     modal.innerHTML=`<section class="bd-marketplace-dialog" role="dialog" aria-modal="true" aria-labelledby="bdMarketplaceHeading">
       <button type="button" class="bd-marketplace-close" aria-label="إغلاق">×</button>
       <h2 id="bdMarketplaceHeading">تجهيز إعلان Facebook Marketplace</h2>
-      <p class="bd-marketplace-note">راجع المعلومات ثم اضغط «نسخ للماركيت». في صفحة فيسبوك شغّل المفضلة «ماركيت» لتعبئة الحقول، ثم أضف الصورة وانشر بنفسك.</p>
+      <p class="bd-marketplace-note">راجع المعلومات ثم اضغط «فتح Marketplace مع تعبئة تلقائية». تُملأ الحقول وحدها، ثم أضف الصورة وانشر بنفسك.</p>
       <label>عنوان الإعلان<input id="bdMarketplaceTitle" maxlength="100"></label>
       <label>السعر بالدينار الجزائري<input id="bdMarketplacePrice" inputmode="numeric"></label>
       <label>الوصف<textarea id="bdMarketplaceDescription" rows="8"></textarea></label>
       <div class="bd-marketplace-actions">
-        <button type="button" data-copy="mp" class="primary" style="grid-column:1/-1">⚡ نسخ للماركيت</button>
-        <button type="button" data-open="chrome" class="bd-marketplace-facebook" style="grid-column:1/-1">🌐 فتح في Chrome (بدل التطبيق)</button>
+        <button type="button" data-open="auto" class="bd-marketplace-facebook" style="grid-column:1/-1">🚀 فتح Marketplace مع تعبئة تلقائية</button>
+        <button type="button" data-copy="mp" class="bd-marketplace-secondary" style="grid-column:1/-1">⚡ نسخ للماركيت</button>
         <button type="button" data-copy="all">نسخ العنوان والسعر والوصف</button>
         <button type="button" data-copy="title">نسخ العنوان</button>
         <button type="button" data-copy="description">نسخ الوصف</button>
@@ -2245,7 +2246,7 @@ window.prepareMarketplaceListing=function(id){
         <button type="button" data-open="facebook" class="bd-marketplace-secondary">فتح Marketplace (قد يفتح التطبيق)</button>
         <button type="button" data-open="image" class="bd-marketplace-secondary">فتح صورة المنتج</button>
       </div>
-      <details class="bd-marketplace-foot"><summary>إعداد المفضلة (مرة واحدة فقط)</summary><ol><li>اضغط «نسخ كود المفضلة».</li><li>في Chrome أضف أي صفحة إلى المفضلة وسمّها <b>ماركيت</b>.</li><li>عدّل المفضلة: امسح الرابط والصق الكود (إن حُذفت كلمة javascript: في أوله اكتبها بيدك).</li><li>في صفحة إنشاء الإعلان اكتب <b>ماركيت</b> في شريط العنوان واختر المفضلة من الاقتراحات.</li></ol><button type="button" data-copy="bookmarklet">نسخ كود المفضلة</button></details>
+      <details class="bd-marketplace-foot"><summary>إعداد التعبئة التلقائية (مرة واحدة فقط)</summary><p>1) ثبّت Firefox ثم إضافة Tampermonkey. 2) في Tampermonkey أنشئ سكربتاً جديداً، امسح محتواه والصق الكود، ثم احفظ.</p><button type="button" data-copy="userscript">نسخ كود السكربت</button><hr><p>بديل: المفضلة (للتعبئة بعد «نسخ للماركيت»)</p><ol><li>اضغط «نسخ كود المفضلة».</li><li>في Chrome أضف أي صفحة إلى المفضلة وسمّها <b>ماركيت</b>.</li><li>عدّل المفضلة: امسح الرابط والصق الكود (إن حُذفت كلمة javascript: في أوله اكتبها بيدك).</li><li>في صفحة إنشاء الإعلان اكتب <b>ماركيت</b> في شريط العنوان واختر المفضلة من الاقتراحات.</li></ol><button type="button" data-copy="bookmarklet">نسخ كود المفضلة</button></details>
       <small class="bd-marketplace-foot">في Facebook أضف الصورة وحدد الفئة والموقع ثم راجع الإعلان واضغط نشر بنفسك.</small>
     </section>`;
     document.body.appendChild(modal);
@@ -2261,13 +2262,17 @@ window.prepareMarketplaceListing=function(id){
       if(copyBtn){
         const v=getValues();
         const text=copyBtn.dataset.copy==="mp"?"BDMP:"+JSON.stringify({title:v.title,price:v.price,description:v.description}):
-          copyBtn.dataset.copy==="bookmarklet"?BD_MP_BOOKMARKLET:copyBtn.dataset.copy==="all"?`${v.title}\nالسعر: ${v.price} دج\n\n${v.description}`:
+          copyBtn.dataset.copy==="userscript"?BD_MP_USERSCRIPT:copyBtn.dataset.copy==="bookmarklet"?BD_MP_BOOKMARKLET:copyBtn.dataset.copy==="all"?`${v.title}\nالسعر: ${v.price} دج\n\n${v.description}`:
           copyBtn.dataset.copy==="title"?v.title:
           copyBtn.dataset.copy==="price"?v.price:v.description;
         try{await navigator.clipboard.writeText(text);show("تم نسخ البيانات","ok");}
         catch(e){const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();show("تم نسخ البيانات","ok");}
       }
-      if(openBtn?.dataset.open==="chrome"){window.location.href="intent://www.facebook.com/marketplace/create/item/#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=https%3A%2F%2Fwww.facebook.com%2Fmarketplace%2Fcreate%2Fitem%2F;end";}
+      if(openBtn?.dataset.open==="auto"){
+        const v=getValues();
+        const b64=btoa(unescape(encodeURIComponent(JSON.stringify({title:v.title,price:v.price,description:v.description}))));
+        window.open("https://www.facebook.com/marketplace/create/item/#bdmp="+encodeURIComponent(b64),"_blank","noopener");
+      }
       if(openBtn?.dataset.open==="facebook")window.open("https://www.facebook.com/marketplace/create/item/","_blank","noopener");
       if(openBtn?.dataset.open==="image"){
         const src=modal.dataset.image||"";
