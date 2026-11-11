@@ -2201,6 +2201,81 @@ window.copyProductLink=async function(id){
   }
 };
 
+// تجهيز بيانات المنتج لإعلان Marketplace مع إبقاء النشر النهائي يدويًا داخل Facebook.
+window.prepareMarketplaceListing=function(id){
+  const p=products.find(x=>x.id===id);
+  if(!p){show("تعذر العثور على المنتج","err");return;}
+  const image=(Array.isArray(p.images)&&p.images.length?p.images[0]:"")||p.image||p.imageUrl||p.photo||"";
+  const productUrl=getProductStoreUrl(p);
+  const cleanText=value=>{
+    const box=document.createElement("div");
+    box.innerHTML=String(value||"");
+    return (box.textContent||box.innerText||"").replace(/\\s+\\n/g,"\\n").trim();
+  };
+  const title=String(p.name||"منتج من Bazar Dzair").trim().slice(0,100);
+  const price=String(Math.max(0,Number(p.price)||0));
+  const details=cleanText(p.description||p.description_fr||"");
+  const description=[
+    details,
+    "التوصيل متوفر إلى 58 ولاية.",
+    "الدفع عند الاستلام.",
+    "للمزيد من التفاصيل أو الطلب:",
+    productUrl
+  ].filter(Boolean).join("\\n\\n");
+  let modal=document.getElementById("bdMarketplaceModal");
+  if(!modal){
+    modal=document.createElement("div");
+    modal.id="bdMarketplaceModal";
+    modal.className="bd-marketplace-backdrop";
+    modal.innerHTML=`<section class="bd-marketplace-dialog" role="dialog" aria-modal="true" aria-labelledby="bdMarketplaceHeading">
+      <button type="button" class="bd-marketplace-close" aria-label="إغلاق">×</button>
+      <h2 id="bdMarketplaceHeading">تجهيز إعلان Facebook Marketplace</h2>
+      <p class="bd-marketplace-note">راجع المعلومات ثم انسخها إلى إعلانك. لن يتم النشر تلقائيًا.</p>
+      <label>عنوان الإعلان<input id="bdMarketplaceTitle" maxlength="100"></label>
+      <label>السعر بالدينار الجزائري<input id="bdMarketplacePrice" inputmode="numeric"></label>
+      <label>الوصف<textarea id="bdMarketplaceDescription" rows="8"></textarea></label>
+      <div class="bd-marketplace-actions">
+        <button type="button" data-copy="all" class="primary">نسخ العنوان والسعر والوصف</button>
+        <button type="button" data-copy="title">نسخ العنوان</button>
+        <button type="button" data-copy="description">نسخ الوصف</button>
+        <button type="button" data-copy="price">نسخ السعر</button>
+        <button type="button" data-open="facebook" class="bd-marketplace-facebook">فتح Marketplace</button>
+        <button type="button" data-open="image" class="bd-marketplace-secondary">فتح صورة المنتج</button>
+      </div>
+      <small class="bd-marketplace-foot">في Facebook أضف الصورة وحدد الفئة والموقع ثم راجع الإعلان واضغط نشر بنفسك.</small>
+    </section>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click",async event=>{
+      if(event.target===modal||event.target.closest(".bd-marketplace-close")){modal.remove();return;}
+      const copyBtn=event.target.closest("[data-copy]");
+      const openBtn=event.target.closest("[data-open]");
+      const getValues=()=>({
+        title:document.getElementById("bdMarketplaceTitle").value.trim(),
+        price:document.getElementById("bdMarketplacePrice").value.trim(),
+        description:document.getElementById("bdMarketplaceDescription").value.trim()
+      });
+      if(copyBtn){
+        const v=getValues();
+        const text=copyBtn.dataset.copy==="all"?`${v.title}\\nالسعر: ${v.price} دج\\n\\n${v.description}`:
+          copyBtn.dataset.copy==="title"?v.title:
+          copyBtn.dataset.copy==="price"?v.price:v.description;
+        try{await navigator.clipboard.writeText(text);show("تم نسخ البيانات","ok");}
+        catch(e){const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();show("تم نسخ البيانات","ok");}
+      }
+      if(openBtn?.dataset.open==="facebook")window.open("https://www.facebook.com/marketplace/create/item/","_blank","noopener");
+      if(openBtn?.dataset.open==="image"){
+        const src=modal.dataset.image||"";
+        if(src)window.open(src,"_blank","noopener");else show("لا توجد صورة لهذا المنتج","err");
+      }
+    });
+  }
+  modal.dataset.image=image;
+  document.getElementById("bdMarketplaceTitle").value=title;
+  document.getElementById("bdMarketplacePrice").value=price;
+  document.getElementById("bdMarketplaceDescription").value=description;
+  modal.classList.add("is-open");
+};
+
 window.render=()=>{
   if(!listBox||!searchInput)return;
   const filtered=getFilteredProducts();
@@ -2238,7 +2313,7 @@ window.render=()=>{
       <div class="product-actions">
         <details class="product-menu"><summary title="خيارات إضافية">⋮</summary><div class="menu-popover">
           <button type="button" onclick="window.openProductStore('${esc(p.id)}')">👁️ عرض المنتج</button>
-          <button type="button" onclick="window.copyProductLink('${esc(p.id)}')">🔗 نسخ الرابط</button>
+          <button type="button" onclick="window.copyProductLink('${esc(p.id)}')">🔗 نسخ الرابط</button>\n          <button type="button" onclick="window.prepareMarketplaceListing('${esc(p.id)}')">🛍️ تجهيز Marketplace</button>
         </div></details>
         <div class="action-main">
           <button class="icon-action-btn edit-icon bd-btn" type="button" title="تعديل" onclick="editProduct('${esc(p.id)}')">✏️</button>

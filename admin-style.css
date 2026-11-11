@@ -462,3 +462,22 @@
 .act-del{background:#f6f7f9;border-color:#e1e6ed;color:#6b7686}
 .act-del:hover{background:#fff0f0;color:#c62828;border-color:#f3c4c1}
 @media(min-width:1100px){.act-bar{grid-template-columns:repeat(3,1fr)}}
+
+
+/* Bazar Dzair — Facebook Marketplace helper */
+.bd-marketplace-backdrop{position:fixed;inset:0;z-index:10050;background:rgba(13,25,39,.62);display:none;align-items:center;justify-content:center;padding:16px;direction:rtl}
+.bd-marketplace-backdrop.is-open{display:flex}
+.bd-marketplace-dialog{position:relative;width:min(100%,620px);max-height:min(92vh,850px);overflow:auto;background:#fff;border-radius:18px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.24);color:#182536}
+.bd-marketplace-dialog h2{font-size:20px;margin:0 0 8px;font-weight:800}
+.bd-marketplace-note,.bd-marketplace-foot{display:block;color:#667085;font-size:13px;line-height:1.7;margin:0 0 16px}
+.bd-marketplace-dialog label{display:block;font-size:13px;font-weight:700;margin:12px 0}
+.bd-marketplace-dialog input,.bd-marketplace-dialog textarea{display:block;width:100%;box-sizing:border-box;margin-top:6px;border:1px solid #d8dee7;border-radius:10px;padding:11px 12px;font:inherit;font-size:14px;color:#182536;background:#fff}
+.bd-marketplace-dialog textarea{resize:vertical;min-height:150px;line-height:1.7}
+.bd-marketplace-close{position:absolute;left:14px;top:12px;border:0;background:#f1f3f6;border-radius:50%;width:34px;height:34px;font-size:24px;cursor:pointer;color:#344054}
+.bd-marketplace-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:16px 0}
+.bd-marketplace-actions button{border:1px solid #d9e0e8;border-radius:10px;background:#f8fafc;padding:11px 9px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;color:#263548}
+.bd-marketplace-actions button.primary{grid-column:1/-1;background:#176b45;color:#fff;border-color:#176b45}
+.bd-marketplace-actions button.bd-marketplace-facebook{background:#1877f2;color:#fff;border-color:#1877f2}
+.bd-marketplace-actions button.bd-marketplace-secondary{background:#fff}
+.bd-marketplace-foot{margin:8px 0 0}
+@media(max-width:480px){.bd-marketplace-dialog{padding:19px 15px}.bd-marketplace-actions{grid-template-columns:1fr}.bd-marketplace-actions button.primary{grid-column:auto}}
