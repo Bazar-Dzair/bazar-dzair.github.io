@@ -2236,12 +2236,13 @@ window.prepareMarketplaceListing=function(id){
       <label>السعر بالدينار الجزائري<input id="bdMarketplacePrice" inputmode="numeric"></label>
       <label>الوصف<textarea id="bdMarketplaceDescription" rows="8"></textarea></label>
       <div class="bd-marketplace-actions">
-        <button type="button" data-copy="mp" class="primary" style="grid-column:1/-1">⚡ نسخ للماركيت وفتح فيسبوك</button>
+        <button type="button" data-copy="mp" class="primary" style="grid-column:1/-1">⚡ نسخ للماركيت</button>
+        <button type="button" data-open="chrome" class="bd-marketplace-facebook" style="grid-column:1/-1">🌐 فتح في Chrome (بدل التطبيق)</button>
         <button type="button" data-copy="all">نسخ العنوان والسعر والوصف</button>
         <button type="button" data-copy="title">نسخ العنوان</button>
         <button type="button" data-copy="description">نسخ الوصف</button>
         <button type="button" data-copy="price">نسخ السعر</button>
-        <button type="button" data-open="facebook" class="bd-marketplace-facebook">فتح Marketplace</button>
+        <button type="button" data-open="facebook" class="bd-marketplace-secondary">فتح Marketplace (قد يفتح التطبيق)</button>
         <button type="button" data-open="image" class="bd-marketplace-secondary">فتح صورة المنتج</button>
       </div>
       <details class="bd-marketplace-foot"><summary>إعداد المفضلة (مرة واحدة فقط)</summary><ol><li>اضغط «نسخ كود المفضلة».</li><li>في Chrome أضف أي صفحة إلى المفضلة وسمّها <b>ماركيت</b>.</li><li>عدّل المفضلة: امسح الرابط والصق الكود (إن حُذفت كلمة javascript: في أوله اكتبها بيدك).</li><li>في صفحة إنشاء الإعلان اكتب <b>ماركيت</b> في شريط العنوان واختر المفضلة من الاقتراحات.</li></ol><button type="button" data-copy="bookmarklet">نسخ كود المفضلة</button></details>
@@ -2259,7 +2260,6 @@ window.prepareMarketplaceListing=function(id){
       });
       if(copyBtn){
         const v=getValues();
-        if(copyBtn.dataset.copy==="mp"){window.open("https://www.facebook.com/marketplace/create/item/","_blank","noopener");}
         const text=copyBtn.dataset.copy==="mp"?"BDMP:"+JSON.stringify({title:v.title,price:v.price,description:v.description}):
           copyBtn.dataset.copy==="bookmarklet"?BD_MP_BOOKMARKLET:copyBtn.dataset.copy==="all"?`${v.title}\nالسعر: ${v.price} دج\n\n${v.description}`:
           copyBtn.dataset.copy==="title"?v.title:
@@ -2267,6 +2267,7 @@ window.prepareMarketplaceListing=function(id){
         try{await navigator.clipboard.writeText(text);show("تم نسخ البيانات","ok");}
         catch(e){const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();show("تم نسخ البيانات","ok");}
       }
+      if(openBtn?.dataset.open==="chrome"){window.location.href="intent://www.facebook.com/marketplace/create/item/#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=https%3A%2F%2Fwww.facebook.com%2Fmarketplace%2Fcreate%2Fitem%2F;end";}
       if(openBtn?.dataset.open==="facebook")window.open("https://www.facebook.com/marketplace/create/item/","_blank","noopener");
       if(openBtn?.dataset.open==="image"){
         const src=modal.dataset.image||"";
