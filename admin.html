@@ -8,7 +8,7 @@
 (function(){try{if(window.top!==window.self){document.documentElement.style.display="none";try{window.top.location=window.self.location.href;}catch(e){}}}catch(e){document.documentElement.style.display="none";}})();
 </script>
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.cloudinary.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.cloudinary.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#182536">
@@ -16,7 +16,11 @@
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <link rel="manifest" href="/manifest-admin.webmanifest">
 <link rel="apple-touch-icon" href="/icons/admin-apple-touch-icon.png">
-<link rel="stylesheet" href="admin-style.css?v=a1793e6d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin-style.css?v=929b1e18">
+<style>/* أيقونات SVG للتصميم الجديد */.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:middle}.nav-item .i,.logout-side .i,.store-mini .i{width:19px;height:19px}.nav-item,.logout-side,.store-mini{display:flex;align-items:center;gap:10px}.dash-stat-icon,.dash-hero-metric-ic,.dash-quick button span{display:inline-flex;align-items:center;justify-content:center}.dash-stat-icon .i{width:20px;height:20px}.dash-hero-metric .dash-hero-metric-ic{display:grid;place-items:center}.dash-hero-metric-ic .i{width:22px;height:22px}.dash-quick button span .i{width:19px;height:19px}.orange-btn,.icon-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}.dash-panel-head h2,.dash-section-title{display:flex;align-items:center;gap:8px}.dash-panel-head h2 .i,.dash-section-title .i{color:#c2410c}.tips-rocket{display:flex;align-items:center;justify-content:center}.tips-rocket .i{width:28px;height:28px}.dash-hero-kicker{display:flex;align-items:center;gap:6px}</style>
 <!-- tokens.css يُحمَّل بعد الـ CSS الداخلي عمدًا حتى تطغى قيمه على :root أعلاه -->
 <link rel="stylesheet" href="tokens.css?v=6482079b">
 </head>
@@ -34,8 +38,8 @@
 <header class="topbar"><div class="topbar-inner">
   <div class="top-left">
     <button class="icon-btn brand-btn" title="الرئيسية" onclick="showView('dashboard')">B</button>
-    <button class="icon-btn bell-btn" title="الطلبات" onclick="showView('orders')">🔔<span id="bellBadge" class="bell-badge hidden">0</span></button>
-    <button class="icon-btn" title="الإعدادات" onclick="showView('settings')">⚙</button>
+    <button class="icon-btn bell-btn" title="الطلبات" onclick="showView('orders')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg><span id="bellBadge" class="bell-badge hidden">0</span></button>
+    <button class="icon-btn" title="الإعدادات" onclick="showView('settings')" aria-label="الإعدادات"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4h-7"></path><path d="M10 4H3"></path><path d="M21 12h-9"></path><path d="M8 12H3"></path><path d="M21 20h-5"></path><path d="M12 20H3"></path><path d="M14 2v4"></path><path d="M8 10v4"></path><path d="M16 18v4"></path></svg></button>
   </div>
   <div class="brand-center">Bazar <b>Dzair</b></div>
   <div class="top-right">
@@ -47,70 +51,70 @@
 <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleSidebar()"></div>
 <aside id="sidebar" class="sidebar">
   <div class="side-brand"><div class="side-logo">BD</div><div><strong>Bazar Dzair</strong><small>لوحة الإدارة</small></div></div>
-  <button class="store-mini" type="button" onclick="window.location.href='index.html'"><span>🏪</span><span>عرض متجري</span><b>↗</b></button>
+  <button class="store-mini" type="button" onclick="window.location.href='index.html'"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"></path><path d="M4 12v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8"></path><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"></path><path d="M2 7h20"></path></svg><span>عرض متجري</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"style="margin-inline-start:auto;width:16px;height:16px"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></button>
   <div class="nav-title">الرئيسية</div><nav class="nav">
-    <button class="nav-item active" data-view="dashboard" onclick="showView('dashboard',this)">⌂ <span>لوحة التحكم</span></button>
-    <button class="nav-item" data-view="orders" onclick="showView('orders',this)">🛒 <span>الطلبات</span></button>
-    <button class="nav-item" data-view="reviews" onclick="showView('reviews',this)">⭐ <span>التقييمات</span><span id="reviewsPendingBadge" class="nav-badge hidden">0</span></button>
-    <button class="nav-item" data-view="messages" onclick="showView('messages',this)">✉️ <span>الرسائل</span><span id="messagesNewBadge" class="nav-badge hidden">0</span></button>
+    <button class="nav-item active" data-view="dashboard" onclick="showView('dashboard',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg><span>لوحة التحكم</span></button>
+    <button class="nav-item" data-view="orders" onclick="showView('orders',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg><span>الطلبات</span></button>
+    <button class="nav-item" data-view="reviews" onclick="showView('reviews',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><span>التقييمات</span><span id="reviewsPendingBadge" class="nav-badge hidden">0</span></button>
+    <button class="nav-item" data-view="messages" onclick="showView('messages',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>الرسائل</span><span id="messagesNewBadge" class="nav-badge hidden">0</span></button>
   </nav>
   <div class="nav-title">إدارة المتجر</div><nav class="nav">
-    <button class="nav-item" data-view="product" onclick="showView('product',this,true)">＋ <span>إنشاء منتج</span></button>
-    <button class="nav-item" data-view="products" onclick="showView('products',this)">◇ <span>المنتجات</span></button>
-    <button class="nav-item" data-view="categories" onclick="showView('categories',this)">□ <span>التصنيفات</span></button>
-    <button class="nav-item" data-view="shipping-rates" onclick="showView('shipping-rates',this)">🚚 <span>أسعار التوصيل</span></button>
-    <button class="nav-item" data-view="sections" onclick="showView('sections',this);loadHomeSections()">▦ <span>أقسام المتجر</span></button>
-    <button class="nav-item" data-view="footer" onclick="showView('footer',this)">▤ <span>تذييل المتجر</span></button>
-    <button class="nav-item" data-view="users" onclick="showView('users',this)">♧ <span>المستخدمون</span></button>
-    <button class="nav-item" data-view="blocked" onclick="showView('blocked',this)">🚫 <span>المحظورون</span></button>
-    <button class="nav-item" data-view="fraud" onclick="showView('fraud',this)">🛡️ <span>الإنذارات</span><b id="fraudNavBadge" class="nav-badge hidden">0</b></button>
+    <button class="nav-item" data-view="product" onclick="showView('product',this,true)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg><span>إنشاء منتج</span></button>
+    <button class="nav-item" data-view="products" onclick="showView('products',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg><span>المنتجات</span></button>
+    <button class="nav-item" data-view="categories" onclick="showView('categories',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg><span>التصنيفات</span></button>
+    <button class="nav-item" data-view="shipping-rates" onclick="showView('shipping-rates',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg><span>أسعار التوصيل</span></button>
+    <button class="nav-item" data-view="sections" onclick="showView('sections',this);loadHomeSections()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg><span>أقسام المتجر</span></button>
+    <button class="nav-item" data-view="footer" onclick="showView('footer',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h10"></path></svg><span>تذييل المتجر</span></button>
+    <button class="nav-item" data-view="users" onclick="showView('users',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span>المستخدمون</span></button>
+    <button class="nav-item" data-view="blocked" onclick="showView('blocked',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg><span>المحظورون</span></button>
+    <button class="nav-item" data-view="fraud" onclick="showView('fraud',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg><span>الإنذارات</span><b id="fraudNavBadge" class="nav-badge hidden">0</b></button>
   </nav>
   <div class="nav-title">النظام</div><nav class="nav">
-    <button class="nav-item" data-view="settings" onclick="showView('settings',this)">⚙ <span>الإعدادات</span></button>
-    <button class="nav-item" data-view="addons" onclick="showAddons(this)">🧩 <span>الإضافات</span></button>
+    <button class="nav-item" data-view="settings" onclick="showView('settings',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4h-7"></path><path d="M10 4H3"></path><path d="M21 12h-9"></path><path d="M8 12H3"></path><path d="M21 20h-5"></path><path d="M12 20H3"></path><path d="M14 2v4"></path><path d="M8 10v4"></path><path d="M16 18v4"></path></svg><span>الإعدادات</span></button>
+    <button class="nav-item" data-view="addons" onclick="showAddons(this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"></path></svg><span>الإضافات</span></button>
   </nav>
-  <div class="sidebar-bottom"><button class="logout-side" onclick="logout()">↪ <span>تسجيل الخروج</span></button></div>
+  <div class="sidebar-bottom"><button class="logout-side" onclick="logout()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg> <span>تسجيل الخروج</span></button></div>
 </aside>
 <main class="main-content">
 <section id="view-dashboard" class="view">
   <div class="dash-hero">
     <div class="dash-hero-top">
       <div>
-        <p class="dash-hero-kicker">👋 مرحباً بك</p>
+        <p class="dash-hero-kicker">مرحباً بك 👋</p>
         <h1>لوحة تحكم Bazar <b>Dzair</b></h1>
         <p class="dash-hero-sub">إدارة متجرك أصبحت أسهل من أي وقت مضى</p>
       </div>
-      <button class="orange-btn" onclick="showView('product',null,true)">＋ إضافة منتج جديد</button>
+      <button class="orange-btn" onclick="showView('product',null,true)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>إضافة منتج جديد</button>
     </div>
-    <div class="dash-hero-metric"><span class="dash-hero-metric-ic">👁️</span><div><strong id="statVisitsToday">0</strong><span>زائر اليوم</span></div></div>
+    <div class="dash-hero-metric"><span class="dash-hero-metric-ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg></span><div><strong id="statVisitsToday">0</strong><span>زائر اليوم</span></div></div>
     <p class="dash-hero-note">بدون احتساب زياراتك أنت كأدمن</p>
   </div>
   <div class="dash-stats">
-    <div class="dash-stat"><span class="dash-stat-icon">◇</span><div><strong id="statProducts">0</strong><small>إجمالي المنتجات</small></div></div>
-    <div class="dash-stat"><span class="dash-stat-icon">🛒</span><div><strong id="statOrders">0</strong><small>الطلبات</small></div></div>
-    <div class="dash-stat"><span class="dash-stat-icon">👥</span><div><strong id="statCustomers">0</strong><small>العملاء</small></div></div>
-    <div class="dash-stat dash-stat-warn"><span class="dash-stat-icon">⚠</span><div><strong id="statLowStock">0</strong><small>مخزون منخفض</small></div></div>
-    <div class="dash-stat"><span class="dash-stat-icon">✓</span><div><strong id="statPublished">0</strong><small>منشور بالمتجر</small></div></div>
-    <div class="dash-stat"><span class="dash-stat-icon">📦</span><div><strong id="statInventory">0</strong><small>إجمالي المخزون</small></div></div>
+    <div class="dash-stat"><span class="dash-stat-icon"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg></span><div><strong id="statProducts">0</strong><small>إجمالي المنتجات</small></div></div>
+    <div class="dash-stat"><span class="dash-stat-icon"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg></span><div><strong id="statOrders">0</strong><small>الطلبات</small></div></div>
+    <div class="dash-stat"><span class="dash-stat-icon"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span><div><strong id="statCustomers">0</strong><small>العملاء</small></div></div>
+    <div class="dash-stat dash-stat-warn"><span class="dash-stat-icon"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></span><div><strong id="statLowStock">0</strong><small>مخزون منخفض</small></div></div>
+    <div class="dash-stat"><span class="dash-stat-icon"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span><div><strong id="statPublished">0</strong><small>منشور بالمتجر</small></div></div>
+    <div class="dash-stat"><span class="dash-stat-icon"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg></span><div><strong id="statInventory">0</strong><small>إجمالي المخزون</small></div></div>
   </div>
   <div class="dash-panel">
-    <div class="dash-panel-head"><h2>📈 الزوار خلال آخر 14 يومًا</h2><p>عدد الزوار الحقيقيين يوميًا (بدون احتسابك أنت كأدمن).</p></div>
+    <div class="dash-panel-head"><h2><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7h6v6"></path><path d="m22 7-8.5 8.5-5-5L2 17"></path></svg>الزوار خلال آخر 14 يومًا</h2><p>عدد الزوار الحقيقيين يوميًا (بدون احتسابك أنت كأدمن).</p></div>
     <div id="visitsChartBox" class="dash-panel-body"><small class="dash-loading">...جارٍ التحميل</small></div>
   </div>
   <div class="dash-panel">
-    <div class="dash-panel-head"><h2>🖱️ مشاهدات المنتجات</h2><p>تحديث حي: بمجرد أن يفتح زبون صفحة منتج، تظهر مشاهدته هنا مباشرة.</p></div>
+    <div class="dash-panel-head"><h2><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"></path></svg>مشاهدات المنتجات</h2><p>تحديث حي: بمجرد أن يفتح زبون صفحة منتج، تظهر مشاهدته هنا مباشرة.</p></div>
     <div id="productViewsBox" class="dash-panel-body" style="max-height:520px;overflow-y:auto"><small class="dash-loading">...جارٍ التحميل</small></div>
   </div>
-  <h2 class="dash-section-title">⚡ الوصول السريع</h2>
+  <h2 class="dash-section-title">الوصول السريع</h2>
   <div class="dash-quick">
-    <button onclick="showView('products')"><span>◇</span>إدارة المنتجات</button>
-    <button onclick="showView('product',null,true)"><span>＋</span>إضافة منتج</button>
-    <button onclick="showView('orders')"><span>🛒</span>الطلبات</button>
-    <button onclick="showView('settings')"><span>⚙</span>الإعدادات</button>
-    <button onclick="showView('categories')"><span>📁</span>التصنيفات</button>
-    <button onclick="showView('sections');loadHomeSections()"><span>▦</span>أقسام المتجر</button>
+    <button onclick="showView('products')"><span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg></span>إدارة المنتجات</button>
+    <button onclick="showView('product',null,true)"><span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span>إضافة منتج</button>
+    <button onclick="showView('orders')"><span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg></span>الطلبات</button>
+    <button onclick="showView('settings')"><span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4h-7"></path><path d="M10 4H3"></path><path d="M21 12h-9"></path><path d="M8 12H3"></path><path d="M21 20h-5"></path><path d="M12 20H3"></path><path d="M14 2v4"></path><path d="M8 10v4"></path><path d="M16 18v4"></path></svg></span>الإعدادات</button>
+    <button onclick="showView('categories')"><span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg></span>التصنيفات</button>
+    <button onclick="showView('sections');loadHomeSections()"><span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg></span>أقسام المتجر</button>
   </div>
-  <div class="tips-banner"><div class="tips-rocket">🚀</div><div><h3>نصائح لتحسين متجرك</h3><ul>
+  <div class="tips-banner"><div class="tips-rocket"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg></div><div><h3>نصائح لتحسين متجرك</h3><ul>
     <li>أضف المزيد من المنتجات لجذب العملاء</li>
     <li>تأكد من تحديث معلومات التواصل</li>
     <li>تابع طلبات العملاء بانتظام</li>
