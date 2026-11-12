@@ -1,429 +1,392 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8"/>
 <script>
 // حماية من الإطارات (clickjacking): GitHub Pages لا يطبّق ملف _headers ولا يمكن وضع frame-ancestors في وسم meta،
 // فنمنع هنا تضمين لوحة الأدمن داخل iframe في موقع آخر (لإخفاء الصفحة وحدها دون المساس بأي منطق آخر).
 (function(){try{if(window.top!==window.self){document.documentElement.style.display="none";try{window.top.location=window.self.location.href;}catch(e){}}}catch(e){document.documentElement.style.display="none";}})();
 </script>
-<meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.cloudinary.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
-<meta name="robots" content="noindex,nofollow">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="theme-color" content="#182536">
+<meta content="strict-origin-when-cross-origin" name="referrer"/>
+<meta content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app https://noisy-lake-ace8.a-bazar-dzair-pro.workers.dev https://api.cloudinary.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.tiktok.com https://connect.facebook.net; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" http-equiv="Content-Security-Policy"/>
+<meta content="noindex,nofollow" name="robots"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<meta content="#182536" name="theme-color"/>
 <title>Bazar Dzair | لوحة التحكم</title>
-<link rel="icon" href="logo.svg" type="image/svg+xml">
-<link rel="manifest" href="/manifest-admin.webmanifest">
-<link rel="apple-touch-icon" href="/icons/admin-apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="admin-style.css?v=a1793e6d">
+<link href="logo.svg" rel="icon" type="image/svg+xml"/>
+<link href="/manifest-admin.webmanifest" rel="manifest"/>
+<link href="/icons/admin-apple-touch-icon.png" rel="apple-touch-icon"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="admin-style.css?v=a1793e6d" rel="stylesheet"/>
 <style>/* أيقونات SVG للتصميم الجديد */.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:middle}.nav-item .i,.logout-side .i,.store-mini .i{width:19px;height:19px}.nav-item,.logout-side,.store-mini{display:flex;align-items:center;gap:10px}.dash-stat-icon,.dash-hero-metric-ic,.dash-quick button span{display:inline-flex;align-items:center;justify-content:center}.dash-stat-icon .i{width:20px;height:20px}.dash-hero-metric .dash-hero-metric-ic{display:grid;place-items:center}.dash-hero-metric-ic .i{width:22px;height:22px}.dash-quick button span .i{width:19px;height:19px}.orange-btn,.icon-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}.dash-panel-head h2,.dash-section-title{display:flex;align-items:center;gap:8px}.dash-panel-head h2 .i,.dash-section-title .i{color:#c2410c}.tips-rocket{display:flex;align-items:center;justify-content:center}.tips-rocket .i{width:28px;height:28px}.dash-hero-kicker{display:flex;align-items:center;gap:6px}</style>
 <!-- tokens.css يُحمَّل بعد الـ CSS الداخلي عمدًا حتى تطغى قيمه على :root أعلاه -->
-<link rel="stylesheet" href="tokens.css?v=6482079b">
-<link rel="stylesheet" href="product-form-pro.css?v=7bfcd27e">
-</head>
-<body class="auth-check">
+<link href="tokens.css?v=6482079b" rel="stylesheet"/>
 
-<div id="login" class="login">
-  <h1>Bazar <span style="color:#ff6a00">Dzair</span></h1>
-  <p style="text-align:center;color:#667085;margin-top:0">لوحة تحكم احترافية لإدارة متجرك</p>
-  <div id="loginErr" class="status err hidden"></div>
-  <label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="username" placeholder="admin@example.com">
-  <label>كلمة المرور</label><input id="password" type="password" autocomplete="current-password" placeholder="••••••••">
-  <br><br><button class="primary" onclick="login()">🔐 دخول إلى لوحة التحكم</button>
+<link href="product-form-pro.css?v=20261112b" rel="stylesheet"/></head>
+<body class="auth-check">
+<div class="login" id="login">
+<h1>Bazar <span style="color:#ff6a00">Dzair</span></h1>
+<p style="text-align:center;color:#667085;margin-top:0">لوحة تحكم احترافية لإدارة متجرك</p>
+<div class="status err hidden" id="loginErr"></div>
+<label>البريد الإلكتروني</label><input autocomplete="username" id="email" placeholder="admin@example.com" type="email"/>
+<label>كلمة المرور</label><input autocomplete="current-password" id="password" placeholder="••••••••" type="password"/>
+<br/><br/><button class="primary" onclick="login()">🔐 دخول إلى لوحة التحكم</button>
 </div>
-<div id="app" class="hidden">
+<div class="hidden" id="app">
 <header class="topbar"><div class="topbar-inner">
-  <div class="top-left">
-    <button class="icon-btn brand-btn" title="الرئيسية" onclick="showView('dashboard')">B</button>
-    <button class="icon-btn bell-btn" title="الطلبات" onclick="showView('orders')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg><span id="bellBadge" class="bell-badge hidden">0</span></button>
-    <button class="icon-btn" title="الإعدادات" onclick="showView('settings')" aria-label="الإعدادات"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4h-7"></path><path d="M10 4H3"></path><path d="M21 12h-9"></path><path d="M8 12H3"></path><path d="M21 20h-5"></path><path d="M12 20H3"></path><path d="M14 2v4"></path><path d="M8 10v4"></path><path d="M16 18v4"></path></svg></button>
-  </div>
-  <div class="brand-center">Bazar <b>Dzair</b></div>
-  <div class="top-right">
-    <button class="icon-btn menu-btn" title="القائمة" onclick="toggleSidebar()">☰</button>
-    <button class="user-chip" title="حسابي" onclick="showView('users')">A</button>
-  </div>
+<div class="top-left">
+<button class="icon-btn brand-btn" onclick="showView('dashboard')" title="الرئيسية">B</button>
+<button class="icon-btn bell-btn" onclick="showView('orders')" title="الطلبات"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg><span class="bell-badge hidden" id="bellBadge">0</span></button>
+<button aria-label="الإعدادات" class="icon-btn" onclick="showView('settings')" title="الإعدادات"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M21 4h-7"></path><path d="M10 4H3"></path><path d="M21 12h-9"></path><path d="M8 12H3"></path><path d="M21 20h-5"></path><path d="M12 20H3"></path><path d="M14 2v4"></path><path d="M8 10v4"></path><path d="M16 18v4"></path></svg></button>
+</div>
+<div class="brand-center">Bazar <b>Dzair</b></div>
+<div class="top-right">
+<button class="icon-btn menu-btn" onclick="toggleSidebar()" title="القائمة">☰</button>
+<button class="user-chip" onclick="showView('users')" title="حسابي">A</button>
+</div>
 </div></header>
 <div class="layout">
-<div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleSidebar()"></div>
-<aside id="sidebar" class="sidebar">
-  <div class="side-brand"><div class="side-logo">BD</div><div><strong>Bazar Dzair</strong><small>لوحة الإدارة</small></div></div>
-  <button class="store-mini" type="button" onclick="window.location.href='index.html'"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"></path><path d="M4 12v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8"></path><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"></path><path d="M2 7h20"></path></svg><span>عرض متجري</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"style="margin-inline-start:auto;width:16px;height:16px"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></button>
-  <div class="nav-title">الرئيسية</div><nav class="nav">
-    <button class="nav-item active" data-view="dashboard" onclick="showView('dashboard',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg><span>لوحة التحكم</span></button>
-    <button class="nav-item" data-view="orders" onclick="showView('orders',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg><span>الطلبات</span></button>
-    <button class="nav-item" data-view="reviews" onclick="showView('reviews',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><span>التقييمات</span><span id="reviewsPendingBadge" class="nav-badge hidden">0</span></button>
-    <button class="nav-item" data-view="messages" onclick="showView('messages',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>الرسائل</span><span id="messagesNewBadge" class="nav-badge hidden">0</span></button>
-  </nav>
-  <div class="nav-title">إدارة المتجر</div><nav class="nav">
-    <button class="nav-item" data-view="product" onclick="showView('product',this,true)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg><span>إنشاء منتج</span></button>
-    <button class="nav-item" data-view="products" onclick="showView('products',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg><span>المنتجات</span></button>
-    <button class="nav-item" data-view="categories" onclick="showView('categories',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg><span>التصنيفات</span></button>
-    <button class="nav-item" data-view="shipping-rates" onclick="showView('shipping-rates',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg><span>أسعار التوصيل</span></button>
-    <button class="nav-item" data-view="sections" onclick="showView('sections',this);loadHomeSections()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg><span>أقسام المتجر</span></button>
-    <button class="nav-item" data-view="footer" onclick="showView('footer',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h10"></path></svg><span>تذييل المتجر</span></button>
-    <button class="nav-item" data-view="users" onclick="showView('users',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span>المستخدمون</span></button>
-    <button class="nav-item" data-view="blocked" onclick="showView('blocked',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg><span>المحظورون</span></button>
-    <button class="nav-item" data-view="fraud" onclick="showView('fraud',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg><span>الإنذارات</span><b id="fraudNavBadge" class="nav-badge hidden">0</b></button>
-  </nav>
-  <div class="nav-title">النظام</div><nav class="nav">
-    <button class="nav-item" data-view="settings" onclick="showView('settings',this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4h-7"></path><path d="M10 4H3"></path><path d="M21 12h-9"></path><path d="M8 12H3"></path><path d="M21 20h-5"></path><path d="M12 20H3"></path><path d="M14 2v4"></path><path d="M8 10v4"></path><path d="M16 18v4"></path></svg><span>الإعدادات</span></button>
-    <button class="nav-item" data-view="addons" onclick="showAddons(this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"></path></svg><span>الإضافات</span></button>
-  </nav>
-  <div class="sidebar-bottom"><button class="logout-side" onclick="logout()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg> <span>تسجيل الخروج</span></button></div>
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+<div class="side-brand"><div class="side-logo">BD</div><div><strong>Bazar Dzair</strong><small>لوحة الإدارة</small></div></div>
+<button class="store-mini" onclick="window.location.href='index.html'" type="button"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"></path><path d="M4 12v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8"></path><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"></path><path d="M2 7h20"></path></svg><span>عرض متجري</span><svg aria-hidden="true" class="i" style="margin-inline-start:auto;width:16px;height:16px" viewbox="0 0 24 24"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></button>
+<div class="nav-title">الرئيسية</div><nav class="nav">
+<button class="nav-item active" data-view="dashboard" onclick="showView('dashboard',this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><rect height="9" rx="1" width="7" x="3" y="3"></rect><rect height="5" rx="1" width="7" x="14" y="3"></rect><rect height="9" rx="1" width="7" x="14" y="12"></rect><rect height="5" rx="1" width="7" x="3" y="16"></rect></svg><span>لوحة التحكم</span></button>
+<button class="nav-item" data-view="orders" onclick="showView('orders',this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg><span>الطلبات</span></button>
+<button class="nav-item" data-view="reviews" onclick="showView('reviews',this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><span>التقييمات</span><span class="nav-badge hidden" id="reviewsPendingBadge">0</span></button>
+<button class="nav-item" data-view="messages" onclick="showView('messages',this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>الرسائل</span><span class="nav-badge hidden" id="messagesNewBadge">0</span></button>
+</nav>
+<div class="nav-title">إدارة المتجر</div><nav class="nav">
+<button class="nav-item" data-view="product" onclick="showView('product',this,true)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg><span>إنشاء منتج</span></button>
+<button class="nav-item" data-view="products" onclick="showView('products',this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg><span>المنتجات</span></button>
+<button class="nav-item" data-view="categories" onclick="showView('categories',this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg><span>التصنيفات</span></button>
+<button class="nav-item" data-view="shipping-rates" onclick="showView('shipping-rates',this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg><span>أسعار التوصيل</span></button>
+<button class="nav-item" data-view="sections" onclick="showView('sections',this);loadHomeSections()"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><rect height="7" rx="1" width="7" x="3" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="14"></rect><rect height="7" rx="1" width="7" x="3" y="14"></rect></svg><span>أقسام المتجر</span></button>
+<button class="nav-item" data-view="footer" onclick="showView('footer',this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h10"></path></svg><span>تذييل المتجر</span></button>
+<button class="nav-item" data-view="users" onclick="showView('users',this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span>المستخدمون</span></button>
+<button class="nav-item" data-view="blocked" onclick="showView('blocked',this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg><span>المحظورون</span></button>
+<button class="nav-item" data-view="fraud" onclick="showView('fraud',this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg><span>الإنذارات</span><b class="nav-badge hidden" id="fraudNavBadge">0</b></button>
+</nav>
+<div class="nav-title">النظام</div><nav class="nav">
+<button class="nav-item" data-view="settings" onclick="showView('settings',this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M21 4h-7"></path><path d="M10 4H3"></path><path d="M21 12h-9"></path><path d="M8 12H3"></path><path d="M21 20h-5"></path><path d="M12 20H3"></path><path d="M14 2v4"></path><path d="M8 10v4"></path><path d="M16 18v4"></path></svg><span>الإعدادات</span></button>
+<button class="nav-item" data-view="addons" onclick="showAddons(this)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"></path></svg><span>الإضافات</span></button>
+</nav>
+<div class="sidebar-bottom"><button class="logout-side" onclick="logout()"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg> <span>تسجيل الخروج</span></button></div>
 </aside>
 <main class="main-content">
-<section id="view-dashboard" class="view">
-  <div class="dash-hero">
-    <div class="dash-hero-top">
-      <div>
-        <p class="dash-hero-kicker">مرحباً بك 👋</p>
-        <h1>لوحة تحكم Bazar <b>Dzair</b></h1>
-        <p class="dash-hero-sub">إدارة متجرك أصبحت أسهل من أي وقت مضى</p>
-      </div>
-      <button class="orange-btn" onclick="showView('product',null,true)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>إضافة منتج جديد</button>
-    </div>
-    <div class="dash-hero-metric"><span class="dash-hero-metric-ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg></span><div><strong id="statVisitsToday">0</strong><span>زائر اليوم</span></div></div>
-    <p class="dash-hero-note">بدون احتساب زياراتك أنت كأدمن</p>
-  </div>
-  <div class="dash-stats">
-    <div class="dash-stat"><span class="dash-stat-icon"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg></span><div><strong id="statProducts">0</strong><small>إجمالي المنتجات</small></div></div>
-    <div class="dash-stat"><span class="dash-stat-icon"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg></span><div><strong id="statOrders">0</strong><small>الطلبات</small></div></div>
-    <div class="dash-stat"><span class="dash-stat-icon"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span><div><strong id="statCustomers">0</strong><small>العملاء</small></div></div>
-    <div class="dash-stat dash-stat-warn"><span class="dash-stat-icon"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></span><div><strong id="statLowStock">0</strong><small>مخزون منخفض</small></div></div>
-    <div class="dash-stat"><span class="dash-stat-icon"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span><div><strong id="statPublished">0</strong><small>منشور بالمتجر</small></div></div>
-    <div class="dash-stat"><span class="dash-stat-icon"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg></span><div><strong id="statInventory">0</strong><small>إجمالي المخزون</small></div></div>
-  </div>
-  <div class="dash-panel">
-    <div class="dash-panel-head"><h2><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7h6v6"></path><path d="m22 7-8.5 8.5-5-5L2 17"></path></svg>الزوار خلال آخر 14 يومًا</h2><p>عدد الزوار الحقيقيين يوميًا (بدون احتسابك أنت كأدمن).</p></div>
-    <div id="visitsChartBox" class="dash-panel-body"><small class="dash-loading">...جارٍ التحميل</small></div>
-  </div>
-  <div class="dash-panel">
-    <div class="dash-panel-head"><h2><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"></path></svg>مشاهدات المنتجات</h2><p>تحديث حي: بمجرد أن يفتح زبون صفحة منتج، تظهر مشاهدته هنا مباشرة.</p></div>
-    <div id="productViewsBox" class="dash-panel-body" style="max-height:520px;overflow-y:auto"><small class="dash-loading">...جارٍ التحميل</small></div>
-  </div>
-  <h2 class="dash-section-title">الوصول السريع</h2>
-  <div class="dash-quick">
-    <button onclick="showView('products')"><span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg></span>إدارة المنتجات</button>
-    <button onclick="showView('product',null,true)"><span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span>إضافة منتج</button>
-    <button onclick="showView('orders')"><span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg></span>الطلبات</button>
-    <button onclick="showView('settings')"><span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4h-7"></path><path d="M10 4H3"></path><path d="M21 12h-9"></path><path d="M8 12H3"></path><path d="M21 20h-5"></path><path d="M12 20H3"></path><path d="M14 2v4"></path><path d="M8 10v4"></path><path d="M16 18v4"></path></svg></span>الإعدادات</button>
-    <button onclick="showView('categories')"><span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg></span>التصنيفات</button>
-    <button onclick="showView('sections');loadHomeSections()"><span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg></span>أقسام المتجر</button>
-  </div>
-  <div class="tips-banner"><div class="tips-rocket"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg></div><div><h3>نصائح لتحسين متجرك</h3><ul>
-    <li>أضف المزيد من المنتجات لجذب العملاء</li>
-    <li>تأكد من تحديث معلومات التواصل</li>
-    <li>تابع طلبات العملاء بانتظام</li>
-  </ul></div></div>
+<section class="view" id="view-dashboard">
+<div class="dash-hero">
+<div class="dash-hero-top">
+<div>
+<p class="dash-hero-kicker">مرحباً بك 👋</p>
+<h1>لوحة تحكم Bazar <b>Dzair</b></h1>
+<p class="dash-hero-sub">إدارة متجرك أصبحت أسهل من أي وقت مضى</p>
+</div>
+<button class="orange-btn" onclick="showView('product',null,true)"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>إضافة منتج جديد</button>
+</div>
+<div class="dash-hero-metric"><span class="dash-hero-metric-ic"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg></span><div><strong id="statVisitsToday">0</strong><span>زائر اليوم</span></div></div>
+<p class="dash-hero-note">بدون احتساب زياراتك أنت كأدمن</p>
+</div>
+<div class="dash-stats">
+<div class="dash-stat"><span class="dash-stat-icon"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg></span><div><strong id="statProducts">0</strong><small>إجمالي المنتجات</small></div></div>
+<div class="dash-stat"><span class="dash-stat-icon"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg></span><div><strong id="statOrders">0</strong><small>الطلبات</small></div></div>
+<div class="dash-stat"><span class="dash-stat-icon"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span><div><strong id="statCustomers">0</strong><small>العملاء</small></div></div>
+<div class="dash-stat dash-stat-warn"><span class="dash-stat-icon"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></span><div><strong id="statLowStock">0</strong><small>مخزون منخفض</small></div></div>
+<div class="dash-stat"><span class="dash-stat-icon"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M20 6 9 17l-5-5"></path></svg></span><div><strong id="statPublished">0</strong><small>منشور بالمتجر</small></div></div>
+<div class="dash-stat"><span class="dash-stat-icon"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><rect height="5" rx="1" width="20" x="2" y="3"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg></span><div><strong id="statInventory">0</strong><small>إجمالي المخزون</small></div></div>
+</div>
+<div class="dash-panel">
+<div class="dash-panel-head"><h2><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M16 7h6v6"></path><path d="m22 7-8.5 8.5-5-5L2 17"></path></svg>الزوار خلال آخر 14 يومًا</h2><p>عدد الزوار الحقيقيين يوميًا (بدون احتسابك أنت كأدمن).</p></div>
+<div class="dash-panel-body" id="visitsChartBox"><small class="dash-loading">...جارٍ التحميل</small></div>
+</div>
+<div class="dash-panel">
+<div class="dash-panel-head"><h2><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"></path></svg>مشاهدات المنتجات</h2><p>تحديث حي: بمجرد أن يفتح زبون صفحة منتج، تظهر مشاهدته هنا مباشرة.</p></div>
+<div class="dash-panel-body" id="productViewsBox" style="max-height:520px;overflow-y:auto"><small class="dash-loading">...جارٍ التحميل</small></div>
+</div>
+<h2 class="dash-section-title">الوصول السريع</h2>
+<div class="dash-quick">
+<button onclick="showView('products')"><span><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg></span>إدارة المنتجات</button>
+<button onclick="showView('product',null,true)"><span><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span>إضافة منتج</button>
+<button onclick="showView('orders')"><span><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg></span>الطلبات</button>
+<button onclick="showView('settings')"><span><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M21 4h-7"></path><path d="M10 4H3"></path><path d="M21 12h-9"></path><path d="M8 12H3"></path><path d="M21 20h-5"></path><path d="M12 20H3"></path><path d="M14 2v4"></path><path d="M8 10v4"></path><path d="M16 18v4"></path></svg></span>الإعدادات</button>
+<button onclick="showView('categories')"><span><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg></span>التصنيفات</button>
+<button onclick="showView('sections');loadHomeSections()"><span><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><rect height="7" rx="1" width="7" x="3" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="14"></rect><rect height="7" rx="1" width="7" x="3" y="14"></rect></svg></span>أقسام المتجر</button>
+</div>
+<div class="tips-banner"><div class="tips-rocket"><svg aria-hidden="true" class="i" viewbox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg></div><div><h3>نصائح لتحسين متجرك</h3><ul>
+<li>أضف المزيد من المنتجات لجذب العملاء</li>
+<li>تأكد من تحديث معلومات التواصل</li>
+<li>تابع طلبات العملاء بانتظام</li>
+</ul></div></div>
 </section>
-
-<section id="view-product" class="view hidden">
- <div class="page-head"><div><h1 id="title">＋ إضافة منتج</h1><p>أدخل معلومات المنتج الأساسية ثم احفظه مباشرة في Firestore.</p></div></div>
- <div class="panel"><div id="status" class="status hidden"></div><div class="grid">
-   <div><label>اسم المنتج *</label><input id="name" placeholder="مثال: Lantern LED"></div>
-   <div><label>اسم المنتج بالفرنسية (اختياري)</label><input id="name_fr" placeholder="مثال: Lanterne LED"><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا. هذا الاسم هو الذي يُبنى منه رابط المنتج (بالفرنسية)، فإن تُرك فارغًا يصبح الرابط بالشكل produit-xxxxxx.</small></div>
-   <div><label>رمز المنتج SKU <span class="field-optional">اختياري</span></label><input id="sku" placeholder="مثال: BZ-001"><small class="hint">إذا تركته فارغًا، يُستخدم معرّف المنتج تلقائيًا كرمز افتراضي.</small></div>
-   <div><label>السعر بالدج *</label><input id="price" type="number" min="0" placeholder="3500"></div>
-   <div><label>السعر القديم <span class="field-optional">اختياري</span></label><input id="oldPrice" type="number" min="0" placeholder="مثال: 4800"><small class="hint">يظهر السعر القديم والتخفيض تلقائيًا إذا كان أكبر من السعر الحالي.</small></div>
-   <div><label>التصنيف</label><select id="category"></select></div>
-   <div><label>المخزون *</label><input id="stock" type="number" min="0" placeholder="20"></div>
-   <div class="full admin-display-options"><div class="display-options-title"><b>خيارات العرض في صفحة المنتج</b><small>تحكم في العناصر التي تظهر للزبون.</small></div><label class="check-option"><input id="showOldPrice" type="checkbox" checked><span>إظهار السعر القديم والتخفيض</span></label><label class="check-option"><input id="showReviews" type="checkbox" checked><span>إظهار التقييمات</span></label></div>
-   <div class="full"><div class="publish-row"><div><b>نشر المنتج في المتجر</b><small>يمكنك تغيير الحالة لاحقًا من قائمة خيارات المنتج ⋮</small></div><label class="switch"><input id="published" type="checkbox" checked><span></span></label></div></div>
-   <div class="full"><div class="publish-row"><div><b>منتج مميز ⭐</b><small>يظهر في قسم "المنتجات المميزة" بالصفحة الرئيسية</small></div><label class="switch"><input id="featured" type="checkbox"><span></span></label></div></div>
-   <div class="shipping-section"><label style="display:block;margin-bottom:8px">🚚 طريقة التوصيل *</label>
-     <div class="delivery-method-toggle">
-       <label class="delivery-method-opt"><input type="radio" name="deliveryMethod" id="deliveryMethodHome" value="home" checked onchange="window.updateDeliveryMethodUI()"><span>🏠 توصيل باب دار</span></label>
-       <label class="delivery-method-opt"><input type="radio" name="deliveryMethod" id="deliveryMethodOffice" value="office" onchange="window.updateDeliveryMethodUI()"><span>🏤 توصيل للمكتب</span></label>
-     </div>
-     <div id="deliveryMethodHomeFields" style="margin-top:12px">
-       <label>شركات التوصيل — باب الدار</label>
-       <div class="multi-select empty" id="shippingHomeSelect" data-value="">
-         <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
-         <div class="multi-select-menu" id="shippingHomeMenu"></div>
-       </div>
-     </div>
-     <div id="deliveryMethodOfficeFields" style="margin-top:12px;display:none">
-       <label>شركات التوصيل — المكتب</label>
-       <div class="multi-select empty" id="shippingOfficeSelect" data-value="">
-         <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
-         <div class="multi-select-menu" id="shippingOfficeMenu"></div>
-       </div>
-     </div>
-   </div>
-   <div class="product-desc-half"><label>الوصف</label><textarea id="description" placeholder="اكتب وصفًا واضحًا للمنتج..."></textarea></div>
-   <div class="product-desc-half"><label>الوصف بالفرنسية (اختياري)</label><textarea id="description_fr" placeholder="Texte descriptif en français (facultatif)..."></textarea><small class="hint">إذا تركته فارغًا، يظهر الوصف العربي للزبون الفرنسي أيضًا.</small></div>
-   <div class="full variant-section">
-     <div class="display-options-title"><b>🎨 الألوان والقياسات <span class="field-optional">اختياري</span></b><small>أضف الألوان أو القياسات المتوفرة ليختارها الزبون في صفحة المنتج قبل الطلب. اتركها فارغة إن كان المنتج لا يحتاجها.</small></div>
-     <div class="variant-block">
-       <label>الألوان المتوفرة</label>
-       <div class="variant-chips" id="colorChips"></div>
-       <div class="variant-add-row" id="pendingColorRow" style="display:none">
-         <small class="hint" style="margin:0">هذا الخيار حاليًا:</small>
-         <div class="variant-chips" id="pendingColorChips"></div>
-       </div>
-       <div class="variant-add-row">
-         <input type="color" id="colorHexInput" value="#182536" title="لون">
-         <button type="button" class="variant-add-btn" onclick="addPendingColorHex()">+ إضافة لهذا الخيار</button>
-         <input type="text" id="colorNameInput" placeholder="اسم اللون، مثال: أبيض × أحمر × أزرق" onkeydown="if(event.key==='Enter'){event.preventDefault();addColorEntry();}">
-         <button type="button" class="variant-add-btn" onclick="addColorEntry()">✅ تأكيد اللون</button>
-       </div>
-       <small class="hint" style="margin:4px 0 0">لون واحد بسيط: اختر اللون واكتب الاسم ثم اضغط "تأكيد اللون" مباشرة. لون مدموج من عدة ألوان (مثلاً حذاء أبيض×أحمر×أزرق): اضغط "+ إضافة لهذا الخيار" لكل لون على حدة قبل كتابة الاسم والتأكيد.</small>
-     </div>
-     <div class="variant-block">
-       <label>قياسات الملابس</label>
-       <div class="variant-chips" id="clothingSizeChips"></div>
-       <div class="variant-add-row">
-         <input type="text" id="clothingSizeInput" placeholder="قياس آخر، مثال: 3XL" onkeydown="if(event.key==='Enter'){event.preventDefault();addClothingSizeFromInput();}">
-         <button type="button" class="variant-add-btn" onclick="addClothingSizeFromInput()">+ إضافة قياس</button>
-       </div>
-     </div>
-     <div class="variant-block">
-       <label>قياسات الأحذية</label>
-       <div class="variant-chips" id="shoeSizeChips"></div>
-       <div class="variant-add-row">
-         <input type="text" id="shoeSizeInput" placeholder="قياس آخر، مثال: 47" onkeydown="if(event.key==='Enter'){event.preventDefault();addShoeSizeFromInput();}">
-         <button type="button" class="variant-add-btn" onclick="addShoeSizeFromInput()">+ إضافة قياس</button>
-       </div>
-     </div>
-   </div>
-   <div class="product-images-section"><label>صور المنتج *</label><div class="upload-card">
-     <input id="imageFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
-     <button type="button" class="upload-drop" onclick="document.getElementById('imageFiles').click()"><span class="upload-icon">☁️</span><b>أضف صور المنتج</b><small>اختر الصور من الهاتف مباشرة — حتى 10 صور</small><span class="upload-hint">JPG, PNG, WEBP — ضغط تلقائي قبل الحفظ</span></button>
-     <div class="image-count" id="imageCount">0 / 10 صور</div><div id="imagePreview" class="image-preview"></div>
-   </div><small class="hint">الصورة الأولى تصبح صورة الواجهة. الصور الجديدة تُضغط لتقليل حجم مستند Firestore.</small></div>
- </div><div class="form-actions"><button id="saveBtn" class="green" onclick="save()">💾 حفظ المنتج</button><button class="gray" onclick="resetForm()">مسح النموذج</button><button id="backToProductsBtn" class="gray hidden" type="button" onclick="window.backToProductsList()">↩️ رجوع إلى المنتجات</button></div></div>
+<section class="view hidden" id="view-product">
+<div class="page-head"><div><h1 id="title">إضافة منتج جديد</h1><p>أدخل بيانات المنتج بالترتيب ثم احفظه في متجرك.</p></div></div>
+<div class="panel"><div class="status hidden" id="status"></div><div class="pf-layout"><section class="pf-section pf-basic"><div class="pf-section-head"><h2>المعلومات الأساسية</h2><p>اسم المنتج، الرمز، السعر، التصنيف والمخزون</p></div><div class="pf-basic-grid"><div class="pf-field"><label>اسم المنتج *</label><input id="name" placeholder="مثال: Lantern LED"/></div><div class="pf-field"><label>اسم المنتج بالفرنسية (اختياري)</label><input id="name_fr" placeholder="مثال: Lanterne LED"/><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا. هذا الاسم هو الذي يُبنى منه رابط المنتج (بالفرنسية)، فإن تُرك فارغًا يصبح الرابط بالشكل produit-xxxxxx.</small></div><div class="pf-field"><label>رمز المنتج SKU <span class="field-optional">اختياري</span></label><input id="sku" placeholder="مثال: BZ-001"/><small class="hint">إذا تركته فارغًا، يُستخدم معرّف المنتج تلقائيًا كرمز افتراضي.</small></div><div class="pf-field"><label>السعر بالدج *</label><input id="price" min="0" placeholder="3500" type="number"/></div><div class="pf-field"><label>السعر القديم <span class="field-optional">اختياري</span></label><input id="oldPrice" min="0" placeholder="مثال: 4800" type="number"/><small class="hint">يظهر السعر القديم والتخفيض تلقائيًا إذا كان أكبر من السعر الحالي.</small></div><div class="pf-field"><label>التصنيف</label><select id="category"></select></div><div class="pf-field"><label>المخزون *</label><input id="stock" min="0" placeholder="20" type="number"/></div></div></section><section class="pf-section pf-settings"><div class="pf-section-head"><h2>إعدادات ظهور المنتج</h2><p>تحكم في حالة النشر وطريقة عرض السعر والتقييمات</p></div><div class="pf-settings-grid"><div class="full admin-display-options pf-setting-card"><div class="display-options-title"><b>خيارات العرض في صفحة المنتج</b><small>تحكم في العناصر التي تظهر للزبون.</small></div><label class="check-option"><input checked="" id="showOldPrice" type="checkbox"/><span>إظهار السعر القديم والتخفيض</span></label><label class="check-option"><input checked="" id="showReviews" type="checkbox"/><span>إظهار التقييمات</span></label></div><div class="full pf-setting-card"><div class="publish-row"><div><b>نشر المنتج في المتجر</b><small>يمكنك تغيير الحالة لاحقًا من قائمة خيارات المنتج ⋮</small></div><label class="switch"><input checked="" id="published" type="checkbox"/><span></span></label></div></div><div class="full pf-setting-card"><div class="publish-row"><div><b>منتج مميز ⭐</b><small>يظهر في قسم "المنتجات المميزة" بالصفحة الرئيسية</small></div><label class="switch"><input id="featured" type="checkbox"/><span></span></label></div></div></div></section><section class="pf-section pf-shipping"><div class="pf-section-head"><h2>التوصيل</h2><p>حدد طريقة التوصيل وشركات الشحن المتاحة</p></div><div class="shipping-section pf-shipping-inner"><label style="display:block;margin-bottom:8px">🚚 طريقة التوصيل *</label>
+<div class="delivery-method-toggle">
+<label class="delivery-method-opt"><input checked="" id="deliveryMethodHome" name="deliveryMethod" onchange="window.updateDeliveryMethodUI()" type="radio" value="home"/><span>🏠 توصيل باب دار</span></label>
+<label class="delivery-method-opt"><input id="deliveryMethodOffice" name="deliveryMethod" onchange="window.updateDeliveryMethodUI()" type="radio" value="office"/><span>🏤 توصيل للمكتب</span></label>
+</div>
+<div id="deliveryMethodHomeFields" style="margin-top:12px">
+<label>شركات التوصيل — باب الدار</label>
+<div class="multi-select empty" data-value="" id="shippingHomeSelect">
+<button class="multi-select-btn" onclick="toggleMultiSelect(this)" type="button">اختر شركة</button>
+<div class="multi-select-menu" id="shippingHomeMenu"></div>
+</div>
+</div>
+<div id="deliveryMethodOfficeFields" style="margin-top:12px;display:none">
+<label>شركات التوصيل — المكتب</label>
+<div class="multi-select empty" data-value="" id="shippingOfficeSelect">
+<button class="multi-select-btn" onclick="toggleMultiSelect(this)" type="button">اختر شركة</button>
+<div class="multi-select-menu" id="shippingOfficeMenu"></div>
+</div>
+</div>
+</div></section><section class="pf-section pf-descriptions"><div class="pf-section-head"><h2>وصف المنتج</h2><p>اكتب وصفاً واضحاً بالعربية والفرنسية عند الحاجة</p></div><div class="pf-description-grid"><div class="product-desc-half pf-description-field"><label>الوصف</label><textarea id="description" placeholder="اكتب وصفًا واضحًا للمنتج..."></textarea></div><div class="product-desc-half pf-description-field"><label>الوصف بالفرنسية (اختياري)</label><textarea id="description_fr" placeholder="Texte descriptif en français (facultatif)..."></textarea><small class="hint">إذا تركته فارغًا، يظهر الوصف العربي للزبون الفرنسي أيضًا.</small></div></div></section><section class="pf-section pf-variants"><div class="pf-section-head"><h2>الألوان والمقاسات</h2><p>أضف الخيارات المتوفرة ليختارها الزبون قبل الطلب</p></div><div class="full variant-section pf-variants-inner">
+<div class="display-options-title"><b>🎨 الألوان والقياسات <span class="field-optional">اختياري</span></b><small>أضف الألوان أو القياسات المتوفرة ليختارها الزبون في صفحة المنتج قبل الطلب. اتركها فارغة إن كان المنتج لا يحتاجها.</small></div>
+<div class="variant-block">
+<label>الألوان المتوفرة</label>
+<div class="variant-chips" id="colorChips"></div>
+<div class="variant-add-row" id="pendingColorRow" style="display:none">
+<small class="hint" style="margin:0">هذا الخيار حاليًا:</small>
+<div class="variant-chips" id="pendingColorChips"></div>
+</div>
+<div class="variant-add-row">
+<input id="colorHexInput" title="لون" type="color" value="#182536"/>
+<button class="variant-add-btn" onclick="addPendingColorHex()" type="button">+ إضافة لهذا الخيار</button>
+<input id="colorNameInput" onkeydown="if(event.key==='Enter'){event.preventDefault();addColorEntry();}" placeholder="اسم اللون، مثال: أبيض × أحمر × أزرق" type="text"/>
+<button class="variant-add-btn" onclick="addColorEntry()" type="button">✅ تأكيد اللون</button>
+</div>
+<small class="hint" style="margin:4px 0 0">لون واحد بسيط: اختر اللون واكتب الاسم ثم اضغط "تأكيد اللون" مباشرة. لون مدموج من عدة ألوان (مثلاً حذاء أبيض×أحمر×أزرق): اضغط "+ إضافة لهذا الخيار" لكل لون على حدة قبل كتابة الاسم والتأكيد.</small>
+</div>
+<div class="variant-block">
+<label>قياسات الملابس</label>
+<div class="variant-chips" id="clothingSizeChips"></div>
+<div class="variant-add-row">
+<input id="clothingSizeInput" onkeydown="if(event.key==='Enter'){event.preventDefault();addClothingSizeFromInput();}" placeholder="قياس آخر، مثال: 3XL" type="text"/>
+<button class="variant-add-btn" onclick="addClothingSizeFromInput()" type="button">+ إضافة قياس</button>
+</div>
+</div>
+<div class="variant-block">
+<label>قياسات الأحذية</label>
+<div class="variant-chips" id="shoeSizeChips"></div>
+<div class="variant-add-row">
+<input id="shoeSizeInput" onkeydown="if(event.key==='Enter'){event.preventDefault();addShoeSizeFromInput();}" placeholder="قياس آخر، مثال: 47" type="text"/>
+<button class="variant-add-btn" onclick="addShoeSizeFromInput()" type="button">+ إضافة قياس</button>
+</div>
+</div>
+</div></section><section class="pf-section pf-images"><div class="pf-section-head"><h2>صور المنتج</h2><p>أضف صوراً واضحة؛ الصورة الأولى ستكون الصورة الرئيسية</p></div><div class="product-images-section pf-images-inner"><label>صور المنتج *</label><div class="upload-card">
+<input accept="image/jpeg,image/png,image/webp,image/gif" hidden="" id="imageFiles" multiple="" type="file"/>
+<button class="upload-drop" onclick="document.getElementById('imageFiles').click()" type="button"><span class="upload-icon">☁️</span><b>أضف صور المنتج</b><small>اختر الصور من الهاتف مباشرة — حتى 10 صور</small><span class="upload-hint">JPG, PNG, WEBP — ضغط تلقائي قبل الحفظ</span></button>
+<div class="image-count" id="imageCount">0 / 10 صور</div><div class="image-preview" id="imagePreview"></div>
+</div><small class="hint">الصورة الأولى تصبح صورة الواجهة. الصور الجديدة تُضغط لتقليل حجم مستند Firestore.</small></div></section></div><div class="form-actions"><button class="green" id="saveBtn" onclick="save()">💾 حفظ المنتج</button><button class="gray" onclick="resetForm()">مسح النموذج</button><button class="gray hidden" id="backToProductsBtn" onclick="window.backToProductsList()" type="button">↩️ رجوع إلى المنتجات</button></div></div>
 </section>
-
-<section id="view-products" class="view hidden">
- <div class="page-head"><div><h1>المنتجات</h1><p>إدارة احترافية وسريعة للمنتجات والمخزون والروابط، مع وصول مباشر لكل منتج.</p></div></div>
- <div class="panel products-panel">
-   <div class="products-toolbar">
-     <span class="total-badge"><b id="productsTotalCount">0</b> إجمالي المنتجات</span>
-     <input id="search" placeholder="🔎 بحث في المنتجات..." oninput="productsPage=1;render()">
-     <button type="button" id="lowStockFilterBtn" class="funnel-btn" title="عرض المنتجات منخفضة المخزون فقط" onclick="window.toggleLowStockFilter()">🔽</button>
-   </div>
-   <div class="products-utility-row">
-     <button type="button" onclick="migrateBase64Images()" class="util-btn">🔄 إصلاح صور المنتجات القديمة</button>
-     <button type="button" onclick="migrateProductSlugs()" class="util-btn">🔗 إصلاح روابط المنتجات (slug)</button>
-     
-   </div>
-   <div id="migrateStatus" style="margin:6px 0 0;font-size:13px"></div>
-   <div id="productsBulk" class="bulk-toolbar"><div class="bulk-left"><label class="select-all-label"><input id="selectAllProducts" type="checkbox" onchange="window.toggleAllProducts(this.checked)"> تحديد كل منتجات الصفحة</label><span id="productsSelectedCount" class="page-info">0 محدد</span></div><button id="bulkDeleteProducts" class="bulk-delete" type="button" onclick="bulkDeleteProducts()" disabled>🗑 حذف المحدد</button></div>
-   <div id="list" class="products"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div>
-   <div id="productsPagination" class="pagination"></div>
- </div>
+<section class="view hidden" id="view-products">
+<div class="page-head"><div><h1>المنتجات</h1><p>إدارة احترافية وسريعة للمنتجات والمخزون والروابط، مع وصول مباشر لكل منتج.</p></div></div>
+<div class="panel products-panel">
+<div class="products-toolbar">
+<span class="total-badge"><b id="productsTotalCount">0</b> إجمالي المنتجات</span>
+<input id="search" oninput="productsPage=1;render()" placeholder="🔎 بحث في المنتجات..."/>
+<button class="funnel-btn" id="lowStockFilterBtn" onclick="window.toggleLowStockFilter()" title="عرض المنتجات منخفضة المخزون فقط" type="button">🔽</button>
+</div>
+<div class="products-utility-row">
+<button class="util-btn" onclick="migrateBase64Images()" type="button">🔄 إصلاح صور المنتجات القديمة</button>
+<button class="util-btn" onclick="migrateProductSlugs()" type="button">🔗 إصلاح روابط المنتجات (slug)</button>
+</div>
+<div id="migrateStatus" style="margin:6px 0 0;font-size:13px"></div>
+<div class="bulk-toolbar" id="productsBulk"><div class="bulk-left"><label class="select-all-label"><input id="selectAllProducts" onchange="window.toggleAllProducts(this.checked)" type="checkbox"/> تحديد كل منتجات الصفحة</label><span class="page-info" id="productsSelectedCount">0 محدد</span></div><button class="bulk-delete" disabled="" id="bulkDeleteProducts" onclick="bulkDeleteProducts()" type="button">🗑 حذف المحدد</button></div>
+<div class="products" id="list"><div class="empty-card">⏳ جاري تحميل المنتجات...</div></div>
+<div class="pagination" id="productsPagination"></div>
+</div>
 </section>
-
-<section id="view-orders" class="view hidden">
-  <div class="page-head" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
-    <div><h1>الطلبات</h1><p>إدارة جميع طلبات المتجر من مكان واحد.</p></div>
-    <div class="orders-filter-wrap">
-      <button type="button" class="funnel-btn" id="ordersFilterBtn" onclick="window.toggleOrdersFilterMenu()">🔽 فلتر</button>
-      <div id="ordersFilterMenu" class="orders-filter-menu hidden">
-        <button type="button" class="active" data-status="all" onclick="window.setOrderStatusFilter('all')">كل الطلبات</button>
-        <button type="button" data-status="جديد" onclick="window.setOrderStatusFilter('جديد')">جديدة</button>
-        <button type="button" data-status="قيد المعالجة" onclick="window.setOrderStatusFilter('قيد المعالجة')">قيد المعالجة</button>
-        <button type="button" data-status="مكتملة" onclick="window.setOrderStatusFilter('مكتملة')">مكتملة</button>
-        <button type="button" data-status="ملغية" onclick="window.setOrderStatusFilter('ملغية')">ملغية</button>
-        <button type="button" data-status="غير مكتملة" onclick="window.setOrderStatusFilter('غير مكتملة')">غير مكتملة</button>
-      </div>
-    </div>
-  </div>
-  <div class="stats-grid">
-    <div class="stat-card"><span class="stat-icon purple">📦</span><div><small>إجمالي الطلبات</small><strong id="ordersStatTotal">0</strong><span class="stat-unit">كل الطلبات</span></div></div>
-    <div class="stat-card"><span class="stat-icon green">✅</span><div><small>مكتملة</small><strong id="ordersStatCompleted">0</strong><span class="stat-unit">طلب</span></div></div>
-    <div class="stat-card"><span class="stat-icon orange">⏳</span><div><small>قيد المعالجة</small><strong id="ordersStatProcessing">0</strong><span class="stat-unit">طلب</span></div></div>
-    <div class="stat-card"><span class="stat-icon red">❌</span><div><small>ملغية</small><strong id="ordersStatCancelled">0</strong><span class="stat-unit">طلبية</span></div></div>
-  </div>
-  <div class="panel">
-    <div class="orders-toolbar">
-      <div class="search-wrap"><span class="search-ic">🔎</span><input id="ordersSearch" placeholder="ابحث باسم الزبون أو رقم الطلب أو المنتج أو الهاتف..." oninput="window.__ordersSearchInput(this.value)"></div>
-    </div>
-    <div id="ordersBulk" class="bulk-toolbar">
-      <div class="bulk-left"><label class="select-all-label"><input id="selectAllOrders" type="checkbox" onchange="window.toggleAllOrders(this.checked)"> تحديد كل طلبات الصفحة</label><span id="ordersSelectedCount" class="page-info">0 محدد</span></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <select id="bulkStatusSelect" class="order-status-select-detail"><option value="">تغيير الحالة للمحدد</option><option value="جديد">جديدة</option><option value="قيد المعالجة">قيد المعالجة</option><option value="مكتملة">مكتملة</option><option value="ملغية">ملغية</option></select>
-        <button type="button" class="outline-action bd-btn bd-btn-outline" onclick="window.applyBulkStatus()">تطبيق</button>
-        <button id="bulkDeleteOrders" class="bulk-delete" type="button" onclick="bulkDeleteOrders()" disabled>🗑 حذف المحدد</button>
-      </div>
-    </div>
-    <div class="orders-panel">
-      <div class="orders-table-head"><div></div><div>رقم الطلب</div><div>الزبون</div><div>المنتج</div><div>الكمية</div><div>المجموع</div><div>الحالة</div><div>التاريخ</div><div>الإجراءات</div></div>
-      <div id="orders"><div class="empty-card">⏳ جاري تحميل الطلبات...</div></div>
-    </div>
-    <div id="ordersPagination" class="pagination"></div>
-  </div>
+<section class="view hidden" id="view-orders">
+<div class="page-head" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+<div><h1>الطلبات</h1><p>إدارة جميع طلبات المتجر من مكان واحد.</p></div>
+<div class="orders-filter-wrap">
+<button class="funnel-btn" id="ordersFilterBtn" onclick="window.toggleOrdersFilterMenu()" type="button">🔽 فلتر</button>
+<div class="orders-filter-menu hidden" id="ordersFilterMenu">
+<button class="active" data-status="all" onclick="window.setOrderStatusFilter('all')" type="button">كل الطلبات</button>
+<button data-status="جديد" onclick="window.setOrderStatusFilter('جديد')" type="button">جديدة</button>
+<button data-status="قيد المعالجة" onclick="window.setOrderStatusFilter('قيد المعالجة')" type="button">قيد المعالجة</button>
+<button data-status="مكتملة" onclick="window.setOrderStatusFilter('مكتملة')" type="button">مكتملة</button>
+<button data-status="ملغية" onclick="window.setOrderStatusFilter('ملغية')" type="button">ملغية</button>
+<button data-status="غير مكتملة" onclick="window.setOrderStatusFilter('غير مكتملة')" type="button">غير مكتملة</button>
+</div>
+</div>
+</div>
+<div class="stats-grid">
+<div class="stat-card"><span class="stat-icon purple">📦</span><div><small>إجمالي الطلبات</small><strong id="ordersStatTotal">0</strong><span class="stat-unit">كل الطلبات</span></div></div>
+<div class="stat-card"><span class="stat-icon green">✅</span><div><small>مكتملة</small><strong id="ordersStatCompleted">0</strong><span class="stat-unit">طلب</span></div></div>
+<div class="stat-card"><span class="stat-icon orange">⏳</span><div><small>قيد المعالجة</small><strong id="ordersStatProcessing">0</strong><span class="stat-unit">طلب</span></div></div>
+<div class="stat-card"><span class="stat-icon red">❌</span><div><small>ملغية</small><strong id="ordersStatCancelled">0</strong><span class="stat-unit">طلبية</span></div></div>
+</div>
+<div class="panel">
+<div class="orders-toolbar">
+<div class="search-wrap"><span class="search-ic">🔎</span><input id="ordersSearch" oninput="window.__ordersSearchInput(this.value)" placeholder="ابحث باسم الزبون أو رقم الطلب أو المنتج أو الهاتف..."/></div>
+</div>
+<div class="bulk-toolbar" id="ordersBulk">
+<div class="bulk-left"><label class="select-all-label"><input id="selectAllOrders" onchange="window.toggleAllOrders(this.checked)" type="checkbox"/> تحديد كل طلبات الصفحة</label><span class="page-info" id="ordersSelectedCount">0 محدد</span></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+<select class="order-status-select-detail" id="bulkStatusSelect"><option value="">تغيير الحالة للمحدد</option><option value="جديد">جديدة</option><option value="قيد المعالجة">قيد المعالجة</option><option value="مكتملة">مكتملة</option><option value="ملغية">ملغية</option></select>
+<button class="outline-action bd-btn bd-btn-outline" onclick="window.applyBulkStatus()" type="button">تطبيق</button>
+<button class="bulk-delete" disabled="" id="bulkDeleteOrders" onclick="bulkDeleteOrders()" type="button">🗑 حذف المحدد</button>
+</div>
+</div>
+<div class="orders-panel">
+<div class="orders-table-head"><div></div><div>رقم الطلب</div><div>الزبون</div><div>المنتج</div><div>الكمية</div><div>المجموع</div><div>الحالة</div><div>التاريخ</div><div>الإجراءات</div></div>
+<div id="orders"><div class="empty-card">⏳ جاري تحميل الطلبات...</div></div>
+</div>
+<div class="pagination" id="ordersPagination"></div>
+</div>
 </section>
-
-<section id="view-order-detail" class="view hidden">
-  <button type="button" class="back-btn" onclick="window.backToOrders()">→ رجوع</button>
-  <div class="page-head"><div><h1>تفاصيل الطلب</h1><p>معلومات كاملة عن الطلب</p></div></div>
-  <div class="order-detail-grid">
-    <div class="order-detail-card"><h3>📋 معلومات الطلب</h3><div id="orderDetailInfo"></div></div>
-    <div class="order-detail-card"><h3>👤 معلومات الزبون</h3><div id="orderDetailCustomer"></div></div>
-  </div>
-  <div class="order-detail-card" style="margin-bottom:16px"><h3>🛍 المنتجات في الطلب</h3><div id="orderDetailProducts"></div></div>
-  <div class="order-detail-card"><h3>📝 ملاحظات الطلب</h3><div id="orderDetailNotes" class="order-notes-box"></div></div>
+<section class="view hidden" id="view-order-detail">
+<button class="back-btn" onclick="window.backToOrders()" type="button">→ رجوع</button>
+<div class="page-head"><div><h1>تفاصيل الطلب</h1><p>معلومات كاملة عن الطلب</p></div></div>
+<div class="order-detail-grid">
+<div class="order-detail-card"><h3>📋 معلومات الطلب</h3><div id="orderDetailInfo"></div></div>
+<div class="order-detail-card"><h3>👤 معلومات الزبون</h3><div id="orderDetailCustomer"></div></div>
+</div>
+<div class="order-detail-card" style="margin-bottom:16px"><h3>🛍 المنتجات في الطلب</h3><div id="orderDetailProducts"></div></div>
+<div class="order-detail-card"><h3>📝 ملاحظات الطلب</h3><div class="order-notes-box" id="orderDetailNotes"></div></div>
 </section>
-
-<section id="view-reviews" class="view hidden">
-  <div class="page-head" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
-    <div><h1>التقييمات</h1><p>تقييمات حقيقية فقط من زبائنك — راجعها ثم انشر ما تريد إظهاره في صفحة المنتج.</p></div>
-    <div class="orders-filter-wrap" style="display:flex;gap:8px">
-      <button type="button" class="funnel-btn" onclick="window.wipeOldManualRatings()" title="حذف الأرقام اليدوية القديمة (تقييم/عدد) من كل المنتجات دفعة واحدة">🧹 حذف التقييمات اليدوية القديمة</button>
-      <button type="button" class="funnel-btn" id="reviewsFilterBtn" onclick="window.toggleReviewsFilterMenu()">🔽 فلتر</button>
-      <div id="reviewsFilterMenu" class="orders-filter-menu hidden">
-        <button type="button" class="active" data-status="pending" onclick="window.setReviewStatusFilter('pending')">قيد المراجعة</button>
-        <button type="button" data-status="approved" onclick="window.setReviewStatusFilter('approved')">منشورة</button>
-        <button type="button" data-status="all" onclick="window.setReviewStatusFilter('all')">الكل</button>
-      </div>
-    </div>
-  </div>
-  <div class="stats-grid">
-    <div class="stat-card"><span class="stat-icon purple">💬</span><div><small>إجمالي التقييمات</small><strong id="reviewsStatTotal">0</strong><span class="stat-unit">تقييم</span></div></div>
-    <div class="stat-card"><span class="stat-icon orange">⏳</span><div><small>قيد المراجعة</small><strong id="reviewsStatPending">0</strong><span class="stat-unit">تقييم</span></div></div>
-    <div class="stat-card"><span class="stat-icon green">✅</span><div><small>منشورة</small><strong id="reviewsStatApproved">0</strong><span class="stat-unit">تقييم</span></div></div>
-  </div>
-  <div class="panel">
-    <div class="orders-toolbar">
-      <div class="search-wrap"><span class="search-ic">🔎</span><input id="reviewsSearch" placeholder="ابحث باسم الزبون أو اسم المنتج أو نص التقييم..." oninput="window.__reviewsSearchInput(this.value)"></div>
-    </div>
-    <div id="reviewsList"><div class="empty-card">⏳ جاري تحميل التقييمات...</div></div>
-    <div id="reviewsPagination" class="pagination"></div>
-  </div>
+<section class="view hidden" id="view-reviews">
+<div class="page-head" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+<div><h1>التقييمات</h1><p>تقييمات حقيقية فقط من زبائنك — راجعها ثم انشر ما تريد إظهاره في صفحة المنتج.</p></div>
+<div class="orders-filter-wrap" style="display:flex;gap:8px">
+<button class="funnel-btn" onclick="window.wipeOldManualRatings()" title="حذف الأرقام اليدوية القديمة (تقييم/عدد) من كل المنتجات دفعة واحدة" type="button">🧹 حذف التقييمات اليدوية القديمة</button>
+<button class="funnel-btn" id="reviewsFilterBtn" onclick="window.toggleReviewsFilterMenu()" type="button">🔽 فلتر</button>
+<div class="orders-filter-menu hidden" id="reviewsFilterMenu">
+<button class="active" data-status="pending" onclick="window.setReviewStatusFilter('pending')" type="button">قيد المراجعة</button>
+<button data-status="approved" onclick="window.setReviewStatusFilter('approved')" type="button">منشورة</button>
+<button data-status="all" onclick="window.setReviewStatusFilter('all')" type="button">الكل</button>
+</div>
+</div>
+</div>
+<div class="stats-grid">
+<div class="stat-card"><span class="stat-icon purple">💬</span><div><small>إجمالي التقييمات</small><strong id="reviewsStatTotal">0</strong><span class="stat-unit">تقييم</span></div></div>
+<div class="stat-card"><span class="stat-icon orange">⏳</span><div><small>قيد المراجعة</small><strong id="reviewsStatPending">0</strong><span class="stat-unit">تقييم</span></div></div>
+<div class="stat-card"><span class="stat-icon green">✅</span><div><small>منشورة</small><strong id="reviewsStatApproved">0</strong><span class="stat-unit">تقييم</span></div></div>
+</div>
+<div class="panel">
+<div class="orders-toolbar">
+<div class="search-wrap"><span class="search-ic">🔎</span><input id="reviewsSearch" oninput="window.__reviewsSearchInput(this.value)" placeholder="ابحث باسم الزبون أو اسم المنتج أو نص التقييم..."/></div>
+</div>
+<div id="reviewsList"><div class="empty-card">⏳ جاري تحميل التقييمات...</div></div>
+<div class="pagination" id="reviewsPagination"></div>
+</div>
 </section>
-
-<section id="view-messages" class="view hidden">
-  <div class="page-head" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
-    <div><h1>الرسائل</h1><p>رسائل الزبائن من زر «تواصل معنا». اقرأ الرسالة ثم رد على بريد الزبون عبر Gmail.</p></div>
-    <div class="orders-filter-wrap" style="display:flex;gap:8px">
-      <button type="button" class="funnel-btn" id="messagesFilterBtn" onclick="window.toggleMessagesFilterMenu()">🔽 فلتر</button>
-      <div id="messagesFilterMenu" class="orders-filter-menu hidden">
-        <button type="button" class="active" data-status="new" onclick="window.setMessageStatusFilter('new')">جديدة</button>
-        <button type="button" data-status="read" onclick="window.setMessageStatusFilter('read')">مقروءة</button>
-        <button type="button" data-status="all" onclick="window.setMessageStatusFilter('all')">الكل</button>
-      </div>
-    </div>
-  </div>
-  <div class="stats-grid">
-    <div class="stat-card"><span class="stat-icon purple">✉️</span><div><small>إجمالي الرسائل</small><strong id="messagesStatTotal">0</strong><span class="stat-unit">رسالة</span></div></div>
-    <div class="stat-card"><span class="stat-icon orange">🆕</span><div><small>جديدة</small><strong id="messagesStatNew">0</strong><span class="stat-unit">رسالة</span></div></div>
-    <div class="stat-card"><span class="stat-icon green">✅</span><div><small>مقروءة</small><strong id="messagesStatRead">0</strong><span class="stat-unit">رسالة</span></div></div>
-  </div>
-  <div class="panel">
-    <div class="orders-toolbar">
-      <div class="search-wrap"><span class="search-ic">🔎</span><input id="messagesSearch" placeholder="ابحث بالاسم أو البريد أو نص الرسالة..." oninput="window.__messagesSearchInput(this.value)"></div>
-    </div>
-    <div id="messagesList"><div class="empty-card">⏳ جاري تحميل الرسائل...</div></div>
-    <div id="messagesPagination" class="pagination"></div>
-  </div>
+<section class="view hidden" id="view-messages">
+<div class="page-head" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+<div><h1>الرسائل</h1><p>رسائل الزبائن من زر «تواصل معنا». اقرأ الرسالة ثم رد على بريد الزبون عبر Gmail.</p></div>
+<div class="orders-filter-wrap" style="display:flex;gap:8px">
+<button class="funnel-btn" id="messagesFilterBtn" onclick="window.toggleMessagesFilterMenu()" type="button">🔽 فلتر</button>
+<div class="orders-filter-menu hidden" id="messagesFilterMenu">
+<button class="active" data-status="new" onclick="window.setMessageStatusFilter('new')" type="button">جديدة</button>
+<button data-status="read" onclick="window.setMessageStatusFilter('read')" type="button">مقروءة</button>
+<button data-status="all" onclick="window.setMessageStatusFilter('all')" type="button">الكل</button>
+</div>
+</div>
+</div>
+<div class="stats-grid">
+<div class="stat-card"><span class="stat-icon purple">✉️</span><div><small>إجمالي الرسائل</small><strong id="messagesStatTotal">0</strong><span class="stat-unit">رسالة</span></div></div>
+<div class="stat-card"><span class="stat-icon orange">🆕</span><div><small>جديدة</small><strong id="messagesStatNew">0</strong><span class="stat-unit">رسالة</span></div></div>
+<div class="stat-card"><span class="stat-icon green">✅</span><div><small>مقروءة</small><strong id="messagesStatRead">0</strong><span class="stat-unit">رسالة</span></div></div>
+</div>
+<div class="panel">
+<div class="orders-toolbar">
+<div class="search-wrap"><span class="search-ic">🔎</span><input id="messagesSearch" oninput="window.__messagesSearchInput(this.value)" placeholder="ابحث بالاسم أو البريد أو نص الرسالة..."/></div>
+</div>
+<div id="messagesList"><div class="empty-card">⏳ جاري تحميل الرسائل...</div></div>
+<div class="pagination" id="messagesPagination"></div>
+</div>
 </section>
-
-<section id="view-blocked" class="view hidden"><div class="page-head"><div><h1>المحظورون</h1><p>أرقام الهاتف وعناوين IP هذه لا يمكنها تسجيل أي طلب جديد فالمتجر.</p></div></div>
-<div class="panel" style="margin-bottom:16px"><h3 style="margin:0 0 6px;font-size:16px">🛡️ حماية الطلبات (حظر IP)</h3><p style="margin:0 0 12px;color:#8a93a0;font-size:13px;line-height:1.8">كل الطلبات تمر حصرًا عبر Cloudflare Worker الذي يرى عنوان IP الحقيقي ويطبّق الحظر وكشف الإساءة. لا يوجد أي مسار احتياطي للكتابة المباشرة — firestore.rules تمنعها دائمًا، من أي صفحة كانت. لو تعطّل الـ Worker تفشل الطلبات مؤقتًا (يظهر للزبون طلب إعادة المحاولة) بدل أن تُحفظ بلا حماية.</p><div id="workerHealthBox" class="empty-card">لم يتم فحص الـ Worker بعد.</div><div class="form-actions" style="display:flex;flex-wrap:wrap;gap:8px"><button class="green" type="button" onclick="window.bazarCheckWorker()">🔍 فحص الـ Worker</button></div></div>
-<div class="panel"><h3 style="margin:0 0 14px;font-size:16px">📞 أرقام الهاتف المحظورة</h3><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>رقم الهاتف<input id="blockPhoneInput" placeholder="مثال: 0551234567" inputmode="tel"></label></div><div class="form-actions"><button class="green" type="button" onclick="window.blockPhoneManual()">🚫 حظر هذا الرقم</button></div></div><div id="blockedList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الأرقام المحظورة...</div></div></div>
-<div class="panel" style="margin-top:16px"><h3 style="margin:0 0 6px;font-size:16px">🌐 عناوين IP المحظورة</h3><p style="margin:0 0 14px;color:#8a93a0;font-size:13px;line-height:1.7">يظهر عنوان IP لكل طلب جديد في صفحة الطلبات، ويمكنك حظره بضغطة على زر 🌐. الطلبات القديمة (قبل تفعيل هذه الخاصية) لا تحمل عنوان IP. انتبه: شبكات الهاتف قد تتشارك نفس العنوان بين عدة زبائن، فاستعمل حظر IP للمزعجين المتكررين فقط.</p><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>عنوان IP<input id="blockIpInput" dir="ltr" placeholder="مثال: 41.111.22.33" autocomplete="off" spellcheck="false"></label></div><div class="form-actions"><button class="green" type="button" onclick="window.blockIpManual()">🚫 حظر هذا الـ IP</button></div></div><div id="blockedIpList" class="categories-list"><div class="empty-card">⏳ جاري تحميل عناوين IP المحظورة...</div></div></div></section>
-
-<section id="view-fraud" class="view hidden"><div class="page-head"><div><h1>إنذارات الإساءة</h1><p>يراقب النظام أنماط الطلبات المشبوهة (IP، رقم الهاتف، الجهاز، العنوان) ويسجّل إنذارًا هنا. الإنذار لا يمنع الطلب: القرار لك، احظر الرقم أو الـ IP بعد التأكد.</p></div></div>
-<div class="panel" style="margin-bottom:16px"><div id="fraudStats" class="fr-stats"></div></div>
+<section class="view hidden" id="view-blocked"><div class="page-head"><div><h1>المحظورون</h1><p>أرقام الهاتف وعناوين IP هذه لا يمكنها تسجيل أي طلب جديد فالمتجر.</p></div></div>
+<div class="panel" style="margin-bottom:16px"><h3 style="margin:0 0 6px;font-size:16px">🛡️ حماية الطلبات (حظر IP)</h3><p style="margin:0 0 12px;color:#8a93a0;font-size:13px;line-height:1.8">كل الطلبات تمر حصرًا عبر Cloudflare Worker الذي يرى عنوان IP الحقيقي ويطبّق الحظر وكشف الإساءة. لا يوجد أي مسار احتياطي للكتابة المباشرة — firestore.rules تمنعها دائمًا، من أي صفحة كانت. لو تعطّل الـ Worker تفشل الطلبات مؤقتًا (يظهر للزبون طلب إعادة المحاولة) بدل أن تُحفظ بلا حماية.</p><div class="empty-card" id="workerHealthBox">لم يتم فحص الـ Worker بعد.</div><div class="form-actions" style="display:flex;flex-wrap:wrap;gap:8px"><button class="green" onclick="window.bazarCheckWorker()" type="button">🔍 فحص الـ Worker</button></div></div>
+<div class="panel"><h3 style="margin:0 0 14px;font-size:16px">📞 أرقام الهاتف المحظورة</h3><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>رقم الهاتف<input id="blockPhoneInput" inputmode="tel" placeholder="مثال: 0551234567"/></label></div><div class="form-actions"><button class="green" onclick="window.blockPhoneManual()" type="button">🚫 حظر هذا الرقم</button></div></div><div class="categories-list" id="blockedList"><div class="empty-card">⏳ جاري تحميل الأرقام المحظورة...</div></div></div>
+<div class="panel" style="margin-top:16px"><h3 style="margin:0 0 6px;font-size:16px">🌐 عناوين IP المحظورة</h3><p style="margin:0 0 14px;color:#8a93a0;font-size:13px;line-height:1.7">يظهر عنوان IP لكل طلب جديد في صفحة الطلبات، ويمكنك حظره بضغطة على زر 🌐. الطلبات القديمة (قبل تفعيل هذه الخاصية) لا تحمل عنوان IP. انتبه: شبكات الهاتف قد تتشارك نفس العنوان بين عدة زبائن، فاستعمل حظر IP للمزعجين المتكررين فقط.</p><div class="category-form" style="margin-bottom:16px"><div class="category-form-grid"><label>عنوان IP<input autocomplete="off" dir="ltr" id="blockIpInput" placeholder="مثال: 41.111.22.33" spellcheck="false"/></label></div><div class="form-actions"><button class="green" onclick="window.blockIpManual()" type="button">🚫 حظر هذا الـ IP</button></div></div><div class="categories-list" id="blockedIpList"><div class="empty-card">⏳ جاري تحميل عناوين IP المحظورة...</div></div></div></section>
+<section class="view hidden" id="view-fraud"><div class="page-head"><div><h1>إنذارات الإساءة</h1><p>يراقب النظام أنماط الطلبات المشبوهة (IP، رقم الهاتف، الجهاز، العنوان) ويسجّل إنذارًا هنا. الإنذار لا يمنع الطلب: القرار لك، احظر الرقم أو الـ IP بعد التأكد.</p></div></div>
+<div class="panel" style="margin-bottom:16px"><div class="fr-stats" id="fraudStats"></div></div>
 <div class="panel"><div class="fr-toolbar">
 <select id="fraudStatusSel" onchange="window.fraudSetFilter('status',this.value)"><option value="open">المفتوحة</option><option value="new">الجديدة (غير المقروءة)</option><option value="resolved">المعالجة</option><option value="all">الكل</option></select>
 <select id="fraudSevSel" onchange="window.fraudSetFilter('sev',this.value)"><option value="all">كل مستويات الخطر</option><option value="high">خطر عالٍ</option><option value="medium">خطر متوسط</option><option value="low">خطر منخفض</option></select>
-<button class="bk-btn info" type="button" onclick="window.bazarLoadFraudAlerts()">🔄 تحديث</button>
-<button class="bk-btn ok" type="button" onclick="window.fraudMarkAllSeen()">👁 تعليم الكل كمقروء</button>
-<button class="bk-btn danger" type="button" onclick="window.fraudDeleteResolved()">🗑 حذف المعالجة</button>
+<button class="bk-btn info" onclick="window.bazarLoadFraudAlerts()" type="button">🔄 تحديث</button>
+<button class="bk-btn ok" onclick="window.fraudMarkAllSeen()" type="button">👁 تعليم الكل كمقروء</button>
+<button class="bk-btn danger" onclick="window.fraudDeleteResolved()" type="button">🗑 حذف المعالجة</button>
 </div>
 <p class="fr-note">⚠️ عنوان IP وحده مؤشر ضعيف لأن عدة زبائن قد يتشاركون نفس العنوان (خاصة عبر شبكات الهاتف)؛ لذلك يعطي إنذارًا منخفضًا فقط. الإنذارات المتوسطة والعالية تعتمد على الهاتف أو الجهاز أو العنوان.</p>
-<div id="fraudList" class="categories-list"><div class="empty-card">⏳ جاري تحميل الإنذارات...</div></div></div></section>
-
-
-
-<div id="blockDialog" class="bk-modal hidden" onclick="if(event.target===this)window.bkDialogCancel()"><div class="bk-dialog" role="dialog" aria-modal="true" aria-labelledby="bkDlgTitle">
+<div class="categories-list" id="fraudList"><div class="empty-card">⏳ جاري تحميل الإنذارات...</div></div></div></section>
+<div class="bk-modal hidden" id="blockDialog" onclick="if(event.target===this)window.bkDialogCancel()"><div aria-labelledby="bkDlgTitle" aria-modal="true" class="bk-dialog" role="dialog">
 <h3 id="bkDlgTitle">حظر</h3>
-<div id="bkDlgTargets" class="bk-targets"></div>
-<div id="bkDlgWarn" class="bk-warn hidden"></div>
+<div class="bk-targets" id="bkDlgTargets"></div>
+<div class="bk-warn hidden" id="bkDlgWarn"></div>
 <label>سبب الحظر<select id="bkReasonSel"></select></label>
-<label>تفاصيل إضافية (اختياري)<input id="bkReasonTxt" maxlength="200" autocomplete="off" placeholder="مثال: 3 طلبات وهمية اليوم"></label>
+<label>تفاصيل إضافية (اختياري)<input autocomplete="off" id="bkReasonTxt" maxlength="200" placeholder="مثال: 3 طلبات وهمية اليوم"/></label>
 <label>مدة الحظر<select id="bkDurSel"></select></label>
-<div class="form-actions"><button class="green" type="button" id="bkDlgOk" onclick="window.bkDialogSubmit()">🚫 تأكيد الحظر</button><button class="bk-btn" type="button" onclick="window.bkDialogCancel()">إلغاء</button></div>
+<div class="form-actions"><button class="green" id="bkDlgOk" onclick="window.bkDialogSubmit()" type="button">🚫 تأكيد الحظر</button><button class="bk-btn" onclick="window.bkDialogCancel()" type="button">إلغاء</button></div>
 </div></div>
-<section id="view-categories" class="view hidden"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><button class="orange-btn" type="button" onclick="openCategoryForm()">＋ إضافة فئة</button></div><div class="panel"><div id="categoryForm" class="category-form hidden"><input id="categoryId" type="hidden"><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"></label><label>اسم الفئة بالفرنسية (اختياري)<input id="categoryNameFr" placeholder="مثال: Outils"></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"></label><label>الأيقونة<input id="categoryIcon" placeholder="🔧" maxlength="4"></label></div><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا.</small><div class="category-form-grid" style="grid-template-columns:1fr 1fr;margin-top:12px"><label>وصف SEO مختصر (اختياري)<input id="categoryDescription" placeholder="مثال: أدوات كهربائية ومعدات منزلية مختارة للاستخدام اليومي، مع الدفع عند الاستلام والتوصيل لكل ولايات الجزائر."></label><label>نفس الوصف بالفرنسية (اختياري)<input id="categoryDescriptionFr" placeholder="مثال: Outils électriques et équipements ménagers sélectionnés..."></label></div><small class="hint">يظهر هذا الوصف في صفحة الفئة وفي نتائج البحث بدل الجملة العامة الافتراضية. اكتب جملة طبيعية مختلفة لكل فئة (لا تكررها).</small><div class="form-actions"><button class="green" type="button" onclick="saveCategory()">💾 حفظ الفئة</button><button class="gray" type="button" onclick="closeCategoryForm()">إلغاء</button></div><div id="categoryStatus" class="status hidden"></div></div><div id="categoriesList" class="categories-list"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
-
-<section id="view-shipping-rates" class="view hidden">
-  <div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر وشركة التوصيل لكل ولاية من ولايات الجزائر (58 ولاية المعتمدة في المتجر) — قسمان منفصلان: باب الدار والمكتب.</p></div><button class="green" type="button" onclick="saveShippingRates()">💾 حفظ الأسعار</button></div>
-  <div class="panel">
-    <div class="shipping-type-toggle">
-      <div class="shipping-type-card" id="shippingTabOffice" onclick="window.switchShippingTab('office')"><span class="st-left"><span class="st-icon">🏢</span> توصيل للمكتب</span><span class="st-count">58 ولاية</span></div>
-      <div class="shipping-type-card active" id="shippingTabHome" onclick="window.switchShippingTab('home')"><span class="st-left"><span class="st-icon">🏠</span> توصيل باب دار</span><span class="st-count">58 ولاية</span></div>
-    </div>
-
-    <div class="shipping-rates-toolbar">
-      <div class="search-wrap"><span class="search-ic">🔎</span><input id="shippingRatesSearch" placeholder="ابحث عن ولاية بالاسم أو الرقم..." oninput="filterShippingRatesTable()"></div>
-    </div>
-    <div id="shippingRatesStatus" class="status hidden"></div>
-
-    <div class="shipping-rates-section" id="shippingSectionHome">
-      <h2 class="shipping-rates-section-title">🚚 أسعار التوصيل – باب الدار <small style="font-weight:600;color:#8b94a1;font-size:11px">(DHD + NOEST + 48HR)</small></h2>
-      <div class="shipping-rates-bulk" style="margin-bottom:10px">
-        <span>تطبيق شركة على كل الولايات:</span>
-        <div class="multi-select empty" id="bulkHomeCompanySelect" data-value="">
-          <button type="button" class="multi-select-btn" onclick="toggleMultiSelect(this)">اختر شركة</button>
-          <div class="multi-select-menu">
-            <label><input type="checkbox" value="dhd" onchange="updateMultiSelect(this)"> DHD Express</label>
-            <label><input type="checkbox" value="noest" onchange="updateMultiSelect(this)"> Noest Express</label>
-            <label><input type="checkbox" value="48hr" onchange="updateMultiSelect(this)"> 48HR Express</label>
-          </div>
-        </div>
-        <button type="button" class="outline-action bd-btn bd-btn-outline" onclick="applyBulkShippingCompany('home')">تطبيق</button>
-      </div>
-      <div class="shipping-rates-panel">
-        <div class="shipping-rates-head cols-home"><div>رقم</div><div>الولاية</div><div>السعر (دج)</div><div>الشركة</div><div>مدة التوصيل</div></div>
-        <div id="shippingRatesBodyHome"><div class="empty-card">⏳ جاري تحميل الأسعار...</div></div>
-      </div>
-      <button type="button" class="shipping-more-btn" id="shippingMoreHome" onclick="window.toggleShippingMore('home')" style="display:none">▼ عرض المزيد</button>
-    </div>
-
-    <div class="shipping-rates-section hidden" id="shippingSectionOffice">
-      <h2 class="shipping-rates-section-title">🏢 أسعار التوصيل – المكتب <small style="font-weight:600;color:#8b94a1;font-size:11px">(DHD EXPRESS)</small></h2>
-      <div class="shipping-rates-bulk" style="margin-bottom:10px">
-        <span>تطبيق شركة على كل الولايات:</span>
-        <select id="bulkOfficeCompanySelect">
-          <option value="">غير متوفر</option>
-          <option value="dhd">DHD Express</option>
-        </select>
-        <button type="button" class="outline-action bd-btn bd-btn-outline" onclick="applyBulkShippingCompany('office')">تطبيق</button>
-      </div>
-      <div class="shipping-rates-panel">
-        <div class="shipping-rates-head cols-office"><div>رقم</div><div>الولاية</div><div>السعر (دج)</div><div>الشركة</div></div>
-        <div id="shippingRatesBodyOffice"><div class="empty-card">⏳ جاري تحميل الأسعار...</div></div>
-      </div>
-      <button type="button" class="shipping-more-btn" id="shippingMoreOffice" onclick="window.toggleShippingMore('office')" style="display:none">▼ عرض المزيد</button>
-    </div>
-  </div>
-</section>
-
-<section id="view-sections" class="view hidden"><div class="page-head"><div><h1>أقسام المتجر</h1><p>تحكم في الأقسام الرئيسية التي تريد عرضها في واجهة المتجر.</p></div></div><div class="panel"><div id="sectionsAdmin" class="section-admin-list"><div class="empty-card">⏳ جاري التحميل...</div></div><div class="form-actions"><button class="green" onclick="saveHomeSections()">💾 حفظ الأقسام</button><button class="gray" onclick="loadHomeSections()">↻ إعادة تحميل</button></div></div></section>
-
-<section id="view-footer" class="view hidden"><div class="page-head"><div><h1>تذييل المتجر</h1><p>عدّل روابط ومعلومات التذييل التي تظهر أسفل المتجر.</p></div></div><div class="panel"><div id="footerAdminForm"></div><div class="form-actions"><button class="green" type="button" onclick="saveFooterSetting()">💾 حفظ التذييل</button><button class="gray" type="button" onclick="loadFooterSetting()">↻ إعادة تحميل</button></div><div id="footerAdminStatus" class="status hidden"></div></div></section>
-
-<section id="view-users" class="view hidden"><div class="page-head"><div><h1>المستخدمون</h1><p>بيانات الحساب الذي دخل إلى لوحة التحكم الحالية.</p></div></div><div class="panel" id="userProfileCard"><div class="empty-card">⏳ جاري تحميل بيانات الحساب...</div></div></section>
-
-<section id="view-settings" class="view hidden"><div class="page-head"><div><h1>الإعدادات</h1><p>إعدادات عامة، البريد، السلة، التوصيل، الشعار والبانر.</p></div></div><div class="settings-grid" id="settingsGrid"></div></section>
-
-<section id="view-addons" class="view hidden"><div class="addons-page"><div class="addons-intro"><h1>الإضافات 🧩</h1><p>مركز إدارة وربط خدمات التحليلات والتتبع والتحقق من Google.</p></div><div class="addons-services"><div class="addons-services-head"><span class="addons-services-dot"></span><div><h2>الخدمات المتاحة</h2><p>قم بربط الخدمات التي تحتاجها مع متجرك.</p></div></div><div id="addonStatus" class="status hidden"></div><div class="addons-grid" id="addonsGrid"><div class="empty-card">⏳ جاري تحميل الإضافات...</div></div></div></div></section>
-</main></div>
-<div id="ordersToast" class="toast-msg"></div>
-<div id="settingsModal" class="modal hidden"><div class="modal-card"><button class="modal-close" onclick="closeSetting()">×</button><div id="settingModalIcon" class="modal-icon">⚙</div><h2 id="settingModalTitle">الإعداد</h2><p id="settingModalDesc" class="modal-desc"></p><div id="settingModalBody"></div><div class="modal-actions"><button class="green" onclick="saveSetting()">💾 حفظ الإعدادات</button><button class="gray" onclick="closeSetting()">إلغاء</button></div></div></div>
+<section class="view hidden" id="view-categories"><div class="page-head"><div><h1>التصنيفات</h1><p>إدارة الفئات المستخدمة عند إضافة المنتجات.</p></div><button class="orange-btn" onclick="openCategoryForm()" type="button">＋ إضافة فئة</button></div><div class="panel"><div class="category-form hidden" id="categoryForm"><input id="categoryId" type="hidden"/><div class="category-form-grid"><label>اسم الفئة<input id="categoryName" placeholder="مثال: أدوات"/></label><label>اسم الفئة بالفرنسية (اختياري)<input id="categoryNameFr" placeholder="مثال: Outils"/></label><label>المعرّف<input id="categoryKey" placeholder="مثال: tools"/></label><label>الأيقونة<input id="categoryIcon" maxlength="4" placeholder="🔧"/></label></div><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا.</small><div class="category-form-grid" style="grid-template-columns:1fr 1fr;margin-top:12px"><label>وصف SEO مختصر (اختياري)<input id="categoryDescription" placeholder="مثال: أدوات كهربائية ومعدات منزلية مختارة للاستخدام اليومي، مع الدفع عند الاستلام والتوصيل لكل ولايات الجزائر."/></label><label>نفس الوصف بالفرنسية (اختياري)<input id="categoryDescriptionFr" placeholder="مثال: Outils électriques et équipements ménagers sélectionnés..."/></label></div><small class="hint">يظهر هذا الوصف في صفحة الفئة وفي نتائج البحث بدل الجملة العامة الافتراضية. اكتب جملة طبيعية مختلفة لكل فئة (لا تكررها).</small><div class="form-actions"><button class="green" onclick="saveCategory()" type="button">💾 حفظ الفئة</button><button class="gray" onclick="closeCategoryForm()" type="button">إلغاء</button></div><div class="status hidden" id="categoryStatus"></div></div><div class="categories-list" id="categoriesList"><div class="empty-card">⏳ جاري تحميل التصنيفات...</div></div></div></section>
+<section class="view hidden" id="view-shipping-rates">
+<div class="page-head"><div><h1>أسعار التوصيل</h1><p>تحديد سعر وشركة التوصيل لكل ولاية من ولايات الجزائر (58 ولاية المعتمدة في المتجر) — قسمان منفصلان: باب الدار والمكتب.</p></div><button class="green" onclick="saveShippingRates()" type="button">💾 حفظ الأسعار</button></div>
+<div class="panel">
+<div class="shipping-type-toggle">
+<div class="shipping-type-card" id="shippingTabOffice" onclick="window.switchShippingTab('office')"><span class="st-left"><span class="st-icon">🏢</span> توصيل للمكتب</span><span class="st-count">58 ولاية</span></div>
+<div class="shipping-type-card active" id="shippingTabHome" onclick="window.switchShippingTab('home')"><span class="st-left"><span class="st-icon">🏠</span> توصيل باب دار</span><span class="st-count">58 ولاية</span></div>
 </div>
-
+<div class="shipping-rates-toolbar">
+<div class="search-wrap"><span class="search-ic">🔎</span><input id="shippingRatesSearch" oninput="filterShippingRatesTable()" placeholder="ابحث عن ولاية بالاسم أو الرقم..."/></div>
+</div>
+<div class="status hidden" id="shippingRatesStatus"></div>
+<div class="shipping-rates-section" id="shippingSectionHome">
+<h2 class="shipping-rates-section-title">🚚 أسعار التوصيل – باب الدار <small style="font-weight:600;color:#8b94a1;font-size:11px">(DHD + NOEST + 48HR)</small></h2>
+<div class="shipping-rates-bulk" style="margin-bottom:10px">
+<span>تطبيق شركة على كل الولايات:</span>
+<div class="multi-select empty" data-value="" id="bulkHomeCompanySelect">
+<button class="multi-select-btn" onclick="toggleMultiSelect(this)" type="button">اختر شركة</button>
+<div class="multi-select-menu">
+<label><input onchange="updateMultiSelect(this)" type="checkbox" value="dhd"/> DHD Express</label>
+<label><input onchange="updateMultiSelect(this)" type="checkbox" value="noest"/> Noest Express</label>
+<label><input onchange="updateMultiSelect(this)" type="checkbox" value="48hr"/> 48HR Express</label>
+</div>
+</div>
+<button class="outline-action bd-btn bd-btn-outline" onclick="applyBulkShippingCompany('home')" type="button">تطبيق</button>
+</div>
+<div class="shipping-rates-panel">
+<div class="shipping-rates-head cols-home"><div>رقم</div><div>الولاية</div><div>السعر (دج)</div><div>الشركة</div><div>مدة التوصيل</div></div>
+<div id="shippingRatesBodyHome"><div class="empty-card">⏳ جاري تحميل الأسعار...</div></div>
+</div>
+<button class="shipping-more-btn" id="shippingMoreHome" onclick="window.toggleShippingMore('home')" style="display:none" type="button">▼ عرض المزيد</button>
+</div>
+<div class="shipping-rates-section hidden" id="shippingSectionOffice">
+<h2 class="shipping-rates-section-title">🏢 أسعار التوصيل – المكتب <small style="font-weight:600;color:#8b94a1;font-size:11px">(DHD EXPRESS)</small></h2>
+<div class="shipping-rates-bulk" style="margin-bottom:10px">
+<span>تطبيق شركة على كل الولايات:</span>
+<select id="bulkOfficeCompanySelect">
+<option value="">غير متوفر</option>
+<option value="dhd">DHD Express</option>
+</select>
+<button class="outline-action bd-btn bd-btn-outline" onclick="applyBulkShippingCompany('office')" type="button">تطبيق</button>
+</div>
+<div class="shipping-rates-panel">
+<div class="shipping-rates-head cols-office"><div>رقم</div><div>الولاية</div><div>السعر (دج)</div><div>الشركة</div></div>
+<div id="shippingRatesBodyOffice"><div class="empty-card">⏳ جاري تحميل الأسعار...</div></div>
+</div>
+<button class="shipping-more-btn" id="shippingMoreOffice" onclick="window.toggleShippingMore('office')" style="display:none" type="button">▼ عرض المزيد</button>
+</div>
+</div>
+</section>
+<section class="view hidden" id="view-sections"><div class="page-head"><div><h1>أقسام المتجر</h1><p>تحكم في الأقسام الرئيسية التي تريد عرضها في واجهة المتجر.</p></div></div><div class="panel"><div class="section-admin-list" id="sectionsAdmin"><div class="empty-card">⏳ جاري التحميل...</div></div><div class="form-actions"><button class="green" onclick="saveHomeSections()">💾 حفظ الأقسام</button><button class="gray" onclick="loadHomeSections()">↻ إعادة تحميل</button></div></div></section>
+<section class="view hidden" id="view-footer"><div class="page-head"><div><h1>تذييل المتجر</h1><p>عدّل روابط ومعلومات التذييل التي تظهر أسفل المتجر.</p></div></div><div class="panel"><div id="footerAdminForm"></div><div class="form-actions"><button class="green" onclick="saveFooterSetting()" type="button">💾 حفظ التذييل</button><button class="gray" onclick="loadFooterSetting()" type="button">↻ إعادة تحميل</button></div><div class="status hidden" id="footerAdminStatus"></div></div></section>
+<section class="view hidden" id="view-users"><div class="page-head"><div><h1>المستخدمون</h1><p>بيانات الحساب الذي دخل إلى لوحة التحكم الحالية.</p></div></div><div class="panel" id="userProfileCard"><div class="empty-card">⏳ جاري تحميل بيانات الحساب...</div></div></section>
+<section class="view hidden" id="view-settings"><div class="page-head"><div><h1>الإعدادات</h1><p>إعدادات عامة، البريد، السلة، التوصيل، الشعار والبانر.</p></div></div><div class="settings-grid" id="settingsGrid"></div></section>
+<section class="view hidden" id="view-addons"><div class="addons-page"><div class="addons-intro"><h1>الإضافات 🧩</h1><p>مركز إدارة وربط خدمات التحليلات والتتبع والتحقق من Google.</p></div><div class="addons-services"><div class="addons-services-head"><span class="addons-services-dot"></span><div><h2>الخدمات المتاحة</h2><p>قم بربط الخدمات التي تحتاجها مع متجرك.</p></div></div><div class="status hidden" id="addonStatus"></div><div class="addons-grid" id="addonsGrid"><div class="empty-card">⏳ جاري تحميل الإضافات...</div></div></div></div></section>
+</main></div>
+<div class="toast-msg" id="ordersToast"></div>
+<div class="modal hidden" id="settingsModal"><div class="modal-card"><button class="modal-close" onclick="closeSetting()">×</button><div class="modal-icon" id="settingModalIcon">⚙</div><h2 id="settingModalTitle">الإعداد</h2><p class="modal-desc" id="settingModalDesc"></p><div id="settingModalBody"></div><div class="modal-actions"><button class="green" onclick="saveSetting()">💾 حفظ الإعدادات</button><button class="gray" onclick="closeSetting()">إلغاء</button></div></div></div>
+</div>
 <script src="admin-config.js?v=1eedbd91"></script>
 <script src="admin-init.js?v=708c1124"></script>
-<script type="module" src="admin-app.js?v=22679c9c"></script>
-<script src="admin-pwa.js?v=6cdfaa26" defer></script>
+<script src="admin-app.js?v=22679c9c" type="module"></script>
+<script defer="" src="admin-pwa.js?v=6cdfaa26"></script>
 </body>
 </html>
