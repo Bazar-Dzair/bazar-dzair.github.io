@@ -481,3 +481,110 @@
 .bd-marketplace-actions button.bd-marketplace-secondary{background:#fff}
 .bd-marketplace-foot{margin:8px 0 0}
 @media(max-width:480px){.bd-marketplace-dialog{padding:19px 15px}.bd-marketplace-actions{grid-template-columns:1fr}.bd-marketplace-actions button.primary{grid-column:auto}}
+
+
+/* =============================================================
+   Bazar Dzair — Admin Design v2 (طبقة التصميم الجديد)
+   طبقة تجاوز في آخر الملف: لا تحذف أي قاعدة قديمة، وتُلغى بحذف هذا
+   القسم بالكامل. تعتمد على نفس الأصناف الموجودة في admin.html.
+   ============================================================= */
+:root{
+  --bd-ink:#182536;
+  --bd-muted:#5b6675;
+  --bd-line:#e6e9ef;
+  --bd-soft:#f4f6f9;
+  --bd-orange:#ff6a00;
+  --bd-orange-ink:#c2410c;
+  --bd-orange-tint:#fff1e6;
+  --bd-radius:18px;
+}
+body{font-family:'IBM Plex Sans Arabic',Tahoma,Arial,sans-serif;background:#f4f6f9;color:var(--bd-ink)}
+button,input,select,textarea{font-family:inherit}
+:where(button,a,input,select,textarea):focus-visible{outline:2px solid var(--bd-orange);outline-offset:2px}
+
+/* ---------- الشريط العلوي ---------- */
+.topbar{border-bottom:1px solid var(--bd-line);box-shadow:0 1px 0 rgba(24,37,54,.03)}
+
+/* ---------- الشريط الجانبي ---------- */
+.sidebar{padding:20px 14px;gap:0}
+.side-brand{padding:4px 8px 20px}
+.side-logo{border-radius:12px;background:var(--bd-orange);color:var(--bd-ink);font-weight:800}
+.side-brand strong{font-size:18px;letter-spacing:.2px}
+.side-brand small{color:#aab5c4;font-size:12px}
+.nav-title{color:#9aa6b6;font-size:11.5px;font-weight:600;padding:18px 14px 8px}
+.nav{gap:4px}
+.nav-item{border-radius:10px;color:#c4cdd9;min-height:44px;padding:10px 14px;font-weight:500;transition:background .15s,color .15s}
+.nav-item span{font-size:14.5px}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:rgba(255,106,0,.18);color:#ffb27a;font-weight:600;box-shadow:inset -3px 0 var(--bd-orange)}
+.nav-badge{background:var(--bd-orange);color:var(--bd-ink);font-weight:700}
+.sidebar-bottom{border-top:1px solid rgba(255,255,255,.1)}
+.logout-side{color:#c4cdd9;min-height:44px;border-radius:10px}
+.logout-side:hover{background:rgba(255,255,255,.07);color:#fff}
+
+/* ---------- لوحة التحكم: البطاقة الرئيسية ---------- */
+.main-content{padding:28px 36px 56px}
+.dash-hero{border-radius:20px;background:linear-gradient(135deg,#182536 0%,#223248 100%);box-shadow:0 12px 30px -16px rgba(24,37,54,.55)}
+.dash-hero::after{background:radial-gradient(circle,rgba(255,106,0,.22),transparent 70%)}
+.dash-hero h1{font-size:28px;font-weight:700;line-height:1.35}
+.dash-hero-sub{color:#c4cdd9;font-size:14px}
+.dash-hero-note{color:#9aa6b6;font-size:12px}
+.dash-hero-top .orange-btn{background:var(--bd-orange);border-color:var(--bd-orange);color:var(--bd-ink);font-weight:700;min-height:44px;padding:0 20px;box-shadow:0 8px 20px -8px rgba(255,106,0,.6)}
+.dash-hero-top .orange-btn:hover{background:#ff7d1f}
+.dash-hero-metric{border-radius:16px}
+.dash-hero-metric-ic{background:var(--bd-orange);box-shadow:none}
+.dash-hero-metric strong{font-weight:700}
+
+/* ---------- لوحة التحكم: مؤشرات منفصلة بدل الشريط الواحد ---------- */
+.dash-stats{grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible}
+.dash-stat{background:#fff;border:1px solid var(--bd-line);border-radius:16px;padding:16px;gap:12px;border-inline-end:1px solid var(--bd-line)}
+.dash-stat:last-child{border-inline-end:1px solid var(--bd-line)}
+.dash-stat-icon{width:40px;height:40px;border-radius:12px;background:var(--bd-orange-tint);color:var(--bd-orange-ink);font-size:17px}
+.dash-stat strong{font-size:22px;font-weight:700;color:var(--bd-ink);line-height:1.2}
+.dash-stat small{color:var(--bd-muted);font-size:12px}
+.dash-stat-warn .dash-stat-icon{background:#fff5db;color:#92400e}
+
+/* ---------- اللوحات (الزوار / المشاهدات) ---------- */
+.dash-panel{border-radius:var(--bd-radius);border:1px solid var(--bd-line);box-shadow:none}
+.dash-panel-head{padding:20px 24px 16px}
+.dash-panel-head h2{font-size:18px;font-weight:700}
+.dash-panel-head p{color:var(--bd-muted);font-size:13px}
+.dash-panel-body{padding:20px 24px}
+
+/* ---------- قائمة مشاهدات المنتجات ---------- */
+.pv-row{border-radius:12px}
+.pv-row:hover{background:#fafbfc}
+.pv-row+.pv-row{border-top:1px solid #eef1f5}
+.pv-rank{background:var(--bd-soft);color:var(--bd-muted)}
+.pv-name{font-weight:600;color:var(--bd-ink)}
+.pv-bar-track{height:6px;background:#eef1f5}
+.pv-bar-fill{background:var(--bd-orange)}
+.pv-bar-pct{color:var(--bd-muted);font-weight:700}
+.pv-src-ic{background:var(--bd-soft);border-color:var(--bd-line)}
+
+/* ---------- الوصول السريع ---------- */
+.dash-section-title{font-size:18px;font-weight:700;margin:28px 0 14px}
+.dash-quick{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.dash-quick button{min-height:52px;padding:10px 14px;border-radius:14px;color:var(--bd-ink);font-weight:600;font-size:14px}
+.dash-quick button span{width:36px;height:36px;border-radius:10px;background:var(--bd-orange-tint);color:var(--bd-orange-ink)}
+.dash-quick button:hover{border-color:var(--bd-orange);background:#fff8f2}
+
+/* ---------- بطاقات الإحصاءات في الصفحات الأخرى (طلبات / تقييمات / رسائل) ---------- */
+.stat-card{border-radius:16px;border-color:var(--bd-line)}
+
+/* ---------- الشاشات المتوسطة والهاتف ---------- */
+@media(max-width:1280px){
+  .dash-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:900px){
+  .main-content{padding:20px 18px 44px}
+}
+@media(max-width:640px){
+  .main-content{padding:14px 11px 30px}
+  .dash-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .dash-stat{padding:13px 12px}
+  .dash-hero h1{font-size:23px}
+  .dash-panel-head,.dash-panel-body{padding-inline:16px}
+  .dash-quick{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* ===== نهاية Admin Design v2 ===== */
