@@ -26,7 +26,7 @@
 <style>/* أيقونات SVG للتصميم الجديد */.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:middle}.nav-item .i,.logout-side .i,.store-mini .i{width:19px;height:19px}.nav-item,.logout-side,.store-mini{display:flex;align-items:center;gap:10px}.dash-stat-icon,.dash-hero-metric-ic,.dash-quick button span{display:inline-flex;align-items:center;justify-content:center}.dash-stat-icon .i{width:20px;height:20px}.dash-hero-metric .dash-hero-metric-ic{display:grid;place-items:center}.dash-hero-metric-ic .i{width:22px;height:22px}.dash-quick button span .i{width:19px;height:19px}.orange-btn,.icon-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}.dash-panel-head h2,.dash-section-title{display:flex;align-items:center;gap:8px}.dash-panel-head h2 .i,.dash-section-title .i{color:#c2410c}.tips-rocket{display:flex;align-items:center;justify-content:center}.tips-rocket .i{width:28px;height:28px}.dash-hero-kicker{display:flex;align-items:center;gap:6px}</style>
 <!-- tokens.css يُحمَّل بعد الـ CSS الداخلي عمدًا حتى تطغى قيمه على :root أعلاه -->
 <link href="tokens.css?v=6482079b" rel="stylesheet"/>
-<link href="product-form-pro.css?v=48a12bc8" rel="stylesheet"/>
+<link href="product-form-pro.css?v=20261112b" rel="stylesheet"/>
 <style id="bazar-three-section-overrides">
 /* Bazar Dzair: three-section product form layout */
 #view-product .pf-layout{display:flex!important;flex-direction:column!important;gap:14px!important}
@@ -148,10 +148,63 @@
 <li>تابع طلبات العملاء بانتظام</li>
 </ul></div></div>
 </section>
-<section class="view hidden" id="view-product">
-<div class="page-head"><div><h1 id="title">إضافة منتج جديد</h1><p>أدخل بيانات المنتج بالترتيب ثم احفظه في متجرك.</p></div></div>
-<div class="panel"><div class="status hidden" id="status"></div><div class="pf-layout"><section class="pf-section pf-group" data-group="01"><div class="pf-group-heading"><span class="pf-group-number">01</span><div><h2>معلومات المنتج</h2><p>البيانات الأساسية والسعر والتصنيف والمخزون</p></div></div><div class="pf-subsection pf-basic"></div></section><section class="pf-section pf-group" data-group="02"><div class="pf-group-heading"><span class="pf-group-number">02</span><div><h2>إعدادات المنتج والتوصيل</h2><p>خيارات النشر وطريقة التوصيل ووصف المنتج</p></div></div><div class="pf-subsection pf-settings"></div><div class="pf-subsection pf-shipping"></div><div class="pf-subsection pf-descriptions"></div></section><section class="pf-section pf-group" data-group="03"><div class="pf-group-heading"><span class="pf-group-number">03</span><div><h2>خصائص المنتج وصوره</h2><p>الألوان والمقاسات والصور المتاحة</p></div></div><div class="pf-subsection pf-variants"></div><div class="pf-subsection pf-images"></div></section></div><div class="form-actions"><button class="green" id="saveBtn" onclick="save()">💾 حفظ المنتج</button><button class="gray" onclick="resetForm()">مسح النموذج</button><button class="gray hidden" id="backToProductsBtn" onclick="window.backToProductsList()" type="button">↩️ رجوع إلى المنتجات</button></div></div>
-</section>
+<section class="view hidden" id="view-product"><div class="page-head"><div><h1 id="title">إضافة منتج جديد</h1><p>أدخل بيانات المنتج بالترتيب ثم احفظه في متجرك.</p></div></div><div class="panel"><div class="status hidden" id="status"></div><div class="pf-layout"><section class="pf-section pf-group" data-group="01"><div class="pf-group-heading"><span class="pf-group-number">01</span><div><h2>معلومات المنتج</h2><p>البيانات الأساسية والسعر والتصنيف والمخزون</p></div></div><div class="pf-subsection pf-basic"><div class="pf-section-head"><h2>المعلومات الأساسية</h2><p>اسم المنتج، الرمز، السعر، التصنيف والمخزون</p></div><div class="pf-basic-grid"><div class="pf-field"><label>اسم المنتج *</label><input id="name" placeholder="مثال: Lantern LED"/></div><div class="pf-field"><label>اسم المنتج بالفرنسية (اختياري)</label><input id="name_fr" placeholder="مثال: Lanterne LED"/><small class="hint">إذا تركته فارغًا، يظهر الاسم العربي للزبون الفرنسي أيضًا. هذا الاسم هو الذي يُبنى منه رابط المنتج (بالفرنسية)، فإن تُرك فارغًا يصبح الرابط بالشكل produit-xxxxxx.</small></div><div class="pf-field"><label>رمز المنتج SKU <span class="field-optional">اختياري</span></label><input id="sku" placeholder="مثال: BZ-001"/><small class="hint">إذا تركته فارغًا، يُستخدم معرّف المنتج تلقائيًا كرمز افتراضي.</small></div><div class="pf-field"><label>السعر بالدج *</label><input id="price" min="0" placeholder="3500" type="number"/></div><div class="pf-field"><label>السعر القديم <span class="field-optional">اختياري</span></label><input id="oldPrice" min="0" placeholder="مثال: 4800" type="number"/><small class="hint">يظهر السعر القديم والتخفيض تلقائيًا إذا كان أكبر من السعر الحالي.</small></div><div class="pf-field"><label>التصنيف</label><select id="category"></select></div><div class="pf-field"><label>المخزون *</label><input id="stock" min="0" placeholder="20" type="number"/></div></div></div></section><section class="pf-section pf-group" data-group="02"><div class="pf-group-heading"><span class="pf-group-number">02</span><div><h2>إعدادات المنتج والتوصيل</h2><p>خيارات النشر وطريقة التوصيل ووصف المنتج</p></div></div><div class="pf-subsection pf-settings"><div class="pf-section-head"><h2>إعدادات ظهور المنتج</h2><p>تحكم في حالة النشر وطريقة عرض السعر والتقييمات</p></div><div class="pf-settings-grid"><div class="full admin-display-options pf-setting-card"><div class="display-options-title"><b>خيارات العرض في صفحة المنتج</b><small>تحكم في العناصر التي تظهر للزبون.</small></div><label class="check-option"><input checked="" id="showOldPrice" type="checkbox"/><span>إظهار السعر القديم والتخفيض</span></label><label class="check-option"><input checked="" id="showReviews" type="checkbox"/><span>إظهار التقييمات</span></label></div><div class="full pf-setting-card"><div class="publish-row"><div><b>نشر المنتج في المتجر</b><small>يمكنك تغيير الحالة لاحقًا من قائمة خيارات المنتج ⋮</small></div><label class="switch"><input checked="" id="published" type="checkbox"/><span></span></label></div></div><div class="full pf-setting-card"><div class="publish-row"><div><b>منتج مميز ⭐</b><small>يظهر في قسم "المنتجات المميزة" بالصفحة الرئيسية</small></div><label class="switch"><input id="featured" type="checkbox"/><span></span></label></div></div></div></div><div class="pf-subsection pf-shipping"><div class="pf-section-head"><h2>التوصيل</h2><p>حدد طريقة التوصيل وشركات الشحن المتاحة</p></div><div class="shipping-section pf-shipping-inner"><label style="display:block;margin-bottom:8px">🚚 طريقة التوصيل *</label>
+<div class="delivery-method-toggle">
+<label class="delivery-method-opt"><input checked="" id="deliveryMethodHome" name="deliveryMethod" onchange="window.updateDeliveryMethodUI()" type="radio" value="home"/><span>🏠 توصيل باب دار</span></label>
+<label class="delivery-method-opt"><input id="deliveryMethodOffice" name="deliveryMethod" onchange="window.updateDeliveryMethodUI()" type="radio" value="office"/><span>🏤 توصيل للمكتب</span></label>
+</div>
+<div id="deliveryMethodHomeFields" style="margin-top:12px">
+<label>شركات التوصيل — باب الدار</label>
+<div class="multi-select empty" data-value="" id="shippingHomeSelect">
+<button class="multi-select-btn" onclick="toggleMultiSelect(this)" type="button">اختر شركة</button>
+<div class="multi-select-menu" id="shippingHomeMenu"></div>
+</div>
+</div>
+<div id="deliveryMethodOfficeFields" style="margin-top:12px;display:none">
+<label>شركات التوصيل — المكتب</label>
+<div class="multi-select empty" data-value="" id="shippingOfficeSelect">
+<button class="multi-select-btn" onclick="toggleMultiSelect(this)" type="button">اختر شركة</button>
+<div class="multi-select-menu" id="shippingOfficeMenu"></div>
+</div>
+</div>
+</div></div><div class="pf-subsection pf-descriptions"><div class="pf-section-head"><h2>وصف المنتج</h2><p>اكتب وصفاً واضحاً بالعربية والفرنسية عند الحاجة</p></div><div class="pf-description-grid"><div class="product-desc-half pf-description-field"><label>الوصف</label><textarea id="description" placeholder="اكتب وصفًا واضحًا للمنتج..."></textarea></div><div class="product-desc-half pf-description-field"><label>الوصف بالفرنسية (اختياري)</label><textarea id="description_fr" placeholder="Texte descriptif en français (facultatif)..."></textarea><small class="hint">إذا تركته فارغًا، يظهر الوصف العربي للزبون الفرنسي أيضًا.</small></div></div></div></section><section class="pf-section pf-group" data-group="03"><div class="pf-group-heading"><span class="pf-group-number">03</span><div><h2>خصائص المنتج وصوره</h2><p>الألوان والمقاسات والصور المتاحة</p></div></div><div class="pf-subsection pf-variants"><div class="pf-section-head"><h2>الألوان والمقاسات</h2><p>أضف الخيارات المتوفرة ليختارها الزبون قبل الطلب</p></div><div class="full variant-section pf-variants-inner">
+<div class="display-options-title"><b>🎨 الألوان والقياسات <span class="field-optional">اختياري</span></b><small>أضف الألوان أو القياسات المتوفرة ليختارها الزبون في صفحة المنتج قبل الطلب. اتركها فارغة إن كان المنتج لا يحتاجها.</small></div>
+<div class="variant-block">
+<label>الألوان المتوفرة</label>
+<div class="variant-chips" id="colorChips"></div>
+<div class="variant-add-row" id="pendingColorRow" style="display:none">
+<small class="hint" style="margin:0">هذا الخيار حاليًا:</small>
+<div class="variant-chips" id="pendingColorChips"></div>
+</div>
+<div class="variant-add-row">
+<input id="colorHexInput" title="لون" type="color" value="#182536"/>
+<button class="variant-add-btn" onclick="addPendingColorHex()" type="button">+ إضافة لهذا الخيار</button>
+<input id="colorNameInput" onkeydown="if(event.key==='Enter'){event.preventDefault();addColorEntry();}" placeholder="اسم اللون، مثال: أبيض × أحمر × أزرق" type="text"/>
+<button class="variant-add-btn" onclick="addColorEntry()" type="button">✅ تأكيد اللون</button>
+</div>
+<small class="hint" style="margin:4px 0 0">لون واحد بسيط: اختر اللون واكتب الاسم ثم اضغط "تأكيد اللون" مباشرة. لون مدموج من عدة ألوان (مثلاً حذاء أبيض×أحمر×أزرق): اضغط "+ إضافة لهذا الخيار" لكل لون على حدة قبل كتابة الاسم والتأكيد.</small>
+</div>
+<div class="variant-block">
+<label>قياسات الملابس</label>
+<div class="variant-chips" id="clothingSizeChips"></div>
+<div class="variant-add-row">
+<input id="clothingSizeInput" onkeydown="if(event.key==='Enter'){event.preventDefault();addClothingSizeFromInput();}" placeholder="قياس آخر، مثال: 3XL" type="text"/>
+<button class="variant-add-btn" onclick="addClothingSizeFromInput()" type="button">+ إضافة قياس</button>
+</div>
+</div>
+<div class="variant-block">
+<label>قياسات الأحذية</label>
+<div class="variant-chips" id="shoeSizeChips"></div>
+<div class="variant-add-row">
+<input id="shoeSizeInput" onkeydown="if(event.key==='Enter'){event.preventDefault();addShoeSizeFromInput();}" placeholder="قياس آخر، مثال: 47" type="text"/>
+<button class="variant-add-btn" onclick="addShoeSizeFromInput()" type="button">+ إضافة قياس</button>
+</div>
+</div>
+</div></div><div class="pf-subsection pf-images"><div class="pf-section-head"><h2>صور المنتج</h2><p>أضف صوراً واضحة؛ الصورة الأولى ستكون الصورة الرئيسية</p></div><div class="product-images-section pf-images-inner"><label>صور المنتج *</label><div class="upload-card">
+<input accept="image/jpeg,image/png,image/webp,image/gif" hidden="" id="imageFiles" multiple="" type="file"/>
+<button class="upload-drop" onclick="document.getElementById('imageFiles').click()" type="button"><span class="upload-icon">☁️</span><b>أضف صور المنتج</b><small>اختر الصور من الهاتف مباشرة — حتى 10 صور</small><span class="upload-hint">JPG, PNG, WEBP — ضغط تلقائي قبل الحفظ</span></button>
+<div class="image-count" id="imageCount">0 / 10 صور</div><div class="image-preview" id="imagePreview"></div>
+</div><small class="hint">الصورة الأولى تصبح صورة الواجهة. الصور الجديدة تُضغط لتقليل حجم مستند Firestore.</small></div></div></section></div><div class="form-actions"><button class="green" id="saveBtn" onclick="save()">💾 حفظ المنتج</button><button class="gray" onclick="resetForm()">مسح النموذج</button><button class="gray hidden" id="backToProductsBtn" onclick="window.backToProductsList()" type="button">↩️ رجوع إلى المنتجات</button></div></div></section>
 <section class="view hidden" id="view-products">
 <div class="page-head"><div><h1>المنتجات</h1><p>إدارة احترافية وسريعة للمنتجات والمخزون والروابط، مع وصول مباشر لكل منتج.</p></div></div>
 <div class="panel products-panel">
