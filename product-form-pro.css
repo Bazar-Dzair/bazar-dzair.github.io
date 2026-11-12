@@ -1,0 +1,111 @@
+/* Bazar Dzair — Pro compact product editor. Presentation only; existing IDs and JS remain untouched. */
+#view-product{
+  --pro-ink:#17263b;--pro-muted:#78869a;--pro-line:#e5eaf1;--pro-soft:#f6f8fb;
+  --pro-orange:#f47b20;--pro-green:#169b62;
+}
+#view-product .page-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px;padding:0 2px}
+#view-product .page-head h1{font-size:clamp(18px,2vw,23px);font-weight:850;letter-spacing:-.3px;color:var(--pro-ink);margin:0 0 3px}
+#view-product .page-head p{font-size:11px;color:var(--pro-muted);margin:0}
+#view-product>.panel{padding:15px;border:1px solid var(--pro-line);border-radius:18px;background:#fff;box-shadow:0 12px 34px rgba(23,38,59,.055)}
+#view-product .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;align-items:start}
+#view-product .grid>div{min-width:0;margin:0}
+#view-product .grid>div:nth-child(1),#view-product .grid>div:nth-child(2){grid-column:span 6}
+#view-product .grid>div:nth-child(3),#view-product .grid>div:nth-child(4),#view-product .grid>div:nth-child(5),#view-product .grid>div:nth-child(6){grid-column:span 3}
+#view-product .grid>div:nth-child(7){grid-column:span 3}
+#view-product .grid>div:nth-child(8){grid-column:span 5}
+#view-product .grid>div:nth-child(9),#view-product .grid>div:nth-child(10){grid-column:span 3}
+#view-product .grid>div.shipping-section{grid-column:span 4}
+#view-product .grid>div.product-desc-half{grid-column:span 4}
+#view-product .grid>div.variant-section{grid-column:span 7}
+#view-product .grid>div.product-images-section{grid-column:span 5}
+#view-product .grid label{display:block;font-size:11px;font-weight:750;color:#35445a;margin:0 0 5px}
+#view-product .grid input:not([type=checkbox]):not([type=radio]):not([type=color]),#view-product .grid select{width:100%;height:38px;min-width:0;padding:7px 10px;border:1px solid #dfe5ee;border-radius:10px;background:#fff;color:var(--pro-ink);font-size:12px;box-shadow:inset 0 1px 1px rgba(23,38,59,.02);transition:border-color .18s,box-shadow .18s}
+#view-product .grid input:focus,#view-product .grid select:focus,#view-product .grid textarea:focus{outline:none;border-color:#f4a15f;box-shadow:0 0 0 3px rgba(244,123,32,.10)}
+#view-product .grid textarea{width:100%;height:94px;min-height:94px;resize:vertical;padding:9px 10px;border:1px solid #dfe5ee;border-radius:10px;font-size:12px;line-height:1.55;background:#fff}
+#view-product .hint{font-size:9px;line-height:1.4;color:#98a2b1;margin-top:3px}
+#view-product .grid>div:nth-child(8),#view-product .grid>div:nth-child(9),#view-product .grid>div:nth-child(10),#view-product .shipping-section,#view-product .product-desc-half,#view-product .variant-section,#view-product .product-images-section{padding:10px;border:1px solid var(--pro-line);border-radius:13px;background:linear-gradient(180deg,#fff,#fbfcfe)}
+#view-product .admin-display-options{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+#view-product .admin-display-options .display-options-title{flex:1 0 100%;margin:0 0 2px}
+#view-product .display-options-title b{font-size:12px;color:var(--pro-ink)}
+#view-product .display-options-title small{font-size:9px;color:var(--pro-muted)}
+#view-product .check-option{display:flex;align-items:center;gap:5px;margin:0;padding:6px 8px;border:1px solid #e9edf3;border-radius:8px;background:#fff;font-size:10px;white-space:nowrap}
+#view-product .check-option input{accent-color:var(--pro-orange)}
+#view-product .publish-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:54px;height:100%;padding:8px 10px;border:1px solid var(--pro-line);border-radius:11px;background:#fbfcfe}
+#view-product .publish-row b{font-size:11px;color:var(--pro-ink)}
+#view-product .publish-row small{display:block;font-size:9px;line-height:1.35;color:var(--pro-muted);margin-top:2px}
+#view-product .switch{flex:0 0 auto;transform:scale(.88);transform-origin:center}
+#view-product .shipping-section{background:#fbfcfe}
+#view-product .shipping-section>label{font-size:11px!important;margin:0 0 7px!important}
+#view-product .delivery-method-toggle{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#view-product .delivery-method-opt{display:flex;justify-content:center;align-items:center;gap:5px;min-width:0;padding:8px 5px;border:1px solid #e2e7ef;border-radius:9px;background:#fff;font-size:10px;white-space:nowrap}
+#view-product .delivery-method-opt:has(input:checked){border-color:#f5a66d;background:#fff7f0;color:#b85a12}
+#view-product #deliveryMethodHomeFields,#view-product #deliveryMethodOfficeFields{margin-top:8px!important}
+#view-product .shipping-section #deliveryMethodHomeFields>label,#view-product .shipping-section #deliveryMethodOfficeFields>label{font-size:10px}
+#view-product .multi-select-btn{width:100%;min-height:35px;padding:7px 9px;border:1px solid #e1e6ee;border-radius:9px;background:#fff;font-size:11px}
+#view-product .variant-section{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;background:#fbfcfe}
+#view-product .variant-section>.display-options-title{grid-column:1/-1;margin:0;padding:0 0 7px;border-bottom:1px solid #edf0f4}
+#view-product .variant-section>.variant-block{min-width:0;margin:0;padding:8px;border:1px solid #e9edf3;border-radius:10px;background:#fff}
+#view-product .variant-section>.variant-block:first-of-type{grid-column:1/-1}
+#view-product .variant-block>label{font-size:10px;margin:0 0 6px}
+#view-product .variant-chips{display:flex;gap:4px;flex-wrap:wrap}
+#view-product .variant-chips button,#view-product .variant-chips .chip{min-height:25px;padding:4px 7px;border-radius:7px;font-size:10px}
+#view-product .variant-add-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:6px}
+#view-product .variant-add-row input:not([type=color]){flex:1 1 85px;min-width:0;height:31px!important;padding:5px 7px!important;font-size:10px!important}
+#view-product .variant-add-row input[type=color]{width:30px;height:30px;padding:2px;border:1px solid var(--pro-line);border-radius:7px}
+#view-product .variant-add-btn{padding:6px 7px;border-radius:7px;font-size:9px;white-space:nowrap}
+#view-product .product-images-section{display:flex;flex-direction:column;gap:5px;background:#fbfcfe}
+#view-product .product-images-section>label{margin-bottom:0}
+#view-product .upload-card{padding:7px;border:1px dashed #d6deea;border-radius:10px;background:#fff}
+#view-product .upload-drop{display:flex;align-items:center;justify-content:center;gap:4px;min-height:115px;padding:8px;border:0;border-radius:8px;background:#f8faff}
+#view-product .upload-icon{font-size:23px;line-height:1}
+#view-product .upload-drop b{font-size:11px}
+#view-product .upload-drop small,#view-product .upload-hint{font-size:9px;color:var(--pro-muted)}
+#view-product .image-count{font-size:9px;margin:5px 2px}
+#view-product .image-preview{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+#view-product .form-actions{position:sticky;bottom:6px;z-index:50;display:flex;align-items:center;gap:7px;margin:10px 0 0;padding:8px 10px;border:1px solid #e5eaf1;border-radius:12px;background:rgba(255,255,255,.94);box-shadow:0 5px 20px rgba(23,38,59,.10);backdrop-filter:blur(12px)}
+#view-product .form-actions button{min-height:38px;padding:8px 13px;border-radius:9px;font-size:11px;font-weight:750}
+#view-product .form-actions #saveBtn{margin-inline-start:auto;order:3}
+#view-product .form-actions .gray{order:1}
+#view-product #status{margin-bottom:9px}
+@media(max-width:900px){
+ #view-product>.panel{padding:11px}
+ #view-product .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #view-product .grid>div:nth-child(1),#view-product .grid>div:nth-child(2),#view-product .grid>div:nth-child(3),#view-product .grid>div:nth-child(4),#view-product .grid>div:nth-child(5),#view-product .grid>div:nth-child(6),#view-product .grid>div:nth-child(7){grid-column:span 1}
+ #view-product .grid>div:nth-child(8){grid-column:1/-1}
+ #view-product .grid>div:nth-child(9),#view-product .grid>div:nth-child(10){grid-column:span 1}
+ #view-product .grid>div.shipping-section{grid-column:span 1}
+ #view-product .grid>div.product-desc-half{grid-column:span 1}
+ #view-product .grid>div.variant-section{grid-column:span 1;grid-template-columns:1fr}
+ #view-product .grid>div.product-images-section{grid-column:span 1}
+ #view-product .variant-section>.variant-block:first-of-type{grid-column:1}
+ #view-product .grid label{font-size:10px;margin-bottom:4px}
+ #view-product .grid input:not([type=checkbox]):not([type=radio]):not([type=color]),#view-product .grid select{height:35px;padding:6px 8px;font-size:11px}
+ #view-product .grid textarea{height:83px;min-height:83px;font-size:11px}
+ #view-product .hint{display:none}
+ #view-product .publish-row{min-height:50px;padding:7px}
+ #view-product .publish-row b{font-size:10px}
+ #view-product .publish-row small{font-size:8px}
+ #view-product .switch{transform:scale(.78)}
+ #view-product .shipping-section,#view-product .product-desc-half,#view-product .variant-section,#view-product .product-images-section{padding:8px}
+ #view-product .delivery-method-opt{font-size:9px;padding:7px 3px}
+ #view-product .variant-section{gap:6px}
+ #view-product .variant-block>label{font-size:9px}
+ #view-product .variant-chips button,#view-product .variant-chips .chip{font-size:9px;min-height:23px;padding:3px 5px}
+ #view-product .variant-add-btn{font-size:8px;padding:5px}
+ #view-product .upload-drop{min-height:104px}
+}
+@media(max-width:390px){
+ #view-product>.panel{padding:8px}
+ #view-product .grid{gap:7px 6px}
+ #view-product .grid input:not([type=checkbox]):not([type=radio]):not([type=color]),#view-product .grid select{height:33px;padding:5px 7px;font-size:10px}
+ #view-product .grid label{font-size:9px}
+ #view-product .grid textarea{height:76px;min-height:76px;padding:7px;font-size:10px}
+ #view-product .check-option{font-size:9px;padding:5px 6px}
+ #view-product .publish-row small{display:none}
+ #view-product .delivery-method-opt{font-size:8px}
+ #view-product .variant-add-row{gap:4px}
+ #view-product .variant-add-btn{font-size:8px}
+ #view-product .upload-drop{min-height:90px}
+ #view-product .form-actions button{min-height:35px;padding:7px 9px;font-size:10px}
+}
+@media(min-width:901px){#view-product .grid{gap:10px}#view-product>.panel{max-width:1400px}}
