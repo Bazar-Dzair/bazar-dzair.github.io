@@ -134,7 +134,12 @@ service cloud.firestore {
         (!('lang' in d) || (d.lang is string && d.lang.size() <= 5));
     }
     match /messages/{id} {
-      allow create: if isValidContactMessage(request.resource.data);
+      // 🛡️ App Check إجباري على الكتابة العامة: يمنع إغراق المجموعة بسكربت خارجي يكتب
+      // مباشرة في Firestore (REST/SDK) متجاوزًا الموقع كليًا، وهو هجوم لا تستطيع
+      // أي Security Rule أخرى هنا إيقافه لأنها لا ترى معدّل الطلبات ولا IP الكاتب.
+      // يتطلب تفعيل Firebase App Check (reCAPTCHA v3 أو Turnstile) في Firebase Console
+      // وتهيئة SDK في الصفحات العامة (index.html/contact) — بدونها هذه الكتابة تُرفض بالكامل.
+      allow create: if request.app != null && isValidContactMessage(request.resource.data);
       allow read, update, delete: if isAdmin();
     }
 
@@ -188,11 +193,15 @@ service cloud.firestore {
     // أي قيمة أخرى (تصفير، قفزة كبيرة، حقل إضافي) مرفوضة تلقائيًا. لا قراءة عامة إطلاقًا حتى لا
     // يرى أي زائر عدد زوار الموقع؛ الأدمن وحده يقرأها (ويحذفها عند الحاجة) من لوحة التحكم.
     match /visits/{date} {
+      // 🛡️ App Check إجباري أيضًا هنا: نفس ثغرة إغراق مجموعة messages أعلاه، لكن هنا
+      // تكلفة إضافية هي تضخيم رقم الزيارات وهميًا (يخدع الأدمن) بدل مجرد الإزعاج.
       allow read, delete: if isAdmin();
-      allow create: if date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+      allow create: if request.app != null
+                    && date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
                     && request.resource.data.keys().hasOnly(['count','updatedAt'])
                     && request.resource.data.count == 1;
-      allow update: if request.resource.data.keys().hasOnly(['count','updatedAt'])
+      allow update: if request.app != null
+                    && request.resource.data.keys().hasOnly(['count','updatedAt'])
                     && request.resource.data.count == resource.data.count + 1;
     }
 
@@ -204,12 +213,15 @@ service cloud.firestore {
     // مرة؛ أي قيمة أخرى (تصفير، قفزة كبيرة، حقل إضافي) مرفوضة تلقائيًا. لا قراءة عامة
     // إطلاقًا حتى لا يرى أي زائر عدد مشاهدات منتج ما؛ الأدمن وحده يقرأها من لوحة التحكم.
     match /productViews/{productId} {
+      // 🛡️ App Check إجباري أيضًا هنا (نفس سبب visits أعلاه: تضخيم وهمي + استهلاك حصة الكتابة).
       allow read, delete: if isAdmin();
-      allow create: if request.resource.data.keys().hasOnly(['count','updatedAt','name','sources'])
+      allow create: if request.app != null
+                    && request.resource.data.keys().hasOnly(['count','updatedAt','name','sources'])
                     && request.resource.data.count == 1
                     && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() < 200))
                     && (!('sources' in request.resource.data) || (request.resource.data.sources is map && request.resource.data.sources.size() <= 10));
-      allow update: if request.resource.data.keys().hasOnly(['count','updatedAt','name','sources'])
+      allow update: if request.app != null
+                    && request.resource.data.keys().hasOnly(['count','updatedAt','name','sources'])
                     && request.resource.data.count == resource.data.count + 1
                     && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() < 200))
                     && (!('sources' in request.resource.data) || (request.resource.data.sources is map && request.resource.data.sources.size() <= 10));
