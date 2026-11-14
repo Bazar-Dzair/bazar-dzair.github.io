@@ -1808,7 +1808,12 @@ window.bazarCheckWorker=async function(){
   if(box)box.innerHTML="⏳ جاري فحص الـ Worker...";
   workerReady=false;
   try{
-    const r=await fetch(BAZAR_WORKER_BASE+"/health",{cache:"no-store"});
+    // ✅ /health لم يعد يكشف تفاصيل الضبط لأي زائر بلا مصادقة (كان ثغرة استطلاع)؛
+    // لوحة التحكم ترسل الآن idToken الحقيقي لجلسة الأدمن الحالية (نفس أسلوب /trigger-seo)
+    // كي يعيد الـ Worker التفاصيل الكاملة فقط لصاحب الجلسة الحقيقية.
+    const user=window.bazarAuth&&window.bazarAuth.currentUser;
+    const idToken=user?await user.getIdToken():"";
+    const r=await fetch(BAZAR_WORKER_BASE+"/health",{cache:"no-store",headers:idToken?{Authorization:"Bearer "+idToken}:{}});
     const j=await r.json();
     if(!j||!j.version)throw new Error("not-new-worker");
     workerReady=j.ready===true;
@@ -1905,7 +1910,8 @@ const FRAUD_FLAG_AR={
   device_burst:"نفس الجهاز أرسل عدد كبير من الطلبات في وقت قصير",
   address_repeat:"عدد كبير من الطلبات لنفس العنوان",
   device_evading_block:"جهاز سبق أن حاول الطلب برقم/IP محظور عاد الآن بمعطيات مختلفة",
-  blocked_attempt:"محاولة طلب من رقم أو IP محظور"
+  blocked_attempt:"محاولة طلب من رقم أو IP محظور",
+  risk_blocked:"حظر تلقائي: طلب عالي الخطورة من أكثر من مصدر مشبوه معًا"
 };
 const FRAUD_SEV={high:"خطر عالٍ",medium:"خطر متوسط",low:"خطر منخفض"};
 const FRAUD_KEY_AR={ip:"IP",phone:"الهاتف",device:"الجهاز",addr:"العنوان"};
@@ -1958,7 +1964,7 @@ function fraudRow(a){
   const chips=[
     a.keyType&&FRAUD_KEY_AR[a.keyType]?`<span class="fr-chip">🔑 ${FRAUD_KEY_AR[a.keyType]}</span>`:"",
     Number(a.count)>1?`<span class="fr-chip">×${Number(a.count).toLocaleString("ar-DZ")}</span>`:"",
-    a.blockedAttempt?'<span class="fr-chip fr-chip-red">🚫 محاولة بعد الحظر</span>':"",
+    a.blockedAttempt?'<span class="fr-chip fr-chip-red">🚫 محاولة بعد الحظر</span>':(a.type==="risk_blocked"?'<span class="fr-chip fr-chip-red">⛔ حُظر تلقائيًا</span>':""),
     phone?`<span class="fr-chip">📞 <span dir="ltr">${esc(phone)}</span></span>`:"",
     a.ip?`<span class="fr-chip">🌐 <span dir="ltr">${esc(a.ip)}</span>${a.country?` · ${esc(a.country)}`:""}</span>`:""
   ].join("");
