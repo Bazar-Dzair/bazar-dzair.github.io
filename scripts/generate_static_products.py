@@ -14,6 +14,12 @@ PRICE_VALID_UNTIL=(datetime.now(timezone.utc)+timedelta(days=90)).strftime('%Y-%
 RETURN_POLICY_LD={'@type':'MerchantReturnPolicy','applicableCountry':'DZ',
     'returnPolicyCategory':'https://schema.org/MerchantReturnFiniteReturnWindow','merchantReturnDays':2,
     'merchantReturnLink':SITE+'policies.html#returns'}
+# شحن: من policies.html — التوصيل لكل الولايات الجزائرية، المدة المعتادة 2–4 أيام عمل. لا shippingRate عمدًا:
+# التكلفة تختلف حسب الولاية وطريقة الاستلام ولا يوجد سعر ثابت نصرّح به. ولا handlingTime لأنه غير مذكور في السياسة.
+SHIPPING_LD={'@type':'OfferShippingDetails',
+    'shippingDestination':{'@type':'DefinedRegion','addressCountry':'DZ'},
+    'deliveryTime':{'@type':'ShippingDeliveryTime',
+        'transitTime':{'@type':'QuantitativeValue','minValue':2,'maxValue':4,'unitCode':'DAY'}}}
 
 
 def w3c_date(v):
@@ -541,6 +547,23 @@ def make_product_meta_description(name, desc, price, available=True, lang='ar', 
     return head
 
 
+def make_product_title(name, suffix=' | Bazar Dzair', limit=60):
+    """عنوان <title> لا يتجاوز ~60 حرفًا حتى لا يقتطعه Google. الاسم الكامل يبقى في <h1> و og:title و JSON-LD.
+    إن كان الاسم طويلًا: نقطع عند أول فاصل (– — - |) إذا بقي جزء مفيد، وإلا عند آخر حدّ كلمة."""
+    name=' '.join(str(name or '').split())
+    room=limit-len(suffix)
+    if len(name)<=room:
+        return name+suffix
+    head=re.split(r'\s[–—\-|]\s',name,1)[0].strip()
+    if 12<=len(head)<=room:
+        return head+suffix
+    cut=name[:room]
+    sp=cut.rfind(' ')
+    if sp>=12:
+        cut=cut[:sp]
+    return cut.rstrip(' ,-–—|:')+suffix
+
+
 def hreflang_tags(url_ar, url_fr):
     """يبني وسوم <link rel="alternate" hreflang="..."> المتبادلة بين النسخة العربية
     والفرنسية لنفس المنتج (URLs كاملة، x-default = النسخة العربية، وهي اللغة
@@ -574,7 +597,7 @@ def lang_alt_link_tag(target_url, label):
 
 def inject_product_seo(template, name, desc, url, price, img, images=None, available=True, badge=None, old_price=None, static_product_data=None, aggregate_rating=None, price_valid_until=None, hreflang_fr_url=None):
     d155=make_product_meta_description(name, desc, price, available, 'ar')
-    title_tag=f'<title>{html.escape(name)} | Bazar Dzair</title>'
+    title_tag=f'<title>{html.escape(make_product_title(name))}</title>'
     desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
     canonical_tag=f'<link id="canonical" rel="canonical" href="{html.escape(url,quote=True)}">'
     if hreflang_fr_url:
@@ -582,6 +605,7 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
         canonical_tag+=hreflang_tags(url, hreflang_fr_url)
     ld={'@context':'https://schema.org','@type':'Product','name':name,'image':list(dict.fromkeys([img]+[i for i in (images or []) if i]))[:6],'description':(desc or '')[:500],'url':url,'offers':{'@type':'Offer','url':url,'priceCurrency':'DZD','price':price_number(price),'availability':schema_availability(static_product_data, available),'seller':{'@type':'Organization','name':'Bazar Dzair'}}}
     ld['offers']['hasMerchantReturnPolicy']=dict(RETURN_POLICY_LD)
+    ld['offers']['shippingDetails']=json.loads(json.dumps(SHIPPING_LD))
     if price_valid_until:
         ld['offers']['priceValidUntil']=price_valid_until
     # aggregateRating فقط عند وجود تقييمات زبائن حقيقية منشورة فعلاً لهذا المنتج (rating_index)؛
@@ -721,7 +745,7 @@ def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images
     canonical خاص بها. لا تُغيَّر بيانات المنتج نفسها (السعر، المخزون...) إطلاقًا —
     فقط طبقة العرض/الميتاداتا لهذه الصفحة الثابتة تحديدًا."""
     d155=make_product_meta_description(name_fr, desc_fr, price, available, 'fr')
-    title_tag=f'<title>{html.escape(name_fr)} | Bazar Dzair</title>'
+    title_tag=f'<title>{html.escape(make_product_title(name_fr))}</title>'
     desc_tag=f'<meta id="metaDescription" name="description" content="{html.escape(d155,quote=True)}">'
     canonical_tag=f'<link id="canonical" rel="canonical" href="{html.escape(url_fr,quote=True)}">'
     if hreflang_ar_url:
@@ -731,6 +755,7 @@ def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images
         canonical_tag+=hreflang_tags(hreflang_ar_url, url_fr)
     ld={'@context':'https://schema.org','@type':'Product','name':name_fr,'image':list(dict.fromkeys([img]+[i for i in (images or []) if i]))[:6],'description':(desc_fr or '')[:500],'url':url_fr,'offers':{'@type':'Offer','url':url_fr,'priceCurrency':'DZD','price':price_number(price),'availability':schema_availability(static_product_data, available),'seller':{'@type':'Organization','name':'Bazar Dzair'}}}
     ld['offers']['hasMerchantReturnPolicy']=dict(RETURN_POLICY_LD)
+    ld['offers']['shippingDetails']=json.loads(json.dumps(SHIPPING_LD))
     if price_valid_until:
         ld['offers']['priceValidUntil']=price_valid_until
     if aggregate_rating:
