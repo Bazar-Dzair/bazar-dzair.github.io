@@ -564,6 +564,51 @@ def make_product_title(name, suffix=' | Bazar Dzair', limit=60):
     return cut.rstrip(' ,-–—|:')+suffix
 
 
+_FAQ_STATIC={
+ 'ar':('وصف المنتج','أسئلة شائعة',[
+   ('كيف أطلب هذا المنتج؟','اضغط على «اطلب الآن» ثم أدخل اسمك ورقم هاتفك والولاية وعنوان التوصيل.'),
+   ('كيف يتم الدفع؟','الدفع عند الاستلام نقدًا عند وصول الطلب، بدون بطاقة بنكية ولا دفع مسبق.'),
+   ('كم تستغرق مدة التوصيل؟','عادة بين 2 و4 أيام عمل حسب الولاية، عبر Noest وDHD إلى المنزل أو المكتب. تظهر تكلفة التوصيل عند تأكيد الطلب.'),
+   ('هل يمكنني إرجاع المنتج؟','نعم، عند الاستلام أو خلال 48 ساعة إذا كان المنتج تالفًا أو مختلفًا عمّا طلبته. التفاصيل في سياسة الإرجاع.')]),
+ 'fr':('Description du produit','Questions fréquentes',[
+   ('Comment commander ce produit ?','Cliquez sur « Commander maintenant », puis renseignez votre nom, votre téléphone, votre wilaya et votre adresse de livraison.'),
+   ('Comment se fait le paiement ?','Le paiement se fait en espèces à la livraison, sans carte bancaire ni paiement à l’avance.'),
+   ('Quel est le délai de livraison ?','En général entre 2 et 4 jours ouvrables selon la wilaya, via Noest et DHD, à domicile ou au bureau. Le coût de livraison est affiché à la confirmation de la commande.'),
+   ('Puis-je retourner le produit ?','Oui, à la réception ou sous 48 h si le produit est endommagé ou différent de celui commandé. Voir la politique de retour.')]),
+}
+
+
+def static_desc_card(desc, lang='ar'):
+    """يملأ #descCard بنص حقيقي في HTML الخام (الوصف + أسئلة شائعة مأخوذة من policies.html).
+    قبل هذا كان #descCard فارغًا في الصفحة الثابتة والوصف يظهر فقط بعد تنفيذ JS؛ الآن يراه Google فورًا.
+    JS (product-app.js) يستبدل innerHTML لاحقًا بالنسخة التفاعلية كما كان، فلا يتغير سلوك الصفحة."""
+    h_desc,h_faq,faq=_FAQ_STATIC['fr' if lang=='fr' else 'ar']
+    lines=[' '.join(l.split()) for l in str(desc or '').splitlines()]
+    lines=[l for l in lines if l]
+    parts=['<div id="descCard" class="desc-card"><div class="card-body">']
+    if lines:
+        parts.append(f'<h2>{html.escape(h_desc)}</h2><ul class="desc-text-list">'+''.join(f'<li>{html.escape(l)}</li>' for l in lines)+'</ul>')
+    parts.append(f'<h2>{html.escape(h_faq)}</h2>'+''.join(f'<h3>{html.escape(q)}</h3><p>{html.escape(a)}</p>' for q,a in faq))
+    parts.append('</div></div>')
+    return ''.join(parts)
+
+
+def inject_social_meta(out, title, description, image):
+    """وسوم twitter:* و og:type في HTML الخام. قالب product.html يحمل قيمًا عامة (اسم المتجر + شعار) ويستبدلها JS
+    لاحقًا؛ لكن زواحف المشاركة (فيسبوك، واتساب، تيك توك، تويتر) لا تنفّذ JS فكانت معاينة الرابط تُظهر الشعار ونصًا عامًا.
+    هنا نضع اسم المنتج ووصفه وصورته الحقيقية مباشرة. لا يغيّر أي وسم آخر."""
+    q=lambda v: html.escape(str(v or ''),quote=True)
+    out=out.replace('<meta id="twitterTitle" name="twitter:title" content="Bazar Dzair">',
+        f'<meta id="twitterTitle" name="twitter:title" content="{q(title)}">',1)
+    out=out.replace('<meta id="twitterDescription" name="twitter:description" content="منتج من متجر Bazar Dzair">',
+        f'<meta id="twitterDescription" name="twitter:description" content="{q(description)}">',1)
+    out=out.replace('<meta id="twitterImage" name="twitter:image" content="https://bazar-dzair.github.io/logo.svg">',
+        f'<meta id="twitterImage" name="twitter:image" content="{q(image)}">',1)
+    if 'property="og:type"' not in out:
+        out=out.replace('<meta name="twitter:card"','<meta property="og:type" content="product"><meta name="twitter:card"',1)
+    return out
+
+
 def hreflang_tags(url_ar, url_fr):
     """يبني وسوم <link rel="alternate" hreflang="..."> المتبادلة بين النسخة العربية
     والفرنسية لنفس المنتج (URLs كاملة، x-default = النسخة العربية، وهي اللغة
@@ -664,6 +709,8 @@ def inject_product_seo(template, name, desc, url, price, img, images=None, avail
     # (بعد إضافة دعم اللغة الفرنسية للواجهة)، لذلك يجب مطابقة النص الجديد بالضبط هنا
     # وإلا سيفشل الاستبدال بصمت ولن تُحقن صفحات SEO الثابتة بالمحتوى الحقيقي للمنتج.
     out=out.replace('<div class="loading" data-i18n="product_loading">⏳ جاري تحميل المنتج...</div>',static_body,1)
+    out=out.replace('<div id="descCard" class="desc-card"></div>',static_desc_card(desc,'ar'),1)
+    out=inject_social_meta(out,name,d155,img)
     return out
 
 
@@ -797,6 +844,8 @@ def inject_product_seo_fr(template, name_fr, desc_fr, url_fr, price, img, images
         )
     static_body=static_product_html_fr(name_fr, desc_fr, price, images or [img], available, badge=badge, old_price=old_price)
     out=out.replace('<div class="loading" data-i18n="product_loading">⏳ جاري تحميل المنتج...</div>',static_body,1)
+    out=out.replace('<div id="descCard" class="desc-card"></div>',static_desc_card(desc_fr,'fr'),1)
+    out=inject_social_meta(out,name_fr,d155,img)
     return out
 
 
