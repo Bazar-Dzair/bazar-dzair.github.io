@@ -13,6 +13,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/generate_static_products.py'
+      - 'scripts/generate_merchant_feed.py'
       - 'product.html'
       - '.github/workflows/generate-seo-pages.yml'
 
@@ -41,13 +42,15 @@ jobs:
 
           for attempt in 1 2 3; do
             python3 scripts/generate_static_products.py
+            # ملف منتجات Google Merchant Center: يُبنى من الصفحات المولّدة للتو، فيجب أن يأتي بعد السكربت السابق
+            python3 scripts/generate_merchant_feed.py
 
             # index.html مُضاف عمدًا: السكربت يحدّث فيه بانر الصفحة الرئيسية (og:image / twitter:image /
             # heroImg) وبطاقات المنتجات والفئات. غيابه من هنا كان السبب في أن أي تغيير لا يصل للمستودع.
             # fr/ مُضاف هنا: مرحلة 2 من إصلاح SEO الفرنسية تولّد /fr/product/<slug>/ (نسخة
           # فرنسية ثابتة حقيقية من صفحة المنتج). بدون إضافته هنا لن تُدفَع هذه الملفات
           # المولَّدة أبدًا إلى main رغم إنشائها محليًا في كل تشغيل.
-          git add index.html product product-category fr latest feed.xml sitemap.xml sitemap-bazar.xml sitemap-products.xml sitemap-categories.xml
+          git add index.html product product-category fr latest feed.xml sitemap.xml sitemap-bazar.xml sitemap-products.xml sitemap-categories.xml merchant-feed.xml
             git rm -r --cached --ignore-unmatch category >/dev/null 2>&1 || true
 
             if git diff --cached --quiet; then
